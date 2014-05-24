@@ -1,0 +1,2 @@
+#define libmarpaxml_VERSION_MAJOR @libmarpaxml_VERSION_MAJOR@
+#define libmarpaxml_VERSION_MINOR @libmarpaxml_VERSION_MINOR@

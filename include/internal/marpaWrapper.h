@@ -1,0 +1,224 @@
+#ifndef MARPAWRAPPER_H
+#define MARPAWRAPPER_H
+
+#include <stddef.h>                  /* size_t definition */
+
+/* Convention is:
+   - all pointer symbols end with 'p'
+   - all number  symbols end with 'i'
+   - all boolean symbols end with 'b'
+   - all string  symbols end with 's'
+   - all void    symbols end with 'v'
+   - all types    end with '_t'
+*/
+
+/***********************/
+/* Opaque object types */
+/***********************/
+typedef struct marpaWrapper           marpaWrapper_t;
+typedef struct marpaWrapperSymbol     marpaWrapperSymbol_t;
+typedef struct marpaWrapperRule       marpaWrapperRule_t;
+typedef struct marpaWrapperGrammar    marpaWrapperGrammar_t;
+typedef struct marpaWrapperRecognizer marpaWrapperRecognizer_t;
+typedef struct marpaWrapperValue      marpaWrapperValue_t;
+
+/*******************/
+/* Published types */
+/*******************/
+typedef enum marpaWrapperLogLevel {
+  MARPAWRAPPER_LOGLEVEL_TRACE = 0,
+  MARPAWRAPPER_LOGLEVEL_DEBUG,
+  MARPAWRAPPER_LOGLEVEL_INFO,
+  MARPAWRAPPER_LOGLEVEL_NOTICE,
+  MARPAWRAPPER_LOGLEVEL_WARNING,
+  MARPAWRAPPER_LOGLEVEL_ERROR,
+  MARPAWRAPPER_LOGLEVEL_CRITICAL,
+  MARPAWRAPPER_LOGLEVEL_ALERT,
+  MARPAWRAPPER_LOGLEVEL_EMERGENCY
+} marpaWrapperLogLevel_t;
+
+/* Boolean */
+typedef enum marpaWrapperBool {
+  MARPAWRAPPER_BOOL_FALSE =  0,
+  MARPAWRAPPER_BOOL_TRUE  =  1
+} marpaWrapperBool_t;
+
+/* Value callback: boolean and stop directive */
+typedef enum marpaWrapperValueBool {
+  MARPAWRAPPER_VALUECALLBACKBOOL_STOP  = -1,     /* Used only when iterating over values via marpaWrapperValueCallback() */
+  MARPAWRAPPER_VALUECALLBACKBOOL_FALSE =  0,
+  MARPAWRAPPER_VALUECALLBACKBOOL_TRUE  =  1
+} marpaWrapperValueBool_t;
+
+/* Events */
+typedef enum marpaWrapperEventType {
+  MARPAWRAPPER_EVENTTYPE_COMPLETED = 0x01,
+  MARPAWRAPPER_EVENTTYPE_NULLED    = 0x02,
+  MARPAWRAPPER_EVENTTYPE_PREDICTED = 0x04,
+} marpaWrapperEventType_t;
+
+typedef struct marpaWrapperEvent {
+  marpaWrapperEventType_t  eventType;
+  marpaWrapperSymbol_t    *marpaWrapperSymbolp;
+} marpaWrapperEvent_t;
+
+/* Callbacks */
+typedef void                    (*marpaWrapperLogCallback_t)             (void *datavp, marpaWrapper_t *marpaWrapperp, marpaWrapperLogLevel_t logLeveli, const char *msgs);
+typedef marpaWrapperBool_t      (*marpaWrapperEventCallback_t)           (void *datavp, marpaWrapper_t *marpaWrapperp, size_t nEventi, marpaWrapperEvent_t *marpaWrapperEventp);
+typedef marpaWrapperBool_t      (*marpaWrapperValueRuleCallback_t)       (void *datavp, marpaWrapper_t *marpaWrapperp, marpaWrapperRule_t *marpaWrapperRulep, size_t nValueInputi, void **valueInputArraypp, void **valueOutputpp);
+typedef marpaWrapperBool_t      (*marpaWrapperValueSymbolCallback_t)     (void *datavp, marpaWrapper_t *marpaWrapperp, marpaWrapperSymbol_t *marpaWrapperSymbolp, int value, void **valueOutputpp);
+typedef marpaWrapperBool_t      (*marpaWrapperValueNullingCallback_t)    (void *datavp, marpaWrapper_t *marpaWrapperp, marpaWrapperSymbol_t *marpaWrapperSymbolp, void **valueOutputpp);
+typedef marpaWrapperValueBool_t (*marpaWrapperValueResultCallback_t)     (void *datavp, marpaWrapper_t *marpaWrapperp, void *valuep);
+typedef marpaWrapperBool_t      (*marpaWrapperStackElementFreeCallback_t)(void *datavp, marpaWrapper_t *marpaWrapperp, void *elementp);
+typedef marpaWrapperBool_t      (*marpaWrapperStackElementCopyCallback_t)(void *datavp, marpaWrapper_t *marpaWrapperp, void *elementDstp, void *elementSrcp);
+
+/* Symbol options - This is an optional parameter, so there are defaults if is not supplied. */
+typedef struct marpaWrapperSymbolOption {
+  void              *datavp;      /* Default: NULL.                    User's opaque data pointer for this symbol     */
+  marpaWrapperBool_t terminalb;   /* Default: MARPAWRAPPER_BOOL_FALSE. Eventually force symbol to be terminal         */
+  marpaWrapperBool_t startb;      /* Default: MARPAWRAPPER_BOOL_FALSE. Eventually force symbol to be the start symbol */
+  int                eventSeti;   /* Default: 0.                                                                      */
+} marpaWrapperSymbolOption_t;
+
+/* Recognizer options */
+typedef struct marpaWrapperRecognizerOption {
+  marpaWrapperBool_t useTerminalsExpectedb; /* Use Marpa's terminals_expected and asks user                                         */
+  marpaWrapperBool_t latmModeb;             /* Automatically work in Longest Acceptable Token Match (implies useTerminalsExpectedb) */
+} marpaWrapperRecognizerOption_t;
+
+/* Rule options - this is a required parameter, so the user is EXPECTED to overwrite some members */
+/* with meaningful values. In particular:                                                         */
+/* - lhsSymbolp                                                                                   */
+/* - nRhsSymboli                                                                                  */
+/* - rhsSymbolpp                                                                                  */
+typedef struct marpaWrapperRuleOption {
+  void                  *datavp;            /* Default: NULL.                    User's opaque data pointer for this symbol                         */
+  marpaWrapperSymbol_t  *lhsSymbolp;        /* Default: NULL.                    LHS symbol as returned by marpaWrapperSymbol_newp()                */
+  size_t                 nRhsSymboli;       /* Default: 0.                       Number of RHS                                                      */
+  marpaWrapperSymbol_t **rhsSymbolpp;       /* Default: NULL.                    RHS symbols as returned by marpaWrapperSymbol_newp()               */
+  int                    ranki;             /* Default: 0.                       Rank                                                               */
+  marpaWrapperBool_t     nullRanksHighb;    /* Default: MARPAWRAPPER_BOOL_FALSE. Null variant pattern                                               */
+
+  marpaWrapperBool_t     sequenceb;         /* Default: MARPAWRAPPER_BOOL_FALSE. Sequence ?                                                         */
+  marpaWrapperSymbol_t  *separatorSymbolp;  /* Default: NULL.                    Eventual separator symbol as returned by marpaWrapperSymbol_newp() */
+  marpaWrapperBool_t     properb;           /* Default: MARPAWRAPPER_BOOL_FALSE. Proper flag                                                        */
+  int                    minimumi;          /* Default: 0.                       Mininimum - must be 0 or 1                                         */
+} marpaWrapperRuleOption_t;
+
+/**************************/
+/* Constructor/destructor */
+/**************************/
+typedef struct marpaWrapperOption {
+  int                          (*versionip)[3];          /* Default: NULL                                                             */
+  marpaWrapperLogLevel_t         logLevelWantedi;        /* Default: MARPAWRAPPER_LOGLEVEL_WARNING                                    */
+  marpaWrapperLogCallback_t      logCallbackp;           /* Default: internal routine that logs to stderr                             */
+  void                          *logCallbackDatavp;      /* Default: NULL                                                             */
+  marpaWrapperEventCallback_t    eventCallbackp;         /* Default: NULL                                                             */
+  void                          *eventCallbackDatavp;    /* Default: NULL                                                             */
+  marpaWrapperBool_t             warningIsErrorb;        /* Default: MARPAWRAPPER_BOOL_FALSE. Have precedence over warningIsIgnoredb  */
+  marpaWrapperBool_t             warningIsIgnoredb;      /* Default: MARPAWRAPPER_BOOL_FALSE                                          */
+  marpaWrapperBool_t             unsortedEventsb;        /* Default: MARPAWRAPPER_BOOL_FALSE. Completed, then nulled, then predicted. */
+} marpaWrapperOption_t;
+marpaWrapper_t           *marpaWrapper_newp(marpaWrapperOption_t *marpaWrapperOptionp);
+void                      marpaWrapper_destroyv(marpaWrapper_t **marpaWrapperpp);
+
+/**************************************************/
+/* Phase 1: Grammar definition and precomputation */
+/**************************************************/
+marpaWrapperSymbol_t     *marpaWrapper_g_addSymbolp (marpaWrapper_t *marpaWrapperp, marpaWrapperSymbolOption_t *marpaWrapperSymbolOption);
+marpaWrapperRule_t       *marpaWrapper_g_addRulep   (marpaWrapper_t *marpaWrapperp, marpaWrapperRuleOption_t *marpaWrapperRuleOptionp, marpaWrapperSymbolOption_t *marpaWrapperSymbolOptionp);
+marpaWrapperBool_t        marpaWrapper_g_precomputeb(marpaWrapper_t *marpaWrapperp);
+
+/***********************/
+/* Phase 2: Recognizer */
+/***********************/
+typedef struct marpaWrapperProgress {
+  int                 marpaEarleySetIdi;
+  int                 marpaEarleySetIdOrigini;
+  marpaWrapperRule_t *marpaWrapperRulep;
+  int                 positioni;
+} marpaWrapperProgress_t;
+
+marpaWrapperBool_t        marpaWrapper_r_startb               (marpaWrapper_t *marpaWrapperp);
+marpaWrapperBool_t        marpaWrapper_r_alternativeb         (marpaWrapper_t *marpaWrapperp, marpaWrapperSymbol_t *marpaWrapperSymbolp, int value, int length);
+marpaWrapperBool_t        marpaWrapper_r_completeb            (marpaWrapper_t *marpaWrapperp);
+marpaWrapperBool_t        marpaWrapper_r_readb                (marpaWrapper_t *marpaWrapperp, marpaWrapperSymbol_t *marpaWrapperSymbolp, int value, int length);
+marpaWrapperBool_t        marpaWrapper_r_event_activateb      (marpaWrapper_t *marpaWrapperp, marpaWrapperSymbol_t *marpaWrapperSymbolp, int eventSeti, marpaWrapperBool_t onb);
+marpaWrapperBool_t        marpaWrapper_r_terminals_expectedb  (marpaWrapper_t *marpaWrapperp, size_t *nMarpaWrapperSymbolip, marpaWrapperSymbol_t ***marpaWrapperSymbolppp);
+marpaWrapperBool_t        marpaWrapper_r_terminal_is_expectedb(marpaWrapper_t *marpaWrapperp, marpaWrapperSymbol_t *marpaWrapperSymbolp, marpaWrapperBool_t *isExpectedbp);
+marpaWrapperBool_t        marpaWrapper_r_progressb            (marpaWrapper_t *marpaWrapperp, int starti, int endi, size_t *nmarpaWrapperProgressip, marpaWrapperProgress_t **marpaWrapperProgressArraypp);
+
+/******************/
+/* Phase 3: Value */
+/******************/
+typedef struct marpaWrapperValueOption {
+  /* Ordering options */
+  marpaWrapperBool_t                     highRankOnlyb;                          /* Default: MARPAWRAPPER_BOOL_TRUE  */
+  marpaWrapperBool_t                     orderByRankb;                           /* Default: MARPAWRAPPER_BOOL_TRUE  */
+  marpaWrapperBool_t                     ambiguityb;                             /* Default: MARPAWRAPPER_BOOL_TRUE  */
+  marpaWrapperBool_t                     nullb;                                  /* Default: MARPAWRAPPER_BOOL_TRUE  */
+  /* Stack manipulation */
+  marpaWrapperValueRuleCallback_t        valueRuleCallbackp;                     /* Default: NULL                    */
+  void                                  *valueRuleCallbackDatavp;                /* Default: NULL                    */
+  marpaWrapperValueSymbolCallback_t      valueSymbolCallbackp;                   /* Default: NULL                    */
+  void                                  *valueSymbolCallbackDatavp;              /* Default: NULL                    */
+  marpaWrapperValueNullingCallback_t     valueNullingCallbackp;                  /* Default: NULL                    */
+  void                                  *valueNullingCallbackDatavp;             /* Default: NULL                    */
+  marpaWrapperValueResultCallback_t      valueResultCallbackp;                   /* Default: NULL                    */
+  void                                  *valueResultCallbackDatavp;              /* Default: NULL                    */
+} marpaWrapperValueOption_t;
+
+/* marpaWrapperStackOptionp is mandatory, so there is no default */
+typedef struct marpaWrapperStackOption {
+  size_t                                 stackElementSizei;                      /* Default: 0. Must be > 0          */
+  marpaWrapperStackElementFreeCallback_t stackElementFreeCallbackp;              /* Default: NULL.                   */
+  void                                  *stackElementFreeCallbackUserDatap;      /* Default: NULL                    */
+  marpaWrapperStackElementCopyCallback_t stackElementCopyCallbackp;              /* Default: NULL                    */
+  void                                  *stackElementCopyCallbackUserDatap;      /* Default: NULL                    */
+} marpaWrapperStackOption_t;
+marpaWrapperBool_t        marpaWrapper_vb(marpaWrapper_t *marpaWrapperp, marpaWrapperValueOption_t *marpaWrapperValueOptionp, marpaWrapperStackOption_t *marpaWrapperStackOptionp);
+
+/*************************/
+/* Default options helper */
+/*************************/
+marpaWrapperBool_t        marpaWrapper_optionDefaultb      (marpaWrapperOption_t *marpaWrapperOptionp);
+marpaWrapperBool_t        marpaWrapper_symbolOptionDefaultb(marpaWrapperSymbolOption_t *marpaWrapperSymbolOptionp);
+marpaWrapperBool_t        marpaWrapper_ruleOptionDefaultb  (marpaWrapperRuleOption_t *marpaWrapperRuleOptionp);
+marpaWrapperBool_t        marpaWrapper_valueOptionDefaultb (marpaWrapperValueOption_t *marpaWrapperValueOptionp);
+marpaWrapperBool_t        marpaWrapper_stackOptionDefaultb (marpaWrapperStackOption_t *marpaWrapperStackOptionp);
+
+/* Generic getter definition */
+#define MARPAWRAPPER_GENERATE_GETTER_DECLARATION(prefix, externalType, externalName) \
+  marpaWrapperBool_t prefix##_##externalName##_getb(prefix##_t * prefix##p, externalType *externalName##p);
+
+/***************************************************************************************/
+/* From a wrapper opaque pointer, get size of/array of opaque symbol and rule pointers */
+/***************************************************************************************/
+MARPAWRAPPER_GENERATE_GETTER_DECLARATION(marpaWrapper,                 size_t, sizeMarpaWrapperRulei);
+MARPAWRAPPER_GENERATE_GETTER_DECLARATION(marpaWrapper, marpaWrapperSymbol_t *, marpaWrapperSymbolArrayp);
+MARPAWRAPPER_GENERATE_GETTER_DECLARATION(marpaWrapper,                 size_t, sizeMarpaWrapperSymboli);
+MARPAWRAPPER_GENERATE_GETTER_DECLARATION(marpaWrapper,   marpaWrapperRule_t *, marpaWrapperRuleArrayp);
+
+/******************************************************************************************************************/
+/* From a symbol opaque pointer, get opaque user data, and opaque rule pointer if the origin is a rule definition */
+/******************************************************************************************************************/
+MARPAWRAPPER_GENERATE_GETTER_DECLARATION(marpaWrapperSymbol, void *, datavp);
+MARPAWRAPPER_GENERATE_GETTER_DECLARATION(marpaWrapperSymbol, marpaWrapperRule_t *, marpaWrapperRulep);
+
+/***********************************************************************/
+/* From a rule opaque pointer, get opaque user data and symbol pointer */
+/***********************************************************************/
+MARPAWRAPPER_GENERATE_GETTER_DECLARATION(marpaWrapperRule, void *, datavp);
+MARPAWRAPPER_GENERATE_GETTER_DECLARATION(marpaWrapperRule, marpaWrapperSymbol_t *, marpaWrapperSymbolp);
+
+/*************************************************************************************/
+/* Avdanced users will want to play themselves with Marpa objects                    */
+/* The user application will have to #include "marpa.h" and typecast correspondingly */
+/*************************************************************************************/
+MARPAWRAPPER_GENERATE_GETTER_DECLARATION(marpaWrapper, void *, Marpa_Config);
+MARPAWRAPPER_GENERATE_GETTER_DECLARATION(marpaWrapper, void *, Marpa_Grammar);
+MARPAWRAPPER_GENERATE_GETTER_DECLARATION(marpaWrapper, void *, Marpa_Recognizer);
+MARPAWRAPPER_GENERATE_GETTER_DECLARATION(marpaWrapperSymbol, unsigned int, Marpa_Symbol_ID);
+MARPAWRAPPER_GENERATE_GETTER_DECLARATION(marpaWrapperRule, unsigned int, Marpa_Rule_ID);
+
+#endif /* MARPAWRAPPER_H */
