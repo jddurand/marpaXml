@@ -1,6 +1,0 @@
-#ifndef MARPAXML_CONFIG_H
-#define MARPAXML_CONFIG_H
-
-#define HAVE_ICU
-
-#endif /* MARPAXML_CONFIG_H */
