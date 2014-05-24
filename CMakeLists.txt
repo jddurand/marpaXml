@@ -96,7 +96,7 @@ SET(DISTCLEANED
   Makefile
   cmake_install.cmake
   ${MARPA_DIR}
-  include/marpaXml/config.h
+  include/internal/config.h
   )
 ADD_CUSTOM_COMMAND (
   DEPENDS clean
