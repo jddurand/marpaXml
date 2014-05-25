@@ -225,16 +225,16 @@ xml_1_0_t *xml_1_0_newp(marpaWrapperOption_t *marpaWrapperOptionp) {
   xml_1_0p->marpaWrapperSymbolArrayLengthi = 0;
 
   if (_xml_1_0_buildGrammarb(xml_1_0p, &marpaWrapperOption) == MARPAWRAPPER_BOOL_FALSE) {
-    xml_1_0_t_destroyv(&xml_1_0p);
+    xml_1_0_destroyv(&xml_1_0p);
   }
   
   return xml_1_0p;
 }
 
-/***********************/
-/* xml_1_0_t_destroyv  */
-/***********************/
-void xml_1_0_t_destroyv(xml_1_0_t **xml_1_0pp) {
+/*********************/
+/* xml_1_0_destroyv  */
+/*********************/
+void xml_1_0_destroyv(xml_1_0_t **xml_1_0pp) {
   xml_1_0_t *xml_1_0p;
 
   if (xml_1_0pp != NULL) {
@@ -271,6 +271,10 @@ static marpaWrapperBool_t _xml_1_0_buildGrammarb(xml_1_0_t *xml_1_0p, marpaWrapp
   }
 
   if (_xml_1_0_buildRulesb(xml_1_0p) == MARPAWRAPPER_BOOL_FALSE) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+
+  if (marpaWrapper_g_precomputeb(xml_1_0p->marpaWrapperp) == MARPAWRAPPER_BOOL_FALSE) {
     return MARPAWRAPPER_BOOL_FALSE;
   }
 
@@ -313,9 +317,6 @@ static marpaWrapperBool_t _xml_1_0_buildSymbolsb(xml_1_0_t *xml_1_0p) {
   return MARPAWRAPPER_BOOL_TRUE;
 }
 
-/************************/
-/* _xml_1_0_buildRulesb */
-/************************/
 #define ADD_RULE_BEG {							\
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) { \
       return MARPAWRAPPER_BOOL_FALSE;					\
@@ -496,6 +497,9 @@ static marpaWrapperBool_t _xml_1_0_buildSymbolsb(xml_1_0_t *xml_1_0p) {
     }									\
   }
 
+/************************/
+/* _xml_1_0_buildRulesb */
+/************************/
 static marpaWrapperBool_t _xml_1_0_buildRulesb(xml_1_0_t *xml_1_0p) {
   marpaWrapperRuleOption_t   marpaWrapperRuleOption;
   marpaWrapperSymbolOption_t marpaWrapperSymbolOption;

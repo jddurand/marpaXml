@@ -136,5 +136,8 @@ FOREACH (_icu_link_flag ${ICU_LINK_FLAGS})
   SET_PROPERTY          (TARGET ICU4CDetectEncoding APPEND_STRING PROPERTY LINK_FLAGS "${_icu_link_flag} ")
 ENDFOREACH ()
 
+ADD_EXECUTABLE        (xml_1_0 ${PROJECT_SOURCE_DIR}/test/internal/grammar/xml_1_0.c)
+TARGET_LINK_LIBRARIES (xml_1_0 marpaXmlInternal libmarpa)
+
 #INSTALL (TARGETS marpaxml DESTINATION install/bin)
 #INSTALL (FILES marpaWrapper.h DESTINATION install/include)
