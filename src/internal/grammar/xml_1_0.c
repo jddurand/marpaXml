@@ -221,8 +221,8 @@ xml_1_0_t *xml_1_0_newp(marpaWrapperOption_t *marpaWrapperOptionp) {
   xml_1_0p->marpaWrapperp = NULL;
   xml_1_0p->marpaWrapperSymbolArrayp = NULL;
   xml_1_0p->marpaWrapperSymbolArrayLengthi = 0;
-  xml_1_0p->marpaWrapperSymbolArrayp = NULL;
-  xml_1_0p->marpaWrapperSymbolArrayLengthi = 0;
+  xml_1_0p->marpaWrapperRuleArrayp = NULL;
+  xml_1_0p->marpaWrapperRuleArrayLengthi = 0;
 
   if (_xml_1_0_buildGrammarb(xml_1_0p, &marpaWrapperOption) == MARPAWRAPPER_BOOL_FALSE) {
     xml_1_0_destroyv(&xml_1_0p);
@@ -248,8 +248,9 @@ void xml_1_0_destroyv(xml_1_0_t **xml_1_0pp) {
 	free(xml_1_0p->marpaWrapperSymbolArrayp);
       }
       if (xml_1_0p->marpaWrapperSymbolArrayp != NULL) {
-	free(xml_1_0p->marpaWrapperSymbolArrayp);
+	free(xml_1_0p->marpaWrapperRuleArrayp);
       }
+      free(xml_1_0p);
     }
 
     *xml_1_0pp = NULL;

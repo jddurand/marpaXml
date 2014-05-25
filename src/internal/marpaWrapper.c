@@ -1711,7 +1711,7 @@ marpaWrapperBool_t marpaWrapper_symbolOptionDefaultb(marpaWrapperSymbolOption_t 
   marpaWrapperSymbolOptionp->startb      = MARPAWRAPPER_BOOL_FALSE;
   marpaWrapperSymbolOptionp->eventSeti   = 0;
 
-  return MARPAWRAPPER_BOOL_FALSE;
+  return MARPAWRAPPER_BOOL_TRUE;
 }
 
 /************************************/
@@ -1735,7 +1735,7 @@ marpaWrapperBool_t marpaWrapper_valueOptionDefaultb(marpaWrapperValueOption_t *m
   marpaWrapperValueOptionp->ambiguityb                 = MARPAWRAPPER_BOOL_TRUE;
   marpaWrapperValueOptionp->nullb                      = MARPAWRAPPER_BOOL_TRUE;
 
-  return MARPAWRAPPER_BOOL_FALSE;
+  return MARPAWRAPPER_BOOL_TRUE;
 }
 
 /************************************/
@@ -1757,7 +1757,7 @@ marpaWrapperBool_t marpaWrapper_ruleOptionDefaultb(marpaWrapperRuleOption_t *mar
   marpaWrapperRuleOptionp->properb          = MARPAWRAPPER_BOOL_FALSE;
   marpaWrapperRuleOptionp->minimumi         = 0;
 
-  return MARPAWRAPPER_BOOL_FALSE;
+  return MARPAWRAPPER_BOOL_TRUE;
 }
 
 /************************************/
@@ -1774,7 +1774,7 @@ marpaWrapperBool_t marpaWrapper_stackOptionDefaultb(marpaWrapperStackOption_t *m
   marpaWrapperStackOptionp->stackElementCopyCallbackp         = NULL;
   marpaWrapperStackOptionp->stackElementCopyCallbackUserDatap = NULL;
 
-  return MARPAWRAPPER_BOOL_FALSE;
+  return MARPAWRAPPER_BOOL_TRUE;
 }
 
 /************************************/
