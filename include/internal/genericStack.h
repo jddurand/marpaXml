@@ -1,5 +1,5 @@
-#ifndef GENERICSTACK_H
-#define GENERICSTACK_H
+#ifndef MARPAXML_INTERNAL_GENERICSTACK_H
+#define MARPAXML_INTERNAL_GENERICSTACK_H
 
 #include <stddef.h>              /* size_t definition */
 
@@ -68,4 +68,4 @@ size_t          genericStack_sizei   (genericStack_t *genericStackp);
 
 void            genericStack_destroyv(genericStack_t **genericStackpp);
 
-#endif /* GENERICSTACK_H */
+#endif /* MARPAXML_INTERNAL_GENERICSTACK_H */

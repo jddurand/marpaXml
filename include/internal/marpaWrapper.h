@@ -1,5 +1,5 @@
-#ifndef MARPAWRAPPER_H
-#define MARPAWRAPPER_H
+#ifndef MARPAXML_INTERNAL_MARPAWRAPPER_H
+#define MARPAXML_INTERNAL_MARPAWRAPPER_H
 
 #include <stddef.h>                  /* size_t definition */
 
@@ -92,7 +92,7 @@ typedef struct marpaWrapperRecognizerOption {
 /* - nRhsSymboli                                                                                  */
 /* - rhsSymbolpp                                                                                  */
 typedef struct marpaWrapperRuleOption {
-  void                  *datavp;            /* Default: NULL.                    User's opaque data pointer for this symbol                         */
+  void                  *datavp;            /* Default: NULL.                    User's opaque data pointer for this rule                           */
   marpaWrapperSymbol_t  *lhsSymbolp;        /* Default: NULL.                    LHS symbol as returned by marpaWrapperSymbol_newp()                */
   size_t                 nRhsSymboli;       /* Default: 0.                       Number of RHS                                                      */
   marpaWrapperSymbol_t **rhsSymbolpp;       /* Default: NULL.                    RHS symbols as returned by marpaWrapperSymbol_newp()               */
@@ -121,6 +121,13 @@ typedef struct marpaWrapperOption {
 } marpaWrapperOption_t;
 marpaWrapper_t           *marpaWrapper_newp(marpaWrapperOption_t *marpaWrapperOptionp);
 void                      marpaWrapper_destroyv(marpaWrapper_t **marpaWrapperpp);
+
+typedef enum marpaWrapperErrorOrigin {
+  MARPAWRAPPERERRORORIGIN_SYSTEM = 0,
+  MARPAWRAPPERERRORORIGIN_MARPA,
+  MARPAWRAPPERERRORORIGIN_NA,
+} marpaWrapperErrorOrigin_t;
+void                      marpaWrapper_log(marpaWrapperLogCallback_t logCallbackp, void *logCallbackDatavp, marpaWrapper_t *marpaWrapperp, marpaWrapperLogLevel_t logLevelWantedi, marpaWrapperErrorOrigin_t errorOrigini, int errorNumberi, const char *calls, marpaWrapperLogLevel_t logLeveli);
 
 /**************************************************/
 /* Phase 1: Grammar definition and precomputation */
@@ -221,4 +228,4 @@ MARPAWRAPPER_GENERATE_GETTER_DECLARATION(marpaWrapper, void *, Marpa_Recognizer)
 MARPAWRAPPER_GENERATE_GETTER_DECLARATION(marpaWrapperSymbol, unsigned int, Marpa_Symbol_ID);
 MARPAWRAPPER_GENERATE_GETTER_DECLARATION(marpaWrapperRule, unsigned int, Marpa_Rule_ID);
 
-#endif /* MARPAWRAPPER_H */
+#endif /* MARPAXML_INTERNAL_MARPAWRAPPER_H */

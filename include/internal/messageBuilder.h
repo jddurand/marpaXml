@@ -1,5 +1,5 @@
-#ifndef MESSAGEBUILDER_H
-#define MESSAGEBUILDER_H
+#ifndef MARPAXML_INTERNAL_MESSAGEBUILDER_H
+#define MARPAXML_INTERNAL_MESSAGEBUILDER_H
 
 #include <stdarg.h>
 
@@ -19,4 +19,4 @@ char *messageBuilder_internalErrors();
 char *messageBuilder(const char *fmts, ...);
 char *messageBuilder_ap(const char *fmts, va_list ap);
 
-#endif /* MESSAGEBUILDER_H */
+#endif /* MARPAXML_INTERNAL_MESSAGEBUILDER_H */

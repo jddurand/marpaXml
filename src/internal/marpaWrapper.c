@@ -47,12 +47,6 @@
 /* Dedicated System log macro */
 #define MARPAWRAPPER_LOG_SYS_ERROR(errorCode, calls) MARPAWRAPPER_LOG_0(MARPAWRAPPER_LOGLEVEL_ERROR, MARPAWRAPPERERRORORIGIN_SYSTEM, errorCode, calls);
 
-typedef enum marpaWrapperErrorOrigin {
-  MARPAWRAPPERERRORORIGIN_SYSTEM = 0,
-  MARPAWRAPPERERRORORIGIN_MARPA,
-  MARPAWRAPPERERRORORIGIN_NA,
-} marpaWrapperErrorOrigin_t;
-
 /****************/
 /* Object types */
 /****************/
@@ -117,7 +111,6 @@ static int _marpaWrapper_event_weight(Marpa_Event_Type eventType);
 /********************/
 /* Logging stuff */
 static void        _marpaWrapper_logWrapper(marpaWrapper_t *marpaWrapperp, marpaWrapperErrorOrigin_t errorOrigini, int errorNumberi, const char *calls, marpaWrapperLogLevel_t logLeveli);
-static void        _marpaWrapper_log(marpaWrapperLogCallback_t logCallbackp, void *logCallbackDatavp, marpaWrapper_t *marpaWrapperp, marpaWrapperLogLevel_t logLevelWantedi, marpaWrapperErrorOrigin_t errorOrigini, int errorNumberi, const char *calls, marpaWrapperLogLevel_t logLeveli);
 static void        _marpaWrapper_logCallback(void *logCallbackDatavp, marpaWrapper_t *marpaWrapperp, marpaWrapperLogLevel_t logLeveli, const char *msgs);
 static const char *_marpaWrapper_strerror   (marpaWrapperErrorOrigin_t errorOrigini, int errorNumberi);
 
@@ -146,7 +139,7 @@ static void                  _marpaWrapper_log_any(marpaWrapper_t *marpaWrapperp
 /********************************************************************************************************/
 /* marpaWrapper_newp                                                                                    */
 /*                                                                                                      */
-/* This is the only method where we might use _marpaWrapper_log() instead of _marpaWrapper_logWrapper() */
+/* This is the only method where we might use marpaWrapper_log() instead of _marpaWrapper_logWrapper()  */
 /********************************************************************************************************/
 marpaWrapper_t *marpaWrapper_newp(marpaWrapperOption_t *marpaWrapperOptionp) {
   marpaWrapper_t      *marpaWrapperp;
@@ -163,14 +156,14 @@ marpaWrapper_t *marpaWrapper_newp(marpaWrapperOption_t *marpaWrapperOptionp) {
 
   marpaWrapperp = malloc(sizeof(marpaWrapper_t));
   if (marpaWrapperp == NULL) {
-    _marpaWrapper_log(marpaWrapperOption.logCallbackp,
-		      marpaWrapperOption.logCallbackDatavp,
-		      NULL,
-		      marpaWrapperOption.logLevelWantedi,
-		      MARPAWRAPPERERRORORIGIN_SYSTEM,
-		      errno,
-		      "malloc()",
-		      MARPAWRAPPER_LOGLEVEL_ERROR);
+    marpaWrapper_log(marpaWrapperOption.logCallbackp,
+		     marpaWrapperOption.logCallbackDatavp,
+		     NULL,
+		     marpaWrapperOption.logLevelWantedi,
+		     MARPAWRAPPERERRORORIGIN_SYSTEM,
+		     errno,
+		     "malloc()",
+		     MARPAWRAPPER_LOGLEVEL_ERROR);
     return NULL;
   }
 
@@ -1178,28 +1171,28 @@ static void _marpaWrapper_logWrapper(marpaWrapper_t           *marpaWrapperp,
 				     const char               *calls,
 				     marpaWrapperLogLevel_t    logLeveli) {
   if (marpaWrapperp != NULL) {
-    _marpaWrapper_log(marpaWrapperp->marpaWrapperOption.logCallbackp,
-		      marpaWrapperp->marpaWrapperOption.logCallbackDatavp,
-		      marpaWrapperp,
-		      marpaWrapperp->marpaWrapperOption.logLevelWantedi,
-		      errorOrigini,
-		      errorNumberi,
-		      calls,
-		      logLeveli);
+    marpaWrapper_log(marpaWrapperp->marpaWrapperOption.logCallbackp,
+		     marpaWrapperp->marpaWrapperOption.logCallbackDatavp,
+		     marpaWrapperp,
+		     marpaWrapperp->marpaWrapperOption.logLevelWantedi,
+		     errorOrigini,
+		     errorNumberi,
+		     calls,
+		     logLeveli);
   }
 }
 
-/*********************/
-/* _marpaWrapper_log */
-/*********************/
-static void _marpaWrapper_log(marpaWrapperLogCallback_t logCallbackp,
-			      void                     *logCallbackDatavp,
-			      marpaWrapper_t           *marpaWrapperp,
-			      marpaWrapperLogLevel_t    logLevelWantedi,
-			      marpaWrapperErrorOrigin_t errorOrigini,
-			      int                       errorNumberi,
-			      const char               *calls,
-			      marpaWrapperLogLevel_t    logLeveli) {
+/********************/
+/* marpaWrapper_log */
+/********************/
+void marpaWrapper_log(marpaWrapperLogCallback_t logCallbackp,
+		      void                     *logCallbackDatavp,
+		      marpaWrapper_t           *marpaWrapperp,
+		      marpaWrapperLogLevel_t    logLevelWantedi,
+		      marpaWrapperErrorOrigin_t errorOrigini,
+		      int                       errorNumberi,
+		      const char               *calls,
+		      marpaWrapperLogLevel_t    logLeveli) {
   char *msgs;
   const char *strerrors;
 

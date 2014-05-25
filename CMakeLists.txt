@@ -17,7 +17,7 @@ ELSE ()
    SET (CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the type of build, options are: None(CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug Release RelWithDebInfo MinSizeRel.")
 ENDIF ()
 
-PROJECT (libmarpaxml)
+PROJECT (marpaXml)
 
 # In any case we include our include directory for all targets
 INCLUDE_DIRECTORIES (${PROJECT_SOURCE_DIR}/include)
@@ -73,17 +73,18 @@ SET_PROPERTY (TARGET libcharsetdetect
     ${LIBCHARSETDETECT_SRC}/nspr-emu
     ${LIBCHARSETDETECT_SRC}/mozilla/extensions/universalchardet/src/base)
 
-# ----------------
-# marpaxml library
-# ----------------
-ADD_LIBRARY (marpaxml
+# ------------------------
+# marpaXmlInternal library
+# ------------------------
+ADD_LIBRARY (marpaXmlInternal
   ${PROJECT_SOURCE_DIR}/src/internal/genericStack.c
   ${PROJECT_SOURCE_DIR}/src/internal/marpaWrapper.c
   ${PROJECT_SOURCE_DIR}/src/internal/messageBuilder.c
   ${PROJECT_SOURCE_DIR}/src/internal/streamIn.c
+  ${PROJECT_SOURCE_DIR}/src/internal/grammar/xml_1_0.c
   )
-SET_PROPERTY (TARGET marpaxml APPEND PROPERTY INCLUDE_DIRECTORIES ${MARPA_DIR}/libmarpa_dist)
-ADD_DEPENDENCIES (marpaxml libmarpa)
+SET_PROPERTY (TARGET marpaXmlInternal APPEND PROPERTY INCLUDE_DIRECTORIES ${MARPA_DIR}/libmarpa_dist)
+ADD_DEPENDENCIES (marpaXmlInternal libmarpa)
 
 # -----------------------
 # distclean custom target
@@ -112,9 +113,9 @@ ADD_CUSTOM_COMMAND (
 FIND_PACKAGE (ICU)
 SET (HAVE_ICU ICU_FOUND)
 
-# --------------------------
-# Generate marpaXml/config.h
-# --------------------------
+# ------------------------------------
+# Generate marpaXmlInternal's config.h
+# ------------------------------------
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/include/internal/config.h.in
                ${CMAKE_CURRENT_BINARY_DIR}/include/internal/config.h)
 
@@ -122,11 +123,11 @@ CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/include/internal/config.h.in
 # Executables
 # -----------
 ADD_EXECUTABLE        (marpaWrapperTest ${PROJECT_SOURCE_DIR}/test/internal/marpaWrapperTest.c)
-TARGET_LINK_LIBRARIES (marpaWrapperTest marpaxml libmarpa)
+TARGET_LINK_LIBRARIES (marpaWrapperTest marpaXmlInternal libmarpa)
 
 ADD_EXECUTABLE        (streamInTest ${PROJECT_SOURCE_DIR}/test/internal/streamInTest.c)
 SET_PROPERTY          (TARGET streamInTest APPEND PROPERTY INCLUDE_DIRECTORIES ${LIBCHARSETDETECT_SRC})
-TARGET_LINK_LIBRARIES (streamInTest marpaxml libcharsetdetect)
+TARGET_LINK_LIBRARIES (streamInTest marpaXmlInternal libcharsetdetect)
 
 ADD_EXECUTABLE        (ICU4CDetectEncoding ${PROJECT_SOURCE_DIR}/test/internal/ICU4CDetectEncoding.c)
 SET_PROPERTY          (TARGET ICU4CDetectEncoding APPEND_STRING PROPERTY COMPILE_FLAGS "${ICU_CPP_FLAGS} ${ICU_C_FLAGS} ")
@@ -135,5 +136,5 @@ FOREACH (_icu_link_flag ${ICU_LINK_FLAGS})
   SET_PROPERTY          (TARGET ICU4CDetectEncoding APPEND_STRING PROPERTY LINK_FLAGS "${_icu_link_flag} ")
 ENDFOREACH ()
 
-INSTALL (TARGETS marpaxml DESTINATION install/bin)
-INSTALL (FILES marpaWrapper.h DESTINATION install/include)
+#INSTALL (TARGETS marpaxml DESTINATION install/bin)
+#INSTALL (FILES marpaWrapper.h DESTINATION install/include)

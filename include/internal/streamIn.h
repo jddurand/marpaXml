@@ -1,5 +1,5 @@
-#ifndef STREAMIN_H
-#define STREAMIN_H
+#ifndef MARPAXML_INTERNAL_STREAMIN_H
+#define MARPAXML_INTERNAL_STREAMIN_H
 
 /*                                                                                  */
 /* This library will automatically handle buffers of **bytes**. Up to the user      */
@@ -73,4 +73,4 @@ streamInBool_t streamIn_nextBufferb(streamIn_t *streamInp, size_t *indexBufferip
 
 void           streamIn_destroyv(streamIn_t **streamInpp);
 
-#endif /* STREAMIN_H */
+#endif /* MARPAXML_INTERNAL_STREAMIN_H */
