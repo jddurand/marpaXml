@@ -553,9 +553,9 @@ marpaWrapperBool_t marpaWrapper_r_event_activateb(marpaWrapper_t *marpaWrapperp,
   return MARPAWRAPPER_BOOL_TRUE;
 }
 
-/*************************/
+/***************************/
 /* marpaWrapper_g_addRulep */
-/*************************/
+/***************************/
 marpaWrapperRule_t *marpaWrapper_g_addRulep(marpaWrapper_t *marpaWrapperp, marpaWrapperRuleOption_t *marpaWrapperRuleOptionp, marpaWrapperSymbolOption_t *marpaWrapperSymbolOptionp) {
   Marpa_Symbol_ID    *rhsIdp = NULL;
   Marpa_Rule_ID       marpaRuleIdi;

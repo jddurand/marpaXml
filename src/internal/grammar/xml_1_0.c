@@ -92,6 +92,7 @@ typedef enum xml_1_0_symbol {
   T_AttValue,
   T_EntityValue,
   /* Non-terminals */
+  S_x20,
   S_document,
   S_Names,
   S_Nmtokens,
@@ -326,10 +327,10 @@ static marpaWrapperBool_t _xml_1_0_buildSymbolsb(xml_1_0_t *xml_1_0p) {
       return MARPAWRAPPER_BOOL_FALSE;					\
     }									\
   }
-#define ADD_RULE_END(lhs, rhs, sep, min) {				\
+#define ADD_RULE_END(lhs, rhsp, sep, min) {				\
     marpaWrapperRuleOption.datavp = xml_1_0p;				\
     marpaWrapperRuleOption.lhsSymbolp = xml_1_0p->marpaWrapperSymbolArrayp[lhs]; \
-    marpaWrapperRuleOption.rhsSymbolpp = rhs;				\
+    marpaWrapperRuleOption.rhsSymbolpp = rhsp;				\
     if (min == '+') {							\
       marpaWrapperRuleOption.sequenceb = MARPAWRAPPER_BOOL_TRUE;	\
       marpaWrapperRuleOption.minimumi = 1;				\
@@ -337,8 +338,8 @@ static marpaWrapperBool_t _xml_1_0_buildSymbolsb(xml_1_0_t *xml_1_0p) {
       marpaWrapperRuleOption.sequenceb = MARPAWRAPPER_BOOL_TRUE;	\
       marpaWrapperRuleOption.minimumi = 0;				\
     }									\
-    if (sep != NULL) {							\
-      marpaWrapperRuleOption.separatorSymbolp = sep;			\
+    if (sep >= 0) {							\
+      marpaWrapperRuleOption.separatorSymbolp = xml_1_0p->marpaWrapperSymbolArrayp[sep]; \
       marpaWrapperRuleOption.properb = MARPAWRAPPER_BOOL_TRUE;		\
     }									\
     marpaWrapperSymbolOption.datavp = xml_1_0p;				\
@@ -505,256 +506,260 @@ static marpaWrapperBool_t _xml_1_0_buildRulesb(xml_1_0_t *xml_1_0p) {
   marpaWrapperRuleOption_t   marpaWrapperRuleOption;
   marpaWrapperSymbolOption_t marpaWrapperSymbolOption;
 
-  ADD_RULE_3(S_document, S_prolog, S_element, S_MiscAny, NULL, 0);
+  ADD_RULE_1(S_x20, T_x20, -1, 0);
 
-  ADD_RULE_1(S_Names, T_Name, T_x20, 1);
+  ADD_RULE_3(S_document, S_prolog, S_element, S_MiscAny, -1, 0);
 
-  ADD_RULE_1(S_Nmtokens, T_Nmtoken, T_x20, 1);
+  ADD_RULE_1(S_Names, T_Name, S_x20, '+');
 
-  ADD_RULE_3(S_Comment, T_CommentBeg, T_CommentInterior, T_CommentEnd, NULL, 0);
+  ADD_RULE_1(S_Nmtokens, T_Nmtoken, S_x20, '+');
 
-  ADD_RULE_3(S_PI, T_PiBeg, T_PITarget, T_PiEnd, NULL, 0);
-  ADD_RULE_5(S_PI, T_PiBeg, T_PITarget, T_S, T_PiInterior, T_PiEnd, NULL, 0);
+  ADD_RULE_3(S_Comment, T_CommentBeg, T_CommentInterior, T_CommentEnd, -1, 0);
 
-  ADD_RULE_3(S_CDSect, T_CDStart, T_CData, T_CDEnd, NULL, 0);
+  ADD_RULE_3(S_PI, T_PiBeg, T_PITarget, T_PiEnd, -1, 0);
+  ADD_RULE_5(S_PI, T_PiBeg, T_PITarget, T_S, T_PiInterior, T_PiEnd, -1, 0);
 
-  ADD_RULE_2(S_prolog, S_XMLDeclMaybe, S_MiscAny, NULL, 0);
-  ADD_RULE_4(S_prolog, S_XMLDeclMaybe, S_MiscAny, S_doctypedecl, S_MiscAny, NULL, 0);
+  ADD_RULE_3(S_CDSect, T_CDStart, T_CData, T_CDEnd, -1, 0);
 
-  ADD_RULE_6(S_XMLDecl, T_XmlBeg, S_VersionInfo, S_EncodingDeclMaybe, S_SDDeclMaybe, S_SMaybe, T_XmlEnd, NULL, 0);
+  ADD_RULE_2(S_prolog, S_XMLDeclMaybe, S_MiscAny, -1, 0);
+  ADD_RULE_4(S_prolog, S_XMLDeclMaybe, S_MiscAny, S_doctypedecl, S_MiscAny, -1, 0);
 
-  ADD_RULE_6(S_VersionInfo, T_S, T_Version, S_Eq, T_Squote, T_VersionNum, T_Squote, NULL, 0);
-  ADD_RULE_6(S_VersionInfo, T_S, T_Version, S_Eq, T_Dquote, T_VersionNum, T_Dquote, NULL, 0);
+  ADD_RULE_6(S_XMLDecl, T_XmlBeg, S_VersionInfo, S_EncodingDeclMaybe, S_SDDeclMaybe, S_SMaybe, T_XmlEnd, -1, 0);
 
-  ADD_RULE_3(S_Eq, S_SMaybe, T_Equal, S_SMaybe, NULL, 0);
+  ADD_RULE_6(S_VersionInfo, T_S, T_Version, S_Eq, T_Squote, T_VersionNum, T_Squote, -1, 0);
+  ADD_RULE_6(S_VersionInfo, T_S, T_Version, S_Eq, T_Dquote, T_VersionNum, T_Dquote, -1, 0);
 
-  ADD_RULE_1(S_Misc, S_Comment, NULL, 0);
-  ADD_RULE_1(S_Misc, S_PI, NULL, 0);
-  ADD_RULE_1(S_Misc, T_S, NULL, 0);
+  ADD_RULE_3(S_Eq, S_SMaybe, T_Equal, S_SMaybe, -1, 0);
 
-  ADD_RULE_5(S_doctypedecl, T_DoctypeBeg, T_S, T_Name, S_SMaybe, S_DoctypeEnd, NULL, 0);
-  ADD_RULE_9(S_doctypedecl, T_DoctypeBeg, T_S, T_Name, S_SMaybe, T_Lbracket, S_intSubset, T_Rbracket, S_SMaybe, S_DoctypeEnd, NULL, 0);
-  ADD_RULE_7(S_doctypedecl, T_DoctypeBeg, T_S, T_Name, T_S, S_ExternalID, S_SMaybe, S_DoctypeEnd, NULL, 0);
-  ADD_RULE_11(S_doctypedecl, T_DoctypeBeg, T_S, T_Name, T_S, S_ExternalID, S_SMaybe, T_Lbracket, S_intSubset, T_Rbracket, S_SMaybe, S_DoctypeEnd, NULL, 0);
+  ADD_RULE_1(S_Misc, S_Comment, -1, 0);
+  ADD_RULE_1(S_Misc, S_PI, -1, 0);
+  ADD_RULE_1(S_Misc, T_S, -1, 0);
 
-  ADD_RULE_1(S_DeclSep, T_PEReference, NULL, 0);
-  ADD_RULE_1(S_DeclSep, T_S, NULL, 0);
+  ADD_RULE_5(S_doctypedecl, T_DoctypeBeg, T_S, T_Name, S_SMaybe, S_DoctypeEnd, -1, 0);
+  ADD_RULE_9(S_doctypedecl, T_DoctypeBeg, T_S, T_Name, S_SMaybe, T_Lbracket, S_intSubset, T_Rbracket, S_SMaybe, S_DoctypeEnd, -1, 0);
+  ADD_RULE_7(S_doctypedecl, T_DoctypeBeg, T_S, T_Name, T_S, S_ExternalID, S_SMaybe, S_DoctypeEnd, -1, 0);
+  ADD_RULE_11(S_doctypedecl, T_DoctypeBeg, T_S, T_Name, T_S, S_ExternalID, S_SMaybe, T_Lbracket, S_intSubset, T_Rbracket, S_SMaybe, S_DoctypeEnd, -1, 0);
 
-  ADD_RULE_1(S_intSubset, S_intSubsetUnit, NULL, '*');
+  ADD_RULE_1(S_DeclSep, T_PEReference, -1, 0);
+  ADD_RULE_1(S_DeclSep, T_S, -1, 0);
 
-  ADD_RULE_1(S_markupdecl, S_elementdecl, NULL, 0);
-  ADD_RULE_1(S_markupdecl, S_AttlistDecl, NULL, 0);
-  ADD_RULE_1(S_markupdecl, S_EntityDecl, NULL, 0);
-  ADD_RULE_1(S_markupdecl, S_NotationDecl, NULL, 0);
-  ADD_RULE_1(S_markupdecl, S_PI, NULL, 0);
-  ADD_RULE_1(S_markupdecl, S_Comment, NULL, 0);
+  ADD_RULE_1(S_intSubset, S_intSubsetUnit, -1, '*');
 
-  ADD_RULE_1(S_extSubset, S_extSubsetDecl, NULL, 0);
-  ADD_RULE_2(S_extSubset, S_TextDecl, S_extSubsetDecl, NULL, 0);
+  ADD_RULE_1(S_markupdecl, S_elementdecl, -1, 0);
+  ADD_RULE_1(S_markupdecl, S_AttlistDecl, -1, 0);
+  ADD_RULE_1(S_markupdecl, S_EntityDecl, -1, 0);
+  ADD_RULE_1(S_markupdecl, S_NotationDecl, -1, 0);
+  ADD_RULE_1(S_markupdecl, S_PI, -1, 0);
+  ADD_RULE_1(S_markupdecl, S_Comment, -1, 0);
 
-  ADD_RULE_1(S_extSubsetDecl, S_extSubsetDeclUnit, NULL, '*');
+  ADD_RULE_1(S_extSubset, S_extSubsetDecl, -1, 0);
+  ADD_RULE_2(S_extSubset, S_TextDecl, S_extSubsetDecl, -1, 0);
 
-  ADD_RULE_6(S_SDDecl, T_S, T_Standalone, S_Eq, T_Squote, T_Yes, T_Squote, NULL, '*');
-  ADD_RULE_6(S_SDDecl, T_S, T_Standalone, S_Eq, T_Dquote, T_Yes, T_Dquote, NULL, '*');
-  ADD_RULE_6(S_SDDecl, T_S, T_Standalone, S_Eq, T_Squote, T_No, T_Squote, NULL, '*');
-  ADD_RULE_6(S_SDDecl, T_S, T_Standalone, S_Eq, T_Dquote, T_No, T_Dquote, NULL, '*');
+  ADD_RULE_1(S_extSubsetDecl, S_extSubsetDeclUnit, -1, '*');
 
-  ADD_RULE_1(S_element, S_EmptyElemTag, NULL, 0);
-  ADD_RULE_3(S_element, S_STag, S_EmptyElemTag, S_ETag, NULL, 0);
+  ADD_RULE_6(S_SDDecl, T_S, T_Standalone, S_Eq, T_Squote, T_Yes, T_Squote, -1, 0);
+  ADD_RULE_6(S_SDDecl, T_S, T_Standalone, S_Eq, T_Dquote, T_Yes, T_Dquote, -1, 0);
+  ADD_RULE_6(S_SDDecl, T_S, T_Standalone, S_Eq, T_Squote, T_No, T_Squote, -1, 0);
+  ADD_RULE_6(S_SDDecl, T_S, T_Standalone, S_Eq, T_Dquote, T_No, T_Dquote, -1, 0);
 
-  ADD_RULE_5(S_STag, S_STagBeg, T_Name, S_STagInteriorAny, S_SMaybe, T_STagEnd, NULL, 0);
+  ADD_RULE_1(S_element, S_EmptyElemTag, -1, 0);
+  ADD_RULE_3(S_element, S_STag, S_EmptyElemTag, S_ETag, -1, 0);
 
-  ADD_RULE_3(S_Attribute, T_Name, S_Eq, T_AttValue, NULL, 0);
+  ADD_RULE_5(S_STag, S_STagBeg, T_Name, S_STagInteriorAny, S_SMaybe, T_STagEnd, -1, 0);
 
-  ADD_RULE_4(S_ETag, T_ETagBeg, T_Name, S_SMaybe, T_ETagEnd, NULL, 0);
+  ADD_RULE_3(S_Attribute, T_Name, S_Eq, T_AttValue, -1, 0);
 
-  ADD_RULE_2(S_content, S_CharDataMaybe, S_ContentInteriorAny, NULL, 0);
+  ADD_RULE_4(S_ETag, T_ETagBeg, T_Name, S_SMaybe, T_ETagEnd, -1, 0);
 
-  ADD_RULE_5(S_EmptyElemTag, S_EmptyElemTagBeg, T_Name, S_EmptyElemTagInteriorAny, S_SMaybe, T_EmptyElemTagEnd, NULL, 0);
+  ADD_RULE_2(S_content, S_CharDataMaybe, S_ContentInteriorAny, -1, 0);
 
-  ADD_RULE_7(S_elementdecl, T_ElementDeclBeg, T_S, T_Name, T_S, S_contentspec, S_SMaybe, S_ElementDeclEnd, NULL, 0);
+  ADD_RULE_5(S_EmptyElemTag, S_EmptyElemTagBeg, T_Name, S_EmptyElemTagInteriorAny, S_SMaybe, T_EmptyElemTagEnd, -1, 0);
 
-  ADD_RULE_1(S_contentspec, T_Empty, NULL, 0);
-  ADD_RULE_1(S_contentspec, T_Any, NULL, 0);
-  ADD_RULE_1(S_contentspec, S_Mixed, NULL, 0);
-  ADD_RULE_1(S_contentspec, S_children, NULL, 0);
+  ADD_RULE_7(S_elementdecl, T_ElementDeclBeg, T_S, T_Name, T_S, S_contentspec, S_SMaybe, S_ElementDeclEnd, -1, 0);
 
-  ADD_RULE_2(S_children, S_choice, S_QuantifierMaybe, NULL, 0);
-  ADD_RULE_2(S_children, S_seq, S_QuantifierMaybe, NULL, 0);
+  ADD_RULE_1(S_contentspec, T_Empty, -1, 0);
+  ADD_RULE_1(S_contentspec, T_Any, -1, 0);
+  ADD_RULE_1(S_contentspec, S_Mixed, -1, 0);
+  ADD_RULE_1(S_contentspec, S_children, -1, 0);
 
-  ADD_RULE_2(S_cp, T_Name, S_QuantifierMaybe, NULL, 0);
-  ADD_RULE_2(S_cp, S_choice, S_QuantifierMaybe, NULL, 0);
-  ADD_RULE_2(S_cp, S_seq, S_QuantifierMaybe, NULL, 0);
+  ADD_RULE_2(S_children, S_choice, S_QuantifierMaybe, -1, 0);
+  ADD_RULE_2(S_children, S_seq, S_QuantifierMaybe, -1, 0);
 
-  ADD_RULE_6(S_choice, T_Lparen, S_SMaybe, S_cp, S_ChoiceInteriorMany, S_SMaybe, T_Rparen, NULL, 0);
+  ADD_RULE_2(S_cp, T_Name, S_QuantifierMaybe, -1, 0);
+  ADD_RULE_2(S_cp, S_choice, S_QuantifierMaybe, -1, 0);
+  ADD_RULE_2(S_cp, S_seq, S_QuantifierMaybe, -1, 0);
 
-  ADD_RULE_6(S_seq, T_Lparen, S_SMaybe, S_cp, S_SeqInteriorAny, S_SMaybe, T_Rparen, NULL, 0);
+  ADD_RULE_6(S_choice, T_Lparen, S_SMaybe, S_cp, S_ChoiceInteriorMany, S_SMaybe, T_Rparen, -1, 0);
 
-  ADD_RULE_6(S_Mixed, T_Lparen, S_SMaybe, T_Pcdata, S_MixedInteriorAny, S_SMaybe, T_RparenStar, NULL, 0);
-  ADD_RULE_5(S_Mixed, T_Lparen, S_SMaybe, T_Pcdata, S_SMaybe, T_Rparen, NULL, 0);
+  ADD_RULE_6(S_seq, T_Lparen, S_SMaybe, S_cp, S_SeqInteriorAny, S_SMaybe, T_Rparen, -1, 0);
 
-  ADD_RULE_6(S_AttlistDecl, T_AttlistBeg, T_S, T_Name, S_AttDefAny, T_S, S_AttlistEnd, NULL, 0);
+  ADD_RULE_6(S_Mixed, T_Lparen, S_SMaybe, T_Pcdata, S_MixedInteriorAny, S_SMaybe, T_RparenStar, -1, 0);
+  ADD_RULE_5(S_Mixed, T_Lparen, S_SMaybe, T_Pcdata, S_SMaybe, T_Rparen, -1, 0);
 
-  ADD_RULE_6(S_AttDef, T_S, T_Name, T_S, S_AttType, T_S, S_DefaultDecl, NULL, 0);
+  ADD_RULE_6(S_AttlistDecl, T_AttlistBeg, T_S, T_Name, S_AttDefAny, T_S, S_AttlistEnd, -1, 0);
 
-  ADD_RULE_1(S_AttType, T_StringType, NULL, 0);
-  ADD_RULE_1(S_AttType, S_TokenizedType, NULL, 0);
-  ADD_RULE_1(S_AttType, S_EnumeratedType, NULL, 0);
+  ADD_RULE_6(S_AttDef, T_S, T_Name, T_S, S_AttType, T_S, S_DefaultDecl, -1, 0);
 
-  ADD_RULE_1(S_TokenizedType, T_TypeId, NULL, 0);
-  ADD_RULE_1(S_TokenizedType, T_TypeIdref, NULL, 0);
-  ADD_RULE_1(S_TokenizedType, T_TypeIdrefs, NULL, 0);
-  ADD_RULE_1(S_TokenizedType, T_TypeEntity, NULL, 0);
-  ADD_RULE_1(S_TokenizedType, T_TypeEntities, NULL, 0);
-  ADD_RULE_1(S_TokenizedType, T_TypeNmtoken, NULL, 0);
-  ADD_RULE_1(S_TokenizedType, T_TypeNmtokens, NULL, 0);
+  ADD_RULE_1(S_AttType, T_StringType, -1, 0);
+  ADD_RULE_1(S_AttType, S_TokenizedType, -1, 0);
+  ADD_RULE_1(S_AttType, S_EnumeratedType, -1, 0);
 
-  ADD_RULE_1(S_EnumeratedType, S_NotationType, NULL, 0);
-  ADD_RULE_1(S_EnumeratedType, S_Enumeration, NULL, 0);
+  ADD_RULE_1(S_TokenizedType, T_TypeId, -1, 0);
+  ADD_RULE_1(S_TokenizedType, T_TypeIdref, -1, 0);
+  ADD_RULE_1(S_TokenizedType, T_TypeIdrefs, -1, 0);
+  ADD_RULE_1(S_TokenizedType, T_TypeEntity, -1, 0);
+  ADD_RULE_1(S_TokenizedType, T_TypeEntities, -1, 0);
+  ADD_RULE_1(S_TokenizedType, T_TypeNmtoken, -1, 0);
+  ADD_RULE_1(S_TokenizedType, T_TypeNmtokens, -1, 0);
 
-  ADD_RULE_8(S_NotationType, T_Notation, T_S, T_Lparen, S_SMaybe, T_Name, S_NotationTypeInteriorAny, S_SMaybe, T_Rparen, NULL, 0);
+  ADD_RULE_1(S_EnumeratedType, S_NotationType, -1, 0);
+  ADD_RULE_1(S_EnumeratedType, S_Enumeration, -1, 0);
 
-  ADD_RULE_6(S_Enumeration, T_Lparen, S_SMaybe, T_Nmtoken, S_EnumerationInteriorAny, S_SMaybe, T_Rparen, NULL, 0);
+  ADD_RULE_8(S_NotationType, T_Notation, T_S, T_Lparen, S_SMaybe, T_Name, S_NotationTypeInteriorAny, S_SMaybe, T_Rparen, -1, 0);
 
-  ADD_RULE_1(S_DefaultDecl, T_Required, NULL, 0);
-  ADD_RULE_1(S_DefaultDecl, T_Implied, NULL, 0);
-  ADD_RULE_1(S_DefaultDecl, T_AttValue, NULL, 0);
-  ADD_RULE_3(S_DefaultDecl, T_Fixed, T_S, T_AttValue, NULL, 0);
+  ADD_RULE_6(S_Enumeration, T_Lparen, S_SMaybe, T_Nmtoken, S_EnumerationInteriorAny, S_SMaybe, T_Rparen, -1, 0);
 
-  ADD_RULE_1(S_conditionalSect, S_includeSect, NULL, 0);
-  ADD_RULE_1(S_conditionalSect, S_ignoreSect, NULL, 0);
+  ADD_RULE_1(S_DefaultDecl, T_Required, -1, 0);
+  ADD_RULE_1(S_DefaultDecl, T_Implied, -1, 0);
+  ADD_RULE_1(S_DefaultDecl, T_AttValue, -1, 0);
+  ADD_RULE_3(S_DefaultDecl, T_Fixed, T_S, T_AttValue, -1, 0);
 
-  ADD_RULE_7(S_includeSect, T_SectBeg, S_SMaybe, T_Include, S_SMaybe, T_Lbracket, S_extSubsetDecl, T_SectEnd, NULL, 0);
+  ADD_RULE_1(S_conditionalSect, S_includeSect, -1, 0);
+  ADD_RULE_1(S_conditionalSect, S_ignoreSect, -1, 0);
 
-  ADD_RULE_7(S_ignoreSect, T_SectBeg, S_SMaybe, T_TOKIgnore, S_SMaybe, T_Lbracket, S_ignoreSectContentsAny, T_SectEnd, NULL, 0);
+  ADD_RULE_7(S_includeSect, T_SectBeg, S_SMaybe, T_Include, S_SMaybe, T_Lbracket, S_extSubsetDecl, T_SectEnd, -1, 0);
 
-  ADD_RULE_2(S_ignoreSectContents, T_Ignore, S_ignoreSectContentsInteriorAny, NULL, 0);
+  ADD_RULE_7(S_ignoreSect, T_SectBeg, S_SMaybe, T_TOKIgnore, S_SMaybe, T_Lbracket, S_ignoreSectContentsAny, T_SectEnd, -1, 0);
 
-  ADD_RULE_1(S_Reference, T_EntityRef, NULL, 0);
-  ADD_RULE_1(S_Reference, T_CharRef, NULL, 0);
+  ADD_RULE_2(S_ignoreSectContents, T_Ignore, S_ignoreSectContentsInteriorAny, -1, 0);
 
-  ADD_RULE_1(S_EntityDecl, S_GEDecl, NULL, 0);
-  ADD_RULE_1(S_EntityDecl, S_PEDecl, NULL, 0);
+  ADD_RULE_1(S_Reference, T_EntityRef, -1, 0);
+  ADD_RULE_1(S_Reference, T_CharRef, -1, 0);
 
-  ADD_RULE_7(S_GEDecl, T_EdeclBeg, T_S, T_Name, T_S, S_EntityDef, S_SMaybe, S_EdeclEnd, NULL, 0);
-  ADD_RULE_9(S_PEDecl, T_EdeclBeg, T_S, T_Percent, T_S, T_Name, T_S, S_PEDef, S_SMaybe, S_EdeclEnd, NULL, 0);
+  ADD_RULE_1(S_EntityDecl, S_GEDecl, -1, 0);
+  ADD_RULE_1(S_EntityDecl, S_PEDecl, -1, 0);
 
-  ADD_RULE_1(S_EntityDef, T_EntityValue, NULL, 0);
-  ADD_RULE_1(S_EntityDef, S_ExternalID, NULL, 0);
-  ADD_RULE_2(S_EntityDef, S_ExternalID, S_NDataDecl, NULL, 0);
+  ADD_RULE_7(S_GEDecl, T_EdeclBeg, T_S, T_Name, T_S, S_EntityDef, S_SMaybe, S_EdeclEnd, -1, 0);
+  ADD_RULE_9(S_PEDecl, T_EdeclBeg, T_S, T_Percent, T_S, T_Name, T_S, S_PEDef, S_SMaybe, S_EdeclEnd, -1, 0);
 
-  ADD_RULE_1(S_PEDef, T_EntityValue, NULL, 0);
-  ADD_RULE_1(S_PEDef, S_ExternalID, NULL, 0);
+  ADD_RULE_1(S_EntityDef, T_EntityValue, -1, 0);
+  ADD_RULE_1(S_EntityDef, S_ExternalID, -1, 0);
+  ADD_RULE_2(S_EntityDef, S_ExternalID, S_NDataDecl, -1, 0);
 
-  ADD_RULE_3(S_ExternalID, T_System, T_S, T_SystemLiteral, NULL, 0);
-  ADD_RULE_5(S_ExternalID, T_Public, T_S, T_PubidLiteral, T_S, T_SystemLiteral, NULL, 0);
+  ADD_RULE_1(S_PEDef, T_EntityValue, -1, 0);
+  ADD_RULE_1(S_PEDef, S_ExternalID, -1, 0);
 
-  ADD_RULE_5(S_TextDecl, T_XmlBeg, S_VersionInfoMaybe, S_EncodingDecl, S_SMaybe, T_XmlEnd, NULL, 0);
+  ADD_RULE_3(S_ExternalID, T_System, T_S, T_SystemLiteral, -1, 0);
+  ADD_RULE_5(S_ExternalID, T_Public, T_S, T_PubidLiteral, T_S, T_SystemLiteral, -1, 0);
 
-  ADD_RULE_1(S_extParsedEnt, S_content, NULL, 0);
-  ADD_RULE_2(S_extParsedEnt, S_TextDecl, S_content, NULL, 0);
+  ADD_RULE_4(S_NDataDecl, T_S, T_Ndata, T_S, T_Name, -1, 0);
 
-  ADD_RULE_6(S_EncodingDecl, T_S, T_Encoding, S_Eq, T_Dquote, T_EncName, T_Dquote, NULL, 0);
-  ADD_RULE_6(S_EncodingDecl, T_S, T_Encoding, S_Eq, T_Squote, T_EncName, T_Squote, NULL, 0);
+  ADD_RULE_5(S_TextDecl, T_XmlBeg, S_VersionInfoMaybe, S_EncodingDecl, S_SMaybe, T_XmlEnd, -1, 0);
 
-  ADD_RULE_7(S_NotationDecl, T_NotationBeg, T_S, T_Name, T_S, S_ExternalID, S_SMaybe, S_NotationEnd, NULL, 0);
-  ADD_RULE_7(S_NotationDecl, T_NotationBeg, T_S, T_Name, T_S, S_PublicID, S_SMaybe, S_NotationEnd, NULL, 0);
+  ADD_RULE_1(S_extParsedEnt, S_content, -1, 0);
+  ADD_RULE_2(S_extParsedEnt, S_TextDecl, S_content, -1, 0);
 
-  ADD_RULE_3(S_PublicID, T_Public, T_S, T_PubidLiteral, NULL, 0);
+  ADD_RULE_6(S_EncodingDecl, T_S, T_Encoding, S_Eq, T_Dquote, T_EncName, T_Dquote, -1, 0);
+  ADD_RULE_6(S_EncodingDecl, T_S, T_Encoding, S_Eq, T_Squote, T_EncName, T_Squote, -1, 0);
+
+  ADD_RULE_7(S_NotationDecl, T_NotationBeg, T_S, T_Name, T_S, S_ExternalID, S_SMaybe, S_NotationEnd, -1, 0);
+  ADD_RULE_7(S_NotationDecl, T_NotationBeg, T_S, T_Name, T_S, S_PublicID, S_SMaybe, S_NotationEnd, -1, 0);
+
+  ADD_RULE_3(S_PublicID, T_Public, T_S, T_PubidLiteral, -1, 0);
 
   /* Helpers */
 
-  ADD_RULE_1(S_XMLDeclMaybe, S_XMLDecl, NULL, 0);
-  ADD_RULE_0(S_XMLDeclMaybe, NULL, 0);
+  ADD_RULE_1(S_XMLDeclMaybe, S_XMLDecl, -1, 0);
+  ADD_RULE_0(S_XMLDeclMaybe, -1, 0);
   
-  ADD_RULE_1(S_MiscAny, S_Misc, NULL, '*');
+  ADD_RULE_1(S_MiscAny, S_Misc, -1, '*');
 
-  ADD_RULE_1(S_EncodingDeclMaybe, S_EncodingDecl, NULL, 0);
-  ADD_RULE_0(S_EncodingDeclMaybe, NULL, 0);
+  ADD_RULE_1(S_EncodingDeclMaybe, S_EncodingDecl, -1, 0);
+  ADD_RULE_0(S_EncodingDeclMaybe, -1, 0);
   
-  ADD_RULE_1(S_SDDeclMaybe, S_SDDecl, NULL, 0);
-  ADD_RULE_0(S_SDDeclMaybe, NULL, 0);
+  ADD_RULE_1(S_SDDeclMaybe, S_SDDecl, -1, 0);
+  ADD_RULE_0(S_SDDeclMaybe, -1, 0);
   
-  ADD_RULE_1(S_SMaybe, T_S, NULL, 0);
-  ADD_RULE_0(S_SMaybe, NULL, 0);
+  ADD_RULE_1(S_SMaybe, T_S, -1, 0);
+  ADD_RULE_0(S_SMaybe, -1, 0);
   
-  ADD_RULE_2(S_ContentInterior, S_element, S_CharDataMaybe, NULL, 0);
-  ADD_RULE_2(S_ContentInterior, S_Reference, S_CharDataMaybe, NULL, 0);
-  ADD_RULE_2(S_ContentInterior, S_CDSect, S_CharDataMaybe, NULL, 0);
-  ADD_RULE_2(S_ContentInterior, S_PI, S_CharDataMaybe, NULL, 0);
-  ADD_RULE_2(S_ContentInterior, S_Comment, S_CharDataMaybe, NULL, 0);
+  ADD_RULE_2(S_ContentInterior, S_element, S_CharDataMaybe, -1, 0);
+  ADD_RULE_2(S_ContentInterior, S_Reference, S_CharDataMaybe, -1, 0);
+  ADD_RULE_2(S_ContentInterior, S_CDSect, S_CharDataMaybe, -1, 0);
+  ADD_RULE_2(S_ContentInterior, S_PI, S_CharDataMaybe, -1, 0);
+  ADD_RULE_2(S_ContentInterior, S_Comment, S_CharDataMaybe, -1, 0);
 
-  ADD_RULE_1(S_ContentInteriorAny, S_ContentInterior, NULL, '*');
+  ADD_RULE_1(S_ContentInteriorAny, S_ContentInterior, -1, '*');
 
-  ADD_RULE_1(S_intSubsetUnit, S_markupdecl, NULL, 0);
-  ADD_RULE_1(S_intSubsetUnit, S_DeclSep, NULL, 0);
+  ADD_RULE_1(S_intSubsetUnit, S_markupdecl, -1, 0);
+  ADD_RULE_1(S_intSubsetUnit, S_DeclSep, -1, 0);
 
-  ADD_RULE_1(S_extSubsetDeclUnit, S_markupdecl, NULL, 0);
-  ADD_RULE_1(S_extSubsetDeclUnit, S_conditionalSect, NULL, 0);
-  ADD_RULE_1(S_extSubsetDeclUnit, S_DeclSep, NULL, 0);
+  ADD_RULE_1(S_extSubsetDeclUnit, S_markupdecl, -1, 0);
+  ADD_RULE_1(S_extSubsetDeclUnit, S_conditionalSect, -1, 0);
+  ADD_RULE_1(S_extSubsetDeclUnit, S_DeclSep, -1, 0);
 
-  ADD_RULE_2(S_STagInterior, T_S, S_Attribute, NULL, 0);
+  ADD_RULE_2(S_STagInterior, T_S, S_Attribute, -1, 0);
 
-  ADD_RULE_1(S_STagInteriorAny, S_STagInterior, NULL, '*');
+  ADD_RULE_1(S_STagInteriorAny, S_STagInterior, -1, '*');
 
-  ADD_RULE_1(S_CharDataMaybe, T_CharData, NULL, 0);
-  ADD_RULE_0(S_CharDataMaybe, NULL, 0);
+  ADD_RULE_1(S_CharDataMaybe, T_CharData, -1, 0);
+  ADD_RULE_0(S_CharDataMaybe, -1, 0);
 
-  ADD_RULE_2(S_EmptyElemTagInterior, T_S, S_Attribute, NULL, 0);
+  ADD_RULE_2(S_EmptyElemTagInterior, T_S, S_Attribute, -1, 0);
 
-  ADD_RULE_1(S_EmptyElemTagInteriorAny, S_EmptyElemTagInterior, NULL, '*');
+  ADD_RULE_1(S_EmptyElemTagInteriorAny, S_EmptyElemTagInterior, -1, '*');
 
-  ADD_RULE_1(S_Quantifier, T_QuestionMark, NULL, 0);
-  ADD_RULE_1(S_Quantifier, T_Star, NULL, 0);
-  ADD_RULE_1(S_Quantifier, T_Plus, NULL, 0);
+  ADD_RULE_1(S_Quantifier, T_QuestionMark, -1, 0);
+  ADD_RULE_1(S_Quantifier, T_Star, -1, 0);
+  ADD_RULE_1(S_Quantifier, T_Plus, -1, 0);
 
-  ADD_RULE_1(S_QuantifierMaybe, S_Quantifier, NULL, 0);
-  ADD_RULE_0(S_QuantifierMaybe, NULL, 0);
+  ADD_RULE_1(S_QuantifierMaybe, S_Quantifier, -1, 0);
+  ADD_RULE_0(S_QuantifierMaybe, -1, 0);
 
-  ADD_RULE_4(S_ChoiceInterior, S_SMaybe, T_Pipe, S_SMaybe, S_cp, NULL, 0);
+  ADD_RULE_4(S_ChoiceInterior, S_SMaybe, T_Pipe, S_SMaybe, S_cp, -1, 0);
 
-  ADD_RULE_1(S_ChoiceInteriorMany, S_ChoiceInterior, NULL, '+');
+  ADD_RULE_1(S_ChoiceInteriorMany, S_ChoiceInterior, -1, '+');
 
-  ADD_RULE_4(S_SeqInterior, S_SMaybe, T_Comma, S_SMaybe, S_cp, NULL, 0);
+  ADD_RULE_4(S_SeqInterior, S_SMaybe, T_Comma, S_SMaybe, S_cp, -1, 0);
 
-  ADD_RULE_1(S_SeqInteriorAny, S_SeqInterior, NULL, '*');
+  ADD_RULE_1(S_SeqInteriorAny, S_SeqInterior, -1, '*');
 
-  ADD_RULE_4(S_MixedInterior, S_SMaybe, T_Pipe, S_SMaybe, T_Name, NULL, 0);
+  ADD_RULE_4(S_MixedInterior, S_SMaybe, T_Pipe, S_SMaybe, T_Name, -1, 0);
 
-  ADD_RULE_1(S_MixedInteriorAny, S_MixedInterior, NULL, '*');
+  ADD_RULE_1(S_MixedInteriorAny, S_MixedInterior, -1, '*');
 
-  ADD_RULE_1(S_AttDefAny, S_AttDef, NULL, '*');
+  ADD_RULE_1(S_AttDefAny, S_AttDef, -1, '*');
 
-  ADD_RULE_4(S_NotationTypeInterior, S_SMaybe, T_Pipe, S_SMaybe, T_Name, NULL, 0);
+  ADD_RULE_4(S_NotationTypeInterior, S_SMaybe, T_Pipe, S_SMaybe, T_Name, -1, 0);
 
-  ADD_RULE_1(S_NotationTypeInteriorAny, S_NotationTypeInterior, NULL, '*');
+  ADD_RULE_1(S_NotationTypeInteriorAny, S_NotationTypeInterior, -1, '*');
 
-  ADD_RULE_4(S_NotationTypeInteriorAny, S_SMaybe, T_Pipe, S_SMaybe, T_Nmtoken, NULL, 0);
+  ADD_RULE_4(S_EnumerationInterior, S_SMaybe, T_Pipe, S_SMaybe, T_Nmtoken, -1, 0);
 
-  ADD_RULE_1(S_EnumerationInteriorAny, S_EnumerationInterior, NULL, '*');
+  ADD_RULE_1(S_EnumerationInteriorAny, S_EnumerationInterior, -1, '*');
 
-  ADD_RULE_1(S_ignoreSectContentsAny, S_ignoreSectContents, NULL, '*');
+  ADD_RULE_1(S_ignoreSectContentsAny, S_ignoreSectContents, -1, '*');
 
-  ADD_RULE_4(S_ignoreSectContentsInterior, T_SectBeg, S_ignoreSectContents, T_SectEnd, T_Ignore, NULL, 0);
+  ADD_RULE_4(S_ignoreSectContentsInterior, T_SectBeg, S_ignoreSectContents, T_SectEnd, T_Ignore, -1, 0);
 
-  ADD_RULE_1(S_ignoreSectContentsInteriorAny, S_ignoreSectContentsInterior, NULL, '*');
+  ADD_RULE_1(S_ignoreSectContentsInteriorAny, S_ignoreSectContentsInterior, -1, '*');
 
-  ADD_RULE_1(S_VersionInfoMaybe, S_VersionInfo, NULL, '*');
-  ADD_RULE_0(S_VersionInfoMaybe, NULL, '*');
+  ADD_RULE_1(S_VersionInfoMaybe, S_VersionInfo, -1, 0);
+  ADD_RULE_0(S_VersionInfoMaybe, -1, 0);
 
-  ADD_RULE_1(S_DoctypeEnd, T_XTagEnd, NULL, '*');
+  ADD_RULE_1(S_DoctypeEnd, T_XTagEnd, -1, 0);
 
-  ADD_RULE_1(S_STagBeg, T_XTagBeg, NULL, '*');
+  ADD_RULE_1(S_STagBeg, T_XTagBeg, -1, 0);
 
-  ADD_RULE_1(S_EmptyElemTagBeg, T_XTagBeg, NULL, '*');
+  ADD_RULE_1(S_EmptyElemTagBeg, T_XTagBeg, -1, 0);
 
-  ADD_RULE_1(S_ElementDeclEnd, T_XTagEnd, NULL, '*');
+  ADD_RULE_1(S_ElementDeclEnd, T_XTagEnd, -1, 0);
 
-  ADD_RULE_1(S_AttlistEnd, T_XTagEnd, NULL, '*');
+  ADD_RULE_1(S_AttlistEnd, T_XTagEnd, -1, 0);
 
-  ADD_RULE_1(S_NotationEnd, T_XTagEnd, NULL, '*');
+  ADD_RULE_1(S_NotationEnd, T_XTagEnd, -1, 0);
 
-  ADD_RULE_1(S_EdeclEnd, T_XTagEnd, NULL, '*');
+  ADD_RULE_1(S_EdeclEnd, T_XTagEnd, -1, 0);
 
   return MARPAWRAPPER_BOOL_TRUE;
 }
