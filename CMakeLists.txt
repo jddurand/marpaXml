@@ -113,6 +113,12 @@ ADD_CUSTOM_COMMAND (
 FIND_PACKAGE (ICU)
 SET (HAVE_ICU ICU_FOUND)
 
+# ----------------------
+# va_copy implementation
+# ----------------------
+INCLUDE(VA_COPY)
+VA_COPY()
+
 # ------------------------------------
 # Generate marpaXmlInternal's config.h
 # ------------------------------------

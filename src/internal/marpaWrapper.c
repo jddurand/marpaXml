@@ -51,35 +51,35 @@
 /* Object types */
 /****************/
 struct marpaWrapper {
-  Marpa_Config           marpaConfig;
-  Marpa_Grammar          marpaGrammarp;
-  Marpa_Recognizer       marpaRecognizerp;
+  Marpa_Config             marpaConfig;
+  Marpa_Grammar            marpaGrammarp;
+  Marpa_Recognizer         marpaRecognizerp;
 
-  size_t                 sizeMarpaWrapperSymboli;   /* Allocated size */
-  size_t                 nMarpaWrapperSymboli;      /* Real size      */
-  marpaWrapperSymbol_t  *marpaWrapperSymbolArrayp;
+  size_t                   sizeMarpaWrapperSymboli;           /* Allocated size */
+  size_t                   nMarpaWrapperSymboli;              /* Used size      */
+  marpaWrapperSymbol_t   **marpaWrapperSymbolpp;
 
-  size_t                 sizeMarpaWrapperRulei;     /* Allocated size */
-  size_t                 nMarpaWrapperRulei;        /* Real size      */
-  marpaWrapperRule_t    *marpaWrapperRuleArrayp;
+  size_t                   sizeMarpaWrapperRulei;             /* Allocated size */
+  size_t                   nMarpaWrapperRulei;                /* Used size      */
+  marpaWrapperRule_t     **marpaWrapperRulepp;
 
-  Marpa_Symbol_ID       *expectedMarpaSymbolIdArrayp;        /* Allocated once a recognizer is created */
-  marpaWrapperSymbol_t **expectedMarpaWrapperSymbolArraypp;  /* Allocated once a recognizer is created */
+  Marpa_Symbol_ID         *expectedMarpaSymbolIdArrayp;       /* One block allocated once a recognizer is created */
+  marpaWrapperSymbol_t   **expectedMarpaWrapperSymbolArraypp; /* One block allocated once a recognizer is created */
 
-  size_t                 sizeMarpaWrapperProgressArrayi;     /* Allocated size */
-  size_t                 nMarpaWrapperProgressArrayi;        /* Real size      */
-  marpaWrapperProgress_t *marpaWrapperProgressArrayp;        /* Allocated for progress report */
+  size_t                   sizeMarpaWrapperProgressi;         /* Allocated size */
+  size_t                   nMarpaWrapperProgressi;            /* Used size      */
+  marpaWrapperProgress_t **marpaWrapperProgresspp;
 
-  marpaWrapperOption_t   marpaWrapperOption;
+  marpaWrapperOption_t     marpaWrapperOption;
 };
 
-MARPAWRAPPER_GENERATE_GETTER_DEFINITION(marpaWrapper, void *, Marpa_Config, &, marpaConfig);
-MARPAWRAPPER_GENERATE_GETTER_DEFINITION(marpaWrapper, void *, Marpa_Grammar, , marpaGrammarp);
-MARPAWRAPPER_GENERATE_GETTER_DEFINITION(marpaWrapper, void *, Marpa_Recognizer, , marpaRecognizerp);
-MARPAWRAPPER_GENERATE_GETTER_DEFINITION(marpaWrapper, size_t, sizeMarpaWrapperRulei, , sizeMarpaWrapperRulei);
-MARPAWRAPPER_GENERATE_GETTER_DEFINITION(marpaWrapper, marpaWrapperSymbol_t *, marpaWrapperSymbolArrayp, , marpaWrapperSymbolArrayp);
-MARPAWRAPPER_GENERATE_GETTER_DEFINITION(marpaWrapper, size_t, sizeMarpaWrapperSymboli, , sizeMarpaWrapperSymboli);
-MARPAWRAPPER_GENERATE_GETTER_DEFINITION(marpaWrapper, marpaWrapperRule_t *, marpaWrapperRuleArrayp, , marpaWrapperRuleArrayp);
+MARPAWRAPPER_GENERATE_GETTER_DEFINITION(marpaWrapper,                  void *, Marpa_Config, &, marpaConfig);
+MARPAWRAPPER_GENERATE_GETTER_DEFINITION(marpaWrapper,                  void *, Marpa_Grammar, , marpaGrammarp);
+MARPAWRAPPER_GENERATE_GETTER_DEFINITION(marpaWrapper,                  void *, Marpa_Recognizer, , marpaRecognizerp);
+MARPAWRAPPER_GENERATE_GETTER_DEFINITION(marpaWrapper,                  size_t, sizeMarpaWrapperSymboli, , sizeMarpaWrapperSymboli);
+MARPAWRAPPER_GENERATE_GETTER_DEFINITION(marpaWrapper, marpaWrapperSymbol_t **, marpaWrapperSymbolpp, , marpaWrapperSymbolpp);
+MARPAWRAPPER_GENERATE_GETTER_DEFINITION(marpaWrapper,                  size_t, sizeMarpaWrapperRulei, , sizeMarpaWrapperRulei);
+MARPAWRAPPER_GENERATE_GETTER_DEFINITION(marpaWrapper,   marpaWrapperRule_t **, marpaWrapperRulepp, , marpaWrapperRulepp);
 
 struct marpaWrapperSymbol {
   Marpa_Symbol_ID            marpaSymbolIdi;
@@ -115,10 +115,11 @@ static void        _marpaWrapper_logCallback(void *logCallbackDatavp, marpaWrapp
 static const char *_marpaWrapper_strerror   (marpaWrapperErrorOrigin_t errorOrigini, int errorNumberi);
 
 /* API helpers */
-static marpaWrapperBool_t    _marpaWrapper_event      (marpaWrapper_t *marpaWrapperp);
-static marpaWrapperSymbol_t *_marpaWrapper_g_addSymbolp (marpaWrapper_t *marpaWrapperp, Marpa_Symbol_ID symbolIdi, marpaWrapperSymbolOption_t *marpaWrapperSymbolOptionp);
-static marpaWrapperRule_t   *_marpaWrapper_g_addRulep   (marpaWrapper_t *marpaWrapperp, Marpa_Rule_ID marpaRuleIdi, marpaWrapperRuleOption_t *marpaWrapperRuleOptionp, marpaWrapperSymbolOption_t *marpaWrapperSymbolOptionp);
-static marpaWrapperBool_t    _marpaWrapper_manage_bufb(marpaWrapper_t *marpaWrapperp, void **pp, size_t *sizeip, size_t wantedNumberi, size_t elementSizei);
+static marpaWrapperBool_t    _marpaWrapper_event       (marpaWrapper_t *marpaWrapperp);
+static marpaWrapperSymbol_t *_marpaWrapper_g_addSymbolp(marpaWrapper_t *marpaWrapperp, Marpa_Symbol_ID symbolIdi, marpaWrapperSymbolOption_t *marpaWrapperSymbolOptionp);
+static marpaWrapperRule_t   *_marpaWrapper_g_addRulep  (marpaWrapper_t *marpaWrapperp, Marpa_Rule_ID marpaRuleIdi, marpaWrapperRuleOption_t *marpaWrapperRuleOptionp, marpaWrapperSymbolOption_t *marpaWrapperSymbolOptionp);
+static marpaWrapperBool_t    _marpaWrapper_manage_bufb (marpaWrapper_t *marpaWrapperp, void ***ppp, size_t *sizeip, size_t wantedNumberi, size_t elementSizei);
+static void                  _marpaWrapper_free_bufb   (marpaWrapper_t *marpaWrapperp, void ***ppp, size_t *sizeip);
 
 /* Stack helpers */
 typedef struct marpaWrapperStackElementFreeData {
@@ -154,7 +155,7 @@ marpaWrapper_t *marpaWrapper_newp(marpaWrapperOption_t *marpaWrapperOptionp) {
     marpaWrapperOption = *marpaWrapperOptionp;
   }
 
-  marpaWrapperp = malloc(sizeof(marpaWrapper_t));
+  marpaWrapperp = (marpaWrapper_t *) malloc(sizeof(marpaWrapper_t));
   if (marpaWrapperp == NULL) {
     marpaWrapper_log(marpaWrapperOption.logCallbackp,
 		     marpaWrapperOption.logCallbackDatavp,
@@ -172,15 +173,15 @@ marpaWrapper_t *marpaWrapper_newp(marpaWrapperOption_t *marpaWrapperOptionp) {
   marpaWrapperp->marpaRecognizerp                  = NULL;
   marpaWrapperp->sizeMarpaWrapperSymboli           = 0;
   marpaWrapperp->nMarpaWrapperSymboli              = 0;
-  marpaWrapperp->marpaWrapperSymbolArrayp          = NULL;
+  marpaWrapperp->marpaWrapperSymbolpp              = NULL;
   marpaWrapperp->sizeMarpaWrapperRulei             = 0;
   marpaWrapperp->nMarpaWrapperRulei                = 0;
-  marpaWrapperp->marpaWrapperRuleArrayp            = NULL;
+  marpaWrapperp->marpaWrapperRulepp                = NULL;
   marpaWrapperp->expectedMarpaSymbolIdArrayp       = NULL;
   marpaWrapperp->expectedMarpaWrapperSymbolArraypp = NULL;
-  marpaWrapperp->sizeMarpaWrapperProgressArrayi    = 0;
-  marpaWrapperp->nMarpaWrapperProgressArrayi       = 0;
-  marpaWrapperp->marpaWrapperProgressArrayp        = NULL;
+  marpaWrapperp->sizeMarpaWrapperProgressi         = 0;
+  marpaWrapperp->nMarpaWrapperProgressi            = 0;
+  marpaWrapperp->marpaWrapperProgresspp            = NULL;
 
   /* From now on we can use marpaWrapperp */
   /* Get version anyway */
@@ -248,12 +249,8 @@ void marpaWrapper_destroyv(marpaWrapper_t **marpaWrapperpp) {
         MARPAWRAPPER_LOG_TRACEX("marpa_g_unref(%p)", marpaWrapperp->marpaGrammarp);
         marpa_g_unref(marpaWrapperp->marpaGrammarp);
       }
-      if (marpaWrapperp->marpaWrapperSymbolArrayp != NULL) {
-        free(marpaWrapperp->marpaWrapperSymbolArrayp);
-      }
-      if (marpaWrapperp->marpaWrapperRuleArrayp != NULL) {
-        free(marpaWrapperp->marpaWrapperRuleArrayp);
-      }
+      _marpaWrapper_free_bufb(marpaWrapperp, (void ***) &(marpaWrapperp->marpaWrapperSymbolpp), &(marpaWrapperp->sizeMarpaWrapperSymboli));
+      _marpaWrapper_free_bufb(marpaWrapperp, (void ***) &(marpaWrapperp->marpaWrapperRulepp), &(marpaWrapperp->sizeMarpaWrapperRulei));
       /* In theory, this can be not NULL only if there is a recognizer alive */
       if (marpaWrapperp->expectedMarpaSymbolIdArrayp != NULL) {
         free(marpaWrapperp->expectedMarpaSymbolIdArrayp);
@@ -262,9 +259,7 @@ void marpaWrapper_destroyv(marpaWrapper_t **marpaWrapperpp) {
       if (marpaWrapperp->expectedMarpaWrapperSymbolArraypp != NULL) {
         free(marpaWrapperp->expectedMarpaWrapperSymbolArraypp);
       }
-      if (marpaWrapperp->marpaWrapperProgressArrayp != NULL) {
-        free(marpaWrapperp->marpaWrapperProgressArrayp);
-      }
+      _marpaWrapper_free_bufb(marpaWrapperp, (void ***) &(marpaWrapperp->marpaWrapperProgresspp), &(marpaWrapperp->sizeMarpaWrapperProgressi));
       free(marpaWrapperp);
     }
     *marpaWrapperpp = NULL;
@@ -377,13 +372,13 @@ marpaWrapperBool_t marpaWrapper_r_terminals_expectedb(marpaWrapper_t *marpaWrapp
       MARPAWRAPPER_LOG_MARPA_G_ERROR;
       return MARPAWRAPPER_BOOL_FALSE;
     }
-    marpaWrapperp->expectedMarpaSymbolIdArrayp = malloc((highestSymbolIdi + 1) * sizeof(Marpa_Symbol_ID));
+    marpaWrapperp->expectedMarpaSymbolIdArrayp = (Marpa_Symbol_ID *) malloc((highestSymbolIdi + 1) * sizeof(Marpa_Symbol_ID));
     if (marpaWrapperp->expectedMarpaSymbolIdArrayp == NULL) {
       MARPAWRAPPER_LOG_SYS_ERROR(errno, "malloc()");
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* These two buffers are synchronized. No need to test on nullity of the following */
-    marpaWrapperp->expectedMarpaWrapperSymbolArraypp = malloc((highestSymbolIdi + 1) * sizeof(marpaWrapperSymbol_t *));
+    marpaWrapperp->expectedMarpaWrapperSymbolArraypp = (marpaWrapperSymbol_t **) malloc((highestSymbolIdi + 1) * sizeof(marpaWrapperSymbol_t *));
     if (marpaWrapperp->expectedMarpaWrapperSymbolArraypp == NULL) {
       MARPAWRAPPER_LOG_SYS_ERROR(errno, "malloc()");
       free(marpaWrapperp->expectedMarpaSymbolIdArrayp);
@@ -403,7 +398,7 @@ marpaWrapperBool_t marpaWrapper_r_terminals_expectedb(marpaWrapper_t *marpaWrapp
   /* Fill preallocated buffer using the ids as a index */
   if (nSymbolIdi > 0) {
     for (i = 0; i < nSymbolIdi; i++) {
-      marpaWrapperp->expectedMarpaWrapperSymbolArraypp[i] = &(marpaWrapperp->marpaWrapperSymbolArrayp[marpaWrapperp->expectedMarpaSymbolIdArrayp[i]]);
+      marpaWrapperp->expectedMarpaWrapperSymbolArraypp[i] = marpaWrapperp->marpaWrapperSymbolpp[marpaWrapperp->expectedMarpaSymbolIdArrayp[i]];
     }
   }
 
@@ -456,15 +451,20 @@ static marpaWrapperSymbol_t *_marpaWrapper_g_addSymbolp(marpaWrapper_t *marpaWra
 
   /* Allocate room for the new symbol */
   if (_marpaWrapper_manage_bufb(marpaWrapperp,
-				(void **) &(marpaWrapperp->marpaWrapperSymbolArrayp),
+				(void ***) &(marpaWrapperp->marpaWrapperSymbolpp),
 				&(marpaWrapperp->sizeMarpaWrapperSymboli),
 				nMarpaWrapperSymboli,
-				sizeof(marpaWrapperSymbol_t)) != MARPAWRAPPER_BOOL_TRUE) {
+				sizeof(marpaWrapperSymbol_t *)) != MARPAWRAPPER_BOOL_TRUE) {
     return NULL;
   }
 
+  marpaWrapperSymbolp = (marpaWrapperSymbol_t *) malloc(sizeof(marpaWrapperSymbol_t));
+  if (marpaWrapperSymbolp == NULL) {
+    MARPAWRAPPER_LOG_SYS_ERROR(errno, "malloc()");
+    return NULL;
+  }
   marpaWrapperp->nMarpaWrapperSymboli = nMarpaWrapperSymboli;
-  marpaWrapperSymbolp = &(marpaWrapperp->marpaWrapperSymbolArrayp[marpaSymbolIdi]);
+  marpaWrapperp->marpaWrapperSymbolpp[marpaSymbolIdi] = marpaWrapperSymbolp;
 
   /* Fill the defaults */
   marpaWrapperSymbolp->marpaSymbolIdi = marpaSymbolIdi;
@@ -587,7 +587,7 @@ marpaWrapperRule_t *marpaWrapper_g_addRulep(marpaWrapper_t *marpaWrapperp, marpa
   }
 
   if (marpaWrapperRuleOptionp->nRhsSymboli > 0) {
-    rhsIdp = malloc(marpaWrapperRuleOptionp->nRhsSymboli * sizeof(Marpa_Symbol_ID));
+    rhsIdp = (Marpa_Symbol_ID *) malloc(marpaWrapperRuleOptionp->nRhsSymboli * sizeof(Marpa_Symbol_ID));
     if (rhsIdp == NULL) {
       MARPAWRAPPER_LOG_SYS_ERROR(errno, "malloc()");
       return NULL;
@@ -612,7 +612,7 @@ marpaWrapperRule_t *marpaWrapper_g_addRulep(marpaWrapper_t *marpaWrapperp, marpa
 					marpaWrapperRuleOptionp->minimumi,
 					sequenceFlagsi);
   } else {
-    MARPAWRAPPER_LOG_TRACEX("marpa_g_rule_new(%p, %d, %p, %d)", marpaWrapperp->marpaGrammarp, (int) marpaWrapperRuleOptionp->lhsSymbolp->marpaSymbolIdi, rhsIdp, marpaWrapperRuleOptionp->nRhsSymboli);
+    MARPAWRAPPER_LOG_TRACEX("marpa_g_rule_new(%p, %d, %p, %d)", marpaWrapperp->marpaGrammarp, (int) marpaWrapperRuleOptionp->lhsSymbolp->marpaSymbolIdi, rhsIdp, (int) marpaWrapperRuleOptionp->nRhsSymboli);
     marpaRuleIdi = marpa_g_rule_new(marpaWrapperp->marpaGrammarp,
 				    marpaWrapperRuleOptionp->lhsSymbolp->marpaSymbolIdi,
 				    rhsIdp,
@@ -643,15 +643,20 @@ static marpaWrapperRule_t *_marpaWrapper_g_addRulep(marpaWrapper_t *marpaWrapper
 
   /* Allocate room for the new rule */
   if (_marpaWrapper_manage_bufb(marpaWrapperp,
-				(void **) &(marpaWrapperp->marpaWrapperRuleArrayp),
+				(void ***) &(marpaWrapperp->marpaWrapperRulepp),
 				&(marpaWrapperp->sizeMarpaWrapperRulei),
 				nMarpaWrapperRulei,
-				sizeof(marpaWrapperRule_t)) != MARPAWRAPPER_BOOL_TRUE) {
+				sizeof(marpaWrapperRule_t *)) != MARPAWRAPPER_BOOL_TRUE) {
     return NULL;
   }
 
+  marpaWrapperRulep = (marpaWrapperRule_t *) malloc(sizeof(marpaWrapperRule_t));
+  if (marpaWrapperRulep == NULL) {
+    MARPAWRAPPER_LOG_SYS_ERROR(errno, "malloc()");
+    return NULL;
+  }
   marpaWrapperp->nMarpaWrapperRulei = nMarpaWrapperRulei;
-  marpaWrapperRulep = &(marpaWrapperp->marpaWrapperRuleArrayp[marpaRuleIdi]);
+  marpaWrapperp->marpaWrapperRulepp[marpaRuleIdi] = marpaWrapperRulep;
 
   /* Per def, marpaWrapperRuleOptionp is != NULL */
   marpaWrapperRulep->marpaRuleIdi = marpaRuleIdi;
@@ -887,7 +892,7 @@ marpaWrapperBool_t marpaWrapper_vb(marpaWrapper_t *marpaWrapperp, marpaWrapperVa
 
         MARPAWRAPPER_LOG_TRACEX("MARPA_STEP_RULE: Stack [%d..%d] -> Stack %d", argFirsti, argLasti, argResulti);
 
-	valueInputArraypp = malloc(nValueInputi * sizeof(void *));
+	valueInputArraypp = (void **) malloc(nValueInputi * sizeof(void *));
 	if (valueInputArraypp == NULL) {
 	  MARPAWRAPPER_LOG_SYS_ERROR(errno, "malloc()");
 	  rcb = MARPAWRAPPER_BOOL_FALSE;
@@ -900,7 +905,7 @@ marpaWrapperBool_t marpaWrapper_vb(marpaWrapper_t *marpaWrapperp, marpaWrapperVa
 	  MARPAWRAPPER_LOG_TRACEX("MARPA_STEP_RULE: valueRuleCallbackp(%p, %p, %p, %d, %p, %p)",
 				  marpaWrapperValueOption.valueRuleCallbackDatavp,
 				  marpaWrapperp,
-				  &(marpaWrapperp->marpaWrapperRuleArrayp[marpaRuleIdi]),
+				  marpaWrapperp->marpaWrapperRulepp[marpaRuleIdi],
 				  nValueInputi,
 				  valueInputArraypp,
 				  &valueOutputp);
@@ -908,7 +913,7 @@ marpaWrapperBool_t marpaWrapper_vb(marpaWrapper_t *marpaWrapperp, marpaWrapperVa
 	      (
 	       marpaWrapperValueOption.valueRuleCallbackDatavp,
 	       marpaWrapperp,
-	       &(marpaWrapperp->marpaWrapperRuleArrayp[marpaRuleIdi]),
+	       marpaWrapperp->marpaWrapperRulepp[marpaRuleIdi],
 	       nValueInputi,
 	       valueInputArraypp,
 	       &valueOutputp) == MARPAWRAPPER_BOOL_FALSE) {
@@ -945,14 +950,14 @@ marpaWrapperBool_t marpaWrapper_vb(marpaWrapper_t *marpaWrapperp, marpaWrapperVa
 	  MARPAWRAPPER_LOG_TRACEX("MARPA_STEP_TOKEN: valueSymbolCallbackp(%p, %p, %p, %d, %p)",
 				  marpaWrapperValueOption.valueSymbolCallbackDatavp,
 				  marpaWrapperp,
-				  &(marpaWrapperp->marpaWrapperSymbolArrayp[marpaSymbolIdi]),
+				  marpaWrapperp->marpaWrapperSymbolpp[marpaSymbolIdi],
 				  tokenValuei,
 				  &valueOutputp);
 	  if ((*marpaWrapperValueOption.valueSymbolCallbackp)
 	      (
 	       marpaWrapperValueOption.valueSymbolCallbackDatavp,
 	       marpaWrapperp,
-	       &(marpaWrapperp->marpaWrapperSymbolArrayp[marpaSymbolIdi]),
+	       marpaWrapperp->marpaWrapperSymbolpp[marpaSymbolIdi],
                tokenValuei,
 	       &valueOutputp) == MARPAWRAPPER_BOOL_FALSE) {
 	    MARPAWRAPPER_LOG_ERROR0("valueSymbolCallbackp() failure");
@@ -983,13 +988,13 @@ marpaWrapperBool_t marpaWrapper_vb(marpaWrapper_t *marpaWrapperp, marpaWrapperVa
 	  MARPAWRAPPER_LOG_TRACEX("MARPA_STEP_NULLING_SYMBOL: valueNullingCallbackp(%p, %p, %p, %p)",
 				  marpaWrapperValueOption.valueNullingCallbackDatavp,
 				  marpaWrapperp,
-				  &(marpaWrapperp->marpaWrapperSymbolArrayp[marpaSymbolIdi]),
+				  marpaWrapperp->marpaWrapperSymbolpp[marpaSymbolIdi],
 				  &valueOutputp);
 	  if ((*marpaWrapperValueOption.valueNullingCallbackp)
 	      (
 	       marpaWrapperValueOption.valueNullingCallbackDatavp,
 	       marpaWrapperp,
-	       &(marpaWrapperp->marpaWrapperSymbolArrayp[marpaSymbolIdi]),
+	       marpaWrapperp->marpaWrapperSymbolpp[marpaSymbolIdi],
 	       &valueOutputp) == MARPAWRAPPER_BOOL_FALSE) {
 	    MARPAWRAPPER_LOG_ERROR0("valueNullingCallbackp() failure");
 	    rcb = MARPAWRAPPER_BOOL_FALSE;
@@ -1397,7 +1402,7 @@ static marpaWrapperBool_t _marpaWrapper_event(marpaWrapper_t *marpaWrapperp) {
     return MARPAWRAPPER_BOOL_TRUE;
   }
 
-  marpaWrapperEventp = malloc(nbEventi * sizeof(marpaWrapperEvent_t));
+  marpaWrapperEventp = (marpaWrapperEvent_t *) malloc(nbEventi * sizeof(marpaWrapperEvent_t));
   if (marpaWrapperEventp == NULL) {
     MARPAWRAPPER_LOG_SYS_ERROR(errno, "malloc()");
     return MARPAWRAPPER_BOOL_FALSE;
@@ -1439,7 +1444,7 @@ static marpaWrapperBool_t _marpaWrapper_event(marpaWrapper_t *marpaWrapperp) {
       MARPAWRAPPER_LOG_TRACEX("marpa_g_event_value(%p)", &event);
       eventValuei = marpa_g_event_value(&event);
       marpaWrapperEventp[subscribedEventi].eventType = MARPAWRAPPER_EVENTTYPE_COMPLETED;
-      marpaWrapperEventp[subscribedEventi].marpaWrapperSymbolp = &(marpaWrapperp->marpaWrapperSymbolArrayp[eventValuei]);
+      marpaWrapperEventp[subscribedEventi].marpaWrapperSymbolp = marpaWrapperp->marpaWrapperSymbolpp[eventValuei];
       subscribedEventi++;
       MARPAWRAPPER_LOG_TRACEX("\tCompleted symbol %d", eventValuei);
       break;
@@ -1447,14 +1452,14 @@ static marpaWrapperBool_t _marpaWrapper_event(marpaWrapper_t *marpaWrapperp) {
       MARPAWRAPPER_LOG_TRACEX("marpa_g_event_value(%p)", &event);
       eventValuei = marpa_g_event_value(&event);
       marpaWrapperEventp[subscribedEventi].eventType = MARPAWRAPPER_EVENTTYPE_NULLED;
-      marpaWrapperEventp[subscribedEventi].marpaWrapperSymbolp = &(marpaWrapperp->marpaWrapperSymbolArrayp[eventValuei]);
+      marpaWrapperEventp[subscribedEventi].marpaWrapperSymbolp = marpaWrapperp->marpaWrapperSymbolpp[eventValuei];
       subscribedEventi++;
       MARPAWRAPPER_LOG_TRACEX("\tSymbol %d was nulled", eventValuei);
       break;
     case MARPA_EVENT_SYMBOL_EXPECTED:        /* Terminals only, should not happen since we rely on the general events mechanism */
       eventValuei = marpa_g_event_value(&event);
       marpaWrapperEventp[subscribedEventi].eventType = MARPAWRAPPER_EVENTTYPE_PREDICTED;
-      marpaWrapperEventp[subscribedEventi].marpaWrapperSymbolp = &(marpaWrapperp->marpaWrapperSymbolArrayp[eventValuei]);
+      marpaWrapperEventp[subscribedEventi].marpaWrapperSymbolp = marpaWrapperp->marpaWrapperSymbolpp[eventValuei];
       subscribedEventi++;
       MARPAWRAPPER_LOG_TRACEX("\tExpecting symbol %d", eventValuei);
       break;
@@ -1462,7 +1467,7 @@ static marpaWrapperBool_t _marpaWrapper_event(marpaWrapper_t *marpaWrapperp) {
       MARPAWRAPPER_LOG_TRACEX("marpa_g_event_value(%p)", &event);
       eventValuei = marpa_g_event_value(&event);
       marpaWrapperEventp[subscribedEventi].eventType = MARPAWRAPPER_EVENTTYPE_PREDICTED;
-      marpaWrapperEventp[subscribedEventi].marpaWrapperSymbolp = &(marpaWrapperp->marpaWrapperSymbolArrayp[eventValuei]);
+      marpaWrapperEventp[subscribedEventi].marpaWrapperSymbolp = marpaWrapperp->marpaWrapperSymbolpp[eventValuei];
       subscribedEventi++;
       MARPAWRAPPER_LOG_TRACEX("\tSymbol %d was predicted", eventValuei);
       break;
@@ -1559,10 +1564,16 @@ static int _marpaWrapper_event_weight(Marpa_Event_Type eventType) {
 /*****************************/
 /* _marpaWrapper_manage_bufb */
 /*****************************/
-static marpaWrapperBool_t _marpaWrapper_manage_bufb(marpaWrapper_t *marpaWrapperp, void **pp, size_t *sizeip, size_t wantedNumberi, size_t elementSizei) {
-  size_t sizei = *sizeip;
-  size_t prevSizei;
-  void  *p = *pp;
+static marpaWrapperBool_t _marpaWrapper_manage_bufb(marpaWrapper_t *marpaWrapperp, void ***ppp, size_t *sizeip, size_t wantedNumberi, size_t elementSizei) {
+  size_t  sizei = *sizeip;
+  size_t  origSizei = sizei;
+  size_t  prevSizei;
+  void  **pp = *ppp;
+  size_t  i;
+
+  /*
+   * Per def, this routine is managing an array of pointer
+   */
 
   if (sizei < wantedNumberi) {
 
@@ -1571,8 +1582,8 @@ static marpaWrapperBool_t _marpaWrapper_manage_bufb(marpaWrapper_t *marpaWrapper
       if (sizei <= 0) {
 	/* Let's start at arbitrary number of elements of 100 */
 	sizei = 100;
-	p = malloc(sizei * elementSizei);
-	if (p == NULL) {
+	pp = malloc(sizei * elementSizei);
+	if (pp == NULL) {
 	  MARPAWRAPPER_LOG_SYS_ERROR(errno, "malloc()");
 	  return MARPAWRAPPER_BOOL_FALSE;
 	}
@@ -1583,8 +1594,8 @@ static marpaWrapperBool_t _marpaWrapper_manage_bufb(marpaWrapper_t *marpaWrapper
 	  MARPAWRAPPER_LOG_ERROR0("Turnaround on computing size to allocate");
 	  return MARPAWRAPPER_BOOL_FALSE;
 	}
-	p = realloc(p, sizei * elementSizei);
-	if (p == NULL) {
+	pp = realloc(pp, sizei * elementSizei);
+	if (pp == NULL) {
 	  MARPAWRAPPER_LOG_SYS_ERROR(errno, "realloc()");
 	  return MARPAWRAPPER_BOOL_FALSE;
 	}
@@ -1593,7 +1604,14 @@ static marpaWrapperBool_t _marpaWrapper_manage_bufb(marpaWrapper_t *marpaWrapper
     }
   }
 
-  *pp = p;
+  /*
+   * Pre-fill pointers with NULL
+   */
+  for (i = origSizei; i < sizei; i++) {
+    pp[i] = NULL;
+  }
+
+  *ppp = pp;
   *sizeip = sizei;
 
   return MARPAWRAPPER_BOOL_TRUE;
@@ -1780,16 +1798,18 @@ marpaWrapperBool_t marpaWrapper_stackOptionDefaultb(marpaWrapperStackOption_t *m
 /************************************/
 /* marpaWrapper_stackOptionDefaultb */
 /************************************/
-marpaWrapperBool_t marpaWrapper_r_progressb(marpaWrapper_t *marpaWrapperp, int starti, int endi, size_t *nmarpaWrapperProgressip, marpaWrapperProgress_t **marpaWrapperProgressArraypp) {
-  Marpa_Earley_Set_ID marpaLatestEarleySetIdi;
-  Marpa_Earleme       marpEarlemei;
-  Marpa_Earley_Set_ID marpaEarleySetIdStarti, marpaEarleySetIdi, marpaEarleySetIdEndi, marpaEarleySetIdOrigini;
-  Marpa_Rule_ID       marpaRuleIdi;
-  int                 nbItemsi;
-  int                 itemi;
-  int                 positioni;
-  size_t              nMarpaWrapperProgressArrayi = 0;
-  marpaWrapperBool_t  rcb;
+marpaWrapperBool_t marpaWrapper_r_progressb(marpaWrapper_t *marpaWrapperp, int starti, int endi, size_t *nmarpaWrapperProgressip, marpaWrapperProgress_t ***marpaWrapperProgressppp) {
+  Marpa_Earley_Set_ID     marpaLatestEarleySetIdi;
+  Marpa_Earleme           marpEarlemei;
+  Marpa_Earley_Set_ID     marpaEarleySetIdStarti, marpaEarleySetIdi, marpaEarleySetIdEndi, marpaEarleySetIdOrigini;
+  Marpa_Rule_ID           marpaRuleIdi;
+  int                     nbItemsi;
+  int                     itemi;
+  int                     positioni;
+  size_t                  nMarpaWrapperProgressi = 0;
+  marpaWrapperBool_t      rcb;
+  size_t                  i;
+  marpaWrapperProgress_t *marpaWrapperProgressp;
 
   if (marpaWrapperp == NULL) {
     return MARPAWRAPPER_BOOL_FALSE;
@@ -1802,11 +1822,18 @@ marpaWrapperBool_t marpaWrapper_r_progressb(marpaWrapper_t *marpaWrapperp, int s
 
   /* Free eventual previous rounds - progress report sizes is a volatile thing and we do not want */
   /* to hog memory.                                                                               */
-  if (marpaWrapperp->marpaWrapperProgressArrayp != NULL) {
-    free(marpaWrapperp->marpaWrapperProgressArrayp);
-    marpaWrapperp->marpaWrapperProgressArrayp = NULL;
-    marpaWrapperp->sizeMarpaWrapperProgressArrayi = 0;
-    marpaWrapperp->nMarpaWrapperProgressArrayi = 0;
+  if (marpaWrapperp->marpaWrapperProgresspp != NULL) {
+    if (marpaWrapperp->nMarpaWrapperProgressi > 0) {
+      for (i = 0; i < marpaWrapperp->nMarpaWrapperProgressi; i++) {
+        if (marpaWrapperp->marpaWrapperProgresspp[i] != NULL) {
+          free(marpaWrapperp->marpaWrapperProgresspp[i]);
+        }
+      }
+    }
+    free(marpaWrapperp->marpaWrapperProgresspp);
+    marpaWrapperp->marpaWrapperProgresspp = NULL;
+    marpaWrapperp->sizeMarpaWrapperProgressi = 0;
+    marpaWrapperp->nMarpaWrapperProgressi = 0;
   }
 
   /* This function always succeed as per doc */
@@ -1878,18 +1905,24 @@ marpaWrapperBool_t marpaWrapper_r_progressb(marpaWrapper_t *marpaWrapperp, int s
 
       /* Allocate room for the new report item */
       if (_marpaWrapper_manage_bufb(marpaWrapperp,
-                                    (void **) &(marpaWrapperp->marpaWrapperProgressArrayp),
-                                    &(marpaWrapperp->sizeMarpaWrapperProgressArrayi),
-                                    nMarpaWrapperProgressArrayi + 1,
-                                    sizeof(marpaWrapperProgress_t)) != MARPAWRAPPER_BOOL_TRUE) {
+                                    (void ***) &(marpaWrapperp->marpaWrapperProgresspp),
+                                    &(marpaWrapperp->sizeMarpaWrapperProgressi),
+                                    nMarpaWrapperProgressi + 1,
+                                    sizeof(marpaWrapperProgress_t *)) != MARPAWRAPPER_BOOL_TRUE) {
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      marpaWrapperp->marpaWrapperProgressArrayp[nMarpaWrapperProgressArrayi].marpaEarleySetIdi       = (int) marpaEarleySetIdi;
-      marpaWrapperp->marpaWrapperProgressArrayp[nMarpaWrapperProgressArrayi].marpaEarleySetIdOrigini = (int) marpaEarleySetIdOrigini;
-      marpaWrapperp->marpaWrapperProgressArrayp[nMarpaWrapperProgressArrayi].marpaWrapperRulep       = &(marpaWrapperp->marpaWrapperRuleArrayp[marpaRuleIdi]);
-      marpaWrapperp->marpaWrapperProgressArrayp[nMarpaWrapperProgressArrayi].positioni               = positioni;
-      marpaWrapperp->nMarpaWrapperProgressArrayi = ++nMarpaWrapperProgressArrayi;
+      marpaWrapperp->marpaWrapperProgresspp[nMarpaWrapperProgressi] = (marpaWrapperProgress_t *) malloc(sizeof(marpaWrapperProgress_t));
+      if (marpaWrapperp->marpaWrapperProgresspp[nMarpaWrapperProgressi] == NULL) {
+        MARPAWRAPPER_LOG_SYS_ERROR(errno, "malloc()");
+        return MARPAWRAPPER_BOOL_FALSE;
+      }
+      marpaWrapperp->nMarpaWrapperProgressi = ++nMarpaWrapperProgressi;
+      marpaWrapperProgressp = marpaWrapperp->marpaWrapperProgresspp[nMarpaWrapperProgressi];
+      marpaWrapperProgressp->marpaEarleySetIdi       = (int) marpaEarleySetIdi;
+      marpaWrapperProgressp->marpaEarleySetIdOrigini = (int) marpaEarleySetIdOrigini;
+      marpaWrapperProgressp->marpaWrapperRulep       = marpaWrapperp->marpaWrapperRulepp[marpaRuleIdi];
+      marpaWrapperProgressp->positioni               = positioni;
     }
 
     if (rcb == MARPAWRAPPER_BOOL_FALSE) {
@@ -1906,12 +1939,36 @@ marpaWrapperBool_t marpaWrapper_r_progressb(marpaWrapper_t *marpaWrapperp, int s
 
   if (rcb == MARPAWRAPPER_BOOL_TRUE) {
     if (nmarpaWrapperProgressip != NULL) {
-      *nmarpaWrapperProgressip = marpaWrapperp->nMarpaWrapperProgressArrayi;
+      *nmarpaWrapperProgressip = marpaWrapperp->nMarpaWrapperProgressi;
     }
-    if (marpaWrapperProgressArraypp != NULL) {
-      *marpaWrapperProgressArraypp = marpaWrapperp->marpaWrapperProgressArrayp;
+    if (marpaWrapperProgressppp != NULL) {
+      *marpaWrapperProgressppp = marpaWrapperp->marpaWrapperProgresspp;
     }
   }
   return rcb; 
+}
+
+/***************************/
+/* _marpaWrapper_free_bufb */
+/***************************/
+static void _marpaWrapper_free_bufb(marpaWrapper_t *marpaWrapperp, void ***ppp, size_t *sizeip) {
+  void  **pp;
+  size_t  i;
+
+  if (ppp != NULL) {
+    pp = *ppp;
+    if (pp != NULL) {
+      if (*sizeip > 0) {
+        for (i = 0; i < *sizeip; i++) {
+          if (pp[i] != NULL) {
+            free(pp[i]);
+            pp[i] = NULL;
+          }
+        }
+      }
+    }
+    *ppp = NULL;
+    *sizeip = 0;
+  }
 }
 

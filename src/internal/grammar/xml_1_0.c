@@ -344,7 +344,7 @@ static marpaWrapperBool_t _xml_1_0_buildSymbolsb(xml_1_0_t *xml_1_0p) {
     }									\
     marpaWrapperSymbolOption.datavp = xml_1_0p;				\
     marpaWrapperSymbolOption.startb = (lhs == S_document) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE; \
-    if (marpaWrapper_g_addRulep(xml_1_0p->marpaWrapperp, &marpaWrapperRuleOption, &marpaWrapperSymbolOption) == MARPAWRAPPER_BOOL_FALSE) { \
+    if (marpaWrapper_g_addRulep(xml_1_0p->marpaWrapperp, &marpaWrapperRuleOption, &marpaWrapperSymbolOption) == NULL) { \
       return MARPAWRAPPER_BOOL_FALSE;					\
     }									\
   }

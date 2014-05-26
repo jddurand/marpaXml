@@ -1,2 +1,7 @@
-#define libmarpaxml_VERSION_MAJOR @libmarpaxml_VERSION_MAJOR@
-#define libmarpaxml_VERSION_MINOR @libmarpaxml_VERSION_MINOR@
+#ifndef MARPAXML_INTERNAL_CONFIG_H
+#define MARPAXML_INTERNAL_CONFIG_H
+
+#cmakedefine HAVE_VA_COPY @HAVE_VA_COPY@
+
+#endif /* MARPAXML_INTERNAL_CONFIG_H */
+
