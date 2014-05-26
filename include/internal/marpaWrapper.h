@@ -133,7 +133,7 @@ void                      marpaWrapper_log(marpaWrapperLogCallback_t logCallback
 /* Phase 1: Grammar definition and precomputation */
 /**************************************************/
 marpaWrapperSymbol_t     *marpaWrapper_g_addSymbolp (marpaWrapper_t *marpaWrapperp, marpaWrapperSymbolOption_t *marpaWrapperSymbolOption);
-marpaWrapperRule_t       *marpaWrapper_g_addRulep   (marpaWrapper_t *marpaWrapperp, marpaWrapperRuleOption_t *marpaWrapperRuleOptionp, marpaWrapperSymbolOption_t *marpaWrapperSymbolOptionp);
+marpaWrapperRule_t       *marpaWrapper_g_addRulep   (marpaWrapper_t *marpaWrapperp, marpaWrapperRuleOption_t *marpaWrapperRuleOptionp);
 marpaWrapperBool_t        marpaWrapper_g_precomputeb(marpaWrapper_t *marpaWrapperp);
 
 /***********************/
@@ -206,17 +206,15 @@ MARPAWRAPPER_GENERATE_GETTER_DECLARATION(marpaWrapper, marpaWrapperSymbol_t **, 
 MARPAWRAPPER_GENERATE_GETTER_DECLARATION(marpaWrapper,                  size_t, sizeMarpaWrapperRulei);
 MARPAWRAPPER_GENERATE_GETTER_DECLARATION(marpaWrapper,    marpaWrapperRule_t *, marpaWrapperRuleArrayp);
 
-/******************************************************************************************************************/
-/* From a symbol opaque pointer, get opaque user data, and opaque rule pointer if the origin is a rule definition */
-/******************************************************************************************************************/
+/******************************************************/
+/* From a symbol opaque pointer, get opaque user data */
+/******************************************************/
 MARPAWRAPPER_GENERATE_GETTER_DECLARATION(marpaWrapperSymbol, void *, datavp);
-MARPAWRAPPER_GENERATE_GETTER_DECLARATION(marpaWrapperSymbol, marpaWrapperRule_t *, marpaWrapperRulep);
 
-/***********************************************************************/
-/* From a rule opaque pointer, get opaque user data and symbol pointer */
-/***********************************************************************/
+/******************************/
+/* From a rule opaque pointer */
+/******************************/
 MARPAWRAPPER_GENERATE_GETTER_DECLARATION(marpaWrapperRule, void *, datavp);
-MARPAWRAPPER_GENERATE_GETTER_DECLARATION(marpaWrapperRule, marpaWrapperSymbol_t *, marpaWrapperSymbolp);
 
 /*************************************************************************************/
 /* Avdanced users will want to play themselves with Marpa objects                    */

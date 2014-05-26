@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include "internal/config.h"
 #include "internal/messageBuilder.h"
 
 static const char *_messageBuilder_internalErrors = "Internal error";
@@ -16,14 +17,14 @@ char *messageBuilder_internalErrors() {
 /******************/
 char *messageBuilder(const char *fmts, ...) {
   va_list ap;
-#ifndef _WIN32
+#ifdef VA_COPY
   va_list ap2;
 #endif
   char   *msgs;
 
   va_start(ap, fmts);
-#ifndef _WIN32
-  va_copy(ap2, ap);
+#ifdef VA_COPY
+  VA_COPY(ap2, ap);
   msgs = messageBuilder_ap(fmts, ap2);
   va_end(ap2);
 #else
@@ -41,7 +42,7 @@ char *messageBuilder_ap(const char *fmts, va_list ap) {
   int     n;
   int     size = 100;     /* Guess we need no more than 100 bytes */
   char   *p, *np;
-#ifndef _WIN32
+#ifdef VA_COPY
   va_list ap2;
 #endif
 
@@ -66,8 +67,8 @@ char *messageBuilder_ap(const char *fmts, va_list ap) {
 
     /* Try to print in the allocated space */
 
-#ifndef _WIN32
-    va_copy(ap2, ap);
+#ifdef VA_COPY
+    VA_COPY(ap2, ap);
     n = vsnprintf(p, size, fmts, ap2);
     va_end(ap2);
 #else

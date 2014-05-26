@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 
+#include "internal/config.h"
 #include "internal/streamIn.h"
 #include "internal/messageBuilder.h"
 
@@ -304,7 +305,7 @@ static streamInBool_t _streamIn_read(streamIn_t *streamInp) {
 /*********************/
 static void _streamIn_log_any(streamIn_t *streamInp, streamInLogLevel_t streamInLogLeveli, const char *fmts, ...) {
   va_list               ap;
-#ifndef _WIN32
+#ifdef VA_COPY
   va_list               ap2;
 #endif
   char                 *msgs;
@@ -323,8 +324,8 @@ static void _streamIn_log_any(streamIn_t *streamInp, streamInLogLevel_t streamIn
     }
 
     va_start(ap, fmts);
-#ifndef _WIN32
-    va_copy(ap2, ap);
+#ifdef VA_COPY
+    VA_COPY(ap2, ap);
     msgs = (fmts != NULL) ? messageBuilder_ap(fmts, ap2) : emptyMessages;
     va_end(ap2);
 #else

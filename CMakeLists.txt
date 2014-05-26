@@ -119,6 +119,12 @@ SET (HAVE_ICU ICU_FOUND)
 INCLUDE(VA_COPY)
 VA_COPY()
 
+# -------------------------
+# prefer memset() over loop
+# -------------------------
+INCLUDE(NULL_IS_ZEROES)
+NULL_IS_ZEROES()
+
 # ------------------------------------
 # Generate marpaXmlInternal's config.h
 # ------------------------------------

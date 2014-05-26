@@ -39,7 +39,7 @@ int main() {
   marpaWrapperValueOption_t  marpaWrapperValueOption;
   marpaWrapperStackOption_t  marpaWrapperStackOption;
   size_t                     nmarpaWrapperProgressi;
-  marpaWrapperProgress_t    *marpaWrapperProgressArrayp;
+  marpaWrapperProgress_t   **marpaWrapperProgresspp;
   /* Token values */
   const char               *token_values[] = { NULL, "1", "2", "3", "0", "-", "+", "*" };
   int                       one                  = 1;      /* Indice 1 in token_values */
@@ -52,7 +52,7 @@ int main() {
 
   /* We want TRACE log level */
   marpaWrapper_optionDefaultb(&marpaWrapperOption);
-  marpaWrapperOption.logLevelWantedi     = MARPAWRAPPER_LOGLEVEL_TRACE;
+  marpaWrapperOption.logLevelWantedi     = MARPAWRAPPER_LOGLEVEL_WARNING;
 
   /* Grammar */
   marpaWrapperp = marpaWrapper_newp(&marpaWrapperOption);
@@ -73,7 +73,7 @@ int main() {
   rhsSymbolArrayp[0]                    = symbolArrayp[E];
   marpaWrapperRuleOption.nRhsSymboli    = 1;
   marpaWrapperRuleOption.datavp         = (void *) START_RULE;
-  marpaWrapper_g_addRulep(marpaWrapperp, &marpaWrapperRuleOption, &marpaWrapperSymbolOption);
+  marpaWrapper_g_addRulep(marpaWrapperp, &marpaWrapperRuleOption);
 
   /* E ::= E op E */
   marpaWrapperRuleOption.lhsSymbolp     = symbolArrayp[ E];
@@ -82,25 +82,25 @@ int main() {
   rhsSymbolArrayp[2]                    = symbolArrayp[ E];
   marpaWrapperRuleOption.nRhsSymboli    = 3;
   marpaWrapperRuleOption.datavp         = (void *) OP_RULE;
-  marpaWrapper_g_addRulep(marpaWrapperp, &marpaWrapperRuleOption, &marpaWrapperSymbolOption);
+  marpaWrapper_g_addRulep(marpaWrapperp, &marpaWrapperRuleOption);
 
   /* E ::= number */
   marpaWrapperRuleOption.lhsSymbolp     = symbolArrayp[     E];
   rhsSymbolArrayp[0]                    = symbolArrayp[number];
   marpaWrapperRuleOption.nRhsSymboli    = 1;
   marpaWrapperRuleOption.datavp         = (void *) NUMBER_RULE;
-  marpaWrapper_g_addRulep(marpaWrapperp, &marpaWrapperRuleOption, &marpaWrapperSymbolOption);
+  marpaWrapper_g_addRulep(marpaWrapperp, &marpaWrapperRuleOption);
   marpaWrapper_g_precomputeb(marpaWrapperp);
 
   marpaWrapper_r_startb(marpaWrapperp);
 
-  if (marpaWrapper_r_progressb(marpaWrapperp, -1, -1, &nmarpaWrapperProgressi, &marpaWrapperProgressArrayp) == MARPAWRAPPER_BOOL_TRUE) {
+  if (marpaWrapper_r_progressb(marpaWrapperp, -1, -1, &nmarpaWrapperProgressi, &marpaWrapperProgresspp) == MARPAWRAPPER_BOOL_TRUE) {
     for (i = 0; i < nmarpaWrapperProgressi; i++) {
       fprintf(stderr, "Earley Set Id: %4d, Origin Earley Set Id: %4d, Rule: %10p, Position: %3d\n",
-              marpaWrapperProgressArrayp[i].marpaEarleySetIdi,
-              marpaWrapperProgressArrayp[i].marpaEarleySetIdOrigini,
-              marpaWrapperProgressArrayp[i].marpaWrapperRulep,
-              marpaWrapperProgressArrayp[i].positioni);
+              marpaWrapperProgresspp[i]->marpaEarleySetIdi,
+              marpaWrapperProgresspp[i]->marpaEarleySetIdOrigini,
+              marpaWrapperProgresspp[i]->marpaWrapperRulep,
+              marpaWrapperProgresspp[i]->positioni);
     }
   }
   
@@ -114,13 +114,13 @@ int main() {
 #ifdef _WIN32
   // Sleep(10000);
 #endif
-  if (marpaWrapper_r_progressb(marpaWrapperp, 0, -1, &nmarpaWrapperProgressi, &marpaWrapperProgressArrayp) == MARPAWRAPPER_BOOL_TRUE) {
+  if (marpaWrapper_r_progressb(marpaWrapperp, 0, -1, &nmarpaWrapperProgressi, &marpaWrapperProgresspp) == MARPAWRAPPER_BOOL_TRUE) {
     for (i = 0; i < nmarpaWrapperProgressi; i++) {
       fprintf(stderr, "Earley Set Id: %4d, Origin Earley Set Id: %4d, Rule: %10p, Position: %3d\n",
-              marpaWrapperProgressArrayp[i].marpaEarleySetIdi,
-              marpaWrapperProgressArrayp[i].marpaEarleySetIdOrigini,
-              marpaWrapperProgressArrayp[i].marpaWrapperRulep,
-              marpaWrapperProgressArrayp[i].positioni);
+              marpaWrapperProgresspp[i]->marpaEarleySetIdi,
+              marpaWrapperProgresspp[i]->marpaEarleySetIdOrigini,
+              marpaWrapperProgresspp[i]->marpaWrapperRulep,
+              marpaWrapperProgresspp[i]->positioni);
     }
   }
   

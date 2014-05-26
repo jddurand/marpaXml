@@ -92,7 +92,6 @@ typedef enum xml_1_0_symbol {
   T_AttValue,
   T_EntityValue,
   /* Non-terminals */
-  S_x20,
   S_document,
   S_Names,
   S_Nmtokens,
@@ -308,6 +307,9 @@ static marpaWrapperBool_t _xml_1_0_buildSymbolsb(xml_1_0_t *xml_1_0p) {
     /* Optional, but we can make ourself the terminals */
     marpaWrapperSymbolOption.terminalb = (i <= XML_1_0_TERMINAL_MAX) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 
+    /* Start rule ? */
+    marpaWrapperSymbolOption.startb = (i == S_document) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
+
     /* Create the symbol */
     xml_1_0p->marpaWrapperSymbolArrayp[i] = marpaWrapper_g_addSymbolp (xml_1_0p->marpaWrapperp, &marpaWrapperSymbolOption);
     if (xml_1_0p->marpaWrapperSymbolArrayp[i] == NULL) {
@@ -321,9 +323,6 @@ static marpaWrapperBool_t _xml_1_0_buildSymbolsb(xml_1_0_t *xml_1_0p) {
 
 #define ADD_RULE_BEG {							\
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) { \
-      return MARPAWRAPPER_BOOL_FALSE;					\
-    }									\
-    if (marpaWrapper_symbolOptionDefaultb(&marpaWrapperSymbolOption) == MARPAWRAPPER_BOOL_FALSE) { \
       return MARPAWRAPPER_BOOL_FALSE;					\
     }									\
   }
@@ -342,9 +341,7 @@ static marpaWrapperBool_t _xml_1_0_buildSymbolsb(xml_1_0_t *xml_1_0p) {
       marpaWrapperRuleOption.separatorSymbolp = xml_1_0p->marpaWrapperSymbolArrayp[sep]; \
       marpaWrapperRuleOption.properb = MARPAWRAPPER_BOOL_TRUE;		\
     }									\
-    marpaWrapperSymbolOption.datavp = xml_1_0p;				\
-    marpaWrapperSymbolOption.startb = (lhs == S_document) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE; \
-    if (marpaWrapper_g_addRulep(xml_1_0p->marpaWrapperp, &marpaWrapperRuleOption, &marpaWrapperSymbolOption) == NULL) { \
+    if (marpaWrapper_g_addRulep(xml_1_0p->marpaWrapperp, &marpaWrapperRuleOption) == NULL) { \
       return MARPAWRAPPER_BOOL_FALSE;					\
     }									\
   }
@@ -506,13 +503,11 @@ static marpaWrapperBool_t _xml_1_0_buildRulesb(xml_1_0_t *xml_1_0p) {
   marpaWrapperRuleOption_t   marpaWrapperRuleOption;
   marpaWrapperSymbolOption_t marpaWrapperSymbolOption;
 
-  ADD_RULE_1(S_x20, T_x20, -1, 0);
-
   ADD_RULE_3(S_document, S_prolog, S_element, S_MiscAny, -1, 0);
 
-  ADD_RULE_1(S_Names, T_Name, S_x20, '+');
+  ADD_RULE_1(S_Names, T_Name, T_x20, '+');
 
-  ADD_RULE_1(S_Nmtokens, T_Nmtoken, S_x20, '+');
+  ADD_RULE_1(S_Nmtokens, T_Nmtoken, T_x20, '+');
 
   ADD_RULE_3(S_Comment, T_CommentBeg, T_CommentInterior, T_CommentEnd, -1, 0);
 
