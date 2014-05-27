@@ -1549,7 +1549,6 @@ static marpaWrapperBool_t _marpaWrapper_manage_bufb(marpaWrapper_t *marpaWrapper
   size_t  origSizei = sizei;
   size_t  prevSizei;
   void  **pp = *ppp;
-  size_t  i;
 
   /*
    * Per def, this routine is managing an array of pointer
@@ -1792,7 +1791,6 @@ marpaWrapperBool_t marpaWrapper_r_progressb(marpaWrapper_t *marpaWrapperp, int s
   int                     positioni;
   size_t                  nMarpaWrapperProgressi = 0;
   marpaWrapperBool_t      rcb;
-  size_t                  i;
   marpaWrapperProgress_t *marpaWrapperProgressp;
 
   if (marpaWrapperp == NULL) {

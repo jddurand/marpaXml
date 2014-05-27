@@ -501,7 +501,6 @@ static marpaWrapperBool_t _xml_1_0_buildSymbolsb(xml_1_0_t *xml_1_0p) {
 /************************/
 static marpaWrapperBool_t _xml_1_0_buildRulesb(xml_1_0_t *xml_1_0p) {
   marpaWrapperRuleOption_t   marpaWrapperRuleOption;
-  marpaWrapperSymbolOption_t marpaWrapperSymbolOption;
 
   ADD_RULE_3(S_document, S_prolog, S_element, S_MiscAny, -1, 0);
 
