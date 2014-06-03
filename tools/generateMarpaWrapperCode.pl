@@ -237,7 +237,7 @@ sub _exceptionTermMinusTerm {
     my @name = grep {$self->{lexemesWithExclusion}->{$_} eq $value} keys %{$self->{lexemesWithExclusion}};
     my $name;
     if (! @name) {
-	$name = sprintf('_Exception%03d', 1 + (keys %{$self->{lexemesWithExclusion}}));
+	$name = sprintf('_Exclusion%03d', 1 + (keys %{$self->{lexemesWithExclusion}}));
 	$self->{lexemesWithExclusion}->{$name} = $value;
 	print STDERR "[WARN] Lexeme with exclusion: $name ::= $value\n";
     } else {
