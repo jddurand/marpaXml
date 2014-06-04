@@ -47,8 +47,8 @@ sub _pushG1 {
 
     foreach (sort {$a->{lhs} cmp $b->{lhs}} @{$self->{rules}}) {
       my $content;
-	push(@{$rcp}, $content = join(' ', $_->{lhs}, '::=', $_->{rhs}, $_->{quantifier}));
-	$self->{symbols}->{$_->{lhs}} = {terminal => 0, content => $content};
+      push(@{$rcp}, $content = join(' ', $_->{lhs}, '::=', "@{$_->{rhs}}", $_->{quantifier}));
+      $self->{symbols}->{$_->{lhs}} = {terminal => 0, content => $content};
     }
 }
 
@@ -99,7 +99,7 @@ sub _concatenation {
     $self->{constraints}->{$_} //= undef;
   }
 
-  return "@{$exceptions}";
+  return $exceptions;
 }
 
 sub _constraint {
@@ -207,20 +207,20 @@ sub _termFactorQuantifier {
   if ($quantifier eq '*') {
     $symbol = sprintf('%s_any', $factor);
     if (! exists($self->{quantifier}->{$symbol})) {
-      $self->_rule(undef, $symbol, undef, [ $factor], [], $quantifier);
+      $self->_rule(undef, $symbol, undef, [ [ $factor ] ], [], $quantifier);
       $self->{quantifier}->{$symbol}++;
     }
   } elsif ($quantifier eq '+') {
     $symbol = sprintf('%s_many', $factor);
     if (! exists($self->{quantifier}->{$symbol})) {
-      $self->_rule(undef, $symbol, undef, [ $factor], [], $quantifier);
+      $self->_rule(undef, $symbol, undef, [ [ $factor ] ], [], $quantifier);
       $self->{quantifier}->{$symbol}++;
     }
   } elsif ($quantifier eq '?') {
     $symbol = sprintf('%s_maybe', $factor);
     if (! exists($self->{quantifier}->{$symbol})) {
-      $self->_rule(undef, $symbol, undef, ["$factor"], []);
-      $self->_rule(undef, $symbol, undef, [], []);
+      $self->_rule(undef, $symbol, undef, [ [ "$factor" ] ], []);
+      $self->_rule(undef, $symbol, undef, [ [] ], []);
       $self->{quantifier}->{$symbol}++;
     }
   } else {
@@ -244,7 +244,7 @@ sub _exceptionTermMinusTerm {
 	$name = $name[0];
     }
     my $symbol = sprintf('_Gen%03d', 1 + (scalar @{$self->{rules}}));
-    $self->_rule(undef, $symbol, undef, [ $name ], []);
+    $self->_rule(undef, $symbol, undef, [ [ $name ] ], []);
     return $symbol;
 }
 
@@ -276,7 +276,7 @@ my $BNF = do {local $/; <BNF>};
 close(BNF) || warn "Cannot close $bnf, $!";
 
 #
-# The namespace will be the fist part of the basename of the grammar
+# The C namespace will be the fist part of the basename of the grammar
 #
 my $namespace;
 {
@@ -304,40 +304,293 @@ if ($nbvalue != 1) {
   #
   # Generate a typedef containing all symbols, lexemes first, then the rules
   #
-  generateTypedef($value, $namespace);
+  my $c = generateC($value, $namespace);
+  print $c;
   print STDERR "Symbols: " . join(' ', sort keys %{$value->{symbols}} ) . "\n";
 }
 
 exit(EXIT_SUCCESS);
 
+sub generateC {
+  my $c = '';
+
+  $c .= <<HEADER;
+#include <stdlib.h>
+#include <errno.h>
+#include "internal/grammar/$namespace.h"
+
+static marpaWrapperBool_t _${namespace}_buildGrammarb(${namespace}_t *${namespace}p, marpaWrapperOption_t *marpaWrapperOptionp);
+static marpaWrapperBool_t _${namespace}_buildSymbolsb(${namespace}_t *${namespace}p);
+static marpaWrapperBool_t _${namespace}_buildRulesb(${namespace}_t *${namespace}p);
+
+HEADER
+  $c .= generateTypedef(@_);
+  $c .= generateNewp(@_);
+  $c .= generateDestroyv(@_);
+  $c .= generateBuildGrammarb(@_);
+  $c .= generateBuildSymbolsb(@_);
+  $c .= generateBuildRulesb(@_);
+
+  return $c;
+}
+
 sub generateTypedef {
   my ($value, $namespace) = @_;
 
-  print "/* Symbols */\n";
-  print "typedef enum ${namespace}_symbol {\n";
+  my $typedef = '';
+
+  $typedef .= "/* Symbols */\n";
+  $typedef .= "typedef enum ${namespace}_symbol {\n";
   my $i = 0;
+  my $terminal_max = '';
   my @terminals = map {
+    $terminal_max = $_;
     my $content = $value->{symbols}->{$_}->{content};
     if ($i++ == 0) {
       sprintf('  %-20s, /* %s */', "$_ = 0", $content);
     } else {
       sprintf('  %-20s, /* %s */', $_, $content);
     }} sort {$a cmp $b} grep {$value->{symbols}->{$_}->{terminal} == 1} keys %{$value->{symbols}};
-  $i = 0;
-  my @g1 = sort {$a cmp $b} grep {$value->{symbols}->{$_}->{terminal} != 1} keys %{$value->{symbols}};
-  @g1 = map {
-    my $content = $value->{symbols}->{$_}->{content};
-    if ($i++ < $#g1) {
-      sprintf('  %-20s, /* %s */', $_, $content);
-    } else {
-      sprintf('  %-20s  /* %s */', $_, $content);
+  my @g1 = map {
+    sprintf('  %-20s,', $_);
+  } sort {$a cmp $b} grep {$value->{symbols}->{$_}->{terminal} != 1} keys %{$value->{symbols}};
+  $typedef .= "  /* Terminals */\n";
+  $typedef .= join("\n", @terminals) . "\n";
+  $typedef .= "  /* Non-terminals */\n";
+  $typedef .= join("\n", @g1) . "\n";
+  $typedef .= "  _SYMBOL_MAX\n";
+  $typedef .= "} ${namespace}_symbol_t;\n";
+  $typedef .= "\n";
+  $typedef .= "#define " . uc($namespace) . "_TERMINAL_MAX $terminal_max\n";
+
+  return $typedef;
+}
+
+sub generateNewp {
+  my ($value, $namespace) = @_;
+
+  my $newp = <<NEWP;
+
+/*******************/
+/* ${namespace}_newp  */
+/*******************/
+${namespace}_t *${namespace}_newp(marpaWrapperOption_t *marpaWrapperOptionp) {
+  ${namespace}_t           *${namespace}p;
+  marpaWrapperOption_t marpaWrapperOption;
+
+  /* Fill the defaults */
+  if (marpaWrapperOptionp == NULL) {
+    marpaWrapper_optionDefaultb(&marpaWrapperOption);
+  } else {
+    marpaWrapperOption = *marpaWrapperOptionp;
+  }
+
+  ${namespace}p = malloc(sizeof(${namespace}_t));
+  if (${namespace}p == NULL) {
+    marpaWrapper_log(marpaWrapperOption.logCallbackp,
+		     marpaWrapperOption.logCallbackDatavp,
+		     NULL,
+		     marpaWrapperOption.logLevelWantedi,
+		     MARPAWRAPPERERRORORIGIN_SYSTEM,
+		     errno,
+		     "malloc()",
+		     MARPAWRAPPER_LOGLEVEL_ERROR);
+    return NULL;
+  }
+
+  ${namespace}p->marpaWrapperp = NULL;
+  ${namespace}p->marpaWrapperSymbolArrayp = NULL;
+
+  if (_${namespace}_buildGrammarb(${namespace}p, &marpaWrapperOption) == MARPAWRAPPER_BOOL_FALSE) {
+    ${namespace}_destroyv(&${namespace}p);
+  }
+
+  return ${namespace}p;
+}
+NEWP
+
+  return $newp;
+}
+
+sub generateDestroyv {
+  my ($value, $namespace) = @_;
+
+  my $destroyv = <<DESTROYV;
+
+/*********************/
+/* ${namespace}_destroyv  */
+/*********************/
+void ${namespace}_destroyv(${namespace}_t **${namespace}pp) {
+  ${namespace}_t *${namespace}p;
+
+  if (${namespace}pp != NULL) {
+    ${namespace}p = *${namespace}pp;
+
+    if (${namespace}p != NULL) {
+      if (${namespace}p->marpaWrapperp != NULL) {
+	marpaWrapper_destroyv(&(${namespace}p->marpaWrapperp));
+      }
+      if (${namespace}p->marpaWrapperSymbolArrayp != NULL) {
+	free(${namespace}p->marpaWrapperSymbolArrayp);
+      }
+      free(${namespace}p);
     }
-  } @g1;
-  print "  /* Terminals */\n";
-  print join("\n", @terminals) . "\n";
-  print "  /* Non-terminals */\n";
-  print join("\n", @g1) . "\n";
-  print "} ${namespace}_symbol_t;\n";
+
+    *${namespace}pp = NULL;
+  }
+}
+DESTROYV
+  return $destroyv;
+}
+
+sub generateBuildGrammarb {
+  my ($value, $namespace) = @_;
+
+  my $buildGrammarb = <<BUILDGRAMMARB;
+
+/**************************/
+/* _${namespace}_buildGrammarb */
+/**************************/
+static marpaWrapperBool_t _${namespace}_buildGrammarb(${namespace}_t *${namespace}p, marpaWrapperOption_t *marpaWrapperOptionp) {
+
+  ${namespace}p->marpaWrapperp = marpaWrapper_newp(marpaWrapperOptionp);
+  if (${namespace}p->marpaWrapperp == NULL) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+
+  if (_${namespace}_buildSymbolsb(${namespace}p) == MARPAWRAPPER_BOOL_FALSE) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+
+  if (_${namespace}_buildRulesb(${namespace}p) == MARPAWRAPPER_BOOL_FALSE) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+
+  if (marpaWrapper_g_precomputeb(${namespace}p->marpaWrapperp) == MARPAWRAPPER_BOOL_FALSE) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+
+  return MARPAWRAPPER_BOOL_TRUE;
+}
+BUILDGRAMMARB
+  return $buildGrammarb;
+}
+
+sub generateBuildSymbolsb {
+  my ($value, $namespace) = @_;
+
+  my $NAMESPACE = uc($namespace);
+
+  my $buildSymbolsb = <<BUILDSYMBOLSB;
+
+/**************************/
+/* _${namespace}_buildSymbolsb */
+/**************************/
+static marpaWrapperBool_t _${namespace}_buildSymbolsb(${namespace}_t *${namespace}p) {
+  int                        i;
+  marpaWrapperSymbolOption_t marpaWrapperSymbolOption;
+
+  ${namespace}p->marpaWrapperSymbolArrayp = malloc(_SYMBOL_MAX * sizeof(marpaWrapperSymbol_t *));
+  if (${namespace}p->marpaWrapperSymbolArrayp == NULL) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+
+  for (i = 0; i < _SYMBOL_MAX; i++) {
+
+    /* Fill default options */
+    if (marpaWrapper_symbolOptionDefaultb(&marpaWrapperSymbolOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+
+    /* Opaque data will be our "this" */
+    marpaWrapperSymbolOption.datavp = ${namespace}p;
+
+    /* Optional, but we can make ourself the terminals */
+    marpaWrapperSymbolOption.terminalb = (i <= ${NAMESPACE}_TERMINAL_MAX) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
+
+    /* Start rule ? */
+    marpaWrapperSymbolOption.startb = (i == $value->{start}->{rule}) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
+
+    /* Create the symbol */
+    ${namespace}p->marpaWrapperSymbolArrayp[i] = marpaWrapper_g_addSymbolp (${namespace}p->marpaWrapperp, &marpaWrapperSymbolOption);
+    if (${namespace}p->marpaWrapperSymbolArrayp[i] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+
+  }
+
+  return MARPAWRAPPER_BOOL_TRUE;
+}
+BUILDSYMBOLSB
+
+  return $buildSymbolsb;
+}
+
+sub generateBuildRulesb {
+  my ($value, $namespace) = @_;
+
+  my $buildRulesb = <<BUILDRULESB_HEADER;
+
+/************************/
+/* _${namespace}_buildRulesb */
+/************************/
+static marpaWrapperBool_t _${namespace}_buildRulesb(${namespace}_t *${namespace}p) {
+  marpaWrapperRuleOption_t   marpaWrapperRuleOption;
+
+
+BUILDRULESB_HEADER
+  foreach (sort {$a->{lhs} cmp $b->{lhs}} @{$value->{rules}}) {
+    my $rule = $_;
+    $buildRulesb .= "  {\n";
+    $buildRulesb .= "    /* $rule->{lhs} ::= @{$rule->{rhs}} $rule->{quantifier} */\n";
+    my $nbRhs = scalar(@{$rule->{rhs}});
+    if ($nbRhs > 0) {
+      $buildRulesb .= "    marpaWrapperSymbol_t *rhsSymbolpp[$nbRhs] = {\n";
+      foreach (0..$#{$rule->{rhs}}) {
+        $buildRulesb .= "      ${namespace}p->marpaWrapperSymbolArrayp[${$rule->{rhs}}[$_]]";
+        $buildRulesb .= "," if ($_ < $#{$rule->{rhs}});
+        $buildRulesb .= "\n";
+      }
+      $buildRulesb .= "    };\n";
+    }
+    $buildRulesb .= <<BUILDRULESB_INNER1;
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    marpaWrapperRuleOption.datavp = ${namespace}p;
+    marpaWrapperRuleOption.lhsSymbolp = ${namespace}p->marpaWrapperSymbolArrayp[$rule->{lhs}];
+BUILDRULESB_INNER1
+    if ($nbRhs > 0) {
+      $buildRulesb .= <<BUILDRULESB_INNER2;
+    marpaWrapperRuleOption.nRhsSymboli = $nbRhs;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+BUILDRULESB_INNER2
+    }
+    if ($value->{quantifier} eq '*') {
+      $buildRulesb .= <<QUANTIFIER_STAR;
+      marpaWrapperRuleOption.sequenceb = MARPAWRAPPER_BOOL_TRUE;
+      marpaWrapperRuleOption.minimumi = 0;
+QUANTIFIER_STAR
+    } elsif ($value->{quantifier} eq '+') {
+      $buildRulesb .= <<QUANTIFIER_PLUS;
+      marpaWrapperRuleOption.sequenceb = MARPAWRAPPER_BOOL_TRUE;
+      marpaWrapperRuleOption.minimumi = 1;
+QUANTIFIER_PLUS
+    }
+    $buildRulesb .= <<BUILDRULESB_GO;
+    if (marpaWrapper_g_addRulep(${namespace}p->marpaWrapperp, &marpaWrapperRuleOption) == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+BUILDRULESB_GO
+    $buildRulesb .= "  }\n";
+  }
+
+  $buildRulesb .= <<BUILDRULESB_TRAILER;
+    return MARPAWRAPPER_BOOL_TRUE;
+}
+BUILDRULESB_TRAILER
+
+  return $buildRulesb;
 }
 
 __DATA__
