@@ -152,5 +152,8 @@ ENDFOREACH ()
 ADD_EXECUTABLE        (xml_1_0 ${PROJECT_SOURCE_DIR}/test/internal/grammar/xml_1_0.c)
 TARGET_LINK_LIBRARIES (xml_1_0 marpaXmlInternal libmarpa)
 
+ADD_EXECUTABLE        (xml_1_1 ${PROJECT_SOURCE_DIR}/test/internal/grammar/xml_1_1.c)
+TARGET_LINK_LIBRARIES (xml_1_1 marpaXmlInternal libmarpa)
+
 #INSTALL (TARGETS marpaxml DESTINATION install/bin)
 #INSTALL (FILES marpaWrapper.h DESTINATION install/include)
