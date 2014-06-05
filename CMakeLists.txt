@@ -82,6 +82,7 @@ ADD_LIBRARY (marpaXmlInternal
   ${PROJECT_SOURCE_DIR}/src/internal/messageBuilder.c
   ${PROJECT_SOURCE_DIR}/src/internal/streamIn.c
   ${PROJECT_SOURCE_DIR}/src/internal/grammar/xml_1_0.c
+  ${PROJECT_SOURCE_DIR}/src/internal/grammar/xml_1_1.c
   )
 SET_PROPERTY (TARGET marpaXmlInternal APPEND PROPERTY INCLUDE_DIRECTORIES ${MARPA_DIR}/libmarpa_dist)
 ADD_DEPENDENCIES (marpaXmlInternal libmarpa)
