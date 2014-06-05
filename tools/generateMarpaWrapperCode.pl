@@ -8,6 +8,10 @@ use strict;
 use diagnostics;
 use warnings FATAL => 'all';
 
+###########################################################################
+# package Actions                                                         #
+###########################################################################
+
 package Actions;
 sub new() {
   my $self = {
@@ -45,7 +49,7 @@ sub _pushLexemes {
 sub _pushG1 {
     my ($self, $rcp) = @_;
 
-    foreach (sort {$a->{lhs} cmp $b->{lhs}} @{$self->{rules}}) {
+    foreach (@{$self->{rules}}) {
       my $content;
       push(@{$rcp}, $content = join(' ', $_->{lhs}, '::=', "@{$_->{rhs}}", $_->{quantifier}));
       $self->{symbols}->{$_->{lhs}} = {terminal => 0, content => $content};
@@ -248,6 +252,10 @@ sub _exceptionTermMinusTerm {
     return $symbol;
 }
 
+###########################################################################
+# package main                                                            #
+###########################################################################
+
 package main;
 use Marpa::R2;
 use Getopt::Long;
@@ -321,6 +329,7 @@ sub generateC {
 
 static marpaWrapperBool_t _${namespace}_buildGrammarb(${namespace}_t *${namespace}p, marpaWrapperOption_t *marpaWrapperOptionp);
 static marpaWrapperBool_t _${namespace}_buildSymbolsb(${namespace}_t *${namespace}p);
+static marpaWrapperBool_t _${namespace}_buildSymbols_withStartb(${namespace}_t *${namespace}p, int starti);
 static marpaWrapperBool_t _${namespace}_buildRulesb(${namespace}_t *${namespace}p);
 
 HEADER
@@ -362,6 +371,31 @@ sub generateTypedef {
   $typedef .= "} ${namespace}_symbol_t;\n";
   $typedef .= "\n";
   $typedef .= "#define " . uc($namespace) . "_TERMINAL_MAX $terminal_max\n";
+  $typedef .= "\n";
+  $typedef .= "/* Rules */\n";
+  $typedef .= "typedef enum ${namespace}_rule {\n";
+  my $prevlhs = '';
+  my $ilhs;
+  $i = 0;
+  my @rules = map {
+    my $content = join(' ', $_->{lhs}, '::=', "@{$_->{rhs}}", $_->{quantifier});
+    my $enumed;
+    if (! $prevlhs || $prevlhs ne $_->{lhs}) {
+      $ilhs = 1;
+      $prevlhs = $_->{lhs};
+    } else {
+      ++$ilhs;
+    }
+    $enumed = sprintf('%s_%03d', $_->{lhs}, $ilhs);
+    if ($i++ == 0) {
+      sprintf('  %-20s, /* %s */', "$enumed = 0", $content);
+    } else {
+      sprintf('  %-20s, /* %s */', $enumed, $content);
+    }} @{$value->{rules}};
+  $typedef .= join("\n", @rules) . "\n";
+  $typedef .= "  _RULE_MAX\n";
+  $typedef .= "} ${namespace}_rule_t;\n";
+  $typedef .= "\n";
 
   return $typedef;
 }
@@ -400,6 +434,9 @@ ${namespace}_t *${namespace}_newp(marpaWrapperOption_t *marpaWrapperOptionp) {
 
   ${namespace}p->marpaWrapperp = NULL;
   ${namespace}p->marpaWrapperSymbolArrayp = NULL;
+  ${namespace}p->marpaWrapperSymbolArrayLengthi = 0;
+  ${namespace}p->marpaWrapperRuleArrayp = NULL;
+  ${namespace}p->marpaWrapperRuleArrayLengthi = 0;
 
   if (_${namespace}_buildGrammarb(${namespace}p, &marpaWrapperOption) == MARPAWRAPPER_BOOL_FALSE) {
     ${namespace}_destroyv(&${namespace}p);
@@ -432,6 +469,9 @@ void ${namespace}_destroyv(${namespace}_t **${namespace}pp) {
       }
       if (${namespace}p->marpaWrapperSymbolArrayp != NULL) {
 	free(${namespace}p->marpaWrapperSymbolArrayp);
+      }
+      if (${namespace}p->marpaWrapperRuleArrayp != NULL) {
+	free(${namespace}p->marpaWrapperRuleArrayp);
       }
       free(${namespace}p);
     }
@@ -487,6 +527,13 @@ sub generateBuildSymbolsb {
 /* _${namespace}_buildSymbolsb */
 /**************************/
 static marpaWrapperBool_t _${namespace}_buildSymbolsb(${namespace}_t *${namespace}p) {
+  return _${namespace}_buildSymbols_withStartb(${namespace}p, $value->{start}->{rule});
+}
+
+/**************************/
+/* _${namespace}_buildSymbols_withStartb */
+/**************************/
+static marpaWrapperBool_t _${namespace}_buildSymbols_withStartb(${namespace}_t *${namespace}p, int starti) {
   int                        i;
   marpaWrapperSymbolOption_t marpaWrapperSymbolOption;
 
@@ -494,6 +541,7 @@ static marpaWrapperBool_t _${namespace}_buildSymbolsb(${namespace}_t *${namespac
   if (${namespace}p->marpaWrapperSymbolArrayp == NULL) {
     return MARPAWRAPPER_BOOL_FALSE;
   }
+  ${namespace}p->marpaWrapperSymbolArrayLengthi = _SYMBOL_MAX;
 
   for (i = 0; i < _SYMBOL_MAX; i++) {
 
@@ -502,14 +550,14 @@ static marpaWrapperBool_t _${namespace}_buildSymbolsb(${namespace}_t *${namespac
       return MARPAWRAPPER_BOOL_FALSE;
     }
 
-    /* Opaque data will be our "this" */
-    marpaWrapperSymbolOption.datavp = ${namespace}p;
+    /* Opaque data associated to symbol will be the symbol enum */
+    marpaWrapperSymbolOption.datavp = (void *) i;
 
     /* Optional, but we can make ourself the terminals */
     marpaWrapperSymbolOption.terminalb = (i <= ${NAMESPACE}_TERMINAL_MAX) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 
     /* Start rule ? */
-    marpaWrapperSymbolOption.startb = (i == $value->{start}->{rule}) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
+    marpaWrapperSymbolOption.startb = (i == starti) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 
     /* Create the symbol */
     ${namespace}p->marpaWrapperSymbolArrayp[i] = marpaWrapper_g_addSymbolp (${namespace}p->marpaWrapperp, &marpaWrapperSymbolOption);
@@ -529,6 +577,8 @@ BUILDSYMBOLSB
 sub generateBuildRulesb {
   my ($value, $namespace) = @_;
 
+  my $prevlhs = '';
+  my $ilhs;
   my $buildRulesb = <<BUILDRULESB_HEADER;
 
 /************************/
@@ -537,12 +587,27 @@ sub generateBuildRulesb {
 static marpaWrapperBool_t _${namespace}_buildRulesb(${namespace}_t *${namespace}p) {
   marpaWrapperRuleOption_t   marpaWrapperRuleOption;
 
+  ${namespace}p->marpaWrapperRuleArrayp = malloc(_RULE_MAX * sizeof(marpaWrapperRule_t *));
+  if (${namespace}p->marpaWrapperRuleArrayp == NULL) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+  ${namespace}p->marpaWrapperRuleArrayLengthi = _RULE_MAX;
 
 BUILDRULESB_HEADER
-  foreach (sort {$a->{lhs} cmp $b->{lhs}} @{$value->{rules}}) {
+  foreach (@{$value->{rules}}) {
+
+    my $enumed;
+    if (! $prevlhs || $prevlhs ne $_->{lhs}) {
+      $ilhs = 1;
+      $prevlhs = $_->{lhs};
+    } else {
+      ++$ilhs;
+    }
+    $enumed = sprintf('%s_%03d', $_->{lhs}, $ilhs);
+
     my $rule = $_;
     $buildRulesb .= "  {\n";
-    $buildRulesb .= "    /* $rule->{lhs} ::= @{$rule->{rhs}} $rule->{quantifier} */\n";
+    $buildRulesb .= "    /* [$enumed] $rule->{lhs} ::= @{$rule->{rhs}} $rule->{quantifier} */\n";
     my $nbRhs = scalar(@{$rule->{rhs}});
     if ($nbRhs > 0) {
       $buildRulesb .= "    marpaWrapperSymbol_t *rhsSymbolpp[$nbRhs] = {\n";
@@ -557,7 +622,8 @@ BUILDRULESB_HEADER
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
-    marpaWrapperRuleOption.datavp = ${namespace}p;
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) $enumed;
     marpaWrapperRuleOption.lhsSymbolp = ${namespace}p->marpaWrapperSymbolArrayp[$rule->{lhs}];
 BUILDRULESB_INNER1
     if ($nbRhs > 0) {
@@ -578,7 +644,9 @@ QUANTIFIER_STAR
 QUANTIFIER_PLUS
     }
     $buildRulesb .= <<BUILDRULESB_GO;
-    if (marpaWrapper_g_addRulep(${namespace}p->marpaWrapperp, &marpaWrapperRuleOption) == NULL) {
+    /* Create the rule */
+    ${namespace}p->marpaWrapperRuleArrayp[$enumed] = marpaWrapper_g_addRulep(${namespace}p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (${namespace}p->marpaWrapperRuleArrayp[$enumed] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
 BUILDRULESB_GO
