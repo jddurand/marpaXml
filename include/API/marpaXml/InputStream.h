@@ -13,8 +13,7 @@ typedef struct marpaXml_InputStream {
   int                (*read_byOff_byLen)(char *b, int off, int len);
   void               (*reset)();
   long               (*skip)(long n);
-  
-} *marpaXml_InputStream_t;
+} marpaXml_InputStream_t;
 
 marpaXml_InputStream_t *marpaXml_InputStream_new();
 void                    marpaXml_InputStream_destroy(marpaXml_InputStream_t *this);

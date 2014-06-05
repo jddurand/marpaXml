@@ -4,8 +4,11 @@
 #include "marpaXml/String.h"
 
 typedef struct marpaXml_Exception {
-  int                errorCode;
-  marpaXml_String_t *message;  /* String returned by the low-level, always compatible with what your C natively understand */
+  int                 errorCode;
+  marpaXml_String_t  *message;
 } marpaXml_Exception_t;
+
+marpaXml_Exception_t *marpaXml_Exception_new();
+void                  marpaXml_Exception_destroy(marpaXml_Exception_t *this);
 
 #endif /* MARPAXML_EXCEPTION_H */

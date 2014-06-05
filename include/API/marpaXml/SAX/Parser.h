@@ -18,7 +18,7 @@ typedef struct marpaXml_SAX_Parser {
   void (*setDocumentHandler)(marpaXml_SAX_DocumentHandler_t *handler);
   void (*setErrorHandler)(marpaXml_SAX_ErrorHandler_t *handler);
   void (*parse)(marpaXml_SAX_InputSource_t *source, marpaXml_SAX_SAXException_t *SAXException, marpaXml_IOException_t *IOException);
-  void (*parse_bySystemId)(marpaXml_String_t *systemid, marpaXml_SAX_SAXException_t *SAXException, marpaXml_IOException_t *IOException);
+  void (*parse_bySystemId)(marpaXml_String_t *systemId, marpaXml_SAX_SAXException_t *SAXException, marpaXml_IOException_t *IOException);
 } *marpaXml_SAX_Parser_t;
 
 marpaXml_SAX_Parser_t *marpaXml_SAX_Parser_new();

@@ -7,7 +7,7 @@ typedef struct marpaXml_Reader {
   void               (*close)();
   void               (*mark)(int readAheadLimit);
   marpaXml_Boolean_t (*markSupported)();
-} *marpaXml_Reader_t;
+} marpaXml_Reader_t;
 
 marpaXml_Reader_t *marpaXml_Reader_new();
 marpaXml_Reader_t *marpaXml_Reader_new_byLock(void *lock);

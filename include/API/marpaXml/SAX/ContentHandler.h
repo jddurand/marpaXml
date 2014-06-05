@@ -17,7 +17,7 @@ typedef struct marpaXml_SAX_ContentHandler {
   void (*characters)(char *ch, int start, int length, marpaXml_SAX_SAXException_t *SAXException);
   void (*ignorableWhitespace)(char *ch, int start, int length, marpaXml_SAX_SAXException_t *SAXException);
   void (*processingInstruction)(marpaXml_String_t *target, marpaXml_String_t *data, marpaXml_SAX_SAXException_t *SAXException);
-  void (*skippedEntity)(marpaXml_String_t name, marpaXml_SAX_SAXException_t *SAXException);
+  void (*skippedEntity)(marpaXml_String_t *name, marpaXml_SAX_SAXException_t *SAXException);
 } *marpaXml_SAX_ContentHandler_t;
 
 marpaXml_SAX_ContentHandler_t *marpaXml_SAX_ContentHandler_new();
