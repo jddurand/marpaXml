@@ -4,13 +4,7 @@
 #include <stddef.h>
 #include "internal/marpaWrapper.h"
 
-typedef struct xml_1_0 {
-  marpaWrapper_t        *marpaWrapperp;
-  marpaWrapperSymbol_t **marpaWrapperSymbolArrayp;
-  size_t                 marpaWrapperSymbolArrayLengthi;
-  marpaWrapperRule_t   **marpaWrapperRuleArrayp;
-  size_t                 marpaWrapperRuleArrayLengthi;
-} xml_1_0_t;
+typedef struct xml_1_0 xml_1_0_t;
 
 xml_1_0_t *xml_1_0_newp(marpaWrapperOption_t *marpaWrapperOptionp);
 void       xml_1_0_destroyv(xml_1_0_t **xml_1_0pp);

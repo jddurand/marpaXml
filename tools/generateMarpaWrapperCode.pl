@@ -8,6 +8,11 @@ use strict;
 use diagnostics;
 use warnings FATAL => 'all';
 
+our $LEXEME_RANGES       = 0;
+our $LEXEME_CARET_RANGES = 1;
+our $LEXEME_STRING       = 2;
+our $LEXEME_HEXMANY      = 3;
+
 ###########################################################################
 # package Actions                                                         #
 ###########################################################################
@@ -18,6 +23,7 @@ sub new() {
               quantifiers => {},
               rules => [],
               lexemes => {},
+              lexemesExact => {},
               lexemesWithExclusion => {},
               constraints => {},
 	      symbols => {},
@@ -136,22 +142,32 @@ sub _printable {
 
 sub _factorCaretRange {
   my ($self, $lbracket, $caret, $ranges, $rbracket) = @_;
-  return $self->_factor("[^$ranges]");
+  my ($printRanges, $exactRangesp) = @{$ranges};
+  return $self->_factor("[^$printRanges]", $LEXEME_CARET_RANGES, $exactRangesp);
 }
 
 sub _factorRange {
   my ($self, $lbracket, $ranges, $rbracket) = @_;
-  return $self->_factor("[$ranges]");
+  my ($printRanges, $exactRangesp) = @{$ranges};
+  return $self->_factor("[$printRanges]", $LEXEME_RANGES, $exactRangesp);
 }
 
 sub _ranges {
   my ($self, @ranges) = @_;
-  return join('', @ranges);
+  my $printRanges = '';
+  my @exactRanges = ();
+  foreach (@ranges) {
+    my ($range, $exactRange) = @{$_};
+    $printRanges .= $range;
+    push(@exactRanges, $exactRange);
+  }
+  return [$printRanges, [ @exactRanges ]];
 }
 
 sub _range {
   my ($self, $char1, $char2) = @_;
   my $range;
+  my $exactRange = [$char1, defined($char2) ? $char2 : $char1];
   $char1 = $self->_printable($char1);
   if (defined($char2)) {
     $char2 = $self->_printable($char2);
@@ -159,7 +175,7 @@ sub _range {
   } else {
     $range = $char1;
   }
-  return $range;
+  return [$range, $exactRange];
 }
 
 sub _range1 {
@@ -181,7 +197,7 @@ sub _factorExpressions {
 }
 
 sub _factor {
-  my ($self, $value) = @_;
+  my ($self, $value, $type, $exact) = @_;
 
   my @name = grep {$self->{lexemes}->{$_} eq $value} keys %{$self->{lexemes}};
   my $name;
@@ -191,17 +207,20 @@ sub _factor {
   } else {
     $name = $name[0];
   }
+
+  $self->{lexemesExact}->{$name} = {type => $type, value => $exact};
+
   return $name;
 }
 
 sub _factorString {
   my ($self, $quote1, $string, $quote2) = @_;
-  return $self->_factor($string);
+  return $self->_factor($string, $LEXEME_STRING, $string);
 }
 
 sub _hexMany {
   my ($self, @hex) = @_;
-  return $self->_factor(join('', map {$self->_printable($self->_char($_))} @hex));
+  return $self->_factor(join('', map {$self->_printable($self->_char($_))} @hex), $LEXEME_HEXMANY, [ @hex ]);
 }
 
 sub _termFactorQuantifier {
@@ -322,29 +341,42 @@ exit(EXIT_SUCCESS);
 sub generateC {
   my $c = '';
 
-  $c .= <<HEADER;
+  $c .= <<INCLUDES;
 #include <stdlib.h>
 #include <errno.h>
+#include "unicode/ustring.h"
 #include "internal/grammar/$namespace.h"
 
+INCLUDES
+
+  $c .= generateUcharDecl(@_);
+  $c .= generateTypedef(@_);
+
+  $c .= <<DECLARATIONS;
 static marpaWrapperBool_t _${namespace}_buildGrammarb(${namespace}_t *${namespace}p, marpaWrapperOption_t *marpaWrapperOptionp);
 static marpaWrapperBool_t _${namespace}_buildSymbolsb(${namespace}_t *${namespace}p);
 static marpaWrapperBool_t _${namespace}_buildSymbols_withStartb(${namespace}_t *${namespace}p, int starti);
 static marpaWrapperBool_t _${namespace}_buildRulesb(${namespace}_t *${namespace}p);
+static marpaWrapperBool_t _${namespace}_isLexemeb(${namespace}_t *${namespace}p, ${namespace}_symbol_t ${namespace}_symbol, char *p, size_t lengthi);
+DECLARATIONS
+  foreach (sort {$a cmp $b} grep {$value->{symbols}->{$_}->{terminal} == 1} keys %{$value->{symbols}}) {
+    $c .= "static marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, char *p, size_t lengthi);\n";
+  }
 
-HEADER
-  $c .= generateTypedef(@_);
   $c .= generateNewp(@_);
   $c .= generateDestroyv(@_);
   $c .= generateBuildGrammarb(@_);
   $c .= generateBuildSymbolsb(@_);
   $c .= generateBuildRulesb(@_);
+  $c .= generateIsLexemeb(@_);
 
   return $c;
 }
 
 sub generateTypedef {
   my ($value, $namespace) = @_;
+
+  my $NAMESPACE = uc($namespace);
 
   my $typedef = '';
 
@@ -353,24 +385,26 @@ sub generateTypedef {
   my $i = 0;
   my $terminal_max = '';
   my @terminals = map {
-    $terminal_max = $_;
+    $terminal_max = "${namespace}_${_}";
     my $content = $value->{symbols}->{$_}->{content};
+    my $fullname = "${namespace}_${_}";
     if ($i++ == 0) {
-      sprintf('  %-20s, /* %s */', "$_ = 0", $content);
+      sprintf('  %-30s, /* %s */', "$fullname = 0", $content);
     } else {
-      sprintf('  %-20s, /* %s */', $_, $content);
+      sprintf('  %-30s, /* %s */', $fullname, $content);
     }} sort {$a cmp $b} grep {$value->{symbols}->{$_}->{terminal} == 1} keys %{$value->{symbols}};
   my @g1 = map {
-    sprintf('  %-20s,', $_);
+    sprintf('  %-30s,', "${namespace}_${_}");
   } sort {$a cmp $b} grep {$value->{symbols}->{$_}->{terminal} != 1} keys %{$value->{symbols}};
+
   $typedef .= "  /* Terminals */\n";
   $typedef .= join("\n", @terminals) . "\n";
   $typedef .= "  /* Non-terminals */\n";
   $typedef .= join("\n", @g1) . "\n";
-  $typedef .= "  _SYMBOL_MAX\n";
+  $typedef .= "  ${NAMESPACE}_SYMBOL_MAX\n";
   $typedef .= "} ${namespace}_symbol_t;\n";
   $typedef .= "\n";
-  $typedef .= "#define " . uc($namespace) . "_TERMINAL_MAX $terminal_max\n";
+  $typedef .= "#define ${NAMESPACE}_TERMINAL_MAX $terminal_max\n";
   $typedef .= "\n";
   $typedef .= "/* Rules */\n";
   $typedef .= "typedef enum ${namespace}_rule {\n";
@@ -386,16 +420,28 @@ sub generateTypedef {
     } else {
       ++$ilhs;
     }
-    $enumed = sprintf('%s_%03d', $_->{lhs}, $ilhs);
+    $enumed = sprintf('%s_%03d', "${namespace}_" . ${_}->{lhs}, $ilhs);
     if ($i++ == 0) {
-      sprintf('  %-20s, /* %s */', "$enumed = 0", $content);
+      sprintf('  %-30s, /* %s */', "$enumed = 0", $content);
     } else {
-      sprintf('  %-20s, /* %s */', $enumed, $content);
+      sprintf('  %-30s, /* %s */', $enumed, $content);
     }} @{$value->{rules}};
   $typedef .= join("\n", @rules) . "\n";
-  $typedef .= "  _RULE_MAX\n";
+  $typedef .= "  ${NAMESPACE}_RULE_MAX\n";
   $typedef .= "} ${namespace}_rule_t;\n";
   $typedef .= "\n";
+  my $nterminals = scalar(@terminals);
+  $typedef .=<<STRUCTURE;
+
+/* Work structure */
+typedef struct $namespace {
+  marpaWrapper_t        *marpaWrapperp;
+  marpaWrapperSymbol_t **marpaWrapperSymbolArrayp;
+  size_t                 marpaWrapperSymbolArrayLengthi;
+  marpaWrapperRule_t   **marpaWrapperRuleArrayp;
+  size_t                 marpaWrapperRuleArrayLengthi;
+} ${namespace}_t;
+STRUCTURE
 
   return $typedef;
 }
@@ -527,7 +573,7 @@ sub generateBuildSymbolsb {
 /* _${namespace}_buildSymbolsb */
 /**************************/
 static marpaWrapperBool_t _${namespace}_buildSymbolsb(${namespace}_t *${namespace}p) {
-  return _${namespace}_buildSymbols_withStartb(${namespace}p, $value->{start}->{rule});
+  return _${namespace}_buildSymbols_withStartb(${namespace}p, ${namespace}_$value->{start}->{rule});
 }
 
 /**************************/
@@ -537,13 +583,13 @@ static marpaWrapperBool_t _${namespace}_buildSymbols_withStartb(${namespace}_t *
   int                        i;
   marpaWrapperSymbolOption_t marpaWrapperSymbolOption;
 
-  ${namespace}p->marpaWrapperSymbolArrayp = malloc(_SYMBOL_MAX * sizeof(marpaWrapperSymbol_t *));
+  ${namespace}p->marpaWrapperSymbolArrayp = malloc(${NAMESPACE}_SYMBOL_MAX * sizeof(marpaWrapperSymbol_t *));
   if (${namespace}p->marpaWrapperSymbolArrayp == NULL) {
     return MARPAWRAPPER_BOOL_FALSE;
   }
-  ${namespace}p->marpaWrapperSymbolArrayLengthi = _SYMBOL_MAX;
+  ${namespace}p->marpaWrapperSymbolArrayLengthi = ${NAMESPACE}_SYMBOL_MAX;
 
-  for (i = 0; i < _SYMBOL_MAX; i++) {
+  for (i = 0; i < ${NAMESPACE}_SYMBOL_MAX; i++) {
 
     /* Fill default options */
     if (marpaWrapper_symbolOptionDefaultb(&marpaWrapperSymbolOption) == MARPAWRAPPER_BOOL_FALSE) {
@@ -560,7 +606,7 @@ static marpaWrapperBool_t _${namespace}_buildSymbols_withStartb(${namespace}_t *
     marpaWrapperSymbolOption.startb = (i == starti) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 
     /* Create the symbol */
-    ${namespace}p->marpaWrapperSymbolArrayp[i] = marpaWrapper_g_addSymbolp (${namespace}p->marpaWrapperp, &marpaWrapperSymbolOption);
+    ${namespace}p->marpaWrapperSymbolArrayp[i] = marpaWrapper_g_addSymbolp(${namespace}p->marpaWrapperp, &marpaWrapperSymbolOption);
     if (${namespace}p->marpaWrapperSymbolArrayp[i] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
@@ -574,9 +620,95 @@ BUILDSYMBOLSB
   return $buildSymbolsb;
 }
 
+sub generateUcharDecl {
+  my ($value, $namespace) = @_;
+
+  my $ucharDecl = '';
+  foreach (sort {$a cmp $b} keys %{$value->{lexemesExact}}) {
+      if ($value->{lexemesExact}->{$_}->{type} == $LEXEME_STRING) {
+	  my $value = $value->{lexemesExact}->{$_}->{value};
+	  $value =~ s/"/\\"/g;
+	  $ucharDecl .= "U_STRING_DECL(ustring_${_}, \"$value\", " . length($value) . ");\n";
+      }
+  }
+  $ucharDecl .= "\n";
+
+  return $ucharDecl;
+}
+
+sub generateIsLexemeb {
+  my ($value, $namespace) = @_;
+
+  my $NAMESPACE = uc($namespace);
+
+  my $isLexemeb = <<ISLEXEMEB_HEADER;
+
+/**************************/
+/* _${namespace}_isLexemeb */
+/**************************/
+static marpaWrapperBool_t _${namespace}_isLexemeb(${namespace}_t *${namespace}p, ${namespace}_symbol_t ${namespace}_symbol, char *p, size_t lengthi) {
+  marpaWrapperBool_t rcb;
+
+  /* The important issue here is: internally all strings are UTF8  */
+  /* it appears that ALL string constants of the XML specification */
+  /* are totally representable using a code unit of char.          */
+  /* That's why the constants are declared as (char *).            */
+
+  switch (${namespace}_symbol) {
+ISLEXEMEB_HEADER
+  foreach (sort {$a cmp $b} grep {$value->{symbols}->{$_}->{terminal} == 1} keys %{$value->{symbols}}) {
+      $isLexemeb .= <<ISLEXEMEB;
+    case ${namespace}_${_}:
+      rcb = _${namespace}_${_}b(${namespace}p, p, lengthi);
+      break;
+ISLEXEMEB
+    }
+  $isLexemeb .= <<ISLEXEMEB_TRAILER;
+    default:
+      rcb = MARPAWRAPPER_BOOL_FALSE;
+      break;
+  }
+
+  return rcb;
+}
+ISLEXEMEB_TRAILER
+
+  foreach (sort {$a cmp $b} grep {$value->{symbols}->{$_}->{terminal} == 1} keys %{$value->{symbols}}) {
+
+    if (! exists($value->{lexemesExact}->{$_}->{type})) {
+      $isLexemeb .= <<ISLEXEMEB;
+static marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, char *p, size_t lengthi) {
+  /* Writen by hand */
+  return MARPAWRAPPER_BOOL_TRUE;
+}
+
+ISLEXEMEB
+    } else {
+      my $lengthi;
+      if ($value->{lexemesExact}->{$_}->{type} == $LEXEME_STRING) {
+        $lengthi = length($value->{lexemesExact}->{$_}->{value});
+      } else {
+        $lengthi = 1;
+      }
+      $isLexemeb .= <<ISLEXEMEB;
+static marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, char *p, size_t lengthi) {
+  if (lengthi != $lengthi) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+  return MARPAWRAPPER_BOOL_TRUE;
+}
+
+ISLEXEMEB
+    }
+  }
+
+  return $isLexemeb;
+}
+
 sub generateBuildRulesb {
   my ($value, $namespace) = @_;
 
+  my $NAMESPACE = uc($namespace);
   my $prevlhs = '';
   my $ilhs;
   my $buildRulesb = <<BUILDRULESB_HEADER;
@@ -587,11 +719,11 @@ sub generateBuildRulesb {
 static marpaWrapperBool_t _${namespace}_buildRulesb(${namespace}_t *${namespace}p) {
   marpaWrapperRuleOption_t   marpaWrapperRuleOption;
 
-  ${namespace}p->marpaWrapperRuleArrayp = malloc(_RULE_MAX * sizeof(marpaWrapperRule_t *));
+  ${namespace}p->marpaWrapperRuleArrayp = malloc(${NAMESPACE}_RULE_MAX * sizeof(marpaWrapperRule_t *));
   if (${namespace}p->marpaWrapperRuleArrayp == NULL) {
     return MARPAWRAPPER_BOOL_FALSE;
   }
-  ${namespace}p->marpaWrapperRuleArrayLengthi = _RULE_MAX;
+  ${namespace}p->marpaWrapperRuleArrayLengthi = ${NAMESPACE}_RULE_MAX;
 
 BUILDRULESB_HEADER
   foreach (@{$value->{rules}}) {
@@ -603,7 +735,7 @@ BUILDRULESB_HEADER
     } else {
       ++$ilhs;
     }
-    $enumed = sprintf('%s_%03d', $_->{lhs}, $ilhs);
+    $enumed = sprintf('%s_%03d', "${namespace}_" . $_->{lhs}, $ilhs);
 
     my $rule = $_;
     $buildRulesb .= "  {\n";
@@ -612,7 +744,7 @@ BUILDRULESB_HEADER
     if ($nbRhs > 0) {
       $buildRulesb .= "    marpaWrapperSymbol_t *rhsSymbolpp[$nbRhs] = {\n";
       foreach (0..$#{$rule->{rhs}}) {
-        $buildRulesb .= "      ${namespace}p->marpaWrapperSymbolArrayp[${$rule->{rhs}}[$_]]";
+        $buildRulesb .= "      ${namespace}p->marpaWrapperSymbolArrayp[${namespace}_${$rule->{rhs}}[$_]]";
         $buildRulesb .= "," if ($_ < $#{$rule->{rhs}});
         $buildRulesb .= "\n";
       }
@@ -624,7 +756,7 @@ BUILDRULESB_HEADER
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
     marpaWrapperRuleOption.datavp = (void *) $enumed;
-    marpaWrapperRuleOption.lhsSymbolp = ${namespace}p->marpaWrapperSymbolArrayp[$rule->{lhs}];
+    marpaWrapperRuleOption.lhsSymbolp = ${namespace}p->marpaWrapperSymbolArrayp[${namespace}_$rule->{lhs}];
 BUILDRULESB_INNER1
     if ($nbRhs > 0) {
       $buildRulesb .= <<BUILDRULESB_INNER2;
