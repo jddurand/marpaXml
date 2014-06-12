@@ -8,7 +8,7 @@ static const char *_messageBuilder_internalErrors = "Internal error";
 /*********************************/
 /* messageBuilder_internalErrors */
 /*********************************/
-char *messageBuilder_internalErrors() {
+char *messageBuilder_internalErrors(void) {
   return (char *) _messageBuilder_internalErrors;
 }
 
