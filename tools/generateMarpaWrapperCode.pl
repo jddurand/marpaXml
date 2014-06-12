@@ -132,8 +132,8 @@ sub _char {
   }
 }
 
-sub _printable {
-  my ($self, $chr) = @_;
+sub _chprint {
+  my ($chr) = @_;
   if ($chr =~ /[\s]/ || (! ($chr =~ /[[:ascii:]]/) || ($chr =~ /[[:cntrl:]]/))) {
     $chr = sprintf('\\x{%x}', ord($chr));
   }
@@ -164,9 +164,19 @@ sub _ranges {
   return [$printRanges, [ @exactRanges ]];
 }
 
+sub _printable {
+  my ($self, $chr) = @_;
+  if ($chr =~ /[\s]/ || (! ($chr =~ /[[:ascii:]]/) || ($chr =~ /[[:cntrl:]]/))) {
+    $chr = sprintf('\\x{%x}', ord($chr));
+  }
+  return $chr;
+}
+
 sub _range {
   my ($self, $char1, $char2) = @_;
   my $range;
+  if (substr($char1, 0, 1) eq '\\') { substr($char1, 0, 1, ''); }
+  if (defined($char2) && substr($char2, 0, 1) eq '\\') { substr($char2, 0, 1, ''); }
   my $exactRange = [$char1, defined($char2) ? $char2 : $char1];
   $char1 = $self->_printable($char1);
   if (defined($char2)) {
@@ -220,7 +230,7 @@ sub _factorString {
 
 sub _hexMany {
   my ($self, @hex) = @_;
-  return $self->_factor(join('', map {$self->_printable($self->_char($_))} @hex), $LEXEME_HEXMANY, [ @hex ]);
+  return $self->_factor(join('', map {$self->_printable($self->_char($_))} @hex), $LEXEME_HEXMANY, [ map {s/^#x//; chr(hex($_));} @hex ]);
 }
 
 sub _termFactorQuantifier {
@@ -345,11 +355,12 @@ sub generateC {
 #include <stdlib.h>
 #include <errno.h>
 #include "unicode/ustring.h"
+#include "unicode/utext.h"
 #include "internal/grammar/$namespace.h"
 
 INCLUDES
 
-  $c .= generateUcharDecl(@_);
+  # $c .= generateStaticStrings(@_);
   $c .= generateTypedef(@_);
 
   $c .= <<DECLARATIONS;
@@ -357,10 +368,10 @@ static marpaWrapperBool_t _${namespace}_buildGrammarb(${namespace}_t *${namespac
 static marpaWrapperBool_t _${namespace}_buildSymbolsb(${namespace}_t *${namespace}p);
 static marpaWrapperBool_t _${namespace}_buildSymbols_withStartb(${namespace}_t *${namespace}p, int starti);
 static marpaWrapperBool_t _${namespace}_buildRulesb(${namespace}_t *${namespace}p);
-static marpaWrapperBool_t _${namespace}_isLexemeb(${namespace}_t *${namespace}p, ${namespace}_symbol_t ${namespace}_symbol, char *p, size_t lengthi);
+static marpaWrapperBool_t _${namespace}_isLexemeb(${namespace}_t *${namespace}p, ${namespace}_symbol_t ${namespace}_symbol, UText *utextp);
 DECLARATIONS
   foreach (sort {$a cmp $b} grep {$value->{symbols}->{$_}->{terminal} == 1} keys %{$value->{symbols}}) {
-    $c .= "static marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, char *p, size_t lengthi);\n";
+    $c .= "static marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, UText *utextp);\n";
   }
 
   $c .= generateNewp(@_);
@@ -430,7 +441,15 @@ sub generateTypedef {
   $typedef .= "  ${NAMESPACE}_RULE_MAX\n";
   $typedef .= "} ${namespace}_rule_t;\n";
   $typedef .= "\n";
-  my $nterminals = scalar(@terminals);
+  my $ucharDecls = '';
+  foreach (sort {$a cmp $b} keys %{$value->{lexemesExact}}) {
+    if ($value->{lexemesExact}->{$_}->{type} == $LEXEME_STRING) {
+      my $value = $value->{lexemesExact}->{$_}->{value};
+      $value =~ s/"/\\"/g;
+      # $ucharDecls .= "  UChar                  ${_}s[" . (length($value) + 1) . "]; /* \"$value\" */\n";
+      # $ucharDecls .= "  int32_t                ${_}i;\n";
+      }
+  }
   $typedef .=<<STRUCTURE;
 
 /* Work structure */
@@ -440,6 +459,7 @@ typedef struct $namespace {
   size_t                 marpaWrapperSymbolArrayLengthi;
   marpaWrapperRule_t   **marpaWrapperRuleArrayp;
   size_t                 marpaWrapperRuleArrayLengthi;
+$ucharDecls
 } ${namespace}_t;
 STRUCTURE
 
@@ -449,12 +469,22 @@ STRUCTURE
 sub generateNewp {
   my ($value, $namespace) = @_;
 
+  my $ucharInits = '';
+  foreach (sort {$a cmp $b} keys %{$value->{lexemesExact}}) {
+    if ($value->{lexemesExact}->{$_}->{type} == $LEXEME_STRING) {
+      my $value = $value->{lexemesExact}->{$_}->{value};
+      $value =~ s/"/\\"/g;
+      # $ucharInits .= "  u_charsToUChars(${_}s, ${namespace}p->${_}s, " . (length($value) + 1) . ");\n";
+      # $ucharInits .= "  ${namespace}p->${_}i = " . length($value) . ";\n";
+    }
+  }
+
   my $newp = <<NEWP;
 
 /*******************/
 /* ${namespace}_newp  */
 /*******************/
-${namespace}_t *${namespace}_newp(marpaWrapperOption_t *marpaWrapperOptionp) {
+${namespace}_t *${namespace}_newp(marpaWrapperOption_t *marpaWrapperOptionp, xml_commonOption_t *xml_commonOptionp) {
   ${namespace}_t           *${namespace}p;
   marpaWrapperOption_t marpaWrapperOption;
 
@@ -483,6 +513,8 @@ ${namespace}_t *${namespace}_newp(marpaWrapperOption_t *marpaWrapperOptionp) {
   ${namespace}p->marpaWrapperSymbolArrayLengthi = 0;
   ${namespace}p->marpaWrapperRuleArrayp = NULL;
   ${namespace}p->marpaWrapperRuleArrayLengthi = 0;
+
+$ucharInits
 
   if (_${namespace}_buildGrammarb(${namespace}p, &marpaWrapperOption) == MARPAWRAPPER_BOOL_FALSE) {
     ${namespace}_destroyv(&${namespace}p);
@@ -620,20 +652,20 @@ BUILDSYMBOLSB
   return $buildSymbolsb;
 }
 
-sub generateUcharDecl {
+sub generateStaticStrings {
   my ($value, $namespace) = @_;
 
-  my $ucharDecl = '';
+  my $staticString = '';
   foreach (sort {$a cmp $b} keys %{$value->{lexemesExact}}) {
       if ($value->{lexemesExact}->{$_}->{type} == $LEXEME_STRING) {
 	  my $value = $value->{lexemesExact}->{$_}->{value};
 	  $value =~ s/"/\\"/g;
-	  $ucharDecl .= "U_STRING_DECL(ustring_${_}, \"$value\", " . length($value) . ");\n";
+	  $staticString .= "const static char *${_}s = \"$value\";\n";
       }
   }
-  $ucharDecl .= "\n";
+  $staticString .= "\n";
 
-  return $ucharDecl;
+  return $staticString;
 }
 
 sub generateIsLexemeb {
@@ -646,20 +678,31 @@ sub generateIsLexemeb {
 /**************************/
 /* _${namespace}_isLexemeb */
 /**************************/
-static marpaWrapperBool_t _${namespace}_isLexemeb(${namespace}_t *${namespace}p, ${namespace}_symbol_t ${namespace}_symbol, char *p, size_t lengthi) {
-  marpaWrapperBool_t rcb;
 
-  /* The important issue here is: internally all strings are UTF8  */
-  /* it appears that ALL string constants of the XML specification */
-  /* are totally representable using a code unit of char.          */
-  /* That's why the constants are declared as (char *).            */
+/***************************************************************************************/
+/* The lexemes routines are all byte oriented. The encoding of the data must be UTF-8. */
+/* Because lexeme routines are called byte per byte they all maintain their own state  */
+/* which can be:                                                                       */
+/* PENDING   value -1                                                                  */
+/* FALSE     value  0                                                                  */
+/* COMPLETE  value  1                                                                  */
+/* The >>CURRENT CODE UNIT<< is in the parameter uint32_t ci. It is up to the caller   */
+/* to provide the correct value.                                                       */
+/* The PENDING phase is specific to each lexeme, so each lexeme has a private state    */
+/* and only the method dedicated to a given lexeme knows what it means.                */
+/* The only requirement is that the caller is providing storage for this private state */
+/* that has been fixed to be an int, whose initial value must be 0 at the first call.  */
+/***************************************************************************************/
+
+static marpaWrapperBool_t _${namespace}_isLexemeb(${namespace}_t *${namespace}p, ${namespace}_symbol_t ${namespace}_symbol, UText *utextp) {
+  marpaWrapperBool_t rcb;
 
   switch (${namespace}_symbol) {
 ISLEXEMEB_HEADER
   foreach (sort {$a cmp $b} grep {$value->{symbols}->{$_}->{terminal} == 1} keys %{$value->{symbols}}) {
       $isLexemeb .= <<ISLEXEMEB;
     case ${namespace}_${_}:
-      rcb = _${namespace}_${_}b(${namespace}p, p, lengthi);
+      rcb = _${namespace}_${_}b(${namespace}p, utextp);
       break;
 ISLEXEMEB
     }
@@ -673,36 +716,137 @@ ISLEXEMEB
 }
 ISLEXEMEB_TRAILER
 
+  $isLexemeb .= <<COMMENT;
+
+/* Looking at implementation of u_strCompare() you will see that that arguments checking is       */
+/* a waste or cycles for us. So we pre-check ourself length, and do memory comparison, u_memcmp() */
+/* is the fastest                                                                                 */
+
+COMMENT
+
   foreach (sort {$a cmp $b} grep {$value->{symbols}->{$_}->{terminal} == 1} keys %{$value->{symbols}}) {
 
     if (! exists($value->{lexemesExact}->{$_}->{type})) {
       $isLexemeb .= <<ISLEXEMEB;
-static marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, char *p, size_t lengthi) {
+static marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, UText *utextp) {
   /* Writen by hand */
   return MARPAWRAPPER_BOOL_TRUE;
 }
 
 ISLEXEMEB
     } else {
-      my $lengthi;
-      if ($value->{lexemesExact}->{$_}->{type} == $LEXEME_STRING) {
-        $lengthi = length($value->{lexemesExact}->{$_}->{value});
-      } else {
-        $lengthi = 1;
-      }
-      $isLexemeb .= <<ISLEXEMEB;
-static marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, char *p, size_t lengthi) {
-  if (lengthi != $lengthi) {
-    return MARPAWRAPPER_BOOL_FALSE;
-  }
-  return MARPAWRAPPER_BOOL_TRUE;
-}
+      if ($value->{lexemesExact}->{$_}->{type} == $LEXEME_RANGES ||
+	  $value->{lexemesExact}->{$_}->{type} == $LEXEME_CARET_RANGES) {
+	  my $rcIfMatch = ($value->{lexemesExact}->{$_}->{type} == $LEXEME_RANGES) ? 'MARPAWRAPPER_BOOL_TRUE' : 'MARPAWRAPPER_BOOL_FALSE /* [^...] condition */ ';
+	  my $rcIfNoMatch = ($value->{lexemesExact}->{$_}->{type} == $LEXEME_RANGES) ? 'MARPAWRAPPER_BOOL_FALSE' : 'MARPAWRAPPER_BOOL_TRUE /* [^...] condition */ ';
+        my @wanted = ();
+        my $n = scalar(@{$value->{lexemesExact}->{$_}->{value}});
+        foreach (@{$value->{lexemesExact}->{$_}->{value}}) {
+          my @range = @{$_};
+	  if ($range[0] ne $range[1]) {
+	      push(@wanted, sprintf('%sgot >= 0x%x && got <= 0x%x%s /* [%s-%s] */', ($n > 1 ? '(' : ''), ord($range[0]), ord($range[1]), ($n > 1 ? ')' : ''), _chprint($range[0]), _chprint($range[1])));
+	  } else {
+	      push(@wanted, sprintf('%sgot == 0x%x%s /* %s */', ($n > 1 ? '(' : ''), ord($range[0]), ($n > 1 ? ')' : ''), _chprint($range[0])));
+	  }
+        }
+	my $wanted = join(" ||\n      ", @wanted);
+	$isLexemeb .= <<ISLEXEMEB;
+static marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, UText *utextp) {
+  UChar32 got = UTEXT_CURRENT32(utextp);
 
+  if ($wanted) {
+      return $rcIfMatch;
+  } else {
+      return $rcIfNoMatch;
+  }
+}
 ISLEXEMEB
+      } elsif ($value->{lexemesExact}->{$_}->{type} == $LEXEME_HEXMANY) {
+	  my @wanted = ();
+          my $n = scalar(@{$value->{lexemesExact}->{$_}->{value}});
+	  foreach (@{$value->{lexemesExact}->{$_}->{value}}) {
+              if ($n > 1) {
+  	        push(@wanted, sprintf('(got == 0x%x) /* %s */', ord($_), _chprint($_)));
+              } else {
+  	        push(@wanted, sprintf('0x%x /* %s */', ord($_), _chprint($_)));
+              }
+	  }
+	  my $wanted = join(" ||\n      ", @wanted);
+          if ($n == 1) {
+          $isLexemeb .= <<ISLEXEMEB;
+static marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, UText *utextp) {
+  if (UTEXT_CURRENT32(utextp) == $wanted) {
+      return MARPAWRAPPER_BOOL_TRUE;
+  } else {
+      return MARPAWRAPPER_BOOL_FALSE;
+  }
+}
+ISLEXEMEB
+          } else {
+	$isLexemeb .= <<ISLEXEMEB;
+static marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, UText *utextp) {
+  UChar32 got = UTEXT_CURRENT32(utextp);
+
+  if ($wanted) {
+      return MARPAWRAPPER_BOOL_TRUE;
+  } else {
+      return MARPAWRAPPER_BOOL_FALSE;
+  }
+}
+ISLEXEMEB
+        }
+      } elsif ($value->{lexemesExact}->{$_}->{type} == $LEXEME_STRING) {
+        my @wanted = map {sprintf("0x%x /* %s */", ord($_), _chprint($_))} split('', $value->{lexemesExact}->{$_}->{value});
+        my $wanted = join(",\n    ", @wanted);
+	my $length = length($value->{lexemesExact}->{$_}->{value});
+        #
+        # Well, if length is 1 no need to play with the native index
+        #
+        if ($length == 1) {
+          $isLexemeb .= <<ISLEXEMEB;
+static marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, UText *utextp) {
+  if (UTEXT_CURRENT32(utextp) == $wanted) {
+      return MARPAWRAPPER_BOOL_TRUE;
+  } else {
+      return MARPAWRAPPER_BOOL_FALSE;
+  }
+}
+ISLEXEMEB
+        } else {
+          $isLexemeb .= <<ISLEXEMEB;
+static marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, UText *utextp) {
+  static const UChar32 wanted[$length] = {
+    $wanted
+  };
+  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  int                  i;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_TRUE;
+
+  for (i = 0; i < $length; i++) {
+    if (UTEXT_NEXT32(utextp) != wanted[i]) {
+      rcb = MARPAWRAPPER_BOOL_FALSE;
+      break;
     }
   }
 
+  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+
+  return rcb;
+}
+ISLEXEMEB
+        }
+      }
+    }
+  }
   return $isLexemeb;
+}
+
+sub _chprint {
+  my ($chr) = @_;
+  if ($chr =~ /[\s]/ || (! ($chr =~ /[[:ascii:]]/) || ($chr =~ /[[:cntrl:]]/))) {
+    $chr = sprintf('#x%x', ord($chr));
+  }
+  return $chr;
 }
 
 sub generateBuildRulesb {
