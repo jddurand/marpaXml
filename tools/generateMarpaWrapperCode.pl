@@ -477,13 +477,13 @@ sub generateTypedef {
   $typedef .=<<STRUCTURE;
 
 /* Work structure */
-typedef struct $namespace {
+struct $namespace {
   marpaWrapper_t        *marpaWrapperp;
   marpaWrapperSymbol_t **marpaWrapperSymbolArrayp;
   size_t                 marpaWrapperSymbolArrayLengthi;
   marpaWrapperRule_t   **marpaWrapperRuleArrayp;
   size_t                 marpaWrapperRuleArrayLengthi;
-} ${namespace}_t;
+};
 
 /* Lexeme state */
 typedef enum ${namespace}_lexemeState {

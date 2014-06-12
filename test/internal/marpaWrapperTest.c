@@ -99,7 +99,7 @@ int main() {
       fprintf(stderr, "Earley Set Id: %4d, Origin Earley Set Id: %4d, Rule: %10p, Position: %3d\n",
               marpaWrapperProgresspp[i]->marpaEarleySetIdi,
               marpaWrapperProgresspp[i]->marpaEarleySetIdOrigini,
-              marpaWrapperProgresspp[i]->marpaWrapperRulep,
+              (void *) marpaWrapperProgresspp[i]->marpaWrapperRulep,
               marpaWrapperProgresspp[i]->positioni);
     }
   }
@@ -119,7 +119,7 @@ int main() {
       fprintf(stderr, "Earley Set Id: %4d, Origin Earley Set Id: %4d, Rule: %10p, Position: %3d\n",
               marpaWrapperProgresspp[i]->marpaEarleySetIdi,
               marpaWrapperProgresspp[i]->marpaEarleySetIdOrigini,
-              marpaWrapperProgresspp[i]->marpaWrapperRulep,
+              (void *) marpaWrapperProgresspp[i]->marpaWrapperRulep,
               marpaWrapperProgresspp[i]->positioni);
     }
   }

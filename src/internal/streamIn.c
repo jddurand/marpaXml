@@ -311,7 +311,7 @@ static void _streamIn_log_any(streamIn_t *streamInp, streamInLogLevel_t streamIn
   char                 *msgs;
   streamInLogCallback_t logCallbackp;
   void                 *logCallbackDatavp;
-  static char          *emptyMessages = "Empty message";
+  static const char    *emptyMessages = "Empty message";
 
   if (streamInLogLeveli >= streamInp->streamInOption.logLevelWantedi) {
 
@@ -326,10 +326,10 @@ static void _streamIn_log_any(streamIn_t *streamInp, streamInLogLevel_t streamIn
     va_start(ap, fmts);
 #ifdef VA_COPY
     VA_COPY(ap2, ap);
-    msgs = (fmts != NULL) ? messageBuilder_ap(fmts, ap2) : emptyMessages;
+    msgs = (fmts != NULL) ? messageBuilder_ap(fmts, ap2) : (char *) emptyMessages;
     va_end(ap2);
 #else
-    msgs = (fmts != NULL) ? messageBuilder_ap(fmts, ap) : emptyMessages;
+    msgs = (fmts != NULL) ? messageBuilder_ap(fmts, ap) : (char *) emptyMessages;
 #endif
     va_end(ap);
 

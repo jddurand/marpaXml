@@ -137,7 +137,7 @@ static void _fileTest(streamIn_t *streamInp, char **argv) {
 /***************/
 static void _bufferTest(streamIn_t *streamInp, char **argv) {
   streamInOption_t streamInOption;
-  char            *buffer = "1234";
+  static const char *buffer = "1234";
   myReadData_t     myReadData;
   size_t           indexBufferi;
   char             *charArrayp;
@@ -146,7 +146,7 @@ static void _bufferTest(streamIn_t *streamInp, char **argv) {
   fprintf(stderr, "Buffer test\n");
   fprintf(stderr, "-----------\n");
 
-  myReadData.buffer = buffer;
+  myReadData.buffer = (char *) buffer;
   myReadData.firstb = STREAMIN_BOOL_TRUE;
 
   if (streamIn_optionDefaultb(&streamInOption) == STREAMIN_BOOL_FALSE) {

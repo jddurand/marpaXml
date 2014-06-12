@@ -196,7 +196,7 @@ marpaWrapperBool_t        marpaWrapper_stackOptionDefaultb (marpaWrapperStackOpt
 
 /* Generic getter definition */
 #define MARPAWRAPPER_GENERATE_GETTER_DECLARATION(prefix, externalType, externalName) \
-  marpaWrapperBool_t prefix##_##externalName##_getb(prefix##_t * prefix##p, externalType *externalName##p);
+  marpaWrapperBool_t prefix##_##externalName##_getb(prefix##_t * prefix##p, externalType *externalName##p)
 
 /***************************************************************************************/
 /* From a wrapper opaque pointer, get size of/array of opaque symbol and rule pointers */
@@ -204,16 +204,16 @@ marpaWrapperBool_t        marpaWrapper_stackOptionDefaultb (marpaWrapperStackOpt
 MARPAWRAPPER_GENERATE_GETTER_DECLARATION(marpaWrapper,                  size_t, sizeMarpaWrapperSymboli);
 MARPAWRAPPER_GENERATE_GETTER_DECLARATION(marpaWrapper, marpaWrapperSymbol_t **, marpaWrapperSymbolpp);
 MARPAWRAPPER_GENERATE_GETTER_DECLARATION(marpaWrapper,                  size_t, sizeMarpaWrapperRulei);
-MARPAWRAPPER_GENERATE_GETTER_DECLARATION(marpaWrapper,    marpaWrapperRule_t *, marpaWrapperRuleArrayp);
+MARPAWRAPPER_GENERATE_GETTER_DECLARATION(marpaWrapper,   marpaWrapperRule_t **, marpaWrapperRulepp);
 
 /******************************************************/
 /* From a symbol opaque pointer, get opaque user data */
 /******************************************************/
 MARPAWRAPPER_GENERATE_GETTER_DECLARATION(marpaWrapperSymbol, void *, datavp);
 
-/******************************/
-/* From a rule opaque pointer */
-/******************************/
+/****************************************************/
+/* From a rule opaque pointer, get opaque user data */
+/****************************************************/
 MARPAWRAPPER_GENERATE_GETTER_DECLARATION(marpaWrapperRule, void *, datavp);
 
 /*************************************************************************************/

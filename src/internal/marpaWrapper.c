@@ -74,13 +74,13 @@ struct marpaWrapper {
   marpaWrapperOption_t     marpaWrapperOption;
 };
 
-MARPAWRAPPER_GENERATE_GETTER_DEFINITION(marpaWrapper,                  void *, Marpa_Config, &, marpaConfig);
-MARPAWRAPPER_GENERATE_GETTER_DEFINITION(marpaWrapper,                  void *, Marpa_Grammar, , marpaGrammarp);
-MARPAWRAPPER_GENERATE_GETTER_DEFINITION(marpaWrapper,                  void *, Marpa_Recognizer, , marpaRecognizerp);
-MARPAWRAPPER_GENERATE_GETTER_DEFINITION(marpaWrapper,                  size_t, sizeMarpaWrapperSymboli, , sizeMarpaWrapperSymboli);
-MARPAWRAPPER_GENERATE_GETTER_DEFINITION(marpaWrapper, marpaWrapperSymbol_t **, marpaWrapperSymbolpp, , marpaWrapperSymbolpp);
-MARPAWRAPPER_GENERATE_GETTER_DEFINITION(marpaWrapper,                  size_t, sizeMarpaWrapperRulei, , sizeMarpaWrapperRulei);
-MARPAWRAPPER_GENERATE_GETTER_DEFINITION(marpaWrapper,   marpaWrapperRule_t **, marpaWrapperRulepp, , marpaWrapperRulepp);
+MARPAWRAPPER_GENERATE_GETTER_DEFINITION(marpaWrapper,                  size_t, sizeMarpaWrapperSymboli, , sizeMarpaWrapperSymboli)
+MARPAWRAPPER_GENERATE_GETTER_DEFINITION(marpaWrapper, marpaWrapperSymbol_t **, marpaWrapperSymbolpp, , marpaWrapperSymbolpp)
+MARPAWRAPPER_GENERATE_GETTER_DEFINITION(marpaWrapper,                  size_t, sizeMarpaWrapperRulei, , sizeMarpaWrapperRulei)
+MARPAWRAPPER_GENERATE_GETTER_DEFINITION(marpaWrapper,   marpaWrapperRule_t **, marpaWrapperRulepp, , marpaWrapperRulepp)
+MARPAWRAPPER_GENERATE_GETTER_DEFINITION(marpaWrapper,                  void *, Marpa_Config, &, marpaConfig)
+MARPAWRAPPER_GENERATE_GETTER_DEFINITION(marpaWrapper,                  void *, Marpa_Grammar, , marpaGrammarp)
+MARPAWRAPPER_GENERATE_GETTER_DEFINITION(marpaWrapper,                  void *, Marpa_Recognizer, , marpaRecognizerp)
 
 struct marpaWrapperSymbol {
   Marpa_Symbol_ID            marpaSymbolIdi;
@@ -88,8 +88,8 @@ struct marpaWrapperSymbol {
   marpaWrapperSymbolOption_t marpaWrapperSymbolOption;
 };
 
-MARPAWRAPPER_GENERATE_GETTER_DEFINITION(marpaWrapperSymbol, void *, datavp, , marpaWrapperSymbolOption.datavp);
-MARPAWRAPPER_GENERATE_GETTER_DEFINITION(marpaWrapperSymbol, unsigned int, Marpa_Symbol_ID, , marpaSymbolIdi);
+MARPAWRAPPER_GENERATE_GETTER_DEFINITION(marpaWrapperSymbol, void *, datavp, , marpaWrapperSymbolOption.datavp)
+MARPAWRAPPER_GENERATE_GETTER_DEFINITION(marpaWrapperSymbol, unsigned int, Marpa_Symbol_ID, , marpaSymbolIdi)
 
 struct marpaWrapperRule {
   Marpa_Rule_ID             marpaRuleIdi;
@@ -97,8 +97,8 @@ struct marpaWrapperRule {
   marpaWrapperRuleOption_t  marpaWrapperRuleOption;
 };
 
-MARPAWRAPPER_GENERATE_GETTER_DEFINITION(marpaWrapperRule, void *, datavp, , marpaWrapperRuleOption.datavp);
-MARPAWRAPPER_GENERATE_GETTER_DEFINITION(marpaWrapperRule, unsigned int, Marpa_Rule_ID, , marpaRuleIdi);
+MARPAWRAPPER_GENERATE_GETTER_DEFINITION(marpaWrapperRule, void *, datavp, , marpaWrapperRuleOption.datavp)
+MARPAWRAPPER_GENERATE_GETTER_DEFINITION(marpaWrapperRule, unsigned int, Marpa_Rule_ID, , marpaRuleIdi)
 
 static int _marpaWrapper_event_cmp(const void *event1p, const void *event2p);
 static int _marpaWrapper_event_weight(Marpa_Event_Type eventType);
@@ -1212,20 +1212,20 @@ void marpaWrapper_log(marpaWrapperLogCallback_t logCallbackp,
 /* _marpaWrapper_log_any */
 /*************************/
 static void _marpaWrapper_log_any(marpaWrapper_t *marpaWrapperp, marpaWrapperLogLevel_t marpaWrapperLogLeveli, marpaWrapperErrorOrigin_t marpaWrapperErrorOrigini, int errorCodei, const char *fmts, ...) {
-  va_list      ap;
+  va_list            ap;
 #ifdef VA_COPY
-  va_list      ap2;
+  va_list            ap2;
 #endif
-  char        *msgs;
-  static char *emptyMessages = "Empty message";
+  char              *msgs;
+  static const char *emptyMessages = "Empty message";
 
   va_start(ap, fmts);
 #ifdef VA_COPY
   VA_COPY(ap2, ap);
-  msgs = (fmts != NULL) ? messageBuilder_ap(fmts, ap2) : emptyMessages;
+  msgs = (fmts != NULL) ? messageBuilder_ap(fmts, ap2) : (char *) emptyMessages;
   va_end(ap2);
 #else
-  msgs = (fmts != NULL) ? messageBuilder_ap(fmts, ap) : emptyMessages;
+  msgs = (fmts != NULL) ? messageBuilder_ap(fmts, ap) : (char *) emptyMessages;
 #endif
   va_end(ap);
 
@@ -1509,7 +1509,7 @@ static int _marpaWrapper_event_cmp(const void *event1p, const void *event2p) {
 
   if (rc1 < rc2) {
     return -1;
-  } else if (rc1 < rc2) {
+  } else if (rc1 > rc2) {
     return 1;
   } else {
     return 0;
@@ -1527,7 +1527,7 @@ static int _marpaWrapper_event_weight(Marpa_Event_Type eventType) {
     rc = -1;
     break;
   case MARPA_EVENT_SYMBOL_NULLED:
-    rc = -0;
+    rc = 0;
     break;
   case MARPA_EVENT_SYMBOL_EXPECTED:        /* Terminals only, should not happen since we rely on the general events mechanism */
   case MARPA_EVENT_SYMBOL_PREDICTED:
@@ -1535,6 +1535,7 @@ static int _marpaWrapper_event_weight(Marpa_Event_Type eventType) {
     break;
   default:
     /* Should never happen, c.f. _marpaWrapper_event() */
+    rc = 0;
     break;
   }
 
