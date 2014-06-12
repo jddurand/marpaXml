@@ -22,22 +22,48 @@ PROJECT (marpaXml)
 # In any case we include our include directory for all targets
 INCLUDE_DIRECTORIES (${PROJECT_SOURCE_DIR}/include)
 
+# ---------------------------------------
+# Add current path to modules search path
+# ---------------------------------------
+SET (CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
+
+# --------------
+# ICU dependency
+# --------------
+FIND_PACKAGE (ICU)
+SET (HAVE_ICU ICU_FOUND)
+
+# ----------------
+# Check for inline
+# ----------------
+FIND_PACKAGE (Inline)
+
 # ---------------------------
 # General overwrite of CFLAGS
 # ---------------------------
-SET (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -D_CRT_SECURE_NO_WARNINGS")
-SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_CRT_SECURE_NO_WARNINGS")
+# Specific to Windows, does not hurt to set it in any case
+ADD_DEFINITIONS("-D_CRT_SECURE_NO_WARNINGS")
+
+SET (CMAKE_C_FLAGS             "${CMAKE_C_FLAGS} $ENV{CFLAGS} ${ICU_CPP_FLAGS} ${ICU_C_FLAGS}")
+SET (CMAKE_CXX_FLAGS           "${CMAKE_CXX_FLAGS} $ENV{CXXFLAGS} ${ICU_CPP_FLAGS} ${ICU_CXX_FLAGS}")
+SET (CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS_INIT} $ENV{LDFLAGS} ${ICU_LDFLAGS}")
+SET (CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS_INIT} $ENV{LDFLAGS} ${ICU_LDFLAGS}")
+SET (CMAKE_EXE_LINKER_FLAGS    "${CMAKE_EXE_LINKER_FLAGS_INIT} $ENV{LDFLAGS} ${ICU_LDFLAGS}")
+
+MESSAGE (STATUS "CMAKE_C_FLAGS            : ${CMAKE_C_FLAGS}")
+MESSAGE (STATUS "CMAKE_CXX_FLAGS          : ${CMAKE_CXX_FLAGS}")
+MESSAGE (STATUS "CMAKE_SHARED_LINKER_FLAGS: ${CMAKE_SHARED_LINKER_FLAGS}")
+MESSAGE (STATUS "CMAKE_MODULE_LINKER_FLAGS: ${CMAKE_MODULE_LINKER_FLAGS}")
+GET_DIRECTORY_PROPERTY( DirDefs DIRECTORY ${CMAKE_SOURCE_DIR} COMPILE_DEFINITIONS )
+foreach( d ${DirDefs} )
+    MESSAGE (STATUS "DEFINITION               : ${d}" )
+endforeach()
 
 # -------------------------------------------------
 # General output path for libraries and executables
 # -------------------------------------------------
 SET (LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/build)
 SET (EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/build)
-
-# ---------------------------------------
-# Add current path to modules search path
-# ---------------------------------------
-SET (CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
 
 # ----------------------------
 # General variables used below
@@ -108,12 +134,6 @@ ADD_CUSTOM_COMMAND (
   TARGET  distclean
   )
 
-# --------------
-# ICU dependency
-# --------------
-FIND_PACKAGE (ICU)
-SET (HAVE_ICU ICU_FOUND)
-
 # ----------------------
 # va_copy implementation
 # ----------------------
@@ -143,11 +163,6 @@ SET_PROPERTY          (TARGET streamInTest APPEND PROPERTY INCLUDE_DIRECTORIES $
 TARGET_LINK_LIBRARIES (streamInTest marpaXmlInternal libcharsetdetect)
 
 ADD_EXECUTABLE        (ICU4CDetectEncoding ${PROJECT_SOURCE_DIR}/test/internal/ICU4CDetectEncoding.c)
-SET_PROPERTY          (TARGET ICU4CDetectEncoding APPEND_STRING PROPERTY COMPILE_FLAGS "${ICU_CPP_FLAGS} ${ICU_C_FLAGS} ")
-FOREACH (_icu_link_flag ${ICU_LINK_FLAGS})
-  # ICU_LINK_FLAGS is potentially a list, and cmake is painful with stringified versions of lists
-  SET_PROPERTY          (TARGET ICU4CDetectEncoding APPEND_STRING PROPERTY LINK_FLAGS "${_icu_link_flag} ")
-ENDFOREACH ()
 
 ADD_EXECUTABLE        (xml_1_0 ${PROJECT_SOURCE_DIR}/test/internal/grammar/xml_1_0.c)
 TARGET_LINK_LIBRARIES (xml_1_0 marpaXmlInternal libmarpa)

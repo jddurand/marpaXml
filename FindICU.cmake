@@ -27,7 +27,10 @@
 #     Preprocessor flags when building against ICU.
 #
 #   ICU_LINK_FLAGS
-#     Linker flags when building linking against ICU. Defaults to "common" (libicuuc) and "i18n" (libicui18n) libraries, as well as the data library.
+#     Linker flags when building linking against ICU. Defaults to "common" (libicuuc) and "i18n" (libicui18n) libraries, as well as the data library. Take care, this is a list.
+#
+#   ICU_LDFLAGS
+#     Stringified version of ICU_LINK_FLAGS
 #
 #   ICU_LINK_LAYOUT_FLAGS
 #     Linker flags for the ICU layout library.
@@ -424,6 +427,11 @@ IF (ICU_INCLUDE_DIR)
 
 ENDIF (ICU_INCLUDE_DIR)
 
+SET (_ICU_LDFLAGS " ")
+FOREACH (_icu_link_flag ${_ICU_LINK_FLAGS})
+  SET (_ICU_LDFLAGS "${_ICU_LDFLAGS} ${_icu_link_flag}")
+ENDFOREACH ()
+
 MARK_AS_ADVANCED (ICU_ROOT_DIR ICU_INCLUDE_DIR ICU_BINARY_DIR)
 
 FIND_PACKAGE_HANDLE_STANDARD_ARGS (ICU REQUIRED_VARS ICU_INCLUDE_DIR
@@ -437,6 +445,8 @@ SET (ICU_CPP_FLAGS "${_ICU_CPP_FLAGS}" CACHE STRING
   "Preprocessor flags when building against ICU")
 SET (ICU_LINK_FLAGS "${_ICU_LINK_FLAGS}" CACHE STRING
   "Linker flags when building linking against ICU. Defaults to \"common\" (libicuuc) and \"i18n\" (libicui18n) libraries, as well as the data library.")
+SET (ICU_LDFLAGS "${_ICU_LDFLAGS}" CACHE STRING
+  "Stringified version of ICU_LINK_FLAGS")
 SET (ICU_LINK_LAYOUT_FLAGS "${_ICU_LINK_LAYOUT_FLAGS}" CACHE STRING
   "Linker flags for the ICU layout library")
 SET (ICU_LINK_IO_FLAGS "${_ICU_LINK_IO_FLAGS}" CACHE STRING
@@ -452,6 +462,7 @@ MARK_AS_ADVANCED (
   ICU_CXX_FLAGS ICU_CXX_FLAGS_SHARED
   ICU_CPP_FLAGS
   ICU_LINK_FLAGS
+  ICU_LDFLAGS
   ICU_LINK_LAYOUT_FLAGS
   ICU_LINK_IO_FLAGS)
 

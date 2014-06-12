@@ -8,7 +8,7 @@ int main(int argc, char **argv) {
   marpaWrapper_optionDefaultb(&marpaWrapperOption);
   marpaWrapperOption.logLevelWantedi     = MARPAWRAPPER_LOGLEVEL_TRACE;
 
-  xml_1_1p = xml_1_1_newp(&marpaWrapperOption);
+  xml_1_1p = xml_1_1_newp(&marpaWrapperOption, NULL);
   if (xml_1_1p != NULL) {
     fprintf(stderr, "Grammar OK\n");
     xml_1_1_destroyv(&xml_1_1p);
