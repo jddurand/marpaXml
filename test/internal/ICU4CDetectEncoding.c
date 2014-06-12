@@ -5,7 +5,24 @@
 static void icu4c_getEncoding(const char *s, size_t lengthl);
 
 int main(int argc, char **argv) {
-  icu4c_getEncoding("ᚠᛇᚻ᛫ᛒᛦᚦ᛫ᚠᚱᚩᚠᚢᚱ᛫ᚠᛁᚱᚪ᛫ᚷᛖᚻ", 15);
+  if (argc == 2) {
+    char buf[10000];
+    FILE *fh = fopen(argv[1], "rb");
+    size_t n;
+    if (fh == NULL) {
+      perror(argv[1]);
+      return 1;
+    }
+    if ((n = fread((void *) buf, 1, sizeof(buf), fh)) == 0) {
+      perror(argv[1]);
+      fclose(fh);
+      return 1;
+    }
+    icu4c_getEncoding(buf, n);
+    fclose(fh);   
+  } else {
+    icu4c_getEncoding("ᚠᛇᚻ᛫ᛒᛦᚦ᛫ᚠᚱᚩᚠᚢᚱ᛫ᚠᛁᚱᚪ᛫ᚷᛖᚻ", 15);
+  }
   return 0;
 }
 
