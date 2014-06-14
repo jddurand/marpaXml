@@ -44,12 +44,6 @@ int main(int argc, char **argv) {
   streamIn_t      *streamInp = NULL;
   int rc = EXIT_SUCCESS;
 
-  streamInp = streamInChar_newp(NULL, NULL);
-  if (streamInp == NULL) {
-    fprintf(stderr, "streamIn_newp failure\n");
-    return EXIT_FAILURE;
-  }
-
   if (argc < 2) {
     fprintf(stderr, "Usage: %s filename\n", argv[0]);
     exit(EXIT_FAILURE);
@@ -59,9 +53,21 @@ int main(int argc, char **argv) {
   Sleep(10000);
 #endif
 
+  streamInp = streamInUtf8_newp(NULL, NULL);
+  if (streamInp == NULL) {
+    fprintf(stderr, "streamInUtf8_newp failure\n");
+    return EXIT_FAILURE;
+  }
   _fileTest(streamInp, argv);
-  _bufferTest(streamInp, argv);
+  streamIn_destroyv(&streamInp);
 
+  streamInp = streamInUtf8_newp(NULL, NULL);
+  if (streamInp == NULL) {
+    fprintf(stderr, "streamInUtf8_newp failure\n");
+    return EXIT_FAILURE;
+  }
+
+  _bufferTest(streamInp, argv);
   streamIn_destroyv(&streamInp);
 
   return(rc);
@@ -132,7 +138,7 @@ static void _fileTest(streamIn_t *streamInp, char **argv) {
 /***************/
 static void _bufferTest(streamIn_t *streamInp, char **argv) {
   streamInOption_t streamInOption;
-  static const char *buffer = "1234";
+  static const char *buffer = "1234abcdABCD";
   myReadData_t     myReadData;
   size_t           indexBufferi;
   char             *charArrayp;

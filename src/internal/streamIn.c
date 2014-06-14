@@ -15,7 +15,7 @@
 
 const static char *_streamIn_defaultEncodings = "UTF-8";
 
-static streamInBool_t _streamIn_detectb(streamIn_t *streamInp);
+static void _streamIn_detectb(streamIn_t *streamInp);
 #ifdef HAVE_ICU
 static streamInBool_t _streamIn_ICU_detectb(streamIn_t *streamInp);
 #endif
@@ -31,8 +31,11 @@ struct streamIn {
   streamInBool_t            *managedbp;                /* True if a buffer is managed by the user */
   streamInOption_t           streamInOption;           /* Options */
   streamInBool_t             eofb;                     /* EOF flag */
+
+  /* UTF-8 section */
+  streamInBool_t             utf8b;                    /* 1 only if streamInUtf8_newp() is called */
   char                      *encodings;                /* Encoding hint */
-  short                      wantEncodingb;            /* 1 only if streamInChar_newp() is called */
+  char                     **utf8Bufpp;                /* char buffers */
 };
 
 #define STREAMIN_DEFAULT_BUFMAXSIZEI (1024*1024)
@@ -94,13 +97,13 @@ streamIn_t *streamIn_newp(streamInOption_t *streamInOptionp) {
     return NULL;
   }
 
-  streamInp->nCharBufi                = 0;
-  streamInp->charBufpp                = NULL;
-  streamInp->realSizeBufip            = NULL;
-  streamInp->managedbp                = NULL;
-  streamInp->eofb                     = 0;
-  streamInp->encodings                = NULL;
-  streamInp->wantEncodingb            = 0;
+  streamInp->nCharBufi     = 0;
+  streamInp->charBufpp     = NULL;
+  streamInp->realSizeBufip = NULL;
+  streamInp->managedbp     = NULL;
+  streamInp->eofb          = 0;
+  streamInp->encodings     = NULL;
+  streamInp->utf8b         = STREAMIN_BOOL_FALSE;
 
   /* From now on we can use STREAMIN_LOG macro */
 
@@ -114,29 +117,25 @@ streamIn_t *streamIn_newp(streamInOption_t *streamInOptionp) {
 }
 
 /*********************/
-/* streamInChar_newp */
+/* streamInUtf8_newp */
 /*********************/
-streamIn_t *streamInChar_newp(streamInOption_t *streamInOptionp, char *encodings) {
+streamIn_t *streamInUtf8_newp(streamInOption_t *streamInOptionp, char *inputEncodings) {
   streamIn_t *streamInp = streamIn_newp(streamInOptionp);
 
   if (streamInp == NULL) {
     return NULL;
   }
 
-  streamInp->wantEncodingb = 1;
+  streamInp->utf8b = STREAMIN_BOOL_TRUE;
 
-  if (encodings != NULL) {
-    streamInp->encodings = malloc(sizeof(char) * (strlen(encodings) + 1));
+  if (inputEncodings != NULL) {
+    streamInp->encodings = malloc(sizeof(char) * (strlen(inputEncodings) + 1));
     if (streamInp->encodings == NULL) {
       STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "malloc(): %s", strerror(errno));
       streamIn_destroyv(&streamInp);
       return NULL;
     }
-    if (strcpy(streamInp->encodings, encodings) != encodings) {
-      STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "strcpy(): %s", strerror(errno));
-      streamIn_destroyv(&streamInp);
-      return NULL;
-    }
+    strcpy(streamInp->encodings, inputEncodings);
   }
 
   return streamInp;
@@ -343,8 +342,8 @@ static streamInBool_t _streamIn_read(streamIn_t *streamInp) {
     return STREAMIN_BOOL_FALSE;
   }
 
-  if (streamInp->wantEncodingb == 1 && streamInp->encodings == NULL) {
-    /* User did a streamInChar_newp. The very first time, we auto-detect encoding */
+  if (streamInp->utf8b == STREAMIN_BOOL_TRUE && streamInp->encodings == NULL) {
+    /* User did a streamInUtf8_newp. The very first time, we auto-detect encoding */
     _streamIn_detectb(streamInp);
   }
 
@@ -591,20 +590,18 @@ streamInBool_t streamIn_nextBufferb(streamIn_t *streamInp, size_t *indexBufferip
 /*********************/
 /* _streamIn_detectb */
 /*********************/
-static streamInBool_t _streamIn_detectb(streamIn_t *streamInp) {
+static void _streamIn_detectb(streamIn_t *streamInp) {
+  if (
 #ifdef HAVE_ICU
-  if (_streamIn_ICU_detectb(streamInp) == STREAMIN_BOOL_TRUE) {
-    return STREAMIN_BOOL_TRUE;
-  }
+      _streamIn_ICU_detectb(streamInp) == STREAMIN_BOOL_TRUE ||
 #endif
-  if (_streamIn_charsetdetect_detectb(streamInp) == STREAMIN_BOOL_TRUE) {
-    return STREAMIN_BOOL_TRUE;
+      _streamIn_charsetdetect_detectb(streamInp) == STREAMIN_BOOL_TRUE
+      ) {
+    return;
   }
 
   STREAMIN_LOG0(STREAMIN_LOGLEVEL_INFO, "Charset detection failure, assuming UTF-8");
   streamInp->encodings = (char *) _streamIn_defaultEncodings;
-
-  return STREAMIN_BOOL_FALSE;
 }
 
 #ifdef HAVE_ICU
@@ -743,3 +740,17 @@ static streamInBool_t _streamIn_charsetdetect_detectb(streamIn_t *streamInp) {
   return STREAMIN_BOOL_TRUE;
 }
 
+/**************************/
+/* streamInUtf8_encodings */
+/**************************/
+streamInBool_t streamInUtf8_encodings(streamIn_t *streamInp, char **encodingsp) {
+  if (streamInp == NULL || streamInp->utf8b == STREAMIN_BOOL_FALSE) {
+    return STREAMIN_BOOL_FALSE;
+  }
+
+  if (encodingsp != NULL) {
+    *encodingsp = streamInp->encodings;
+  }
+
+  return STREAMIN_BOOL_TRUE;
+}

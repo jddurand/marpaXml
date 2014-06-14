@@ -73,12 +73,15 @@ streamInBool_t streamIn_nextBufferb(streamIn_t *streamInp, size_t *indexBufferip
 
 void           streamIn_destroyv(streamIn_t **streamInpp);
 
-/*************************
-   Char-oriented methods : will always return UTF-8, i.e. an unsigned int
- *************************/
-streamIn_t    *streamInChar_newp    (streamInOption_t *streamInOptionp, char *encodings); /* With encoding hint. Otherwise will autodectect */
-streamInBool_t streamInChar_mark32  (streamIn_t *streamInp);                    /* Start iterator at current char */
-streamInBool_t streamInChar_next32  (streamIn_t *streamInp, unsigned int *ip);  /* Get next char  */
-streamInBool_t streamInChar_rewind32(streamIn_t *streamInp);                    /* Go back to mark32 */
+/************************************************************************************************************************************
+   UTF-8 oriented methods : all boolean methods will return STREAMIN_BOOL_FALSE is the called constructor was not streamInUtf8_newp()
+*************************************************************************************************************************************/
+streamIn_t    *streamInUtf8_newp     (streamInOption_t *streamInOptionp, char *inputEncodings);                /* With encoding hint. Otherwise will autodectect */
+streamInBool_t streamInUtf8_encodings(streamIn_t *streamInp, char **encodingsp);                               /* Get input encoding */
+streamInBool_t streamInUtf8_mark     (streamIn_t *streamInp);                                                  /* Start iterator at current char */
+streamInBool_t streamInUtf8_next     (streamIn_t *streamInp, unsigned int *ip);                                /* Get next char  */
+streamInBool_t streamInUtf8_rewind   (streamIn_t *streamInp);                                                  /* Go back to mark32 */
+streamInBool_t streamInUtf8_convert  (streamIn_t *streamInp, char *output, size_t *lengthlp, char *encodings); /* Alloc and convert [marked char, current char] to encodings */
+streamInBool_t streamInUtf8_fetch    (streamIn_t *streamInp, char *output, size_t *lengthlp);                  /* Alloc and fetch [marked char, current char] in UTF-8 encoding */
 
 #endif /* MARPAXML_INTERNAL_STREAMIN_H */
