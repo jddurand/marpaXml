@@ -59,7 +59,7 @@ typedef struct streamInOption {
 } streamInOption_t;
 
 /*************************
-   Methods
+   Byte-oriented methods
  *************************/
 streamIn_t    *streamIn_newp          (streamInOption_t *streamInOptionp);
 
@@ -72,5 +72,13 @@ streamInBool_t streamIn_doneBufferb(streamIn_t *streamInp, int indexBufferi);
 streamInBool_t streamIn_nextBufferb(streamIn_t *streamInp, size_t *indexBufferip, char **charArraypp, size_t *bytesInBufferp);
 
 void           streamIn_destroyv(streamIn_t **streamInpp);
+
+/*************************
+   Char-oriented methods : will always return UTF-8, i.e. an unsigned int
+ *************************/
+streamIn_t    *streamInChar_newp    (streamInOption_t *streamInOptionp, char *encodings); /* With encoding hint. Otherwise will autodectect */
+streamInBool_t streamInChar_mark32  (streamIn_t *streamInp);                    /* Start iterator at current char */
+streamInBool_t streamInChar_next32  (streamIn_t *streamInp, unsigned int *ip);  /* Get next char  */
+streamInBool_t streamInChar_rewind32(streamIn_t *streamInp);                    /* Go back to mark32 */
 
 #endif /* MARPAXML_INTERNAL_STREAMIN_H */

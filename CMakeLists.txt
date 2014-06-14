@@ -38,6 +38,20 @@ SET (HAVE_ICU ${ICU_FOUND} CACHE STRING "HAVE_ICU")
 # ----------------
 FIND_PACKAGE (Inline)
 
+# ------------------------
+# libcharsetdetect library
+# ------------------------
+SET (LIBCHARSETDETECT_SRC ${PROJECT_SOURCE_DIR}/bundle/cChardet/src/ext/libcharsetdetect)
+FILE (GLOB charsetdetect_lib_src ${LIBCHARSETDETECT_SRC}/mozilla/extensions/universalchardet/src/base/*.cpp)
+SET (charsetdetect_lib_src ${charsetdetect_lib_src} ${LIBCHARSETDETECT_SRC}/charsetdetect.cpp)
+ADD_LIBRARY (libcharsetdetect ${charsetdetect_lib_src})
+SET_PROPERTY (TARGET libcharsetdetect
+  PROPERTY INCLUDE_DIRECTORIES
+    ${LIBCHARSETDETECT_SRC}
+    ${LIBCHARSETDETECT_SRC}/nspr-emu
+    ${LIBCHARSETDETECT_SRC}/mozilla/extensions/universalchardet/src/base)
+INCLUDE_DIRECTORIES (${LIBCHARSETDETECT_SRC})
+
 # ---------------------------
 # General overwrite of CFLAGS
 # ---------------------------
@@ -67,6 +81,10 @@ GET_DIRECTORY_PROPERTY( DirDefs DIRECTORY ${CMAKE_SOURCE_DIR} COMPILE_DEFINITION
 FOREACH (d ${DirDefs})
     MESSAGE (STATUS "DEFINITION               : ${d}" )
 ENDFOREACH ()
+GET_DIRECTORY_PROPERTY( DirDefs DIRECTORY ${CMAKE_SOURCE_DIR} INCLUDE_DIRECTORIES )
+FOREACH (d ${DirDefs})
+    MESSAGE (STATUS "INCLUDE                  : ${d}" )
+ENDFOREACH ()
 
 # -------------------------------------------------
 # General output path for libraries and executables
@@ -94,19 +112,6 @@ IF (NOT EXISTS "${MARPA_DIR}" OR NOT IS_DIRECTORY "${MARPA_DIR}")
 ENDIF ()
 FILE(GLOB marpa_lib_src Marpa-R2-${MARPA_VERSION}/libmarpa_dist/*.c)
 ADD_LIBRARY (libmarpa ${marpa_lib_src})
-
-# ------------------------
-# libcharsetdetect library
-# ------------------------
-SET (LIBCHARSETDETECT_SRC ${PROJECT_SOURCE_DIR}/bundle/cChardet/src/ext/libcharsetdetect)
-FILE (GLOB charsetdetect_lib_src ${LIBCHARSETDETECT_SRC}/mozilla/extensions/universalchardet/src/base/*.cpp)
-SET (charsetdetect_lib_src ${charsetdetect_lib_src} ${LIBCHARSETDETECT_SRC}/charsetdetect.cpp)
-ADD_LIBRARY (libcharsetdetect ${charsetdetect_lib_src})
-SET_PROPERTY (TARGET libcharsetdetect
-  PROPERTY INCLUDE_DIRECTORIES
-    ${LIBCHARSETDETECT_SRC}
-    ${LIBCHARSETDETECT_SRC}/nspr-emu
-    ${LIBCHARSETDETECT_SRC}/mozilla/extensions/universalchardet/src/base)
 
 # ------------------------
 # marpaXmlInternal library

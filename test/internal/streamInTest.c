@@ -23,15 +23,12 @@
 #include <string.h>
 
 #include "internal/streamIn.h"
-#include "charsetdetect.h"
 
 typedef struct myReadData {
   int            fd;
   char          *buffer;
   streamInBool_t firstb;
   off_t          offseti;
-  csd_t          csdp;
-  char          *charset;
 } myReadData_t;
 
 
@@ -47,7 +44,7 @@ int main(int argc, char **argv) {
   streamIn_t      *streamInp = NULL;
   int rc = EXIT_SUCCESS;
 
-  streamInp = streamIn_newp(NULL);
+  streamInp = streamInChar_newp(NULL, NULL);
   if (streamInp == NULL) {
     fprintf(stderr, "streamIn_newp failure\n");
     return EXIT_FAILURE;
@@ -96,15 +93,13 @@ static void _fileTest(streamIn_t *streamInp, char **argv) {
   myReadData.fd = fd;
   myReadData.offseti = 0;
   myReadData.firstb = STREAMIN_BOOL_TRUE;
-  myReadData.csdp = NULL;
-  myReadData.charset = NULL;
 
   if (streamIn_optionDefaultb(&streamInOption) == STREAMIN_BOOL_FALSE) {
     fprintf(stderr, "streamIn_optionDefaultb failure\n");
     return;
   }
   streamInOption.bufMaxSizei = 100;
-  streamInOption.logLevelWantedi = STREAMIN_LOGLEVEL_WARNING;
+  streamInOption.logLevelWantedi = STREAMIN_LOGLEVEL_TRACE;
   streamInOption.readCallbackp = &_readFileCallback;
   streamInOption.readCallbackUserDatap = &myReadData;
   if (streamIn_optionb(streamInp, &streamInOption) == STREAMIN_BOOL_FALSE) {
@@ -185,15 +180,6 @@ static streamInBool_t _readFileCallback(void *datavp, size_t wantedBytesi, size_
   myReadData_t *myReadDatap = (myReadData_t *) datavp;
   int      n;
 
-  if (myReadDatap->charset == NULL) {
-    if (myReadDatap->csdp == NULL) {
-      myReadDatap->csdp = csd_open();
-      if (myReadDatap->csdp == NULL) {
-        fprintf(stderr, "csd_open failure\n");
-      }
-    }
-  }
-
   n = READ(myReadDatap->fd, charArrayp, wantedBytesi);
   if (n <= 0) {
     if (n < 0) {
@@ -204,24 +190,6 @@ static streamInBool_t _readFileCallback(void *datavp, size_t wantedBytesi, size_
 
   *gotBytesip = n;
   myReadDatap->offseti = LSEEK(myReadDatap->fd, 0, SEEK_CUR);
-
-  if (*gotBytesip > 0) {
-    if (myReadDatap->charset == NULL) {
-      int result = csd_consider(myReadDatap->csdp, charArrayp, *gotBytesip);
-      if (result < 0) {
-        fprintf(stderr, "csd_consider failure\n");
-      } else if (result == 0) {
-        /* Already have enough data */
-        const char *charset = csd_close(myReadDatap->csdp);
-        if (charset != NULL) {
-          fprintf(stderr, "Detected charset: %s\n", charset);
-          myReadDatap->charset = STRDUP(charset);
-        } else {
-          fprintf(stderr, "charset detection failure: %s\n", "ascii/unknown");
-        }
-      }
-    }
-  }
 
   return STREAMIN_BOOL_TRUE;
 }

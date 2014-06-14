@@ -7,6 +7,19 @@
 #include "internal/config.h"
 #include "internal/streamIn.h"
 #include "internal/messageBuilder.h"
+#ifdef HAVE_ICU
+#include "unicode/ucsdet.h"
+#include "unicode/uclean.h"
+#endif
+#include "charsetdetect.h"
+
+const static char *_streamIn_defaultEncodings = "UTF-8";
+
+static streamInBool_t _streamIn_detectb(streamIn_t *streamInp);
+#ifdef HAVE_ICU
+static streamInBool_t _streamIn_ICU_detectb(streamIn_t *streamInp);
+#endif
+static streamInBool_t _streamIn_charsetdetect_detectb(streamIn_t *streamInp);
 
 /*****************************************************************************/
 /* Generic class handling read-only streaming on buffers that can ONLY go on */
@@ -18,6 +31,8 @@ struct streamIn {
   streamInBool_t            *managedbp;                /* True if a buffer is managed by the user */
   streamInOption_t           streamInOption;           /* Options */
   streamInBool_t             eofb;                     /* EOF flag */
+  char                      *encodings;                /* Encoding hint */
+  short                      wantEncodingb;            /* 1 only if streamInChar_newp() is called */
 };
 
 #define STREAMIN_DEFAULT_BUFMAXSIZEI (1024*1024)
@@ -84,6 +99,8 @@ streamIn_t *streamIn_newp(streamInOption_t *streamInOptionp) {
   streamInp->realSizeBufip            = NULL;
   streamInp->managedbp                = NULL;
   streamInp->eofb                     = 0;
+  streamInp->encodings                = NULL;
+  streamInp->wantEncodingb            = 0;
 
   /* From now on we can use STREAMIN_LOG macro */
 
@@ -91,6 +108,35 @@ streamIn_t *streamIn_newp(streamInOption_t *streamInOptionp) {
   if (_streamIn_optionb(streamInp, streamInOptionp) == STREAMIN_BOOL_FALSE) {
     streamIn_destroyv(&streamInp);
     return NULL;
+  }
+
+  return streamInp;
+}
+
+/*********************/
+/* streamInChar_newp */
+/*********************/
+streamIn_t *streamInChar_newp(streamInOption_t *streamInOptionp, char *encodings) {
+  streamIn_t *streamInp = streamIn_newp(streamInOptionp);
+
+  if (streamInp == NULL) {
+    return NULL;
+  }
+
+  streamInp->wantEncodingb = 1;
+
+  if (encodings != NULL) {
+    streamInp->encodings = malloc(sizeof(char) * (strlen(encodings) + 1));
+    if (streamInp->encodings == NULL) {
+      STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "malloc(): %s", strerror(errno));
+      streamIn_destroyv(&streamInp);
+      return NULL;
+    }
+    if (strcpy(streamInp->encodings, encodings) != encodings) {
+      STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "strcpy(): %s", strerror(errno));
+      streamIn_destroyv(&streamInp);
+      return NULL;
+    }
   }
 
   return streamInp;
@@ -297,6 +343,11 @@ static streamInBool_t _streamIn_read(streamIn_t *streamInp) {
     return STREAMIN_BOOL_FALSE;
   }
 
+  if (streamInp->wantEncodingb == 1 && streamInp->encodings == NULL) {
+    /* User did a streamInChar_newp. The very first time, we auto-detect encoding */
+    _streamIn_detectb(streamInp);
+  }
+
   return STREAMIN_BOOL_TRUE;
 }
 
@@ -387,6 +438,15 @@ void streamIn_destroyv(streamIn_t **streamInpp) {
   if (streamInp->nCharBufi > 0) {
     _streamIn_doneBufferb(streamInp, streamInp->nCharBufi - 1);
   }
+  if (streamInp->encodings != NULL) {
+    if (streamInp->encodings != _streamIn_defaultEncodings) {
+      free(streamInp->encodings);
+    }
+  }
+
+#ifdef HAVE_ICU
+  u_cleanup();
+#endif
 
   free(streamInp);
   *streamInpp = NULL;
@@ -523,5 +583,160 @@ streamInBool_t streamIn_nextBufferb(streamIn_t *streamInp, size_t *indexBufferip
   STREAMIN_TRACEX("streamIn_nextBufferb(%p, %p, %p, %p)", streamInp, indexBufferip, charArraypp, bytesInBufferp);
 
   return _streamIn_getBufferb(streamInp, streamInp->nCharBufi, indexBufferip, charArraypp, bytesInBufferp);
+}
+
+/*********************/
+/* _streamIn_detectb */
+/*********************/
+static streamInBool_t _streamIn_detectb(streamIn_t *streamInp) {
+#ifdef HAVE_ICU
+  if (_streamIn_ICU_detectb(streamInp) == STREAMIN_BOOL_TRUE) {
+    return STREAMIN_BOOL_TRUE;
+  }
+#endif
+  if (_streamIn_charsetdetect_detectb(streamInp) == STREAMIN_BOOL_TRUE) {
+    return STREAMIN_BOOL_TRUE;
+  }
+
+  STREAMIN_LOG0(STREAMIN_LOGLEVEL_INFO, "Charset detection failure, assuming UTF-8");
+  streamInp->encodings = (char *) _streamIn_defaultEncodings;
+
+  return STREAMIN_BOOL_FALSE;
+}
+
+#ifdef HAVE_ICU
+/*************************/
+/* _streamIn_ICU_detectb */
+/*************************/
+static streamInBool_t _streamIn_ICU_detectb(streamIn_t *streamInp) {
+  UErrorCode           uErrorCode = U_ZERO_ERROR;
+  UCharsetDetector    *uCharsetDetector;
+  const UCharsetMatch *uCharsetMatch;
+  const char          *encodings;
+  int32_t              confidence; 
+  streamInBool_t       rcb = STREAMIN_BOOL_TRUE;
+
+  STREAMIN_TRACE0("Determining encoding using ICU");
+
+  uCharsetDetector = ucsdet_open(&uErrorCode);
+  if (U_FAILURE(uErrorCode)) {
+    STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "ucsdet_open(): %s", u_errorName(uErrorCode));
+    rcb = STREAMIN_BOOL_FALSE;
+    goto ICU_end;
+  }
+
+  ucsdet_setText(uCharsetDetector, streamInp->charBufpp[0], streamInp->realSizeBufip[0], &uErrorCode);
+  if (U_FAILURE(uErrorCode)) {
+    STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "ucsdet_setText(): %s", u_errorName(uErrorCode));
+    rcb = STREAMIN_BOOL_FALSE;
+    goto ICU_end;
+  }
+
+  uCharsetMatch = ucsdet_detect(uCharsetDetector, &uErrorCode);
+  if (U_FAILURE(uErrorCode)) {
+    STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "ucsdet_detect(): %s", u_errorName(uErrorCode));
+    rcb = STREAMIN_BOOL_FALSE;
+    goto ICU_end;
+  }
+  if (uCharsetMatch == NULL) {
+    STREAMIN_LOG0(STREAMIN_LOGLEVEL_ERROR, "ucsdet_detect() returned NULL");
+    rcb = STREAMIN_BOOL_FALSE;
+    goto ICU_end;
+  }
+
+  encodings = ucsdet_getName(uCharsetMatch, &uErrorCode);
+  if (U_FAILURE(uErrorCode)) {
+    STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "ucsdet_getName(): %s", u_errorName(uErrorCode));
+    rcb = STREAMIN_BOOL_FALSE;
+    goto ICU_end;
+  }
+  if (encodings == NULL) {
+    STREAMIN_LOG0(STREAMIN_LOGLEVEL_ERROR, "ucsdet_getName() returned NULL");
+    rcb = STREAMIN_BOOL_FALSE;
+    goto ICU_end;
+  }
+  if (strlen(encodings) <= 0) {
+    STREAMIN_LOG0(STREAMIN_LOGLEVEL_ERROR, "ucsdet_getName() returned empty string");
+    rcb = STREAMIN_BOOL_FALSE;
+    goto ICU_end;
+  }
+
+  confidence = ucsdet_getConfidence(uCharsetMatch, &uErrorCode);
+  if (U_FAILURE(uErrorCode)) {
+    STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "ucsdet_getConfidence(): %s", u_errorName(uErrorCode));
+    rcb = STREAMIN_BOOL_FALSE;
+    goto ICU_end;
+  }
+
+  if (confidence < 10) {
+    STREAMIN_LOGX(STREAMIN_LOGLEVEL_WARNING, "ucsdet_getConfidence() returned encoding %s with too low confidence %d < 10 - rejected", encodings, confidence);
+    rcb = STREAMIN_BOOL_FALSE;
+    goto ICU_end;
+  }
+
+  STREAMIN_LOGX(STREAMIN_LOGLEVEL_INFO, "ICU returned encoding %s with confidence %d", encodings, confidence);
+
+ ICU_end:
+
+  if (rcb == STREAMIN_BOOL_TRUE) {
+    /* Save the result */
+    streamInp->encodings = malloc(sizeof(char) * (strlen(encodings) + 1));
+    if (streamInp->encodings == NULL) {
+      STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "malloc(): %s", strerror(errno));
+      rcb = STREAMIN_BOOL_FALSE;
+    } else {
+      strcpy(streamInp->encodings, encodings);
+    }
+  }
+
+  if (uCharsetDetector != NULL) {
+    ucsdet_close(uCharsetDetector);
+  }
+
+  return rcb;
+}
+#endif
+
+/***********************************/
+/* _streamIn_charsetdetect_detectb */
+/***********************************/
+static streamInBool_t _streamIn_charsetdetect_detectb(streamIn_t *streamInp) {
+  csd_t       csdp;
+  int         result;
+  const char *encodings;
+  float       confidencef;
+
+  csdp = csd_open();
+  if (csdp == NULL) {
+    STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "csd_open(): %s", strerror(errno));
+    return STREAMIN_BOOL_FALSE;
+  } else {
+    result = csd_consider(csdp, streamInp->charBufpp[0], streamInp->realSizeBufip[0]);
+    /* We are not going to ask for more data: a reasonable application will at least */
+    /* use the default cache of 1M, that must be large enough in any case            */
+    if (result < 0) {
+      STREAMIN_LOG0(STREAMIN_LOGLEVEL_ERROR, "csd_consider() failure");
+      csd_close(csdp);
+      return STREAMIN_BOOL_FALSE;
+    } else {
+      encodings = csd_close2(csdp, &confidencef);
+      if (encodings == NULL) {
+	STREAMIN_LOG0(STREAMIN_LOGLEVEL_ERROR, "csd_close() returned NULL");
+	return STREAMIN_BOOL_FALSE;
+      } else {
+	STREAMIN_LOGX(STREAMIN_LOGLEVEL_INFO, "libcharsetdetect returned encoding %s with confidence %f", encodings, (double) confidencef);
+	/* Save the result */
+	streamInp->encodings = malloc(sizeof(char) * (strlen(encodings) + 1));
+	if (streamInp->encodings == NULL) {
+	  STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "malloc(): %s", strerror(errno));
+	  return STREAMIN_BOOL_FALSE;
+	} else {
+	  strcpy(streamInp->encodings, encodings);
+	}
+      }
+    }
+  }
+
+  return STREAMIN_BOOL_TRUE;
 }
 
