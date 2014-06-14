@@ -445,7 +445,10 @@ void streamIn_destroyv(streamIn_t **streamInpp) {
   }
 
 #ifdef HAVE_ICU
+  /* ICU recommendation is to NOT call this. This is done automatically at library unload */
+#ifdef STREAMIN_SINGLE_TEST_APPLICATION_ONLY
   u_cleanup();
+#endif
 #endif
 
   free(streamInp);
