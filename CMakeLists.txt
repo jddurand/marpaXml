@@ -31,7 +31,7 @@ SET (CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
 # ICU dependency
 # --------------
 FIND_PACKAGE (ICU)
-SET (HAVE_ICU ICU_FOUND)
+SET (HAVE_ICU ${ICU_FOUND} CACHE STRING "HAVE_ICU")
 
 # ----------------
 # Check for inline

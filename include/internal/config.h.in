@@ -3,6 +3,8 @@
 
 #cmakedefine VA_COPY @VA_COPY@
 #cmakedefine NULL_IS_ZEROES @NULL_IS_ZEROES@
+#cmakedefine HAVE_ICU @HAVE_ICU@
+#cmakedefine HAVE_ICONV @HAVE_ICONV@
 
 #endif /* MARPAXML_INTERNAL_CONFIG_H */
 
