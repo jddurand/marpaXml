@@ -34,14 +34,23 @@ typedef struct myReadData {
 
 static streamInBool_t _readFileCallback  (void *datavp, size_t wantedBytesi, size_t *gotBytesip, char *charArrayp, char **charManagedArrayp);
 static streamInBool_t _readBufferCallback(void *datavp, size_t wantedBytesi, size_t *gotBytesip, char *charArrayp, char **charManagedArrayp);
-static void           _fileTest(streamIn_t *streamInp, char **argv);
-static void           _bufferTest(streamIn_t *streamInp, char **argv);
+static void           _fileTest(streamIn_t *streamInp, streamInBool_t utf8b, char **argv);
+static void           _bufferTest(streamIn_t *streamInp, streamInBool_t utf8b, char **argv);
+
+#define STREAMIN_NEW(utf8b) {						\
+    streamInp = (utf8b == STREAMIN_BOOL_TRUE) ? streamInUtf8_newp(NULL, NULL) : streamIn_newp(NULL); \
+    if (streamInp == NULL) {						\
+      fprintf(stderr, ((utf8b == STREAMIN_BOOL_TRUE) ? "streamInUtf8_newp failure\n" : "streamIn_newp failure\n")); \
+      return EXIT_FAILURE;						\
+    }									\
+}
 
 /********/
 /* main */
 /********/
 int main(int argc, char **argv) {
   streamIn_t      *streamInp = NULL;
+  streamIn_t      *streamInUtf8p = NULL;
   int rc = EXIT_SUCCESS;
 
   if (argc < 2) {
@@ -53,30 +62,29 @@ int main(int argc, char **argv) {
   Sleep(10000);
 #endif
 
-  streamInp = streamInUtf8_newp(NULL, NULL);
-  if (streamInp == NULL) {
-    fprintf(stderr, "streamInUtf8_newp failure\n");
-    return EXIT_FAILURE;
-  }
-  _fileTest(streamInp, argv);
+  STREAMIN_NEW(STREAMIN_BOOL_TRUE);
+  _fileTest(streamInp, STREAMIN_BOOL_TRUE, argv);
   streamIn_destroyv(&streamInp);
 
-  streamInp = streamInUtf8_newp(NULL, NULL);
-  if (streamInp == NULL) {
-    fprintf(stderr, "streamInUtf8_newp failure\n");
-    return EXIT_FAILURE;
-  }
+  STREAMIN_NEW(STREAMIN_BOOL_FALSE);
+  _fileTest(streamInp, STREAMIN_BOOL_FALSE, argv);
+  streamIn_destroyv(&streamInp);
 
-  _bufferTest(streamInp, argv);
+  STREAMIN_NEW(STREAMIN_BOOL_TRUE);
+  _bufferTest(streamInp, STREAMIN_BOOL_TRUE, argv);
+  streamIn_destroyv(&streamInp);
+
+  STREAMIN_NEW(STREAMIN_BOOL_FALSE);
+  _bufferTest(streamInp, STREAMIN_BOOL_FALSE, argv);
   streamIn_destroyv(&streamInp);
 
   return(rc);
 }
 
-/***************/
-/* _bufferTest */
-/***************/
-static void _fileTest(streamIn_t *streamInp, char **argv) {
+/*************/
+/* _fileTest */
+/*************/
+static void _fileTest(streamIn_t *streamInp, streamInBool_t utf8b, char **argv) {
   streamInOption_t streamInOption;
   int              fd;
   myReadData_t     myReadData;
@@ -84,8 +92,9 @@ static void _fileTest(streamIn_t *streamInp, char **argv) {
   char             *charArrayp;
   size_t           bytesInBuffer;
 
-  fprintf(stderr, "Filename test\n");
-  fprintf(stderr, "-------------\n");
+  
+  fprintf(stderr, "Filename test (utf8 mode: %s)\n", (utf8b == STREAMIN_BOOL_TRUE) ? "on" : "off");
+  fprintf(stderr, "------------------------------\n");
 
   if ((fd = OPEN(argv[1], O_RDONLY
 #ifdef O_BINARY
@@ -136,7 +145,7 @@ static void _fileTest(streamIn_t *streamInp, char **argv) {
 /***************/
 /* _bufferTest */
 /***************/
-static void _bufferTest(streamIn_t *streamInp, char **argv) {
+static void _bufferTest(streamIn_t *streamInp, streamInBool_t utf8b, char **argv) {
   streamInOption_t streamInOption;
   static const char *buffer = "1234abcdABCD";
   myReadData_t     myReadData;
@@ -144,8 +153,8 @@ static void _bufferTest(streamIn_t *streamInp, char **argv) {
   char             *charArrayp;
   size_t           bytesInBuffer;
 
-  fprintf(stderr, "Buffer test\n");
-  fprintf(stderr, "-----------\n");
+  fprintf(stderr, "Buffer test (utf8 mode: %s)\n", (utf8b == STREAMIN_BOOL_TRUE) ? "on" : "off");
+  fprintf(stderr, "-----------------------------\n");
 
   myReadData.buffer = (char *) buffer;
   myReadData.firstb = STREAMIN_BOOL_TRUE;
