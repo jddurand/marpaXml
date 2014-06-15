@@ -984,6 +984,7 @@ static streamInBool_t _streamIn_ICU_convertLastBufferToUtf8b(streamIn_t *streamI
       }
 
       /* Realloc can have moved the buffer, so doing target = targetLimit is wrong */
+      streamInp->ucharBufpp[lastBufi] = ucharp;
       target = streamInp->ucharBufpp[lastBufi] + streamInp->ucharBufMaxSizei;
       streamInp->ucharBufMaxSizei *= 2;
       targetLimit = streamInp->ucharBufpp[lastBufi] + streamInp->ucharBufMaxSizei;
