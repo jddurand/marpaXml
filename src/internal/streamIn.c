@@ -967,16 +967,29 @@ static streamInBool_t _streamIn_ICU_convertLastBufferToUtf8b(streamIn_t *streamI
   const char  *source      = streamInp->charBufpp[lastBufi];
   const char  *sourceLimit = streamInp->charBufpp[lastBufi] + streamInp->realSizeCharBufip[lastBufi];
   UBool        flush       = (streamInp->utf8b == STREAMIN_BOOL_TRUE) ? 1 : 0;
+  UChar        *ucharp;
 
-  ucnv_toUnicode(streamInp->ICU_convFrom, &target, targetLimit, &source, sourceLimit, flush, NULL, &err);
+  do {
 
-  if (err == U_BUFFER_OVERFLOW_ERROR) {
-    /* ucnv_toUnicode() is a statefull method.                                 */
-    /* We remember for the next time that our heuristic was underestimated and */
-    /* expand ourself the current target buffer                                */
-    streamInp->ucharBufMaxSizei *= 2;
-    /* JDD TO CONTINUE */
-  }
+    ucnv_toUnicode(streamInp->ICU_convFrom, &target, targetLimit, &source, sourceLimit, flush, NULL, &err);
+
+    if (err == U_BUFFER_OVERFLOW_ERROR) {
+      /* ucnv_toUnicode() is a statefull method.                                 */
+      /* We remember for the next time that our heuristic was underestimated and */
+      /* expand ourself the current target buffer                                */
+      ucharp = realloc(streamInp->ucharBufpp[lastBufi], sizeof(UChar) * (streamInp->ucharBufMaxSizei * 2));
+      if (ucharp == NULL) {
+	STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "realloc(): %s", strerror(errno));
+	return STREAMIN_BOOL_FALSE;
+      }
+
+      /* Realloc can have moved the buffer, so doing target = targetLimit is wrong */
+      target = streamInp->ucharBufpp[lastBufi] + streamInp->ucharBufMaxSizei;
+      streamInp->ucharBufMaxSizei *= 2;
+      targetLimit = streamInp->ucharBufpp[lastBufi] + streamInp->ucharBufMaxSizei;
+    }
+
+  } while (err == U_BUFFER_OVERFLOW_ERROR);
 
 
 }
