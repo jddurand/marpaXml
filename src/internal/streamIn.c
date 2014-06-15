@@ -960,17 +960,15 @@ static streamInBool_t _streamIn_convertLastBufferToUtf8b(streamIn_t *streamInp) 
 /* _streamIn_ICU_convertLastBufferToUtf8b */
 /******************************************/
 static streamInBool_t _streamIn_ICU_convertLastBufferToUtf8b(streamIn_t *streamInp) {
-  UErrorCode err = U_ZERO_ERROR;
-  size_t     lastBufi = streamInp->nCharBufi;
+  UErrorCode   err         = U_ZERO_ERROR;
+  size_t       lastBufi    = streamInp->nCharBufi;
+  UChar       *target      = streamInp->ucharBufpp[lastBufi];
+  const UChar *targetLimit = streamInp->ucharBufpp[lastBufi] + streamInp->ucharBufMaxSizei;
+  const char  *source      = streamInp->charBufpp[lastBufi];
+  const char  *sourceLimit = streamInp->charBufpp[lastBufi] + streamInp->realSizeCharBufip[lastBufi];
+  UBool        flush       = (streamInp->utf8b == STREAMIN_BOOL_TRUE) ? 1 : 0;
 
-  ucnv_toUnicode(streamInp->ICU_convFrom,                                                                  /* converter */
-		 &(streamInp->ucharBufpp[lastBufi]),                                                       /* target */
-		 streamInp->ucharBufpp[lastBufi] + streamInp->ucharBufMaxSizei,                            /* targetLimit */
-		 (const char **) &(streamInp->charBufpp[lastBufi]),                                        /* source */
-		 (const char *) (streamInp->charBufpp[lastBufi] + streamInp->realSizeCharBufip[lastBufi]), /* sourceLimit */
-		 NULL,                                                                                     /* offsets */
-		 (streamInp->utf8b == STREAMIN_BOOL_TRUE) ? 1 : 0,
-		 &err);
+  ucnv_toUnicode(streamInp->ICU_convFrom, &target, targetLimit, &source, sourceLimit, flush, NULL, &err);
 
   if (err == U_BUFFER_OVERFLOW_ERROR) {
     /* ucnv_toUnicode() is a statefull method.                                 */
