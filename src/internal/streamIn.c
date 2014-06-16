@@ -971,7 +971,7 @@ static streamInBool_t _streamIn_ICU_convertLastBufferToUtf8b(streamIn_t *streamI
 
   do {
 
-    ucnv_toUnicode(streamInp->ICU_convFrom, &target, targetLimit, &source, sourceLimit, flush, NULL, &err);
+    ucnv_toUnicode(streamInp->ICU_convFrom, &target, targetLimit, &source, sourceLimit, NULL, flush, &err);
 
     if (err == U_BUFFER_OVERFLOW_ERROR) {
       /* ucnv_toUnicode() is a statefull method.                                 */
