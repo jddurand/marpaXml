@@ -16,13 +16,14 @@
 
 const static char *_streamIn_defaultEncodings = "UTF-8";
 
-static void _streamIn_detectb(streamIn_t *streamInp);
+static void           _streamIn_detectb(streamIn_t *streamInp);
 static streamInBool_t _streamIn_convertLastBufferToUtf8b(streamIn_t *streamInp);
+static void           _streamInUtf8_destroyv(streamIn_t *streamInp);
 
 #ifdef HAVE_ICU
 static streamInBool_t _streamIn_ICU_detectb(streamIn_t *streamInp);
-static streamInBool_t _streamIn_ICU_convertb(streamIn_t *streamInp, UConverter *convFrom, UConverter *convTo, char *inputs, size_t lengthl);
 static streamInBool_t _streamIn_ICU_convertLastBufferToUtf8b(streamIn_t *streamInp);
+static unsigned char  _streamin_ICU_nibbleToHex(uint8_t n);
 #endif
 static streamInBool_t _streamIn_charsetdetect_detectb(streamIn_t *streamInp);
 
@@ -150,6 +151,8 @@ streamIn_t *streamInUtf8_newp(streamInOption_t *streamInOptionp, streamInUtf8Opt
 #ifdef HAVE_ICU
   streamInp->ucharBufMaxSizei = streamInp->streamInOption.bufMaxSizei * 2;  /* A guess that, initially, a uchar (UTF-16) buffer twice bigger is enough */
   streamInp->ucharBufpp       = NULL;
+  streamInp->ICU_convFrom     = NULL;
+  streamInp->ICU_convTo       = NULL;
 #endif
 
   streamInUtf8_optionDefaultb(&(streamInp->streamInUtf8Option));
@@ -462,6 +465,8 @@ static streamInBool_t _streamIn_read(streamIn_t *streamInp) {
       _streamIn_detectb(streamInp);
     }
     /* Convert to UTF-8 */
+    if (_streamIn_convertLastBufferToUtf8b(streamInp) == STREAMIN_BOOL_FALSE) {
+    }
   }
 
   return STREAMIN_BOOL_TRUE;
@@ -554,24 +559,8 @@ void streamIn_destroyv(streamIn_t **streamInpp) {
   if (streamInp->nCharBufi > 0) {
     _streamIn_doneBufferb(streamInp, streamInp->nCharBufi - 1);
   }
-  if (streamInp->streamInUtf8Option.encodings != NULL) {
-    if (streamInp->streamInUtf8Option.encodings != _streamIn_defaultEncodings) {
-      free(streamInp->streamInUtf8Option.encodings);
-    }
-  }
 
-#ifdef HAVE_ICU
-  if (streamInp->ICU_convTo != NULL) {
-    ucnv_close(streamInp->ICU_convTo);
-  }
-  if (streamInp->ICU_convFrom != NULL) {
-    ucnv_close(streamInp->ICU_convFrom);
-  }
-#ifdef STREAMIN_SINGLE_TEST_APPLICATION_ONLY
-  /* ICU recommendation is to NOT call this. This is done automatically at library unload */
-  u_cleanup();
-#endif
-#endif
+  _streamInUtf8_destroyv(streamInp);
 
   free(streamInp);
   *streamInpp = NULL;
@@ -959,39 +948,150 @@ static streamInBool_t _streamIn_convertLastBufferToUtf8b(streamIn_t *streamInp) 
 /******************************************/
 /* _streamIn_ICU_convertLastBufferToUtf8b */
 /******************************************/
+/* Logic based on uconv.cpp */
+/*****************************************************************************
+*
+*   Copyright (C) 1999-2004, International Business Machines
+*   Corporation and others.  All Rights Reserved.
+*
+******************************************************************************/
+
+/*
+ * uconv(1): an iconv(1)-like converter using ICU.
+ *
+ * Original code by Jonas Utterstrom <jonas.utterstrom@vittran.norrnod.se>
+ * contributed in 1999.
+ *
+ * Conversion to the C conversion API and many improvements by
+ * Yves Arrouye <yves@realnames.com>, current maintainer.
+ *
+ * Markus Scherer maintainer from 2003.
+ * See source code repository history for changes.
+ */
 static streamInBool_t _streamIn_ICU_convertLastBufferToUtf8b(streamIn_t *streamInp) {
-  UErrorCode   err         = U_ZERO_ERROR;
-  size_t       lastBufi    = streamInp->nCharBufi;
-  UChar       *target      = streamInp->ucharBufpp[lastBufi];
-  const UChar *targetLimit = streamInp->ucharBufpp[lastBufi] + streamInp->ucharBufMaxSizei;
-  const char  *source      = streamInp->charBufpp[lastBufi];
-  const char  *sourceLimit = streamInp->charBufpp[lastBufi] + streamInp->realSizeCharBufip[lastBufi];
-  UBool        flush       = (streamInp->utf8b == STREAMIN_BOOL_TRUE) ? 1 : 0;
-  UChar        *ucharp;
+  UErrorCode     err;
+  size_t         lastBufi        = streamInp->nCharBufi - 1;
+  UChar         *fromTarget        = streamInp->ucharBufpp[lastBufi];
+  const UChar   *fromTargetLimit   = streamInp->ucharBufpp[lastBufi] + streamInp->ucharBufMaxSizei;
+  const char    *fromSource        = streamInp->charBufpp[lastBufi];
+  const char    *fromSourceLimit   = streamInp->charBufpp[lastBufi] + streamInp->realSizeCharBufip[lastBufi];
+  UBool          toFlushb        = (streamInp->eofb == STREAMIN_BOOL_TRUE) ? TRUE : FALSE;
+  streamInBool_t stopTob         = STREAMIN_BOOL_FALSE;
+  UChar         *ucharBufp;
+  UBool          inputDoneb;
+
+  char          *toTarget      = streamInp->utf8Bufpp[lastBufi];
+  const char    *toTargetLimit = streamInp->utf8Bufpp[lastBufi] + streamInp->utf8BufMaxSizei;
+  const UChar   *toSource;      /* Depends on fromTarget */
+  const UChar   *toSourceLimit; /* Depends on fromTargetLimit */
+  UBool          fromFlushb;      /* Depends on inputDoneb */
+  streamInBool_t stopFromb       = STREAMIN_BOOL_FALSE;
+  char          *utf8Bufp;
+
+  /* For error reporting */
+  unsigned char errorBytes[32];
+  int8_t        errorLength;
+  int           i;
+
+  streamInBool_t rcb             = STREAMIN_BOOL_TRUE;
 
   do {
 
-    ucnv_toUnicode(streamInp->ICU_convFrom, &target, targetLimit, &source, sourceLimit, NULL, flush, &err);
+    err = U_ZERO_ERROR;
+    ucnv_toUnicode(streamInp->ICU_convFrom, &fromTarget, fromTargetLimit, &fromSource, fromSourceLimit, NULL, toFlushb, &err);
+    inputDoneb = (UBool)U_SUCCESS(err);
 
     if (err == U_BUFFER_OVERFLOW_ERROR) {
       /* ucnv_toUnicode() is a statefull method.                                 */
       /* We remember for the next time that our heuristic was underestimated and */
-      /* expand ourself the current target buffer                                */
-      ucharp = realloc(streamInp->ucharBufpp[lastBufi], sizeof(UChar) * (streamInp->ucharBufMaxSizei * 2));
-      if (ucharp == NULL) {
+      /* expand ourself the current fromTarget buffer                                */
+      ucharBufp = realloc(streamInp->ucharBufpp[lastBufi], sizeof(UChar) * (streamInp->ucharBufMaxSizei * 2));
+      if (ucharBufp == NULL) {
 	STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "realloc(): %s", strerror(errno));
-	return STREAMIN_BOOL_FALSE;
+        rcb = STREAMIN_BOOL_FALSE;
+	break;
       }
 
-      /* Realloc can have moved the buffer, so doing target = targetLimit is wrong */
-      streamInp->ucharBufpp[lastBufi] = ucharp;
-      target = streamInp->ucharBufpp[lastBufi] + streamInp->ucharBufMaxSizei;
+      /* Realloc can have moved the buffer, so doing fromTarget = fromTargetLimit is wrong             */
+      /* Because fromSource is an IN/OUT parameter, it is already pointing to the correct location */
+      streamInp->ucharBufpp[lastBufi] = ucharBufp;
+      fromTarget = streamInp->ucharBufpp[lastBufi] + streamInp->ucharBufMaxSizei;
       streamInp->ucharBufMaxSizei *= 2;
-      targetLimit = streamInp->ucharBufpp[lastBufi] + streamInp->ucharBufMaxSizei;
+      fromTargetLimit = streamInp->ucharBufpp[lastBufi] + streamInp->ucharBufMaxSizei;
+
+    } else if (U_FAILURE(err)) {
+
+      UErrorCode localError = U_ZERO_ERROR;
+      errorLength = (int8_t)sizeof(errorBytes);
+      ucnv_getInvalidChars(streamInp->ICU_convFrom, errorBytes, &errorLength, &localError);
+      if (U_FAILURE(localError) || errorLength == 0) {
+        errorLength = 1;
+      }
+
+      for (i = 0; i < errorLength; i++) {
+        STREAMIN_LOGX(STREAMIN_LOGLEVEL_WARNING, "ucnv_toUnicode(): %s: %02x%02x", u_errorName(err), _streamin_ICU_nibbleToHex((uint8_t)errorBytes[i] >> 4), _streamin_ICU_nibbleToHex((uint8_t)errorBytes[i]));
+      }
+
+      rcb = STREAMIN_BOOL_FALSE;
+      break;
+
+    } else {
+      stopFromb = STREAMIN_BOOL_TRUE;
     }
 
-  } while (err == U_BUFFER_OVERFLOW_ERROR);
+  } while (stopFromb == STREAMIN_BOOL_FALSE);
 
+  if (rcb == STREAMIN_BOOL_FALSE) {
+    return rcb;
+  }
+
+  toSource      = fromTarget;
+  toSourceLimit = fromTargetLimit;
+  toTarget      = streamInp->utf8Bufpp[lastBufi];
+  toTargetLimit = streamInp->utf8Bufpp[lastBufi] + streamInp->utf8BufMaxSizei;
+  fromFlushb  = (toFlushb == TRUE) ? (inputDoneb ? TRUE : FALSE) : FALSE;
+
+  do {
+
+    err = U_ZERO_ERROR;
+    ucnv_fromUnicode(streamInp->ICU_convTo, &toTarget, toTargetLimit, &toSource, toSourceLimit, NULL, fromFlushb, &err);
+
+    if (err == U_BUFFER_OVERFLOW_ERROR) {
+      /* Same remarks as ucnv_toUnicode() */
+      utf8Bufp = realloc(streamInp->utf8Bufpp[lastBufi], sizeof(char) * (streamInp->utf8BufMaxSizei * 2));
+      if (utf8Bufp == NULL) {
+	STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "realloc(): %s", strerror(errno));
+        rcb = STREAMIN_BOOL_FALSE;
+	break;
+      }
+
+      /* Realloc can have moved the buffer, so doing toTarget = toTargetLimit is wrong */
+      streamInp->utf8Bufpp[lastBufi] = utf8Bufp;
+      toTarget = streamInp->utf8Bufpp[lastBufi] + streamInp->utf8BufMaxSizei;
+      streamInp->utf8BufMaxSizei *= 2;
+      toTargetLimit = streamInp->utf8Bufpp[lastBufi] + streamInp->utf8BufMaxSizei;
+
+    } else if (U_FAILURE(err)) {
+
+      UErrorCode localError = U_ZERO_ERROR;
+      errorLength = (int8_t)sizeof(errorBytes);
+      ucnv_getInvalidChars(streamInp->ICU_convFrom, errorBytes, &errorLength, &localError);
+      if (U_FAILURE(localError) || errorLength == 0) {
+        errorLength = 1;
+      }
+
+      for (i = 0; i < errorLength; i++) {
+        STREAMIN_LOGX(STREAMIN_LOGLEVEL_WARNING, "ucnv_toUnicode(): %s: %02x%02x", u_errorName(err), _streamin_ICU_nibbleToHex((uint8_t)errorBytes[i] >> 4), _streamin_ICU_nibbleToHex((uint8_t)errorBytes[i]));
+      }
+
+      rcb = STREAMIN_BOOL_FALSE;
+      break;
+
+    } else {
+      stopFromb = STREAMIN_BOOL_TRUE;
+    }
+
+  } while (stopFromb == STREAMIN_BOOL_FALSE);
 
 }
 #endif
@@ -1131,3 +1231,38 @@ static streamInBool_t _streamInUtf8_optionb(streamIn_t *streamInp, streamInUtf8O
   return rcb;
 }
 
+/**************************/
+/* _streamInUtf8_destroyv */
+/**************************/
+static void _streamInUtf8_destroyv(streamIn_t *streamInp) {
+  if (streamInp->utf8b == STREAMIN_BOOL_TRUE) {
+    if (streamInp->streamInUtf8Option.encodings != NULL) {
+      if (streamInp->streamInUtf8Option.encodings != _streamIn_defaultEncodings) {
+        free(streamInp->streamInUtf8Option.encodings);
+      }
+    }
+#ifdef HAVE_ICU
+    if (streamInp->ICU_convTo != NULL) {
+      ucnv_close(streamInp->ICU_convTo);
+    }
+    if (streamInp->ICU_convFrom != NULL) {
+      ucnv_close(streamInp->ICU_convFrom);
+    }
+#ifdef STREAMIN_SINGLE_TEST_APPLICATION_ONLY
+    /* ICU recommendation is to NOT call this. This is done automatically at library unload */
+    u_cleanup();
+#endif
+#endif
+  }
+}
+
+/*****************************/
+/* _streamin_ICU_nibbleToHex */
+/*****************************/
+static unsigned char _streamin_ICU_nibbleToHex(uint8_t n) {
+  n &= 0xf;
+  return
+    n <= 9 ?
+    (unsigned char)(0x30 + n) :
+    (unsigned char)((0x61 - 10) + n);
+}
