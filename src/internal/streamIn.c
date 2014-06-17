@@ -467,11 +467,11 @@ static streamInBool_t _streamIn_read(streamIn_t *streamInp) {
     if (streamInp->streamInUtf8Option.encodings == NULL) {
       /* User did a streamInUtf8_newp. The very first time, we auto-detect encoding */
       _streamInUtf8_detectb(streamInp);
-      if (strcmp(streamInp->streamInUtf8Option.encodings, _streamIn_defaultEncodings) == 0) {
-	streamInp->nativeIsUtf8b = STREAMIN_BOOL_TRUE;
-      } else {
-	streamInp->nativeIsUtf8b = STREAMIN_BOOL_FALSE;
-      }
+    }
+    if (strcmp(streamInp->streamInUtf8Option.encodings, _streamIn_defaultEncodings) == 0) {
+      streamInp->nativeIsUtf8b = STREAMIN_BOOL_TRUE;
+    } else {
+      streamInp->nativeIsUtf8b = STREAMIN_BOOL_FALSE;
     }
     /* Convert to UTF-8 */
     if (_streamInUtf8_convertLastBuffer(streamInp) == STREAMIN_BOOL_FALSE) {
