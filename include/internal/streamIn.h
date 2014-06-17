@@ -14,6 +14,7 @@
 /* - streamIn_destroyv()                                                                */
 /****************************************************************************************/
 
+#include "internal/config.h"
 #include <stddef.h>               /*  size_t definition */
 
 /*************************
@@ -128,11 +129,9 @@ streamIn_t    *streamInUtf8_newp          (streamInOption_t *streamInOptionp, st
 streamInBool_t streamInUtf8_optionDefaultb(streamInUtf8Option_t *streamInUtf8Optionp);
 /* Options at the utf8 level cannot be changed after streamInUtf8_newp() */
 streamInBool_t streamInUtf8_encodings     (streamIn_t *streamInp, char **encodingsp);                               /* Get input encoding */
-signed int     streamInUtf8_current       (streamIn_t *streamInp);                                                  /* Get current utf8. -1 means EOF.  */
-signed int     streamInUtf8_next          (streamIn_t *streamInp);                                                  /* Get next utf8. -1 means EOF.  */
-streamInBool_t streamInUtf8_mark          (streamIn_t *streamInp);                                                  /* Put a marker at current utf8 */
-streamInBool_t streamInUtf8_rewind        (streamIn_t *streamInp);                                                  /* Go back to marker */
-streamInBool_t streamInUtf8_convert       (streamIn_t *streamInp, char *output, size_t *lengthlp, char *encodings); /* Alloc and convert [marked utf8, current utf8] to encodings */
-streamInBool_t streamInUtf8_fetch         (streamIn_t *streamInp, char *output, size_t *lengthlp);                  /* Alloc and fetch [marked utf8, current utf8] in UTF-8 encoding */
+signed int     streamInUtf8_currenti      (streamIn_t *streamInp);                                                  /* Get current utf8. -1 means EOF.  */
+signed int     streamInUtf8_nexti         (streamIn_t *streamInp);                                                  /* Get next utf8. -1 means EOF.  */
+streamInBool_t streamInUtf8_markb         (streamIn_t *streamInp);                                                  /* Mark current utf8 */
+streamInBool_t streamInUtf8_doneMarkedb   (streamIn_t *streamInp);                                                  /* Say marked utf8 is done */
 
 #endif /* MARPAXML_INTERNAL_STREAMIN_H */
