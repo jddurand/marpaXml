@@ -194,6 +194,57 @@ static streamInBool_t streamInUtf8_ICU_newb(streamIn_t *streamInp) {
   streamInp->streamIn_ICU.uConverter               = NULL;
   streamInp->streamIn_ICU.utextp                   = NULL;
 
+  switch (streamInp->streamInUtf8Option.ICUFromCallback) {
+  case STREAMINUTF8OPTION_ICUCALLBACK_SUBSTITUTE:
+    streamInp->streamIn_ICU.uConverterFromUCallback     = UCNV_FROM_U_CALLBACK_SUBSTITUTE;
+    streamInp->streamIn_ICU.uConverterFromUCallbackCtxp = NULL;
+    break;
+  case STREAMINUTF8OPTION_ICUCALLBACK_SKIP:
+    streamInp->streamIn_ICU.uConverterFromUCallback     = UCNV_FROM_U_CALLBACK_SKIP;
+    streamInp->streamIn_ICU.uConverterFromUCallbackCtxp = NULL;
+    break;
+  case STREAMINUTF8OPTION_ICUCALLBACK_STOP:
+    streamInp->streamIn_ICU.uConverterFromUCallback     = UCNV_FROM_U_CALLBACK_STOP;
+    streamInp->streamIn_ICU.uConverterFromUCallbackCtxp = NULL;
+    break;
+  case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE:
+    streamInp->streamIn_ICU.uConverterFromUCallback     = UCNV_FROM_U_CALLBACK_ESCAPE;
+    streamInp->streamIn_ICU.uConverterFromUCallbackCtxp = NULL;
+    break;
+  case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_ICU:
+    streamInp->streamIn_ICU.uConverterFromUCallback     = UCNV_FROM_U_CALLBACK_ESCAPE;
+    streamInp->streamIn_ICU.uConverterFromUCallbackCtxp = UCNV_ESCAPE_ICU;
+    break;
+  case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_JAVA:
+    streamInp->streamIn_ICU.uConverterFromUCallback     = UCNV_FROM_U_CALLBACK_ESCAPE;
+    streamInp->streamIn_ICU.uConverterFromUCallbackCtxp = UCNV_ESCAPE_JAVA;
+    break;
+  case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_C:
+    streamInp->streamIn_ICU.uConverterFromUCallback     = UCNV_FROM_U_CALLBACK_ESCAPE;
+    streamInp->streamIn_ICU.uConverterFromUCallbackCtxp = UCNV_ESCAPE_C;
+    break;
+  case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_XML:
+    streamInp->streamIn_ICU.uConverterFromUCallback     = UCNV_FROM_U_CALLBACK_ESCAPE;
+    streamInp->streamIn_ICU.uConverterFromUCallbackCtxp = UCNV_ESCAPE_XML_HEX;
+    break;
+  case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_XML_HEX:
+    streamInp->streamIn_ICU.uConverterFromUCallback     = UCNV_FROM_U_CALLBACK_ESCAPE;
+    streamInp->streamIn_ICU.uConverterFromUCallbackCtxp = UCNV_ESCAPE_XML_HEX;
+    break;
+  case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_XML_DEC:
+    streamInp->streamIn_ICU.uConverterFromUCallback     = UCNV_FROM_U_CALLBACK_ESCAPE;
+    streamInp->streamIn_ICU.uConverterFromUCallbackCtxp = UCNV_ESCAPE_XML_DEC;
+    break;
+  case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_UNICODE:
+    streamInp->streamIn_ICU.uConverterFromUCallback     = UCNV_FROM_U_CALLBACK_ESCAPE;
+    streamInp->streamIn_ICU.uConverterFromUCallbackCtxp = UCNV_ESCAPE_UNICODE;
+    break;
+  default:
+    /* Cannot happen in theory */
+    STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "Invalid ICUFromCallback %d", streamInp->streamInUtf8Option.ICUFromCallback);
+    rcb = STREAMIN_BOOL_FALSE;
+  }
+
   return rcb;
 }
 #endif
@@ -1219,49 +1270,16 @@ static streamInBool_t _streamInUtf8_ICU_optionb(streamIn_t *streamInp, streamInU
   if (streamInUtf8Optionp != NULL) {
       switch (streamInUtf8Optionp->ICUFromCallback) {
       case STREAMINUTF8OPTION_ICUCALLBACK_SUBSTITUTE:
-        streamInp->streamIn_ICU.uConverterFromUCallback     = UCNV_FROM_U_CALLBACK_SUBSTITUTE;
-        streamInp->streamIn_ICU.uConverterFromUCallbackCtxp = NULL;
-        break;
       case STREAMINUTF8OPTION_ICUCALLBACK_SKIP:
-        streamInp->streamIn_ICU.uConverterFromUCallback     = UCNV_FROM_U_CALLBACK_SKIP;
-        streamInp->streamIn_ICU.uConverterFromUCallbackCtxp = NULL;
-        break;
       case STREAMINUTF8OPTION_ICUCALLBACK_STOP:
-        streamInp->streamIn_ICU.uConverterFromUCallback     = UCNV_FROM_U_CALLBACK_STOP;
-        streamInp->streamIn_ICU.uConverterFromUCallbackCtxp = NULL;
-        break;
       case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE:
-        streamInp->streamIn_ICU.uConverterFromUCallback     = UCNV_FROM_U_CALLBACK_ESCAPE;
-        streamInp->streamIn_ICU.uConverterFromUCallbackCtxp = NULL;
-        break;
       case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_ICU:
-        streamInp->streamIn_ICU.uConverterFromUCallback     = UCNV_FROM_U_CALLBACK_ESCAPE;
-        streamInp->streamIn_ICU.uConverterFromUCallbackCtxp = UCNV_ESCAPE_ICU;
-        break;
       case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_JAVA:
-        streamInp->streamIn_ICU.uConverterFromUCallback     = UCNV_FROM_U_CALLBACK_ESCAPE;
-        streamInp->streamIn_ICU.uConverterFromUCallbackCtxp = UCNV_ESCAPE_JAVA;
-        break;
       case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_C:
-        streamInp->streamIn_ICU.uConverterFromUCallback     = UCNV_FROM_U_CALLBACK_ESCAPE;
-        streamInp->streamIn_ICU.uConverterFromUCallbackCtxp = UCNV_ESCAPE_C;
-        break;
       case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_XML:
-        streamInp->streamIn_ICU.uConverterFromUCallback     = UCNV_FROM_U_CALLBACK_ESCAPE;
-        streamInp->streamIn_ICU.uConverterFromUCallbackCtxp = UCNV_ESCAPE_XML_HEX;
-        break;
       case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_XML_HEX:
-        streamInp->streamIn_ICU.uConverterFromUCallback     = UCNV_FROM_U_CALLBACK_ESCAPE;
-        streamInp->streamIn_ICU.uConverterFromUCallbackCtxp = UCNV_ESCAPE_XML_HEX;
-        break;
       case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_XML_DEC:
-        streamInp->streamIn_ICU.uConverterFromUCallback     = UCNV_FROM_U_CALLBACK_ESCAPE;
-        streamInp->streamIn_ICU.uConverterFromUCallbackCtxp = UCNV_ESCAPE_XML_DEC;
-        break;
       case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_UNICODE:
-        streamInp->streamIn_ICU.uConverterFromUCallback     = UCNV_FROM_U_CALLBACK_ESCAPE;
-        streamInp->streamIn_ICU.uConverterFromUCallbackCtxp = UCNV_ESCAPE_UNICODE;
-        break;
       default:
         STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "Invalid ICUFromCallback %d", streamInUtf8Optionp->ICUFromCallback);
         rcb = STREAMIN_BOOL_FALSE;
