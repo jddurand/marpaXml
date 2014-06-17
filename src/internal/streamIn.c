@@ -42,11 +42,13 @@ struct streamIn {
 
   /* UTF-8 section */
   streamInBool_t             utf8b;                    /* STREAMIN_BOOL_TRUE only if streamInUtf8_newp() is called */
+  streamInBool_t             nativeIsUtf8b;            /* STREAMIN_BOOL_TRUE only if original stream is rleady UTF-8 */
   size_t                     utf8BufMaxSizei;          /* A heuristic guess of the utf8 size v.s. realSizeCharBufip[] */
   char                     **utf8Bufpp;                /* utf8 buffers */
   streamInUtf8Option_t       streamInUtf8Option;       /* utf8 options */
-  size_t                     utf8BufferMarki;          /* Buffer index hosting current character */
-  size_t                     utf8BufferOffseti;        /* Offset of current character within buffer No utf8BufferMarki */
+  size_t                     utf8BufMarki;             /* Buffer index hosting current character */
+  size_t                     utf8BufOffseti;           /* Offset of current character within buffer No utf8BufMarki */
+  size_t                     utf8BufLengthi;           /* Number of valid bytes in utf8 buffer */
 #ifdef HAVE_ICU
   size_t                      ucharBufMaxSizei;        /* A heuristic guess of the utf16 size v.s. realSizeCharBufip[] */
   UChar                     **ucharBufpp;              /* UChar buffers */
@@ -465,6 +467,11 @@ static streamInBool_t _streamIn_read(streamIn_t *streamInp) {
     if (streamInp->streamInUtf8Option.encodings == NULL) {
       /* User did a streamInUtf8_newp. The very first time, we auto-detect encoding */
       _streamInUtf8_detectb(streamInp);
+      if (strcmp(streamInp->streamInUtf8Option.encodings, _streamIn_defaultEncodings) == 0) {
+	streamInp->nativeIsUtf8b = STREAMIN_BOOL_TRUE;
+      } else {
+	streamInp->nativeIsUtf8b = STREAMIN_BOOL_FALSE;
+      }
     }
     /* Convert to UTF-8 */
     if (_streamInUtf8_convertLastBuffer(streamInp) == STREAMIN_BOOL_FALSE) {
@@ -926,9 +933,10 @@ signed int streamInUtf8_next(streamIn_t *streamInp) {
       if (_streamIn_getBufferb(streamInp, streamInp->nCharBufi, &indexBufferi, &charArrayp, &bytesInBuffer) == STREAMIN_BOOL_FALSE) {
 	break;
       }
-      /* Make sure utf8BufferMarki and utf8BufferOffseti are set */
-      streamInp->utf8BufferMarki = 0;
-      streamInp->utf8BufferOffseti = 0;
+      /* Make sure utf8BufMarki and utf8BufOffseti are set */
+      streamInp->utf8BufMarki = 0;
+      streamInp->utf8BufOffseti = 0;
+      streamInp->utf8BufLengthi = 0;
     }
   } while (foundb == STREAMIN_BOOL_FALSE);
   
