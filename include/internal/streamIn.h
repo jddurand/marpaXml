@@ -67,28 +67,39 @@ typedef struct streamInOption {
   void                        *bufFreeCallbackUserDatap;      /* Default: NULL.                               */
 } streamInOption_t;
 
+typedef enum streamInUtf8Option_Converter {
+  /* Note this will FAIL to compile if neither ICU nor ICONV is available. We are not */
+  /* gonna check this case because we require that at least one of them is seen when */
+  /* compiling. */
+#ifdef HAVE_ICU
+   STREAMINUTF8OPTION_CONVERTER_ICU, 
+#endif
+#ifdef HAVE_ICONV
+   STREAMINUTF8OPTION_CONVERTER_ICONV, 
+#endif
+} streamInUtf8Option_Converter_t;
+
 #ifdef HAVE_ICU
 typedef enum streamInUtf8Option_ICUCallback {
-  STREAMINUTF8_ICUCALLBACK_SUBSTITUTE,
-  STREAMINUTF8_ICUCALLBACK_SKIP,
-  STREAMINUTF8_ICUCALLBACK_STOP,
-  STREAMINUTF8_ICUCALLBACK_ESCAPE,
-  STREAMINUTF8_ICUCALLBACK_ESCAPE_ICU,
-  STREAMINUTF8_ICUCALLBACK_ESCAPE_JAVA,
-  STREAMINUTF8_ICUCALLBACK_ESCAPE_C,
-  STREAMINUTF8_ICUCALLBACK_ESCAPE_XML,
-  STREAMINUTF8_ICUCALLBACK_ESCAPE_XML_HEX,
-  STREAMINUTF8_ICUCALLBACK_ESCAPE_XML_DEC,
-  STREAMINUTF8_ICUCALLBACK_ESCAPE_UNICODE
+  STREAMINUTF8OPTION_ICUCALLBACK_SUBSTITUTE,
+  STREAMINUTF8OPTION_ICUCALLBACK_SKIP,
+  STREAMINUTF8OPTION_ICUCALLBACK_STOP,
+  STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE,
+  STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_ICU,
+  STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_JAVA,
+  STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_C,
+  STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_XML,
+  STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_XML_HEX,
+  STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_XML_DEC,
+  STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_UNICODE
 } streamInUtf8Option_ICUCallback_t;
 #endif
 
 typedef struct streamInUtf8Option {
   char                            *encodings;         /* Input encoding.       Default: NULL */
+  streamInUtf8Option_Converter_t   converteri;        /* Prefered converter.   Default: ICU if available, else ICONV */
 #ifdef HAVE_ICU
-  streamInUtf8Option_ICUCallback_t ICUToCallback;     /* To-Callback method.   Default: STREAMINUTF8_ICUCALLBACK_STOP   */
-  streamInUtf8Option_ICUCallback_t ICUFromCallback;   /* From-Callback method. Default: STREAMINUTF8_ICUCALLBACK_STOP */
-  streamInBool_t                   ICUFallbackb;      /* Use fallbacks:        Default: STREAMIN_BOOL_FALSE */
+  streamInUtf8Option_ICUCallback_t ICUFromCallback;   /* From-Callback method. Default: STREAMINUTF8OPTION_ICUCALLBACK_STOP */
 #endif
 } streamInUtf8Option_t;
 
