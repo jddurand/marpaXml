@@ -39,7 +39,7 @@ typedef struct streamIn_ICU {
   /* With ICU we do a single conversion Native => UChar                */
   /* into a SINGLE buffer. We maintain a mapping charBufpp[] -> offset */
   int64_t                    *charBuf2UCharBufOffsetpp;/* mapping end of char buffers => offset in ucharBufp */
-  int64_t                    *ucharMarkedOffset;       /* Pointer location just after the marked uchar */
+  int64_t                     ucharMarkedOffsetl;      /* Pointer location just after the marked uchar */
   size_t                      ucharBufMulSizei;        /* A heuristic guess of the utf16 takes maximum twice more space than native bytes */
   UChar                      *ucharBufp;               /* UChar buffer */
   int64_t                     ucharBufSizel;           /* Current size of allocated memory */
@@ -60,6 +60,7 @@ static streamInBool_t _streamInUtf8_ICU_fromConvertb(streamIn_t *streamInp, size
 static unsigned char  _streaminUtf8_ICU_nibbleToHex(uint8_t n);
 static signed int     _streamInUtf8_ICU_currenti(streamIn_t *streamInp);
 static signed int     _streamInUtf8_ICU_nexti(streamIn_t *streamInp);
+static streamInBool_t _streamInUtf8_ICU_markb(streamIn_t *streamInp);
 #endif
 static streamInBool_t _streamIn_charsetdetect_detectb(streamIn_t *streamInp);
 
@@ -193,7 +194,7 @@ static streamInBool_t streamInUtf8_ICU_newb(streamIn_t *streamInp) {
   streamInBool_t  rcb           = STREAMIN_BOOL_TRUE;
 
   streamInp->streamIn_ICU.charBuf2UCharBufOffsetpp = NULL;
-  streamInp->streamIn_ICU.ucharMarkedOffset        = 0;
+  streamInp->streamIn_ICU.ucharMarkedOffsetl       = 0;
   streamInp->streamIn_ICU.ucharBufMulSizei         = 2;
   streamInp->streamIn_ICU.ucharBufp                = NULL;
   streamInp->streamIn_ICU.ucharBufSizel            = 0;
@@ -365,7 +366,7 @@ static streamInBool_t _streamInUtf8_ICU_doneBufferb(streamIn_t *streamInp, size_
     /* In fact we destroy everything */
 
     STREAMIN_FREE(streamInp->streamIn_ICU.charBuf2UCharBufOffsetpp);
-    streamInp->streamIn_ICU.ucharMarkedOffset = 0;
+    streamInp->streamIn_ICU.ucharMarkedOffsetl = 0;
     STREAMIN_FREE(streamInp->streamIn_ICU.ucharBufp);
     streamInp->streamIn_ICU.ucharBufp = NULL;
     streamInp->streamIn_ICU.ucharBufSizel = 0;
@@ -1533,5 +1534,49 @@ static signed int _streamInUtf8_ICU_nexti(streamIn_t *streamInp) {
     /* STREAMIN_TRACEX("UTEXT_NEXT32(%p)", streamInp->streamIn_ICU.utextp); */
     return UTEXT_NEXT32(streamInp->streamIn_ICU.utextp);
   }
+}
+#endif
+
+/***********************/
+/* _streamInUtf8_markb */
+/***********************/
+streamInBool_t streamInUtf8_markb(streamIn_t *streamInp) {
+  streamInBool_t rcb = STREAMIN_BOOL_FALSE;
+
+  if (streamInp == NULL || streamInp->utf8b == STREAMIN_BOOL_FALSE) {
+    return rcb;
+  }
+
+  switch (streamInp->streamInUtf8Option.converteri) {
+#ifdef HAVE_ICU
+  case STREAMINUTF8OPTION_CONVERTER_ICU:
+    rcb = _streamInUtf8_ICU_markb(streamInp);
+    break;
+#endif
+#ifdef HAVE_ICONV
+  case STREAMINUTF8OPTION_CONVERTER_ICONV:
+    rcb = _streamInUtf8_ICONV_markb(streamInp);
+    break;
+#endif
+  }
+
+  return rcb;
+}
+
+#ifdef HAVE_ICU
+/***************************/
+/* _streamInUtf8_ICU_markb */
+/***************************/
+static streamInBool_t _streamInUtf8_ICU_markb(streamIn_t *streamInp) {
+  streamInBool_t rcb = STREAMIN_BOOL_FALSE;
+
+  if (streamInp->streamIn_ICU.utextp == NULL) {
+    return rcb;
+  } else {
+    streamInp->streamIn_ICU.ucharMarkedOffsetl = utext_getNativeIndex(streamInp->streamIn_ICU.utextp);
+    rcb = STREAMIN_BOOL_TRUE;
+  }
+
+  return rcb;
 }
 #endif
