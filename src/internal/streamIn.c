@@ -1143,6 +1143,7 @@ static streamInBool_t _streamInUtf8_ICU_convertb(streamIn_t *streamInp, size_t b
   streamInBool_t rcb            = STREAMIN_BOOL_TRUE;
   size_t         ucharBufSizei  = streamInp->streamIn_ICU.ucharBufSizei;
   UChar         *target         = (UChar *) (((char *) streamInp->streamIn_ICU.ucharBufp) + streamInp->streamIn_ICU.ucharByteLengthl);
+  UChar         *origTarget     = target;
   const UChar   *targetLimit    = (const UChar *) (((char *) streamInp->streamIn_ICU.ucharBufp) + ucharBufSizei);
   const char    *source         = streamInp->charBufpp[bufIndexi];
   const char    *sourceLimit    = streamInp->charBufpp[bufIndexi] + streamInp->realSizeCharBufip[bufIndexi];
@@ -1189,7 +1190,7 @@ static streamInBool_t _streamInUtf8_ICU_convertb(streamIn_t *streamInp, size_t b
       }
 
       /* Realloc can have moved the buffer */
-      target                                = (UChar *) (((char *) streamInp->streamIn_ICU.ucharBufp) + streamInp->streamIn_ICU.ucharByteLengthl);
+      origTarget = target                   = (UChar *) (((char *) streamInp->streamIn_ICU.ucharBufp) + streamInp->streamIn_ICU.ucharByteLengthl);
       targetLimit                           = (const UChar *) (((char *) streamInp->streamIn_ICU.ucharBufp) + ucharBufSizei);
       streamInp->streamIn_ICU.ucharBufSizei = ucharBufSizei;      
 
@@ -1224,7 +1225,7 @@ static streamInBool_t _streamInUtf8_ICU_convertb(streamIn_t *streamInp, size_t b
 
   } while (stopb == STREAMIN_BOOL_FALSE);
 
-  if (rcb == STREAMIN_BOOL_TRUE) {
+  if (rcb == STREAMIN_BOOL_TRUE && target > origTarget) {
 
     /* Instanciate or reset utext */
     STREAMIN_TRACEX("utext_openUChars(%p, %p, %ld, %p)", streamInp->streamIn_ICU.utextp, streamInp->streamIn_ICU.ucharBufp, (unsigned long) ucharLengthl, &uErrorCode);
