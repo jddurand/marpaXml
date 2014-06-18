@@ -38,10 +38,10 @@ static streamInBool_t *streamInUtf8_ICONV_newb(streamIn_t *streamInp);
 typedef struct streamIn_ICU {
   /* With ICU we do a single conversion Native => UChar                */
   /* into a SINGLE buffer. We maintain a mapping charBufpp[] -> offset */
-  size_t                     *charBuf2UCharBufOffsetpp;/* mapping end of char buffers => offset in ucharBufp */
+  int64_t                    *charBuf2UCharBufOffsetpp;/* mapping end of char buffers => offset in ucharBufp */
   size_t                      ucharBufMulSizei;        /* A heuristic guess of the utf16 takes maximum twice more space than native bytes */
   UChar                      *ucharBufp;               /* UChar buffer */
-  size_t                      ucharBufSizei;           /* Current size of allocated memory */
+  int64_t                     ucharBufSizel;           /* Current size of allocated memory */
   int64_t                     ucharByteLengthl;        /* Length in bytes of all UChar characters */
   UConverter                 *uConverter;              /* Native converter => UTF-16 (ICU's unicode) */
   UConverterFromUCallback     uConverterFromUCallback;
@@ -189,7 +189,7 @@ static streamInBool_t streamInUtf8_ICU_newb(streamIn_t *streamInp) {
   streamInp->streamIn_ICU.charBuf2UCharBufOffsetpp = NULL;
   streamInp->streamIn_ICU.ucharBufMulSizei         = 2;
   streamInp->streamIn_ICU.ucharBufp                = NULL;
-  streamInp->streamIn_ICU.ucharBufSizei            = 0;
+  streamInp->streamIn_ICU.ucharBufSizel            = 0;
   streamInp->streamIn_ICU.ucharByteLengthl         = 0;
   streamInp->streamIn_ICU.uConverter               = NULL;
   streamInp->streamIn_ICU.utextp                   = NULL;
@@ -294,12 +294,13 @@ streamIn_t *streamInUtf8_newp(streamInOption_t *streamInOptionp, streamInUtf8Opt
 /*********************************/
 static streamInBool_t _streamInUtf8_ICU_doneBufferb(streamIn_t *streamInp, size_t bufIndexi) {
   streamInBool_t  rcb           = STREAMIN_BOOL_TRUE;
-  size_t          bytesToRemovei;
-  size_t          ucharByteLengthl;
+  int64_t         bytesToRemovei;
+  int64_t         ucharByteLengthl;
   UChar          *ucharBufp;
   char           *startp;
   UErrorCode      uErrorCode;
   int64_t         ucharLengthl; /* Number of UChar */
+  size_t          sizel;
 	
 
   if ((bufIndexi + 1) == streamInp->nCharBufi) {
@@ -307,7 +308,7 @@ static streamInBool_t _streamInUtf8_ICU_doneBufferb(streamIn_t *streamInp, size_
 
     free(streamInp->streamIn_ICU.ucharBufp);
     streamInp->streamIn_ICU.ucharBufp = NULL;
-    streamInp->streamIn_ICU.ucharBufSizei = 0;
+    streamInp->streamIn_ICU.ucharBufSizel = 0;
     streamInp->streamIn_ICU.ucharByteLengthl = 0;
 
     free(streamInp->streamIn_ICU.charBuf2UCharBufOffsetpp);
@@ -321,13 +322,15 @@ static streamInBool_t _streamInUtf8_ICU_doneBufferb(streamIn_t *streamInp, size_
       ucharByteLengthl = streamInp->streamIn_ICU.ucharByteLengthl;
       if (bytesToRemovei < ucharByteLengthl) {
 	startp = (char *) streamInp->streamIn_ICU.ucharBufp;
-	memmove(startp, startp + bytesToRemovei, ucharByteLengthl - bytesToRemovei);
-	ucharBufp = (UChar *) realloc(streamInp->streamIn_ICU.ucharBufp, ucharByteLengthl - bytesToRemovei);
+        /* Cross the fingers this fits in a size_t */
+        sizel = (size_t) (ucharByteLengthl - bytesToRemovei);
+	memmove(startp, startp + bytesToRemovei, sizel);
+	ucharBufp = realloc(streamInp->streamIn_ICU.ucharBufp, sizel);
 	if (ucharBufp == NULL) {
 	  STREAMIN_LOGX(STREAMIN_LOGLEVEL_WARNING, "realloc(): %s", strerror(errno));
 	} else {
 	  streamInp->streamIn_ICU.ucharBufp = ucharBufp;
-	  streamInp->streamIn_ICU.ucharBufSizei -= bytesToRemovei;
+	  streamInp->streamIn_ICU.ucharBufSizel -= bytesToRemovei;
 	  streamInp->streamIn_ICU.ucharByteLengthl -= bytesToRemovei;
 	  ucharLengthl = streamInp->streamIn_ICU.ucharByteLengthl / sizeof(UChar);
 	  STREAMIN_TRACEX("utext_openUChars(%p, %p, %ld, %p)", streamInp->streamIn_ICU.utextp, streamInp->streamIn_ICU.ucharBufp, ucharLengthl, &uErrorCode);
@@ -341,7 +344,7 @@ static streamInBool_t _streamInUtf8_ICU_doneBufferb(streamIn_t *streamInp, size_
 	/* It is possible that the utf8 stream was not filled up by the following byte buffer */
 	free(streamInp->streamIn_ICU.ucharBufp);
 	streamInp->streamIn_ICU.ucharBufp = NULL;
-	streamInp->streamIn_ICU.ucharBufSizei = 0;
+	streamInp->streamIn_ICU.ucharBufSizel = 0;
 	streamInp->streamIn_ICU.ucharByteLengthl = 0;
 
 	free(streamInp->streamIn_ICU.charBuf2UCharBufOffsetpp);
@@ -502,21 +505,22 @@ static streamInBool_t _streamIn_doneBufferb(streamIn_t *streamInp, size_t bufInd
 /********************************************/
   static streamInBool_t _streamInUtf8_ICU_readb(streamIn_t *streamInp, size_t bufIndexi) {
   UChar          *ucharBufp;
-  size_t         *charBuf2UCharBufOffsetpp;
-  size_t          ucharBufSizei = streamInp->streamIn_ICU.ucharBufSizei;
+  int64_t        *charBuf2UCharBufOffsetpp;
+  int64_t         ucharBufSizel = streamInp->streamIn_ICU.ucharBufSizel;
 
   /* We are called at the end of _streamIn_readb(): the last buffer has already been read */
 
   if (bufIndexi == 0) {
 
-    charBuf2UCharBufOffsetpp = (size_t *) malloc(sizeof(size_t));
+    charBuf2UCharBufOffsetpp = malloc(sizeof(int64_t));
     if (charBuf2UCharBufOffsetpp == NULL) {
       STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "malloc(): %s", strerror(errno));
       return STREAMIN_BOOL_FALSE;
     }
 
-    ucharBufSizei = sizeof(UChar) * streamInp->realSizeCharBufip[bufIndexi] * streamInp->streamIn_ICU.ucharBufMulSizei;
-    ucharBufp = malloc(ucharBufSizei);
+    ucharBufSizel = sizeof(UChar) * streamInp->realSizeCharBufip[bufIndexi] * streamInp->streamIn_ICU.ucharBufMulSizei;
+    /* Cross the fingers this fits in a size_t */
+    ucharBufp = malloc((size_t) ucharBufSizel);
     if (ucharBufp == NULL) {
       STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "malloc(): %s", strerror(errno));
       return STREAMIN_BOOL_FALSE;
@@ -524,16 +528,17 @@ static streamInBool_t _streamIn_doneBufferb(streamIn_t *streamInp, size_t bufInd
 
   } else {
 
-    charBuf2UCharBufOffsetpp = (size_t *) realloc(streamInp->streamIn_ICU.charBuf2UCharBufOffsetpp, (bufIndexi + 1) * sizeof(size_t));
+    charBuf2UCharBufOffsetpp = realloc(streamInp->streamIn_ICU.charBuf2UCharBufOffsetpp, (bufIndexi + 1) * sizeof(int64_t));
     if (charBuf2UCharBufOffsetpp == NULL) {
       STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "realloc(): %s", strerror(errno));
       return STREAMIN_BOOL_FALSE;
     }
 
-    if (ucharBufSizei > 0) {
-      /* Cross finger for no overlap, i.e. the user application should know to release buffers regularly */
-      ucharBufSizei += sizeof(UChar) * streamInp->realSizeCharBufip[bufIndexi] * streamInp->streamIn_ICU.ucharBufMulSizei;
-      ucharBufp = realloc(streamInp->streamIn_ICU.ucharBufp, ucharBufSizei);
+    if (ucharBufSizel > 0) {
+      /* Cross fingers for no overlap, i.e. the user application should know to release buffers regularly */
+      ucharBufSizel += sizeof(UChar) * streamInp->realSizeCharBufip[bufIndexi] * streamInp->streamIn_ICU.ucharBufMulSizei;
+      /* Cross fingers this fits in a size_t */
+      ucharBufp = realloc(streamInp->streamIn_ICU.ucharBufp, (size_t) ucharBufSizel);
       if (ucharBufp == NULL) {
 	STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "realloc(): %s", strerror(errno));
 	return STREAMIN_BOOL_FALSE;
@@ -541,8 +546,9 @@ static streamInBool_t _streamIn_doneBufferb(streamIn_t *streamInp, size_t bufInd
     } else {
       /* utf8 buffer can be NULL if we destroyed previous buffer(s) and there was not enough bytes */
       /* from it(them) to give at least one UChar */
-      ucharBufSizei = sizeof(UChar) * streamInp->realSizeCharBufip[bufIndexi] * streamInp->streamIn_ICU.ucharBufMulSizei;
-      ucharBufp = malloc(ucharBufSizei);
+      ucharBufSizel = sizeof(UChar) * streamInp->realSizeCharBufip[bufIndexi] * streamInp->streamIn_ICU.ucharBufMulSizei;
+      /* Cross fingers this fits in a size_t */
+      ucharBufp = malloc((size_t) ucharBufSizel);
       if (ucharBufp == NULL) {
 	STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "malloc(): %s", strerror(errno));
 	return STREAMIN_BOOL_FALSE;
@@ -553,7 +559,7 @@ static streamInBool_t _streamIn_doneBufferb(streamIn_t *streamInp, size_t bufInd
 
   streamInp->streamIn_ICU.charBuf2UCharBufOffsetpp = charBuf2UCharBufOffsetpp;
   streamInp->streamIn_ICU.ucharBufp = ucharBufp;
-  streamInp->streamIn_ICU.ucharBufSizei = ucharBufSizei;
+  streamInp->streamIn_ICU.ucharBufSizel = ucharBufSizel;
 
   return STREAMIN_BOOL_TRUE;
 }
@@ -1141,10 +1147,10 @@ static streamInBool_t _streamInUtf8_convertb(streamIn_t *streamInp, size_t bufIn
 /******************************/
 static streamInBool_t _streamInUtf8_ICU_convertb(streamIn_t *streamInp, size_t bufIndexi) {
   streamInBool_t rcb            = STREAMIN_BOOL_TRUE;
-  size_t         ucharBufSizei  = streamInp->streamIn_ICU.ucharBufSizei;
+  int64_t        ucharBufSizel  = streamInp->streamIn_ICU.ucharBufSizel;
   UChar         *target         = (UChar *) (((char *) streamInp->streamIn_ICU.ucharBufp) + streamInp->streamIn_ICU.ucharByteLengthl);
   UChar         *origTarget     = target;
-  const UChar   *targetLimit    = (const UChar *) (((char *) streamInp->streamIn_ICU.ucharBufp) + ucharBufSizei);
+  const UChar   *targetLimit    = (const UChar *) (((char *) streamInp->streamIn_ICU.ucharBufp) + ucharBufSizel);
   const char    *source         = streamInp->charBufpp[bufIndexi];
   const char    *sourceLimit    = streamInp->charBufpp[bufIndexi] + streamInp->realSizeCharBufip[bufIndexi];
   UBool          flushb         = (streamInp->eofb == STREAMIN_BOOL_TRUE) ? TRUE : FALSE;
@@ -1181,8 +1187,9 @@ static streamInBool_t _streamInUtf8_ICU_convertb(streamIn_t *streamInp, size_t b
       /* ucnv_toUnicode() is a statefull method.                                 */
       /* We remember for the next time that our heuristic was underestimated and */
       /* expand ourself the current target buffer                                */
-      ucharBufSizei *= 2;
-      ucharBufp = (UChar *) realloc(streamInp->streamIn_ICU.ucharBufp, ucharBufSizei);
+      ucharBufSizel *= 2;
+      /* Cross fingers this fits in a size_t */
+      ucharBufp = realloc(streamInp->streamIn_ICU.ucharBufp, (size_t) ucharBufSizel);
       if (ucharBufp == NULL) {
         STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "realloc(): %s", strerror(errno));
         rcb = STREAMIN_BOOL_FALSE;
@@ -1191,8 +1198,8 @@ static streamInBool_t _streamInUtf8_ICU_convertb(streamIn_t *streamInp, size_t b
 
       /* Realloc can have moved the buffer */
       origTarget = target                   = (UChar *) (((char *) streamInp->streamIn_ICU.ucharBufp) + streamInp->streamIn_ICU.ucharByteLengthl);
-      targetLimit                           = (const UChar *) (((char *) streamInp->streamIn_ICU.ucharBufp) + ucharBufSizei);
-      streamInp->streamIn_ICU.ucharBufSizei = ucharBufSizei;      
+      targetLimit                           = (const UChar *) (((char *) streamInp->streamIn_ICU.ucharBufp) + ucharBufSizel);
+      streamInp->streamIn_ICU.ucharBufSizel = ucharBufSizel;      
 
     } else if (U_FAILURE(uErrorCode)) {
 
@@ -1218,6 +1225,7 @@ static streamInBool_t _streamInUtf8_ICU_convertb(streamIn_t *streamInp, size_t b
       streamInp->streamIn_ICU.ucharByteLengthl = max - min;
       ucharLengthl = target - ucharMin;  /* C is taking (UChar *) as unit */
 
+      /* Cross the fingers this fits in a size_t */
       streamInp->streamIn_ICU.charBuf2UCharBufOffsetpp[bufIndexi] = streamInp->streamIn_ICU.ucharByteLengthl;
 
       stopb = STREAMIN_BOOL_TRUE;
