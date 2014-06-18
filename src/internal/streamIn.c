@@ -15,11 +15,11 @@
 #endif
 #include "charsetdetect.h"
 
-const static char *_streamIn_defaultEncodings = "UTF-8";
+const static char *_streamIn_defaultFromEncodings = "UTF-8";
 
 static streamInBool_t _streamInUtf8_doneBufferb(streamIn_t *streamInp, size_t bufIndexi);
 static void           _streamInUtf8_detectb(streamIn_t *streamInp);
-static streamInBool_t _streamInUtf8_convertb(streamIn_t *streamInp, size_t bufIndexi);
+static streamInBool_t _streamInUtf8_fromConvertb(streamIn_t *streamInp, size_t bufIndexi);
 static void           _streamInUtf8_destroyv(streamIn_t *streamInp);
 static streamInBool_t _streamInUtf8_readb(streamIn_t *streamInp, size_t bufIndexi);
 
@@ -43,9 +43,11 @@ typedef struct streamIn_ICU {
   UChar                      *ucharBufp;               /* UChar buffer */
   int64_t                     ucharBufSizel;           /* Current size of allocated memory */
   int64_t                     ucharByteLengthl;        /* Length in bytes of all UChar characters */
-  UConverter                 *uConverter;              /* Native converter => UTF-16 (ICU's unicode) */
+  UConverter                 *uConverterFrom;          /* Native converter => UTF-16 (ICU's unicode) */
   UConverterFromUCallback     uConverterFromUCallback;
   const void                 *uConverterFromUCallbackCtxp;
+  UConverterToUCallback       uConverterToUCallback;
+  const void                 *uConverterToUCallbackCtxp;
   UText                      *utextp;
 } streamIn_ICU_t;
 static streamInBool_t  streamInUtf8_ICU_newb(streamIn_t *streamInp);
@@ -53,7 +55,7 @@ static streamInBool_t _streamInUtf8_ICU_optionb(streamIn_t *streamInp, streamInU
 static streamInBool_t _streamInUtf8_ICU_doneBufferb(streamIn_t *streamInp, size_t bufIndexi);
 static streamInBool_t _streamInUtf8_ICU_readb(streamIn_t *streamInp, size_t bufIndexi);
 static streamInBool_t _streamInUtf8_ICU_detectb(streamIn_t *streamInp);
-static streamInBool_t _streamInUtf8_ICU_convertb(streamIn_t *streamInp, size_t bufIndexi);
+static streamInBool_t _streamInUtf8_ICU_fromConvertb(streamIn_t *streamInp, size_t bufIndexi);
 static unsigned char  _streaminUtf8_ICU_nibbleToHex(uint8_t n);
 static signed int     _streamInUtf8_ICU_currenti(streamIn_t *streamInp);
 static signed int     _streamInUtf8_ICU_nexti(streamIn_t *streamInp);
@@ -191,7 +193,7 @@ static streamInBool_t streamInUtf8_ICU_newb(streamIn_t *streamInp) {
   streamInp->streamIn_ICU.ucharBufp                = NULL;
   streamInp->streamIn_ICU.ucharBufSizel            = 0;
   streamInp->streamIn_ICU.ucharByteLengthl         = 0;
-  streamInp->streamIn_ICU.uConverter               = NULL;
+  streamInp->streamIn_ICU.uConverterFrom           = NULL;
   streamInp->streamIn_ICU.utextp                   = NULL;
 
   switch (streamInp->streamInUtf8Option.ICUFromCallback) {
@@ -242,6 +244,57 @@ static streamInBool_t streamInUtf8_ICU_newb(streamIn_t *streamInp) {
   default:
     /* Cannot happen in theory */
     STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "Invalid ICUFromCallback %d", streamInp->streamInUtf8Option.ICUFromCallback);
+    rcb = STREAMIN_BOOL_FALSE;
+  }
+
+  switch (streamInp->streamInUtf8Option.ICUToCallback) {
+  case STREAMINUTF8OPTION_ICUCALLBACK_SUBSTITUTE:
+    streamInp->streamIn_ICU.uConverterToUCallback     = UCNV_TO_U_CALLBACK_SUBSTITUTE;
+    streamInp->streamIn_ICU.uConverterToUCallbackCtxp = NULL;
+    break;
+  case STREAMINUTF8OPTION_ICUCALLBACK_SKIP:
+    streamInp->streamIn_ICU.uConverterToUCallback     = UCNV_TO_U_CALLBACK_SKIP;
+    streamInp->streamIn_ICU.uConverterToUCallbackCtxp = NULL;
+    break;
+  case STREAMINUTF8OPTION_ICUCALLBACK_STOP:
+    streamInp->streamIn_ICU.uConverterToUCallback     = UCNV_TO_U_CALLBACK_STOP;
+    streamInp->streamIn_ICU.uConverterToUCallbackCtxp = NULL;
+    break;
+  case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE:
+    streamInp->streamIn_ICU.uConverterToUCallback     = UCNV_TO_U_CALLBACK_ESCAPE;
+    streamInp->streamIn_ICU.uConverterToUCallbackCtxp = NULL;
+    break;
+  case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_ICU:
+    streamInp->streamIn_ICU.uConverterToUCallback     = UCNV_TO_U_CALLBACK_ESCAPE;
+    streamInp->streamIn_ICU.uConverterToUCallbackCtxp = UCNV_ESCAPE_ICU;
+    break;
+  case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_JAVA:
+    streamInp->streamIn_ICU.uConverterToUCallback     = UCNV_TO_U_CALLBACK_ESCAPE;
+    streamInp->streamIn_ICU.uConverterToUCallbackCtxp = UCNV_ESCAPE_JAVA;
+    break;
+  case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_C:
+    streamInp->streamIn_ICU.uConverterToUCallback     = UCNV_TO_U_CALLBACK_ESCAPE;
+    streamInp->streamIn_ICU.uConverterToUCallbackCtxp = UCNV_ESCAPE_C;
+    break;
+  case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_XML:
+    streamInp->streamIn_ICU.uConverterToUCallback     = UCNV_TO_U_CALLBACK_ESCAPE;
+    streamInp->streamIn_ICU.uConverterToUCallbackCtxp = UCNV_ESCAPE_XML_HEX;
+    break;
+  case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_XML_HEX:
+    streamInp->streamIn_ICU.uConverterToUCallback     = UCNV_TO_U_CALLBACK_ESCAPE;
+    streamInp->streamIn_ICU.uConverterToUCallbackCtxp = UCNV_ESCAPE_XML_HEX;
+    break;
+  case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_XML_DEC:
+    streamInp->streamIn_ICU.uConverterToUCallback     = UCNV_TO_U_CALLBACK_ESCAPE;
+    streamInp->streamIn_ICU.uConverterToUCallbackCtxp = UCNV_ESCAPE_XML_DEC;
+    break;
+  case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_UNICODE:
+    streamInp->streamIn_ICU.uConverterToUCallback     = UCNV_TO_U_CALLBACK_ESCAPE;
+    streamInp->streamIn_ICU.uConverterToUCallbackCtxp = UCNV_ESCAPE_UNICODE;
+    break;
+  default:
+    /* Cannot happen in theory */
+    STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "Invalid ICUToCallback %d", streamInp->streamInUtf8Option.ICUToCallback);
     rcb = STREAMIN_BOOL_FALSE;
   }
 
@@ -390,10 +443,10 @@ static streamInBool_t _streamInUtf8_readb(streamIn_t *streamInp, size_t bufIndex
 
   if (streamInp->utf8b == STREAMIN_BOOL_TRUE) {
 
-    if (streamInp->streamInUtf8Option.encodings == NULL) {
+    if (streamInp->streamInUtf8Option.fromEncodings == NULL) {
       /* User did a streamInUtf8_newp. The very first time, we auto-detect encoding */
       _streamInUtf8_detectb(streamInp);
-      if (strcmp(streamInp->streamInUtf8Option.encodings, _streamIn_defaultEncodings) == 0) {
+      if (strcmp(streamInp->streamInUtf8Option.fromEncodings, _streamIn_defaultFromEncodings) == 0) {
         streamInp->nativeIsUtf8b = STREAMIN_BOOL_TRUE;
       } else {
         streamInp->nativeIsUtf8b = STREAMIN_BOOL_FALSE;
@@ -414,7 +467,7 @@ static streamInBool_t _streamInUtf8_readb(streamIn_t *streamInp, size_t bufIndex
     }
 
     if (rcb == STREAMIN_BOOL_TRUE) {
-      rcb = _streamInUtf8_convertb(streamInp, bufIndexi);
+      rcb = _streamInUtf8_fromConvertb(streamInp, bufIndexi);
     }
   }
 
@@ -933,7 +986,7 @@ static void _streamInUtf8_detectb(streamIn_t *streamInp) {
   }
 
   STREAMIN_LOG0(STREAMIN_LOGLEVEL_INFO, "Charset detection failure, assuming UTF-8");
-  streamInp->streamInUtf8Option.encodings = (char *) _streamIn_defaultEncodings;
+  streamInp->streamInUtf8Option.fromEncodings = (char *) _streamIn_defaultFromEncodings;
 }
 
 #ifdef HAVE_ICU
@@ -944,7 +997,7 @@ static streamInBool_t _streamInUtf8_ICU_detectb(streamIn_t *streamInp) {
   UErrorCode           uErrorCode = U_ZERO_ERROR;
   UCharsetDetector    *uCharsetDetector;
   const UCharsetMatch *uCharsetMatch;
-  const char          *encodings;
+  const char          *fromEncodings;
   int32_t              confidence; 
   streamInBool_t       rcb = STREAMIN_BOOL_TRUE;
 
@@ -976,18 +1029,18 @@ static streamInBool_t _streamInUtf8_ICU_detectb(streamIn_t *streamInp) {
     goto ICU_end;
   }
 
-  encodings = ucsdet_getName(uCharsetMatch, &uErrorCode);
+  fromEncodings = ucsdet_getName(uCharsetMatch, &uErrorCode);
   if (U_FAILURE(uErrorCode)) {
     STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "ucsdet_getName(): %s", u_errorName(uErrorCode));
     rcb = STREAMIN_BOOL_FALSE;
     goto ICU_end;
   }
-  if (encodings == NULL) {
+  if (fromEncodings == NULL) {
     STREAMIN_LOG0(STREAMIN_LOGLEVEL_ERROR, "ucsdet_getName() returned NULL");
     rcb = STREAMIN_BOOL_FALSE;
     goto ICU_end;
   }
-  if (strlen(encodings) <= 0) {
+  if (strlen(fromEncodings) <= 0) {
     STREAMIN_LOG0(STREAMIN_LOGLEVEL_ERROR, "ucsdet_getName() returned empty string");
     rcb = STREAMIN_BOOL_FALSE;
     goto ICU_end;
@@ -1001,23 +1054,23 @@ static streamInBool_t _streamInUtf8_ICU_detectb(streamIn_t *streamInp) {
   }
 
   if (confidence < 10) {
-    STREAMIN_LOGX(STREAMIN_LOGLEVEL_WARNING, "ucsdet_getConfidence() returned encoding %s with too low confidence %d < 10 - rejected", encodings, confidence);
+    STREAMIN_LOGX(STREAMIN_LOGLEVEL_WARNING, "ucsdet_getConfidence() returned encoding \"%s\" with too low confidence %d < 10 - rejected", fromEncodings, confidence);
     rcb = STREAMIN_BOOL_FALSE;
     goto ICU_end;
   }
 
-  STREAMIN_LOGX(STREAMIN_LOGLEVEL_INFO, "ICU returned encoding %s with confidence %d", encodings, confidence);
+  STREAMIN_LOGX(STREAMIN_LOGLEVEL_INFO, "ICU returned encoding \"%s\" with confidence %d", fromEncodings, confidence);
 
  ICU_end:
 
   if (rcb == STREAMIN_BOOL_TRUE) {
     /* Save the result */
-    streamInp->streamInUtf8Option.encodings = malloc(sizeof(char) * (strlen(encodings) + 1));
-    if (streamInp->streamInUtf8Option.encodings == NULL) {
+    streamInp->streamInUtf8Option.fromEncodings = malloc(sizeof(char) * (strlen(fromEncodings) + 1));
+    if (streamInp->streamInUtf8Option.fromEncodings == NULL) {
       STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "malloc(): %s", strerror(errno));
       rcb = STREAMIN_BOOL_FALSE;
     } else {
-      strcpy(streamInp->streamInUtf8Option.encodings, encodings);
+      strcpy(streamInp->streamInUtf8Option.fromEncodings, fromEncodings);
     }
   }
 
@@ -1035,7 +1088,7 @@ static streamInBool_t _streamInUtf8_ICU_detectb(streamIn_t *streamInp) {
 static streamInBool_t _streamIn_charsetdetect_detectb(streamIn_t *streamInp) {
   csd_t       csdp;
   int         result;
-  const char *encodings;
+  const char *fromEncodings;
   float       confidencef;
 
   csdp = csd_open();
@@ -1051,19 +1104,19 @@ static streamInBool_t _streamIn_charsetdetect_detectb(streamIn_t *streamInp) {
       csd_close(csdp);
       return STREAMIN_BOOL_FALSE;
     } else {
-      encodings = csd_close2(csdp, &confidencef);
-      if (encodings == NULL) {
+      fromEncodings = csd_close2(csdp, &confidencef);
+      if (fromEncodings == NULL) {
 	STREAMIN_LOG0(STREAMIN_LOGLEVEL_ERROR, "csd_close() returned NULL");
 	return STREAMIN_BOOL_FALSE;
       } else {
-	STREAMIN_LOGX(STREAMIN_LOGLEVEL_INFO, "libcharsetdetect returned encoding %s with confidence %f", encodings, (double) confidencef);
+	STREAMIN_LOGX(STREAMIN_LOGLEVEL_INFO, "libcharsetdetect returned encoding \"%s\" with confidence %f", fromEncodings, (double) confidencef);
 	/* Save the result */
-	streamInp->streamInUtf8Option.encodings = malloc(sizeof(char) * (strlen(encodings) + 1));
-	if (streamInp->streamInUtf8Option.encodings == NULL) {
+	streamInp->streamInUtf8Option.fromEncodings = malloc(sizeof(char) * (strlen(fromEncodings) + 1));
+	if (streamInp->streamInUtf8Option.fromEncodings == NULL) {
 	  STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "malloc(): %s", strerror(errno));
 	  return STREAMIN_BOOL_FALSE;
 	} else {
-	  strcpy(streamInp->streamInUtf8Option.encodings, encodings);
+	  strcpy(streamInp->streamInUtf8Option.fromEncodings, fromEncodings);
 	}
       }
     }
@@ -1072,16 +1125,16 @@ static streamInBool_t _streamIn_charsetdetect_detectb(streamIn_t *streamInp) {
   return STREAMIN_BOOL_TRUE;
 }
 
-/**************************/
-/* streamInUtf8_encodings */
-/**************************/
-streamInBool_t streamInUtf8_encodings(streamIn_t *streamInp, char **encodingsp) {
+/******************************/
+/* streamInUtf8_fromEncodings */
+/******************************/
+streamInBool_t streamInUtf8_fromEncodings(streamIn_t *streamInp, char **fromEncodingsp) {
   if (streamInp == NULL || streamInp->utf8b == STREAMIN_BOOL_FALSE) {
     return STREAMIN_BOOL_FALSE;
   }
 
-  if (encodingsp != NULL) {
-    *encodingsp = streamInp->streamInUtf8Option.encodings;
+  if (fromEncodingsp != NULL) {
+    *fromEncodingsp = streamInp->streamInUtf8Option.fromEncodings;
   }
 
   return STREAMIN_BOOL_TRUE;
@@ -1117,17 +1170,17 @@ signed int streamInUtf8_nexti(streamIn_t *streamInp) {
   return rci;
 }
 
-/**************************/
-/* _streamInUtf8_convertb */
-/**************************/
-static streamInBool_t _streamInUtf8_convertb(streamIn_t *streamInp, size_t bufIndexi) {
+/******************************/
+/* _streamInUtf8_fromConvertb */
+/******************************/
+static streamInBool_t _streamInUtf8_fromConvertb(streamIn_t *streamInp, size_t bufIndexi) {
   streamInBool_t  rcb = STREAMIN_BOOL_TRUE;;
 
   if (streamInp->utf8b == STREAMIN_BOOL_TRUE) {
     switch (streamInp->streamInUtf8Option.converteri) {
 #ifdef HAVE_ICU
     case STREAMINUTF8OPTION_CONVERTER_ICU:
-      rcb = _streamInUtf8_ICU_convertb(streamInp, bufIndexi);
+      rcb = _streamInUtf8_ICU_fromConvertb(streamInp, bufIndexi);
       break;
 #endif
 #ifdef HAVE_ICONV
@@ -1142,10 +1195,10 @@ static streamInBool_t _streamInUtf8_convertb(streamIn_t *streamInp, size_t bufIn
 }
 
 #ifdef HAVE_ICU
-/******************************/
-/* _streamInUtf8_ICU_convertb */
-/******************************/
-static streamInBool_t _streamInUtf8_ICU_convertb(streamIn_t *streamInp, size_t bufIndexi) {
+/**********************************/
+/* _streamInUtf8_ICU_fromConvertb */
+/**********************************/
+static streamInBool_t _streamInUtf8_ICU_fromConvertb(streamIn_t *streamInp, size_t bufIndexi) {
   streamInBool_t rcb            = STREAMIN_BOOL_TRUE;
   int64_t        ucharBufSizel  = streamInp->streamIn_ICU.ucharBufSizel;
   UChar         *target         = (UChar *) (((char *) streamInp->streamIn_ICU.ucharBufp) + streamInp->streamIn_ICU.ucharByteLengthl);
@@ -1158,6 +1211,7 @@ static streamInBool_t _streamInUtf8_ICU_convertb(streamIn_t *streamInp, size_t b
   UErrorCode     uErrorCode     = U_ZERO_ERROR;
   int64_t        ucharLengthl;  /* Number of UChar */
   UChar         *ucharBufp;
+  UBool          fallback       = (streamInp->streamInUtf8Option.ICUFromFallback == STREAMIN_BOOL_TRUE) ? TRUE : FALSE;
 
   /* For error reporting */
   char          errorBytes[32];
@@ -1165,23 +1219,29 @@ static streamInBool_t _streamInUtf8_ICU_convertb(streamIn_t *streamInp, size_t b
   int           i;
 
   /* Create "From" converter */
-  if (streamInp->streamIn_ICU.uConverter == NULL) {
-    streamInp->streamIn_ICU.uConverter = ucnv_open(streamInp->streamInUtf8Option.encodings, &uErrorCode);
+  if (streamInp->streamIn_ICU.uConverterFrom == NULL) {
+    STREAMIN_TRACEX("ucnv_open(\"%s\", %p)", streamInp->streamInUtf8Option.fromEncodings, &uErrorCode);
+    streamInp->streamIn_ICU.uConverterFrom = ucnv_open(streamInp->streamInUtf8Option.fromEncodings, &uErrorCode);
     if (U_FAILURE(uErrorCode)) {
       STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "ucnv_open(): %s", u_errorName(uErrorCode));
       return STREAMIN_BOOL_FALSE;
     }
-    ucnv_setFromUCallBack(streamInp->streamIn_ICU.uConverter, streamInp->streamIn_ICU.uConverterFromUCallback, streamInp->streamIn_ICU.uConverterFromUCallbackCtxp, NULL, NULL, &uErrorCode);
+
+    STREAMIN_TRACEX("ucnv_setFromUCallBack(%p, %p, %p, %p, %p, %p)", streamInp->streamIn_ICU.uConverterFrom, streamInp->streamIn_ICU.uConverterFromUCallback, streamInp->streamIn_ICU.uConverterFromUCallbackCtxp, NULL, NULL, &uErrorCode);
+    ucnv_setFromUCallBack(streamInp->streamIn_ICU.uConverterFrom, streamInp->streamIn_ICU.uConverterFromUCallback, streamInp->streamIn_ICU.uConverterFromUCallbackCtxp, NULL, NULL, &uErrorCode);
     if (U_FAILURE(uErrorCode)) {
       STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "ucnv_setFromUCallBack(): %s", u_errorName(uErrorCode));
       return STREAMIN_BOOL_FALSE;
     }
+
+    STREAMIN_TRACEX("ucnv_setFallback(%p, %d)", streamInp->streamIn_ICU.uConverterFrom, fallback);
+    ucnv_setFallback(streamInp->streamIn_ICU.uConverterFrom, fallback);
   }
 
   do {
 
     uErrorCode = U_ZERO_ERROR;
-    ucnv_toUnicode(streamInp->streamIn_ICU.uConverter, &target, targetLimit, &source, sourceLimit, NULL, flushb, &uErrorCode);
+    ucnv_toUnicode(streamInp->streamIn_ICU.uConverterFrom, &target, targetLimit, &source, sourceLimit, NULL, flushb, &uErrorCode);
 
     if (uErrorCode == U_BUFFER_OVERFLOW_ERROR) {
       /* ucnv_toUnicode() is a statefull method.                                 */
@@ -1205,7 +1265,7 @@ static streamInBool_t _streamInUtf8_ICU_convertb(streamIn_t *streamInp, size_t b
 
       UErrorCode localError = U_ZERO_ERROR;
       errorLength = (int8_t)sizeof(errorBytes);
-      ucnv_getInvalidChars(streamInp->streamIn_ICU.uConverter, errorBytes, &errorLength, &localError);
+      ucnv_getInvalidChars(streamInp->streamIn_ICU.uConverterFrom, errorBytes, &errorLength, &localError);
       if (U_FAILURE(localError) || errorLength == 0) {
         errorLength = 1;
       }
@@ -1256,13 +1316,16 @@ streamInBool_t streamInUtf8_optionDefaultb(streamInUtf8Option_t *streamInUtf8Opt
     return STREAMIN_BOOL_FALSE;
   }
 
-  streamInUtf8Optionp->encodings       = NULL;
+  streamInUtf8Optionp->fromEncodings   = NULL;
 #ifdef HAVE_ICONV
   streamInUtf8Optionp->converteri      = STREAMINUTF8OPTION_CONVERTER_ICONV;
 #endif
 #ifdef HAVE_ICU
   streamInUtf8Optionp->converteri      = STREAMINUTF8OPTION_CONVERTER_ICU;
   streamInUtf8Optionp->ICUFromCallback = STREAMINUTF8OPTION_ICUCALLBACK_STOP;
+  streamInUtf8Optionp->ICUFromFallback = STREAMIN_BOOL_FALSE;
+  streamInUtf8Optionp->ICUToCallback   = STREAMINUTF8OPTION_ICUCALLBACK_STOP;
+  streamInUtf8Optionp->ICUToFallback   = STREAMIN_BOOL_FALSE;
 #endif
 
   return STREAMIN_BOOL_TRUE;
@@ -1292,6 +1355,24 @@ static streamInBool_t _streamInUtf8_ICU_optionb(streamIn_t *streamInp, streamInU
 	break;
       default:
         STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "Invalid ICUFromCallback %d", streamInUtf8Optionp->ICUFromCallback);
+        rcb = STREAMIN_BOOL_FALSE;
+      }
+
+      switch (streamInUtf8Optionp->ICUToCallback) {
+      case STREAMINUTF8OPTION_ICUCALLBACK_SUBSTITUTE:
+      case STREAMINUTF8OPTION_ICUCALLBACK_SKIP:
+      case STREAMINUTF8OPTION_ICUCALLBACK_STOP:
+      case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE:
+      case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_ICU:
+      case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_JAVA:
+      case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_C:
+      case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_XML:
+      case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_XML_HEX:
+      case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_XML_DEC:
+      case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_UNICODE:
+	break;
+      default:
+        STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "Invalid ICUToCallback %d", streamInUtf8Optionp->ICUToCallback);
         rcb = STREAMIN_BOOL_FALSE;
       }
   }
@@ -1350,14 +1431,14 @@ static streamInBool_t _streamInUtf8_optionb(streamIn_t *streamInp, streamInUtf8O
 /**************************/
 static void _streamInUtf8_destroyv(streamIn_t *streamInp) {
   if (streamInp->utf8b == STREAMIN_BOOL_TRUE) {
-    if (streamInp->streamInUtf8Option.encodings != NULL) {
-      if (streamInp->streamInUtf8Option.encodings != _streamIn_defaultEncodings) {
-        free(streamInp->streamInUtf8Option.encodings);
+    if (streamInp->streamInUtf8Option.fromEncodings != NULL) {
+      if (streamInp->streamInUtf8Option.fromEncodings != _streamIn_defaultFromEncodings) {
+        free(streamInp->streamInUtf8Option.fromEncodings);
       }
     }
 #ifdef HAVE_ICU
-    if (streamInp->streamIn_ICU.uConverter != NULL) {
-      ucnv_close(streamInp->streamIn_ICU.uConverter);
+    if (streamInp->streamIn_ICU.uConverterFrom != NULL) {
+      ucnv_close(streamInp->streamIn_ICU.uConverterFrom);
     }
 #ifdef STREAMIN_SINGLE_TEST_APPLICATION_ONLY
     /* ICU recommendation is to NOT call this. This is done automatically at library unload */

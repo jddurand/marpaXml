@@ -97,10 +97,14 @@ typedef enum streamInUtf8Option_ICUCallback {
 #endif
 
 typedef struct streamInUtf8Option {
-  char                            *encodings;         /* Input encoding.       Default: NULL */
+  char                            *fromEncodings;     /* Input encoding.       Default: NULL */
+  char                            *toEncodings;       /* Output encoding.      Default: NULL */
   streamInUtf8Option_Converter_t   converteri;        /* Prefered converter.   Default: ICU if available, else ICONV */
 #ifdef HAVE_ICU
   streamInUtf8Option_ICUCallback_t ICUFromCallback;   /* From-Callback method. Default: STREAMINUTF8OPTION_ICUCALLBACK_STOP */
+  streamInBool_t                   ICUFromFallback;   /* From-fallback.        Default: STREAMIN_BOOL_FALSE */
+  streamInUtf8Option_ICUCallback_t ICUToCallback;     /* To-Callback method.   Default: STREAMINUTF8OPTION_ICUCALLBACK_STOP */
+  streamInBool_t                   ICUToFallback;     /* To-fallback.          Default: STREAMIN_BOOL_FALSE */
 #endif
 } streamInUtf8Option_t;
 
@@ -128,7 +132,8 @@ streamInBool_t streamIn_nextBufferb(streamIn_t *streamInp, size_t *indexBufferip
 streamIn_t    *streamInUtf8_newp          (streamInOption_t *streamInOptionp, streamInUtf8Option_t *streamInUtf8Optionp);
 streamInBool_t streamInUtf8_optionDefaultb(streamInUtf8Option_t *streamInUtf8Optionp);
 /* Options at the utf8 level cannot be changed after streamInUtf8_newp() */
-streamInBool_t streamInUtf8_encodings     (streamIn_t *streamInp, char **encodingsp);                               /* Get input encoding */
+streamInBool_t streamInUtf8_fromEncodings (streamIn_t *streamInp, char **fromEncodingsp);                           /* Get input encoding */
+streamInBool_t streamInUtf8_toEncodings   (streamIn_t *streamInp, char **toEncodingsp);                             /* Get output encoding */
 signed int     streamInUtf8_currenti      (streamIn_t *streamInp);                                                  /* Get current utf8. -1 means EOF.  */
 signed int     streamInUtf8_nexti         (streamIn_t *streamInp);                                                  /* Get next utf8. -1 means EOF.  */
 streamInBool_t streamInUtf8_markb         (streamIn_t *streamInp);                                                  /* Mark current utf8 */
