@@ -61,6 +61,7 @@ static unsigned char  _streaminUtf8_ICU_nibbleToHex(uint8_t n);
 static signed int     _streamInUtf8_ICU_currenti(streamIn_t *streamInp);
 static signed int     _streamInUtf8_ICU_nexti(streamIn_t *streamInp);
 static streamInBool_t _streamInUtf8_ICU_markb(streamIn_t *streamInp);
+static streamInBool_t _streamInUtf8_ICU_doneb(streamIn_t *streamInp);
 #endif
 static streamInBool_t _streamIn_charsetdetect_detectb(streamIn_t *streamInp);
 
@@ -1575,6 +1576,59 @@ static streamInBool_t _streamInUtf8_ICU_markb(streamIn_t *streamInp) {
   } else {
     streamInp->streamIn_ICU.ucharMarkedOffsetl = utext_getNativeIndex(streamInp->streamIn_ICU.utextp);
     rcb = STREAMIN_BOOL_TRUE;
+  }
+
+  return rcb;
+}
+#endif
+
+/***********************/
+/* _streamInUtf8_doneb */
+/***********************/
+streamInBool_t streamInUtf8_doneb(streamIn_t *streamInp) {
+  streamInBool_t rcb = STREAMIN_BOOL_FALSE;
+
+  if (streamInp == NULL || streamInp->utf8b == STREAMIN_BOOL_FALSE) {
+    return rcb;
+  }
+
+  switch (streamInp->streamInUtf8Option.converteri) {
+#ifdef HAVE_ICU
+  case STREAMINUTF8OPTION_CONVERTER_ICU:
+    rcb = _streamInUtf8_ICU_doneb(streamInp);
+    break;
+#endif
+#ifdef HAVE_ICONV
+  case STREAMINUTF8OPTION_CONVERTER_ICONV:
+    rcb = _streamInUtf8_ICONV_doneb(streamInp);
+    break;
+#endif
+  }
+
+  return rcb;
+}
+
+#ifdef HAVE_ICU
+/***************************/
+/* _streamInUtf8_ICU_doneb */
+/***************************/
+static streamInBool_t _streamInUtf8_ICU_doneb(streamIn_t *streamInp) {
+  streamInBool_t rcb = STREAMIN_BOOL_FALSE;
+  int            i;
+
+  if (streamInp->streamIn_ICU.utextp == NULL) {
+    return rcb;
+  } else {
+    /* We search for a byte buffer that maps exactly to ucharMarkedOffsetl */
+    for (i = 0; i < streamInp->nCharBufi; i++) {
+      if (streamInp->streamIn_ICU.charBuf2UCharBufOffsetpp[i] == streamInp->streamIn_ICU.ucharMarkedOffsetl) {
+	break;
+      }
+    }
+    if (i < streamInp->nCharBufi) {
+      /* Got one */
+      rcb = _streamIn_doneBufferb(streamInp, i);
+    }
   }
 
   return rcb;
