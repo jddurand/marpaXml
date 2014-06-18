@@ -31,14 +31,17 @@ typedef struct myReadData {
   off_t          offseti;
 } myReadData_t;
 
-
+const char *Shift_JIS = "Shift_JIS";
 static streamInBool_t _readFileCallback  (void *datavp, size_t wantedBytesi, size_t *gotBytesip, char *charArrayp, char **charManagedArrayp);
 static streamInBool_t _readBufferCallback(void *datavp, size_t wantedBytesi, size_t *gotBytesip, char *charArrayp, char **charManagedArrayp);
 static void           _fileTest(streamIn_t *streamInp, streamInBool_t utf8b, char **argv);
 static void           _bufferTest(streamIn_t *streamInp, streamInBool_t utf8b, char **argv);
 
 #define STREAMIN_NEW(utf8b) {						\
-    streamInp = (utf8b == STREAMIN_BOOL_TRUE) ? streamInUtf8_newp(NULL, NULL) : streamIn_newp(NULL); \
+  streamInUtf8Option_t streamInOptionUtf8;				\
+  streamInUtf8_optionDefaultb(&streamInOptionUtf8);			\
+  streamInOptionUtf8.fromEncodings = (char *) Shift_JIS;		\
+    streamInp = (utf8b == STREAMIN_BOOL_TRUE) ? streamInUtf8_newp(NULL, &streamInOptionUtf8) : streamIn_newp(NULL); \
     if (streamInp == NULL) {						\
       fprintf(stderr, ((utf8b == STREAMIN_BOOL_TRUE) ? "streamInUtf8_newp failure\n" : "streamIn_newp failure\n")); \
       return EXIT_FAILURE;						\
@@ -113,7 +116,7 @@ static void _fileTest(streamIn_t *streamInp, streamInBool_t utf8b, char **argv) 
     fprintf(stderr, "streamIn_optionDefaultb failure\n");
     return;
   }
-  streamInOption.bufMaxSizei = 100;
+  streamInOption.bufMaxSizei = 1;
   streamInOption.logLevelWantedi = STREAMIN_LOGLEVEL_TRACE;
   streamInOption.readCallbackp = &_readFileCallback;
   streamInOption.readCallbackUserDatap = &myReadData;
@@ -126,6 +129,8 @@ static void _fileTest(streamIn_t *streamInp, streamInBool_t utf8b, char **argv) 
     int utf8;
     while ((utf8 = streamInUtf8_nexti(streamInp)) >= 0) {
       fprintf(stderr, "0x%0x\n", utf8);
+      streamInUtf8_markb(streamInp);
+      streamInUtf8_doneb(streamInp);
     }
   } else {
     while (streamIn_nextBufferb(streamInp, &indexBufferi, &charArrayp, &bytesInBuffer)) {
