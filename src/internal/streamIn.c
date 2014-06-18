@@ -1280,6 +1280,7 @@ static streamInBool_t _streamInUtf8_ICU_optionb(streamIn_t *streamInp, streamInU
       case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_XML_HEX:
       case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_XML_DEC:
       case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_UNICODE:
+	break;
       default:
         STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "Invalid ICUFromCallback %d", streamInUtf8Optionp->ICUFromCallback);
         rcb = STREAMIN_BOOL_FALSE;
