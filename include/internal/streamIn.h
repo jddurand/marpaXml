@@ -135,7 +135,7 @@ streamInBool_t streamInUtf8_optionDefaultb(streamInUtf8Option_t *streamInUtf8Opt
 streamInBool_t streamInUtf8_fromEncodings (streamIn_t *streamInp, char **fromEncodingsp);                           /* Get input encoding */
 streamInBool_t streamInUtf8_toEncodings   (streamIn_t *streamInp, char **toEncodingsp);                             /* Get output encoding */
 signed int     streamInUtf8_currenti      (streamIn_t *streamInp);                                                  /* Get current utf8. -1 means EOF.  */
-signed int     streamInUtf8_nexti         (streamIn_t *streamInp);                                                  /* Get next utf8. -1 means EOF.  */
+signed int     streamInUtf8_nexti         (streamIn_t *streamInp);                                                  /* Get next utf8. Moves current by one. -1 means EOF.  */
 streamInBool_t streamInUtf8_markb         (streamIn_t *streamInp);                                                  /* Mark current utf8 */
 streamInBool_t streamInUtf8_doneMarkedb   (streamIn_t *streamInp);                                                  /* Say marked utf8 is done */
 

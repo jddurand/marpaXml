@@ -39,6 +39,7 @@ typedef struct streamIn_ICU {
   /* With ICU we do a single conversion Native => UChar                */
   /* into a SINGLE buffer. We maintain a mapping charBufpp[] -> offset */
   int64_t                    *charBuf2UCharBufOffsetpp;/* mapping end of char buffers => offset in ucharBufp */
+  int64_t                    *ucharMarkedOffset;       /* Pointer location just after the marked uchar */
   size_t                      ucharBufMulSizei;        /* A heuristic guess of the utf16 takes maximum twice more space than native bytes */
   UChar                      *ucharBufp;               /* UChar buffer */
   int64_t                     ucharBufSizel;           /* Current size of allocated memory */
@@ -98,6 +99,9 @@ struct streamIn {
 #define STREAMIN_TRACEX(fmts, ...)
 #endif
 
+#define STREAMIN_FREE(x) { free(x); x = NULL; }
+#define STREAMIN_FREE_REPLACEMENT(x, replacement) { free(x); x = replacement; }
+
 static streamInBool_t _streamIn_getBufferb (streamIn_t *streamInp, size_t wantedIndexi, size_t *indexBufferip, char **charArraypp, size_t *bytesInBufferp);
 static streamInBool_t _streamIn_doneBufferb(streamIn_t *streamInp, size_t bufIndexi);
 static streamInBool_t _streamIn_readb      (streamIn_t *streamInp);
@@ -140,7 +144,7 @@ streamIn_t *streamIn_newp(streamInOption_t *streamInOptionp) {
       (*streamInOptionp->logCallbackp)(streamInOptionp->logCallbackUserDatap, NULL, STREAMIN_LOGLEVEL_ERROR, errorMsgs);
     }
     if (errorMsgs != messageBuilder_internalErrors()) {
-      free(errorMsgs);
+      STREAMIN_FREE(errorMsgs);
     }
     return NULL;
   }
@@ -189,6 +193,7 @@ static streamInBool_t streamInUtf8_ICU_newb(streamIn_t *streamInp) {
   streamInBool_t  rcb           = STREAMIN_BOOL_TRUE;
 
   streamInp->streamIn_ICU.charBuf2UCharBufOffsetpp = NULL;
+  streamInp->streamIn_ICU.ucharMarkedOffset        = 0;
   streamInp->streamIn_ICU.ucharBufMulSizei         = 2;
   streamInp->streamIn_ICU.ucharBufp                = NULL;
   streamInp->streamIn_ICU.ucharBufSizel            = 0;
@@ -359,13 +364,12 @@ static streamInBool_t _streamInUtf8_ICU_doneBufferb(streamIn_t *streamInp, size_
   if ((bufIndexi + 1) == streamInp->nCharBufi) {
     /* In fact we destroy everything */
 
-    free(streamInp->streamIn_ICU.ucharBufp);
+    STREAMIN_FREE(streamInp->streamIn_ICU.charBuf2UCharBufOffsetpp);
+    streamInp->streamIn_ICU.ucharMarkedOffset = 0;
+    STREAMIN_FREE(streamInp->streamIn_ICU.ucharBufp);
     streamInp->streamIn_ICU.ucharBufp = NULL;
     streamInp->streamIn_ICU.ucharBufSizel = 0;
     streamInp->streamIn_ICU.ucharByteLengthl = 0;
-
-    free(streamInp->streamIn_ICU.charBuf2UCharBufOffsetpp);
-    streamInp->streamIn_ICU.charBuf2UCharBufOffsetpp = NULL;
 
     /* ICU recommends to not close/open utext - so we delay that to the destroy method */
   } else {
@@ -395,13 +399,10 @@ static streamInBool_t _streamInUtf8_ICU_doneBufferb(streamIn_t *streamInp, size_
 	}
       } else {
 	/* It is possible that the utf8 stream was not filled up by the following byte buffer */
-	free(streamInp->streamIn_ICU.ucharBufp);
-	streamInp->streamIn_ICU.ucharBufp = NULL;
+	STREAMIN_FREE(streamInp->streamIn_ICU.ucharBufp);
 	streamInp->streamIn_ICU.ucharBufSizel = 0;
 	streamInp->streamIn_ICU.ucharByteLengthl = 0;
-
-	free(streamInp->streamIn_ICU.charBuf2UCharBufOffsetpp);
-	streamInp->streamIn_ICU.charBuf2UCharBufOffsetpp = NULL;
+	STREAMIN_FREE(streamInp->streamIn_ICU.charBuf2UCharBufOffsetpp);
       }
     }
   }
@@ -492,24 +493,18 @@ static streamInBool_t _streamIn_doneBufferb(streamIn_t *streamInp, size_t bufInd
   /* We destroy the buffers */
   for (i = 0; i <= bufIndexi; ++i) {
     if (streamInp->managedbp[i] == STREAMIN_BOOL_FALSE) {
-      free(streamInp->charBufpp[i]);
+      STREAMIN_FREE(streamInp->charBufpp[i]);
     } else if (streamInp->streamInOption.bufFreeCallbackp != NULL) {
       (*streamInp->streamInOption.bufFreeCallbackp)(streamInp->streamInOption.bufFreeCallbackUserDatap, streamInp->charBufpp[i]);
+      streamInp->charBufpp[i] = NULL;
     }
-    streamInp->charBufpp[i] = NULL;
   }
 
   if ((bufIndexi + 1) == streamInp->nCharBufi) {
     /* And in fact we destroyed everything */
-    free(streamInp->charBufpp);
-    streamInp->charBufpp = NULL;
-
-    free(streamInp->realSizeCharBufip);
-    streamInp->realSizeCharBufip = NULL;
-
-    free(streamInp->managedbp);
-    streamInp->managedbp = NULL;
-
+    STREAMIN_FREE(streamInp->charBufpp);
+    STREAMIN_FREE(streamInp->realSizeCharBufip);
+    STREAMIN_FREE(streamInp->managedbp);
     streamInp->nCharBufi = 0;
   }
   else {
@@ -707,8 +702,7 @@ static streamInBool_t _streamIn_readb(streamIn_t *streamInp) {
   if (charManagedArrayp != NULL) {
     /* User-defined buffer */
     streamInp->managedbp[bufIndexi]  = STREAMIN_BOOL_TRUE;
-    free(streamInp->charBufpp[bufIndexi]);
-    streamInp->charBufpp[bufIndexi] = charManagedArrayp;
+    STREAMIN_FREE_REPLACEMENT(streamInp->charBufpp[bufIndexi], charManagedArrayp);
   }
 
   STREAMIN_TRACEX("read callback filled %d bytes in buffer No %d", streamInp->realSizeCharBufip[bufIndexi], bufIndexi);
@@ -726,13 +720,21 @@ static streamInBool_t _streamIn_readb(streamIn_t *streamInp) {
   if (streamInp->realSizeCharBufip[bufIndexi] <= 0) {
     if (bufIndexi == 0) {
       /* Nothing was read - this could have been done before, but happens only once, at EOF     */
-      /* If we were working on the first buffer, we can safely call _streamIn_doneBufferb()     */
+      /* If we are working on the first buffer, we can safely call _streamIn_doneBufferb()     */
       /* otherwise there is a leftover of pointers, we only free what has been allocated inside */
       /* No need to redo a realloc. Next eventuall call will simply realloc on the same size.   */
       _streamIn_doneBufferb(streamInp, bufIndexi);
     } else {
-      free(streamInp->charBufpp[bufIndexi]);
+      /* Formally, no need to assign NULL since we will reduce */
+      STREAMIN_FREE(streamInp->charBufpp[bufIndexi]);
       streamInp->nCharBufi--;     
+      charBufpp = realloc(streamInp->charBufpp, streamInp->nCharBufi * sizeof(char *));
+      /* We are reducing the array, so formally even in case of error we can continue */
+      if (charBufpp == NULL) {
+        STREAMIN_LOGX(STREAMIN_LOGLEVEL_WARNING, "realloc(): %s", strerror(errno));
+      } else {
+        streamInp->charBufpp = charBufpp;
+      }
     }
     return STREAMIN_BOOL_FALSE;
   }
@@ -781,6 +783,7 @@ static void _streamIn_log_any(streamIn_t *streamInp, streamInLogLevel_t streamIn
     }
 
     if (msgs != emptyMessages && msgs != messageBuilder_internalErrors()) {
+      /* No need to assign to NULL, we will return just after */
       free(msgs);
     }
   }
@@ -831,6 +834,7 @@ void streamIn_destroyv(streamIn_t **streamInpp) {
 
   _streamInUtf8_destroyv(streamInp);
 
+  /* No need to assign to NULL, we know what we are doing here */
   free(streamInp);
   *streamInpp = NULL;
 }
@@ -1003,6 +1007,7 @@ static streamInBool_t _streamInUtf8_ICU_detectb(streamIn_t *streamInp) {
 
   STREAMIN_TRACE0("Determining encoding using ICU");
 
+  STREAMIN_TRACEX("ucsdet_open(%p)", &uErrorCode);
   uCharsetDetector = ucsdet_open(&uErrorCode);
   if (U_FAILURE(uErrorCode)) {
     STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "ucsdet_open(): %s", u_errorName(uErrorCode));
@@ -1010,6 +1015,7 @@ static streamInBool_t _streamInUtf8_ICU_detectb(streamIn_t *streamInp) {
     goto ICU_end;
   }
 
+  STREAMIN_TRACEX("ucsdet_setText(%p, %p, %ld, %p)", uCharsetDetector, streamInp->charBufpp[0], (unsigned long) streamInp->realSizeCharBufip[0], &uErrorCode);
   ucsdet_setText(uCharsetDetector, streamInp->charBufpp[0], streamInp->realSizeCharBufip[0], &uErrorCode);
   if (U_FAILURE(uErrorCode)) {
     STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "ucsdet_setText(): %s", u_errorName(uErrorCode));
@@ -1017,6 +1023,7 @@ static streamInBool_t _streamInUtf8_ICU_detectb(streamIn_t *streamInp) {
     goto ICU_end;
   }
 
+  STREAMIN_TRACEX("ucsdet_detect(%p, %p)", uCharsetDetector, &uErrorCode);
   uCharsetMatch = ucsdet_detect(uCharsetDetector, &uErrorCode);
   if (U_FAILURE(uErrorCode)) {
     STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "ucsdet_detect(): %s", u_errorName(uErrorCode));
@@ -1029,6 +1036,7 @@ static streamInBool_t _streamInUtf8_ICU_detectb(streamIn_t *streamInp) {
     goto ICU_end;
   }
 
+  STREAMIN_TRACEX("ucsdet_getName(%p, %p)", uCharsetMatch, &uErrorCode);
   fromEncodings = ucsdet_getName(uCharsetMatch, &uErrorCode);
   if (U_FAILURE(uErrorCode)) {
     STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "ucsdet_getName(): %s", u_errorName(uErrorCode));
@@ -1046,6 +1054,7 @@ static streamInBool_t _streamInUtf8_ICU_detectb(streamIn_t *streamInp) {
     goto ICU_end;
   }
 
+  STREAMIN_TRACEX("ucsdet_getConfidence(%p, %p)", uCharsetMatch, &uErrorCode);
   confidence = ucsdet_getConfidence(uCharsetMatch, &uErrorCode);
   if (U_FAILURE(uErrorCode)) {
     STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "ucsdet_getConfidence(): %s", u_errorName(uErrorCode));
@@ -1075,6 +1084,7 @@ static streamInBool_t _streamInUtf8_ICU_detectb(streamIn_t *streamInp) {
   }
 
   if (uCharsetDetector != NULL) {
+    STREAMIN_TRACEX("ucsdet_close(%p)", uCharsetDetector);
     ucsdet_close(uCharsetDetector);
   }
 
@@ -1211,7 +1221,6 @@ static streamInBool_t _streamInUtf8_ICU_fromConvertb(streamIn_t *streamInp, size
   UErrorCode     uErrorCode     = U_ZERO_ERROR;
   int64_t        ucharLengthl;  /* Number of UChar */
   UChar         *ucharBufp;
-  UBool          fallback       = (streamInp->streamInUtf8Option.ICUFromFallback == STREAMIN_BOOL_TRUE) ? TRUE : FALSE;
 
   /* For error reporting */
   char          errorBytes[32];
@@ -1220,6 +1229,8 @@ static streamInBool_t _streamInUtf8_ICU_fromConvertb(streamIn_t *streamInp, size
 
   /* Create "From" converter */
   if (streamInp->streamIn_ICU.uConverterFrom == NULL) {
+    UBool fallback = (streamInp->streamInUtf8Option.ICUFromFallback == STREAMIN_BOOL_TRUE) ? TRUE : FALSE;
+
     STREAMIN_TRACEX("ucnv_open(\"%s\", %p)", streamInp->streamInUtf8Option.fromEncodings, &uErrorCode);
     streamInp->streamIn_ICU.uConverterFrom = ucnv_open(streamInp->streamInUtf8Option.fromEncodings, &uErrorCode);
     if (U_FAILURE(uErrorCode)) {
@@ -1241,6 +1252,7 @@ static streamInBool_t _streamInUtf8_ICU_fromConvertb(streamIn_t *streamInp, size
   do {
 
     uErrorCode = U_ZERO_ERROR;
+    STREAMIN_TRACEX("ucnv_toUnicode(%p, %p, %p, %p, %p, %p, %d, %p)", streamInp->streamIn_ICU.uConverterFrom, &target, targetLimit, &source, sourceLimit, NULL, flushb, &uErrorCode);
     ucnv_toUnicode(streamInp->streamIn_ICU.uConverterFrom, &target, targetLimit, &source, sourceLimit, NULL, flushb, &uErrorCode);
 
     if (uErrorCode == U_BUFFER_OVERFLOW_ERROR) {
@@ -1265,6 +1277,7 @@ static streamInBool_t _streamInUtf8_ICU_fromConvertb(streamIn_t *streamInp, size
 
       UErrorCode localError = U_ZERO_ERROR;
       errorLength = (int8_t)sizeof(errorBytes);
+      STREAMIN_TRACEX("ucnv_getInvalidChars(%p, %p, %p, %p)", streamInp->streamIn_ICU.uConverterFrom, errorBytes, &errorLength, &localError);
       ucnv_getInvalidChars(streamInp->streamIn_ICU.uConverterFrom, errorBytes, &errorLength, &localError);
       if (U_FAILURE(localError) || errorLength == 0) {
         errorLength = 1;
@@ -1297,7 +1310,6 @@ static streamInBool_t _streamInUtf8_ICU_fromConvertb(streamIn_t *streamInp, size
 
     /* Instanciate or reset utext */
     STREAMIN_TRACEX("utext_openUChars(%p, %p, %ld, %p)", streamInp->streamIn_ICU.utextp, streamInp->streamIn_ICU.ucharBufp, (unsigned long) ucharLengthl, &uErrorCode);
-
     streamInp->streamIn_ICU.utextp = utext_openUChars(streamInp->streamIn_ICU.utextp, streamInp->streamIn_ICU.ucharBufp, ucharLengthl, &uErrorCode);
     if (U_FAILURE(uErrorCode)) {
       STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "utext_openUChars(): %s", u_errorName(uErrorCode));
@@ -1433,11 +1445,12 @@ static void _streamInUtf8_destroyv(streamIn_t *streamInp) {
   if (streamInp->utf8b == STREAMIN_BOOL_TRUE) {
     if (streamInp->streamInUtf8Option.fromEncodings != NULL) {
       if (streamInp->streamInUtf8Option.fromEncodings != _streamIn_defaultFromEncodings) {
-        free(streamInp->streamInUtf8Option.fromEncodings);
+        STREAMIN_FREE(streamInp->streamInUtf8Option.fromEncodings);
       }
     }
 #ifdef HAVE_ICU
     if (streamInp->streamIn_ICU.uConverterFrom != NULL) {
+      STREAMIN_TRACEX("ucnv_close(%p)", streamInp->streamIn_ICU.uConverterFrom);
       ucnv_close(streamInp->streamIn_ICU.uConverterFrom);
     }
 #ifdef STREAMIN_SINGLE_TEST_APPLICATION_ONLY
@@ -1499,6 +1512,8 @@ static signed int _streamInUtf8_ICU_currenti(streamIn_t *streamInp) {
   if (streamInp->streamIn_ICU.utextp == NULL) {
     return rci;
   } else {
+    /* A trace here would hog the output */
+    /* STREAMIN_TRACEX("UTEXT_CURRENT32(%p)", streamInp->streamIn_ICU.utextp); */
     return UTEXT_CURRENT32(streamInp->streamIn_ICU.utextp);
   }
 }
@@ -1514,6 +1529,8 @@ static signed int _streamInUtf8_ICU_nexti(streamIn_t *streamInp) {
   if (streamInp->streamIn_ICU.utextp == NULL) {
     return rci;
   } else {
+    /* A trace here would hog the output */
+    /* STREAMIN_TRACEX("UTEXT_NEXT32(%p)", streamInp->streamIn_ICU.utextp); */
     return UTEXT_NEXT32(streamInp->streamIn_ICU.utextp);
   }
 }
