@@ -507,12 +507,17 @@ static streamInBool_t _streamInUtf8_readb(streamIn_t *streamInp, size_t bufIndex
 /********************************************/
 /* _streamIn_doneBufferb                    */
 /********************************************/
+
+/* Take care: this routine will destroy buffers, and the call to utf8 stuff */
+/* will rely on streamInp->nCharBufi without modify it */
 static streamInBool_t _streamIn_doneBufferb(streamIn_t *streamInp, size_t bufIndexi)
 {
   size_t          i, j;
   char          **charBufpp;
   size_t         *realSizeCharBufip;
   streamInBool_t *managedbp;
+  size_t          nCharBufi = streamInp->nCharBufi;
+  streamInBool_t  rcb = STREAMIN_BOOL_TRUE;
 
   /* We want to forget forever buffer at index bufIndexi. */
   /* Any eventual previous buffer will me removed as well  */
@@ -529,43 +534,43 @@ static streamInBool_t _streamIn_doneBufferb(streamIn_t *streamInp, size_t bufInd
     }
   }
 
-  if ((bufIndexi + 1) == streamInp->nCharBufi) {
+  if ((bufIndexi + 1) == nCharBufi) {
     /* And in fact we destroyed everything */
     STREAMIN_FREE(streamInp->charBufpp);
     STREAMIN_FREE(streamInp->realSizeCharBufip);
     STREAMIN_FREE(streamInp->managedbp);
-    streamInp->nCharBufi = 0;
+    nCharBufi = 0;
   }
   else {
 
-    STREAMIN_TRACEX("Moving information of buffers [%d..%d] to [0..%d]", bufIndexi + 1, streamInp->nCharBufi, streamInp->nCharBufi - (bufIndexi + 1));
+    STREAMIN_TRACEX("Moving information of buffers [%d..%d] to [0..%d]", bufIndexi + 1, nCharBufi, nCharBufi - (bufIndexi + 1));
 
     /* We have to realloc, taking care of moving backward */
     /* the informations                                   */
-    for (j = 0, i = (bufIndexi + 1); i < streamInp->nCharBufi; ++i, ++j) {
+    for (j = 0, i = (bufIndexi + 1); i < nCharBufi; ++i, ++j) {
       streamInp->charBufpp[j] = streamInp->charBufpp[i];
       streamInp->realSizeCharBufip[j] = streamInp->realSizeCharBufip[i];
       streamInp->managedbp[j] = streamInp->managedbp[i];
     }
 
-    streamInp->nCharBufi -= (bufIndexi+1);
+    nCharBufi -= (bufIndexi+1);
 
     /* Formally, on realloc error, we can continue */
-    charBufpp = realloc(streamInp->charBufpp, streamInp->nCharBufi * sizeof(char *));
+    charBufpp = realloc(streamInp->charBufpp, nCharBufi * sizeof(char *));
     if (charBufpp == NULL) {
       STREAMIN_LOGX(STREAMIN_LOGLEVEL_WARNING, "realloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
     } else {
       streamInp->charBufpp = charBufpp;
     }
 
-    realSizeCharBufip = realloc(streamInp->realSizeCharBufip, streamInp->nCharBufi * sizeof(void *));
+    realSizeCharBufip = realloc(streamInp->realSizeCharBufip, nCharBufi * sizeof(void *));
     if (realSizeCharBufip == NULL) {
       STREAMIN_LOGX(STREAMIN_LOGLEVEL_WARNING, "realloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
     } else {
       streamInp->realSizeCharBufip = realSizeCharBufip;
     }
 
-    managedbp = realloc(streamInp->managedbp, streamInp->nCharBufi * sizeof(streamInBool_t));
+    managedbp = realloc(streamInp->managedbp, nCharBufi * sizeof(streamInBool_t));
     if (managedbp == NULL) {
       STREAMIN_LOGX(STREAMIN_LOGLEVEL_WARNING, "realloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
     } else {
@@ -573,7 +578,12 @@ static streamInBool_t _streamIn_doneBufferb(streamIn_t *streamInp, size_t bufInd
     }
   }
 
-  return _streamInUtf8_doneBufferb(streamInp, bufIndexi);
+  /* Regardless it if failed or not, we have crunched buffers -; */
+  rcb = _streamInUtf8_doneBufferb(streamInp, bufIndexi);
+
+  streamInp->nCharBufi = nCharBufi;
+
+  return rcb;
 }
 
 #ifdef HAVE_ICU
