@@ -137,6 +137,7 @@ streamInBool_t streamInUtf8_toEncodings   (streamIn_t *streamInp, char **toEncod
 signed int     streamInUtf8_currenti      (streamIn_t *streamInp);                                                  /* Get current utf8. -1 means EOF.  */
 signed int     streamInUtf8_nexti         (streamIn_t *streamInp);                                                  /* Get next utf8. Moves current by one. -1 means EOF.  */
 streamInBool_t streamInUtf8_markb         (streamIn_t *streamInp);                                                  /* Mark current utf8 */
+streamInBool_t streamInUtf8_markPreviousb (streamIn_t *streamInp);                                                  /* Mark previous utf8 */
 streamInBool_t streamInUtf8_doneb         (streamIn_t *streamInp);                                                  /* Say marked utf8 is done */
 
 #endif /* MARPAXML_INTERNAL_STREAMIN_H */
