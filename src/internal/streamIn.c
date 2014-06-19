@@ -1340,7 +1340,7 @@ static streamInBool_t _streamInUtf8_ICU_fromConvertb(streamIn_t *streamInp, size
 
       /* Cross the fingers this fits in a size_t */
       streamInp->streamIn_ICU.charBuf2UCharByteLengthlp[bufIndexi] = streamInp->streamIn_ICU.ucharByteLengthl;
-      STREAMIN_TRACEX("streamInp->streamIn_ICU.charBuf2UCharByteLengthlp[%d] = %ld", bufIndexi, streamInp->streamIn_ICU.charBuf2UCharByteLengthlp[bufIndexi]);
+      STREAMIN_TRACEX("streamInp->streamIn_ICU.charBuf2UCharByteLengthlp[%d] = %ld", bufIndexi, (unsigned long) streamInp->streamIn_ICU.charBuf2UCharByteLengthlp[bufIndexi]);
 
       stopb = STREAMIN_BOOL_TRUE;
     }
