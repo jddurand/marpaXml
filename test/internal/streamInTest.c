@@ -32,6 +32,8 @@ typedef struct myReadData {
 } myReadData_t;
 
 const char *Shift_JIS = "Shift_JIS";
+const char *KOI8_R = "KOI8-R";
+
 static streamInBool_t _readFileCallback  (void *datavp, size_t wantedBytesi, size_t *gotBytesip, char *charArrayp, char **charManagedArrayp);
 static streamInBool_t _readBufferCallback(void *datavp, size_t wantedBytesi, size_t *gotBytesip, char *charArrayp, char **charManagedArrayp);
 static void           _fileTest(streamIn_t *streamInp, streamInBool_t utf8b, char **argv);
@@ -40,7 +42,8 @@ static void           _bufferTest(streamIn_t *streamInp, streamInBool_t utf8b, c
 #define STREAMIN_NEW(utf8b) {						\
   streamInUtf8Option_t streamInOptionUtf8;				\
   streamInUtf8_optionDefaultb(&streamInOptionUtf8);			\
-  streamInOptionUtf8.fromEncodings = NULL;                              \
+  /* streamInOptionUtf8.fromEncodings = NULL; */                        \
+  streamInOptionUtf8.fromEncodings = KOI8_R;                            \
     streamInp = (utf8b == STREAMIN_BOOL_TRUE) ? streamInUtf8_newp(NULL, &streamInOptionUtf8) : streamIn_newp(NULL); \
     if (streamInp == NULL) {						\
       fprintf(stderr, ((utf8b == STREAMIN_BOOL_TRUE) ? "streamInUtf8_newp failure\n" : "streamIn_newp failure\n")); \
@@ -116,7 +119,7 @@ static void _fileTest(streamIn_t *streamInp, streamInBool_t utf8b, char **argv) 
     fprintf(stderr, "streamIn_optionDefaultb failure\n");
     return;
   }
-  streamInOption.bufMaxSizei = 1000;
+  streamInOption.bufMaxSizei = 1001;
   streamInOption.logLevelWantedi = STREAMIN_LOGLEVEL_TRACE;
   streamInOption.readCallbackp = &_readFileCallback;
   streamInOption.readCallbackUserDatap = &myReadData;
@@ -128,10 +131,12 @@ static void _fileTest(streamIn_t *streamInp, streamInBool_t utf8b, char **argv) 
   if (utf8b == STREAMIN_BOOL_TRUE) {
     int utf8;
     while ((utf8 = streamInUtf8_nexti(streamInp)) >= 0) {
-      // fprintf(stderr, "0x%0x\n", utf8);
+      fprintf(stdout, "0x%0x\n", utf8);
       streamInUtf8_markPreviousb(streamInp);
       streamInUtf8_doneb(streamInp);
     }
+    streamInUtf8_markPreviousb(streamInp);
+    streamInUtf8_doneb(streamInp);
   } else {
     while (streamIn_nextBufferb(streamInp, &indexBufferi, &charArrayp, &bytesInBuffer)) {
       char *s = malloc(bytesInBuffer + 1);
