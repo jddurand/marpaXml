@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <errno.h>
-#include "unicode/ustring.h"
-#include "unicode/utext.h"
+#include "internal/streamIn.h"
 #include "internal/grammar/xml_1_1.h"
 
 /* Symbols */
@@ -665,140 +664,133 @@ struct xml_1_1 {
   size_t                 marpaWrapperRuleArrayLengthi;
 };
 
-/* Lexeme state */
-typedef enum xml_1_1_lexemeState {
-  XML_1_1_LEXEMESTATE_SENTINEL = -1,
-  XML_1_1_LEXEMESTATE_KO = 0,
-  XML_1_1_LEXEMESTATE_OK = 1
-} xml_1_1_lexemeState_t;
-
 static C_INLINE marpaWrapperBool_t _xml_1_1_buildGrammarb(xml_1_1_t *xml_1_1p, marpaWrapperOption_t *marpaWrapperOptionp);
 static C_INLINE marpaWrapperBool_t _xml_1_1_buildSymbolsb(xml_1_1_t *xml_1_1p);
 static C_INLINE marpaWrapperBool_t _xml_1_1_buildSymbols_withStartb(xml_1_1_t *xml_1_1p, int starti);
 static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p);
-static C_INLINE marpaWrapperBool_t _xml_1_1_pushLexemeb(xml_1_1_t *xml_1_1p, xml_1_1_symbol_t xml_1_1_symbol, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Exclusion001b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Exclusion002b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Exclusion003b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Exclusion004b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Exclusion005b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Exclusion006b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Exclusion007b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Exclusion008b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Exclusion009b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex001b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex002b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex003b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex004b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex005b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex006b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex007b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex008b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex009b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex010b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex011b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex012b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex013b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex014b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex015b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex016b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex017b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex018b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex019b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex020b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex021b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex022b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex023b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex024b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex025b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex026b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex027b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex028b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex029b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex030b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex031b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex032b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex033b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex034b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex035b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex036b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex037b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex038b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex039b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex040b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex041b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex042b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex043b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex044b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex045b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex046b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex047b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex048b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex049b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex050b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex051b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex052b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex053b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex054b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex055b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex056b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex057b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex058b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex059b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex060b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex061b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex062b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex063b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex064b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex065b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex066b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex067b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex068b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex069b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex070b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex071b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex072b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex073b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex074b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex075b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex076b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex077b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex078b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex079b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex080b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex081b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex082b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex083b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex084b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex085b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex086b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex087b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex088b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex089b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex090b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex091b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex092b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex093b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex094b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex095b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex096b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex097b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex098b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex099b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex100b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex101b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex102b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex103b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex104b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex105b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex106b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex107b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex108b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex109b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex110b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex111b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex112b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex113b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp);
+static C_INLINE marpaWrapperBool_t _xml_1_1_pushLexemeb(xml_1_1_t *xml_1_1p, xml_1_1_symbol_t xml_1_1_symbol, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Exclusion001b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Exclusion002b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Exclusion003b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Exclusion004b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Exclusion005b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Exclusion006b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Exclusion007b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Exclusion008b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Exclusion009b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex001b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex002b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex003b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex004b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex005b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex006b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex007b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex008b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex009b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex010b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex011b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex012b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex013b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex014b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex015b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex016b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex017b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex018b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex019b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex020b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex021b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex022b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex023b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex024b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex025b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex026b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex027b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex028b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex029b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex030b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex031b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex032b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex033b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex034b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex035b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex036b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex037b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex038b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex039b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex040b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex041b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex042b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex043b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex044b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex045b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex046b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex047b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex048b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex049b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex050b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex051b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex052b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex053b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex054b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex055b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex056b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex057b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex058b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex059b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex060b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex061b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex062b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex063b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex064b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex065b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex066b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex067b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex068b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex069b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex070b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex071b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex072b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex073b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex074b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex075b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex076b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex077b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex078b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex079b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex080b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex081b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex082b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex083b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex084b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex085b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex086b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex087b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex088b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex089b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex090b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex091b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex092b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex093b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex094b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex095b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex096b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex097b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex098b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex099b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex100b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex101b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex102b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex103b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex104b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex105b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex106b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex107b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex108b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex109b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex110b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex111b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex112b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex113b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp);
 
 /*******************/
 /* xml_1_1_newp  */
@@ -7107,396 +7099,379 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
 /* _xml_1_1_pushLexemeb */
 /************************/
 
-/***************************************************************************************/
-/* exeme Lroutines are called perl character they all maintain their own state:        */
-/*                                                                                     */
-/* SENTINEL   value -1  : need more data                                               */
-/* FALSE      value  0  : KO                                                           */
-/* COMPLETE   value  1  : OK                                                           */
-/*                                                                                     */
-/***************************************************************************************/
-
-static C_INLINE marpaWrapperBool_t _xml_1_1_pushLexemeb(xml_1_1_t *xml_1_1p, xml_1_1_symbol_t xml_1_1_symbol, UText *utextp) {
+static C_INLINE marpaWrapperBool_t _xml_1_1_pushLexemeb(xml_1_1_t *xml_1_1p, xml_1_1_symbol_t xml_1_1_symbol, signed int currenti, streamIn_t *streamInp) {
   marpaWrapperBool_t rcb;
-  xml_1_1_lexemeState_t lexemeb;
-  UChar32 c = UTEXT_CURRENT32(utextp);
 
   switch (xml_1_1_symbol) {
     case xml_1_1__Exclusion001:
-      lexemeb = _xml_1_1__Exclusion001b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Exclusion001b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Exclusion002:
-      lexemeb = _xml_1_1__Exclusion002b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Exclusion002b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Exclusion003:
-      lexemeb = _xml_1_1__Exclusion003b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Exclusion003b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Exclusion004:
-      lexemeb = _xml_1_1__Exclusion004b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Exclusion004b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Exclusion005:
-      lexemeb = _xml_1_1__Exclusion005b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Exclusion005b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Exclusion006:
-      lexemeb = _xml_1_1__Exclusion006b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Exclusion006b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Exclusion007:
-      lexemeb = _xml_1_1__Exclusion007b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Exclusion007b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Exclusion008:
-      lexemeb = _xml_1_1__Exclusion008b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Exclusion008b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Exclusion009:
-      lexemeb = _xml_1_1__Exclusion009b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Exclusion009b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex001:
-      lexemeb = _xml_1_1__Lex001b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex001b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex002:
-      lexemeb = _xml_1_1__Lex002b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex002b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex003:
-      lexemeb = _xml_1_1__Lex003b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex003b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex004:
-      lexemeb = _xml_1_1__Lex004b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex004b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex005:
-      lexemeb = _xml_1_1__Lex005b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex005b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex006:
-      lexemeb = _xml_1_1__Lex006b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex006b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex007:
-      lexemeb = _xml_1_1__Lex007b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex007b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex008:
-      lexemeb = _xml_1_1__Lex008b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex008b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex009:
-      lexemeb = _xml_1_1__Lex009b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex009b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex010:
-      lexemeb = _xml_1_1__Lex010b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex010b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex011:
-      lexemeb = _xml_1_1__Lex011b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex011b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex012:
-      lexemeb = _xml_1_1__Lex012b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex012b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex013:
-      lexemeb = _xml_1_1__Lex013b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex013b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex014:
-      lexemeb = _xml_1_1__Lex014b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex014b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex015:
-      lexemeb = _xml_1_1__Lex015b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex015b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex016:
-      lexemeb = _xml_1_1__Lex016b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex016b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex017:
-      lexemeb = _xml_1_1__Lex017b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex017b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex018:
-      lexemeb = _xml_1_1__Lex018b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex018b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex019:
-      lexemeb = _xml_1_1__Lex019b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex019b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex020:
-      lexemeb = _xml_1_1__Lex020b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex020b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex021:
-      lexemeb = _xml_1_1__Lex021b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex021b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex022:
-      lexemeb = _xml_1_1__Lex022b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex022b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex023:
-      lexemeb = _xml_1_1__Lex023b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex023b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex024:
-      lexemeb = _xml_1_1__Lex024b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex024b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex025:
-      lexemeb = _xml_1_1__Lex025b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex025b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex026:
-      lexemeb = _xml_1_1__Lex026b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex026b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex027:
-      lexemeb = _xml_1_1__Lex027b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex027b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex028:
-      lexemeb = _xml_1_1__Lex028b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex028b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex029:
-      lexemeb = _xml_1_1__Lex029b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex029b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex030:
-      lexemeb = _xml_1_1__Lex030b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex030b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex031:
-      lexemeb = _xml_1_1__Lex031b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex031b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex032:
-      lexemeb = _xml_1_1__Lex032b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex032b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex033:
-      lexemeb = _xml_1_1__Lex033b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex033b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex034:
-      lexemeb = _xml_1_1__Lex034b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex034b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex035:
-      lexemeb = _xml_1_1__Lex035b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex035b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex036:
-      lexemeb = _xml_1_1__Lex036b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex036b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex037:
-      lexemeb = _xml_1_1__Lex037b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex037b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex038:
-      lexemeb = _xml_1_1__Lex038b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex038b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex039:
-      lexemeb = _xml_1_1__Lex039b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex039b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex040:
-      lexemeb = _xml_1_1__Lex040b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex040b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex041:
-      lexemeb = _xml_1_1__Lex041b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex041b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex042:
-      lexemeb = _xml_1_1__Lex042b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex042b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex043:
-      lexemeb = _xml_1_1__Lex043b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex043b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex044:
-      lexemeb = _xml_1_1__Lex044b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex044b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex045:
-      lexemeb = _xml_1_1__Lex045b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex045b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex046:
-      lexemeb = _xml_1_1__Lex046b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex046b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex047:
-      lexemeb = _xml_1_1__Lex047b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex047b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex048:
-      lexemeb = _xml_1_1__Lex048b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex048b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex049:
-      lexemeb = _xml_1_1__Lex049b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex049b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex050:
-      lexemeb = _xml_1_1__Lex050b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex050b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex051:
-      lexemeb = _xml_1_1__Lex051b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex051b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex052:
-      lexemeb = _xml_1_1__Lex052b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex052b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex053:
-      lexemeb = _xml_1_1__Lex053b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex053b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex054:
-      lexemeb = _xml_1_1__Lex054b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex054b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex055:
-      lexemeb = _xml_1_1__Lex055b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex055b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex056:
-      lexemeb = _xml_1_1__Lex056b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex056b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex057:
-      lexemeb = _xml_1_1__Lex057b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex057b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex058:
-      lexemeb = _xml_1_1__Lex058b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex058b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex059:
-      lexemeb = _xml_1_1__Lex059b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex059b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex060:
-      lexemeb = _xml_1_1__Lex060b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex060b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex061:
-      lexemeb = _xml_1_1__Lex061b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex061b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex062:
-      lexemeb = _xml_1_1__Lex062b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex062b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex063:
-      lexemeb = _xml_1_1__Lex063b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex063b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex064:
-      lexemeb = _xml_1_1__Lex064b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex064b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex065:
-      lexemeb = _xml_1_1__Lex065b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex065b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex066:
-      lexemeb = _xml_1_1__Lex066b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex066b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex067:
-      lexemeb = _xml_1_1__Lex067b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex067b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex068:
-      lexemeb = _xml_1_1__Lex068b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex068b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex069:
-      lexemeb = _xml_1_1__Lex069b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex069b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex070:
-      lexemeb = _xml_1_1__Lex070b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex070b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex071:
-      lexemeb = _xml_1_1__Lex071b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex071b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex072:
-      lexemeb = _xml_1_1__Lex072b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex072b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex073:
-      lexemeb = _xml_1_1__Lex073b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex073b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex074:
-      lexemeb = _xml_1_1__Lex074b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex074b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex075:
-      lexemeb = _xml_1_1__Lex075b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex075b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex076:
-      lexemeb = _xml_1_1__Lex076b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex076b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex077:
-      lexemeb = _xml_1_1__Lex077b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex077b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex078:
-      lexemeb = _xml_1_1__Lex078b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex078b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex079:
-      lexemeb = _xml_1_1__Lex079b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex079b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex080:
-      lexemeb = _xml_1_1__Lex080b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex080b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex081:
-      lexemeb = _xml_1_1__Lex081b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex081b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex082:
-      lexemeb = _xml_1_1__Lex082b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex082b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex083:
-      lexemeb = _xml_1_1__Lex083b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex083b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex084:
-      lexemeb = _xml_1_1__Lex084b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex084b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex085:
-      lexemeb = _xml_1_1__Lex085b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex085b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex086:
-      lexemeb = _xml_1_1__Lex086b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex086b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex087:
-      lexemeb = _xml_1_1__Lex087b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex087b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex088:
-      lexemeb = _xml_1_1__Lex088b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex088b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex089:
-      lexemeb = _xml_1_1__Lex089b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex089b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex090:
-      lexemeb = _xml_1_1__Lex090b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex090b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex091:
-      lexemeb = _xml_1_1__Lex091b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex091b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex092:
-      lexemeb = _xml_1_1__Lex092b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex092b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex093:
-      lexemeb = _xml_1_1__Lex093b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex093b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex094:
-      lexemeb = _xml_1_1__Lex094b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex094b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex095:
-      lexemeb = _xml_1_1__Lex095b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex095b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex096:
-      lexemeb = _xml_1_1__Lex096b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex096b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex097:
-      lexemeb = _xml_1_1__Lex097b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex097b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex098:
-      lexemeb = _xml_1_1__Lex098b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex098b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex099:
-      lexemeb = _xml_1_1__Lex099b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex099b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex100:
-      lexemeb = _xml_1_1__Lex100b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex100b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex101:
-      lexemeb = _xml_1_1__Lex101b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex101b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex102:
-      lexemeb = _xml_1_1__Lex102b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex102b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex103:
-      lexemeb = _xml_1_1__Lex103b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex103b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex104:
-      lexemeb = _xml_1_1__Lex104b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex104b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex105:
-      lexemeb = _xml_1_1__Lex105b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex105b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex106:
-      lexemeb = _xml_1_1__Lex106b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex106b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex107:
-      lexemeb = _xml_1_1__Lex107b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex107b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex108:
-      lexemeb = _xml_1_1__Lex108b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex108b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex109:
-      lexemeb = _xml_1_1__Lex109b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex109b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex110:
-      lexemeb = _xml_1_1__Lex110b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex110b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex111:
-      lexemeb = _xml_1_1__Lex111b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex111b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex112:
-      lexemeb = _xml_1_1__Lex112b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex112b(xml_1_1p, currenti, streamInp);
       break;
     case xml_1_1__Lex113:
-      lexemeb = _xml_1_1__Lex113b(xml_1_1p, c, utextp);
+      rcb = _xml_1_1__Lex113b(xml_1_1p, currenti, streamInp);
       break;
     default:
-      lexemeb = XML_1_1_LEXEMESTATE_KO;
+      rcb = MARPAWRAPPER_BOOL_FALSE;
       break;
-  }
-
-  /* Special processing if lexemeb is sentinel */
-  if (lexemeb == XML_1_1_LEXEMESTATE_SENTINEL) {
-    /* Try to get another buffer */
-    rcb = XML_1_1_LEXEMESTATE_KO;
   }
 
   return rcb;
@@ -7504,544 +7479,549 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_pushLexemeb(xml_1_1_t *xml_1_1p, xml
 /************************************************
   _Exclusion001 ~ '_Gen002 - _Gen004'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Exclusion001b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Exclusion001b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
   /* Writen by hand */
-  return XML_1_1_LEXEMESTATE_OK;
+  return MARPAWRAPPER_BOOL_FALSE;
 }
 
 /************************************************
   _Exclusion002 ~ 'PubidChar - _Lex037'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Exclusion002b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Exclusion002b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
   /* Writen by hand */
-  return XML_1_1_LEXEMESTATE_OK;
+  return MARPAWRAPPER_BOOL_FALSE;
 }
 
 /************************************************
   _Exclusion003 ~ '_Lex045_any - _Gen092'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Exclusion003b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Exclusion003b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
   /* Writen by hand */
-  return XML_1_1_LEXEMESTATE_OK;
+  return MARPAWRAPPER_BOOL_FALSE;
 }
 
 /************************************************
   _Exclusion004 ~ 'Char - _Lex029'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Exclusion004b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Exclusion004b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
   /* Writen by hand */
-  return XML_1_1_LEXEMESTATE_OK;
+  return MARPAWRAPPER_BOOL_FALSE;
 }
 
 /************************************************
   _Exclusion005 ~ 'Char_any - _Gen104'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Exclusion005b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Exclusion005b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
   /* Writen by hand */
-  return XML_1_1_LEXEMESTATE_OK;
+  return MARPAWRAPPER_BOOL_FALSE;
 }
 
 /************************************************
   _Exclusion006 ~ 'Name - _Gen117'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Exclusion006b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Exclusion006b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
   /* Writen by hand */
-  return XML_1_1_LEXEMESTATE_OK;
+  return MARPAWRAPPER_BOOL_FALSE;
 }
 
 /************************************************
   _Exclusion007 ~ 'Char_any - _Gen122'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Exclusion007b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Exclusion007b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
   /* Writen by hand */
-  return XML_1_1_LEXEMESTATE_OK;
+  return MARPAWRAPPER_BOOL_FALSE;
 }
 
 /************************************************
   _Exclusion008 ~ 'Char_any - _Gen273'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Exclusion008b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Exclusion008b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
   /* Writen by hand */
-  return XML_1_1_LEXEMESTATE_OK;
+  return MARPAWRAPPER_BOOL_FALSE;
 }
 
 /************************************************
   _Exclusion009 ~ '_Gen301 - _Gen302'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Exclusion009b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Exclusion009b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
   /* Writen by hand */
-  return XML_1_1_LEXEMESTATE_OK;
+  return MARPAWRAPPER_BOOL_FALSE;
 }
 
 /************************************************
   _Lex001 ~ [\x{1}-\x{d7ff}]
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex001b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c >= 0x1 && c <= 0xd7ff /* [#x1-#xd7ff] */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex001b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti >= 0x1 && currenti <= 0xd7ff /* [#x1-#xd7ff] */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex002 ~ [\x{e000}-\x{fffd}]
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex002b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c >= 0xe000 && c <= 0xfffd /* [#xe000-#xfffd] */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex002b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti >= 0xe000 && currenti <= 0xfffd /* [#xe000-#xfffd] */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex003 ~ [\x{10000}-\x{10ffff}]
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex003b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c >= 0x10000 && c <= 0x10ffff /* [#x10000-#x10ffff] */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex003b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti >= 0x10000 && currenti <= 0x10ffff /* [#x10000-#x10ffff] */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex004 ~ [\x{1}-\x{8}]
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex004b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c >= 0x1 && c <= 0x8 /* [#x1-#x8] */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex004b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti >= 0x1 && currenti <= 0x8 /* [#x1-#x8] */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex005 ~ [\x{b}-\x{c}]
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex005b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c >= 0xb && c <= 0xc /* [#xb-#xc] */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex005b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti >= 0xb && currenti <= 0xc /* [#xb-#xc] */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex006 ~ [\x{e}-\x{1f}]
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex006b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c >= 0xe && c <= 0x1f /* [#xe-#x1f] */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex006b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti >= 0xe && currenti <= 0x1f /* [#xe-#x1f] */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex007 ~ [\x{7f}-\x{84}]
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex007b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c >= 0x7f && c <= 0x84 /* [#x7f-#x84] */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex007b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti >= 0x7f && currenti <= 0x84 /* [#x7f-#x84] */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex008 ~ [\x{86}-\x{9f}]
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex008b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c >= 0x86 && c <= 0x9f /* [#x86-#x9f] */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex008b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti >= 0x86 && currenti <= 0x9f /* [#x86-#x9f] */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex009 ~ [\x{20}]
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex009b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c == 0x20 /* #x20 */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex009b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti == 0x20 /* #x20 */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex010 ~ [\x{9}]
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex010b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c == 0x9 /* #x9 */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex010b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti == 0x9 /* #x9 */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex011 ~ [\x{d}]
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex011b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c == 0xd /* #xd */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex011b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti == 0xd /* #xd */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex012 ~ [\x{a}]
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex012b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c == 0xa /* #xa */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex012b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti == 0xa /* #xa */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex013 ~ ':'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex013b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c == 0x3a /* : */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex013b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti == 0x3a /* : */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex014 ~ [A-Z]
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex014b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c >= 0x41 && c <= 0x5a /* [A-Z] */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex014b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti >= 0x41 && currenti <= 0x5a /* [A-Z] */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex015 ~ '_'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex015b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c == 0x5f /* _ */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex015b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti == 0x5f /* _ */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex016 ~ [a-z]
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex016b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c >= 0x61 && c <= 0x7a /* [a-z] */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex016b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti >= 0x61 && currenti <= 0x7a /* [a-z] */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex017 ~ [\x{c0}-\x{d6}]
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex017b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c >= 0xc0 && c <= 0xd6 /* [#xc0-#xd6] */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex017b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti >= 0xc0 && currenti <= 0xd6 /* [#xc0-#xd6] */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex018 ~ [\x{d8}-\x{f6}]
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex018b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c >= 0xd8 && c <= 0xf6 /* [#xd8-#xf6] */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex018b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti >= 0xd8 && currenti <= 0xf6 /* [#xd8-#xf6] */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex019 ~ [\x{f8}-\x{2ff}]
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex019b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c >= 0xf8 && c <= 0x2ff /* [#xf8-#x2ff] */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex019b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti >= 0xf8 && currenti <= 0x2ff /* [#xf8-#x2ff] */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex020 ~ [\x{370}-\x{37d}]
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex020b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c >= 0x370 && c <= 0x37d /* [#x370-#x37d] */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex020b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti >= 0x370 && currenti <= 0x37d /* [#x370-#x37d] */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex021 ~ [\x{37f}-\x{1fff}]
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex021b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c >= 0x37f && c <= 0x1fff /* [#x37f-#x1fff] */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex021b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti >= 0x37f && currenti <= 0x1fff /* [#x37f-#x1fff] */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex022 ~ [\x{200c}-\x{200d}]
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex022b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c >= 0x200c && c <= 0x200d /* [#x200c-#x200d] */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex022b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti >= 0x200c && currenti <= 0x200d /* [#x200c-#x200d] */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex023 ~ [\x{2070}-\x{218f}]
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex023b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c >= 0x2070 && c <= 0x218f /* [#x2070-#x218f] */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex023b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti >= 0x2070 && currenti <= 0x218f /* [#x2070-#x218f] */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex024 ~ [\x{2c00}-\x{2fef}]
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex024b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c >= 0x2c00 && c <= 0x2fef /* [#x2c00-#x2fef] */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex024b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti >= 0x2c00 && currenti <= 0x2fef /* [#x2c00-#x2fef] */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex025 ~ [\x{3001}-\x{d7ff}]
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex025b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c >= 0x3001 && c <= 0xd7ff /* [#x3001-#xd7ff] */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex025b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti >= 0x3001 && currenti <= 0xd7ff /* [#x3001-#xd7ff] */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex026 ~ [\x{f900}-\x{fdcf}]
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex026b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c >= 0xf900 && c <= 0xfdcf /* [#xf900-#xfdcf] */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex026b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti >= 0xf900 && currenti <= 0xfdcf /* [#xf900-#xfdcf] */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex027 ~ [\x{fdf0}-\x{fffd}]
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex027b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c >= 0xfdf0 && c <= 0xfffd /* [#xfdf0-#xfffd] */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex027b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti >= 0xfdf0 && currenti <= 0xfffd /* [#xfdf0-#xfffd] */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex028 ~ [\x{10000}-\x{effff}]
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex028b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c >= 0x10000 && c <= 0xeffff /* [#x10000-#xeffff] */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex028b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti >= 0x10000 && currenti <= 0xeffff /* [#x10000-#xeffff] */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex029 ~ '-'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex029b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c == 0x2d /* - */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex029b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti == 0x2d /* - */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex030 ~ '.'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex030b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c == 0x2e /* . */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex030b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti == 0x2e /* . */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex031 ~ [0-9]
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex031b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c >= 0x30 && c <= 0x39 /* [0-9] */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex031b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti >= 0x30 && currenti <= 0x39 /* [0-9] */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex032 ~ [\x{b7}]
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex032b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c == 0xb7 /* #xb7 */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex032b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti == 0xb7 /* #xb7 */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex033 ~ [\x{300}-\x{36f}]
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex033b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c >= 0x300 && c <= 0x36f /* [#x300-#x36f] */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex033b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti >= 0x300 && currenti <= 0x36f /* [#x300-#x36f] */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex034 ~ [\x{203f}-\x{2040}]
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex034b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c >= 0x203f && c <= 0x2040 /* [#x203f-#x2040] */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex034b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti >= 0x203f && currenti <= 0x2040 /* [#x203f-#x2040] */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex035 ~ '"'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex035b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c == 0x22 /* " */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex035b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti == 0x22 /* " */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex036 ~ [^%&"]
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex036b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return ((c == 0x25) /* % */ ||
-          (c == 0x26) /* & */ ||
-          (c == 0x22) /* " */) ? XML_1_1_LEXEMESTATE_KO : XML_1_1_LEXEMESTATE_OK;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex036b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return ((currenti == 0x25) /* % */ ||
+          (currenti == 0x26) /* & */ ||
+          (currenti == 0x22) /* " */) ? MARPAWRAPPER_BOOL_FALSE : MARPAWRAPPER_BOOL_TRUE;
 }
 /************************************************
   _Lex037 ~ [']
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex037b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c == 0x27 /* ' */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex037b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti == 0x27 /* ' */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex038 ~ [^%&']
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex038b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return ((c == 0x25) /* % */ ||
-          (c == 0x26) /* & */ ||
-          (c == 0x27) /* ' */) ? XML_1_1_LEXEMESTATE_KO : XML_1_1_LEXEMESTATE_OK;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex038b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return ((currenti == 0x25) /* % */ ||
+          (currenti == 0x26) /* & */ ||
+          (currenti == 0x27) /* ' */) ? MARPAWRAPPER_BOOL_FALSE : MARPAWRAPPER_BOOL_TRUE;
 }
 /************************************************
   _Lex039 ~ [^<&"]
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex039b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return ((c == 0x3c) /* < */ ||
-          (c == 0x26) /* & */ ||
-          (c == 0x22) /* " */) ? XML_1_1_LEXEMESTATE_KO : XML_1_1_LEXEMESTATE_OK;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex039b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return ((currenti == 0x3c) /* < */ ||
+          (currenti == 0x26) /* & */ ||
+          (currenti == 0x22) /* " */) ? MARPAWRAPPER_BOOL_FALSE : MARPAWRAPPER_BOOL_TRUE;
 }
 /************************************************
   _Lex040 ~ [^<&']
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex040b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return ((c == 0x3c) /* < */ ||
-          (c == 0x26) /* & */ ||
-          (c == 0x27) /* ' */) ? XML_1_1_LEXEMESTATE_KO : XML_1_1_LEXEMESTATE_OK;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex040b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return ((currenti == 0x3c) /* < */ ||
+          (currenti == 0x26) /* & */ ||
+          (currenti == 0x27) /* ' */) ? MARPAWRAPPER_BOOL_FALSE : MARPAWRAPPER_BOOL_TRUE;
 }
 /************************************************
   _Lex041 ~ [^"]
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex041b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c == 0x22 /* " */) ? XML_1_1_LEXEMESTATE_KO : XML_1_1_LEXEMESTATE_OK;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex041b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti == 0x22 /* " */) ? MARPAWRAPPER_BOOL_FALSE : MARPAWRAPPER_BOOL_TRUE;
 }
 /************************************************
   _Lex042 ~ [^']
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex042b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c == 0x27 /* ' */) ? XML_1_1_LEXEMESTATE_KO : XML_1_1_LEXEMESTATE_OK;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex042b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti == 0x27 /* ' */) ? MARPAWRAPPER_BOOL_FALSE : MARPAWRAPPER_BOOL_TRUE;
 }
 /************************************************
   _Lex043 ~ [a-zA-Z0-9]
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex043b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return ((c >= 0x61 && c <= 0x7a) /* [a-z] */ ||
-          (c >= 0x41 && c <= 0x5a) /* [A-Z] */ ||
-          (c >= 0x30 && c <= 0x39) /* [0-9] */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex043b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return ((currenti >= 0x61 && currenti <= 0x7a) /* [a-z] */ ||
+          (currenti >= 0x41 && currenti <= 0x5a) /* [A-Z] */ ||
+          (currenti >= 0x30 && currenti <= 0x39) /* [0-9] */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex044 ~ [-'()+,./:=?;!*#@$_%]
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex044b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return ((c == 0x2d) /* - */ ||
-          (c == 0x27) /* ' */ ||
-          (c == 0x28) /* ( */ ||
-          (c == 0x29) /* ) */ ||
-          (c == 0x2b) /* + */ ||
-          (c == 0x2c) /* , */ ||
-          (c == 0x2e) /* . */ ||
-          (c == 0x2f) /* / */ ||
-          (c == 0x3a) /* : */ ||
-          (c == 0x3d) /* = */ ||
-          (c == 0x3f) /* ? */ ||
-          (c == 0x3b) /* ; */ ||
-          (c == 0x21) /* ! */ ||
-          (c == 0x2a) /* * */ ||
-          (c == 0x23) /* # */ ||
-          (c == 0x40) /* @ */ ||
-          (c == 0x24) /* $ */ ||
-          (c == 0x5f) /* _ */ ||
-          (c == 0x25) /* % */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex044b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return ((currenti == 0x2d) /* - */ ||
+          (currenti == 0x27) /* ' */ ||
+          (currenti == 0x28) /* ( */ ||
+          (currenti == 0x29) /* ) */ ||
+          (currenti == 0x2b) /* + */ ||
+          (currenti == 0x2c) /* , */ ||
+          (currenti == 0x2e) /* . */ ||
+          (currenti == 0x2f) /* / */ ||
+          (currenti == 0x3a) /* : */ ||
+          (currenti == 0x3d) /* = */ ||
+          (currenti == 0x3f) /* ? */ ||
+          (currenti == 0x3b) /* ; */ ||
+          (currenti == 0x21) /* ! */ ||
+          (currenti == 0x2a) /* * */ ||
+          (currenti == 0x23) /* # */ ||
+          (currenti == 0x40) /* @ */ ||
+          (currenti == 0x24) /* $ */ ||
+          (currenti == 0x5f) /* _ */ ||
+          (currenti == 0x25) /* % */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex045 ~ [^<&]
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex045b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return ((c == 0x3c) /* < */ ||
-          (c == 0x26) /* & */) ? XML_1_1_LEXEMESTATE_KO : XML_1_1_LEXEMESTATE_OK;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex045b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return ((currenti == 0x3c) /* < */ ||
+          (currenti == 0x26) /* & */) ? MARPAWRAPPER_BOOL_FALSE : MARPAWRAPPER_BOOL_TRUE;
 }
 /************************************************
   _Lex046 ~ ']]>'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex046b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  static const UChar32 wanted[3] = {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex046b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  static const signed int wanted[3] = {
     0x5d /* ] */,
     0x5d /* ] */,
     0x3e /* > */
   };
-  UChar32              got = c;
-  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  signed int           got = currenti;
   int                  i = 0;
-  xml_1_1_lexemeState_t  rcb = XML_1_1_LEXEMESTATE_OK;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
 
-  do {
-    if (got != wanted[i]) {
-      rcb = (got == U_SENTINEL) ? XML_1_1_LEXEMESTATE_SENTINEL : XML_1_1_LEXEMESTATE_KO;
-      break;
-    }
-    got = UTEXT_NEXT32(utextp);
-  } while (++i < 3);
-
-  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
+    do {
+      if (got != wanted[i]) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+      got = streamInUtf8_nexti(streamInp);
+    } while (++i < 3);
+    rcb = streamInUtf8_markToCurrentb(streamInp);
+  }
 
   return rcb;
 }
 /************************************************
   _Lex047 ~ '<!--'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex047b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  static const UChar32 wanted[4] = {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex047b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  static const signed int wanted[4] = {
     0x3c /* < */,
     0x21 /* ! */,
     0x2d /* - */,
     0x2d /* - */
   };
-  UChar32              got = c;
-  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  signed int           got = currenti;
   int                  i = 0;
-  xml_1_1_lexemeState_t  rcb = XML_1_1_LEXEMESTATE_OK;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
 
-  do {
-    if (got != wanted[i]) {
-      rcb = (got == U_SENTINEL) ? XML_1_1_LEXEMESTATE_SENTINEL : XML_1_1_LEXEMESTATE_KO;
-      break;
-    }
-    got = UTEXT_NEXT32(utextp);
-  } while (++i < 4);
-
-  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
+    do {
+      if (got != wanted[i]) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+      got = streamInUtf8_nexti(streamInp);
+    } while (++i < 4);
+    rcb = streamInUtf8_markToCurrentb(streamInp);
+  }
 
   return rcb;
 }
 /************************************************
   _Lex048 ~ '-->'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex048b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  static const UChar32 wanted[3] = {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex048b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  static const signed int wanted[3] = {
     0x2d /* - */,
     0x2d /* - */,
     0x3e /* > */
   };
-  UChar32              got = c;
-  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  signed int           got = currenti;
   int                  i = 0;
-  xml_1_1_lexemeState_t  rcb = XML_1_1_LEXEMESTATE_OK;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
 
-  do {
-    if (got != wanted[i]) {
-      rcb = (got == U_SENTINEL) ? XML_1_1_LEXEMESTATE_SENTINEL : XML_1_1_LEXEMESTATE_KO;
-      break;
-    }
-    got = UTEXT_NEXT32(utextp);
-  } while (++i < 3);
-
-  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
+    do {
+      if (got != wanted[i]) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+      got = streamInUtf8_nexti(streamInp);
+    } while (++i < 3);
+    rcb = streamInUtf8_markToCurrentb(streamInp);
+  }
 
   return rcb;
 }
 /************************************************
   _Lex049 ~ '<?'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex049b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  static const UChar32 wanted[2] = {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex049b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  static const signed int wanted[2] = {
     0x3c /* < */,
     0x3f /* ? */
   };
-  UChar32              got = c;
-  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  signed int           got = currenti;
   int                  i = 0;
-  xml_1_1_lexemeState_t  rcb = XML_1_1_LEXEMESTATE_OK;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
 
-  do {
-    if (got != wanted[i]) {
-      rcb = (got == U_SENTINEL) ? XML_1_1_LEXEMESTATE_SENTINEL : XML_1_1_LEXEMESTATE_KO;
-      break;
-    }
-    got = UTEXT_NEXT32(utextp);
-  } while (++i < 2);
-
-  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
+    do {
+      if (got != wanted[i]) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+      got = streamInUtf8_nexti(streamInp);
+    } while (++i < 2);
+    rcb = streamInUtf8_markToCurrentb(streamInp);
+  }
 
   return rcb;
 }
 /************************************************
   _Lex050 ~ '?>'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex050b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  static const UChar32 wanted[2] = {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex050b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  static const signed int wanted[2] = {
     0x3f /* ? */,
     0x3e /* > */
   };
-  UChar32              got = c;
-  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  signed int           got = currenti;
   int                  i = 0;
-  xml_1_1_lexemeState_t  rcb = XML_1_1_LEXEMESTATE_OK;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
 
-  do {
-    if (got != wanted[i]) {
-      rcb = (got == U_SENTINEL) ? XML_1_1_LEXEMESTATE_SENTINEL : XML_1_1_LEXEMESTATE_KO;
-      break;
-    }
-    got = UTEXT_NEXT32(utextp);
-  } while (++i < 2);
-
-  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
+    do {
+      if (got != wanted[i]) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+      got = streamInUtf8_nexti(streamInp);
+    } while (++i < 2);
+    rcb = streamInUtf8_markToCurrentb(streamInp);
+  }
 
   return rcb;
 }
 /************************************************
   _Lex051 ~ 'X'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex051b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c == 0x58 /* X */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex051b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti == 0x58 /* X */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex052 ~ 'x'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex052b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c == 0x78 /* x */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex052b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti == 0x78 /* x */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex053 ~ 'M'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex053b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c == 0x4d /* M */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex053b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti == 0x4d /* M */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex054 ~ 'm'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex054b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c == 0x6d /* m */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex054b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti == 0x6d /* m */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex055 ~ 'L'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex055b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c == 0x4c /* L */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex055b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti == 0x4c /* L */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex056 ~ 'l'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex056b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c == 0x6c /* l */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex056b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti == 0x6c /* l */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex057 ~ '<![CDATA['
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex057b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  static const UChar32 wanted[9] = {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex057b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  static const signed int wanted[9] = {
     0x3c /* < */,
     0x21 /* ! */,
     0x5b /* [ */,
@@ -8052,56 +8032,58 @@ static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex057b(xml_1_1_t *xml_1_1p, UCh
     0x41 /* A */,
     0x5b /* [ */
   };
-  UChar32              got = c;
-  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  signed int           got = currenti;
   int                  i = 0;
-  xml_1_1_lexemeState_t  rcb = XML_1_1_LEXEMESTATE_OK;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
 
-  do {
-    if (got != wanted[i]) {
-      rcb = (got == U_SENTINEL) ? XML_1_1_LEXEMESTATE_SENTINEL : XML_1_1_LEXEMESTATE_KO;
-      break;
-    }
-    got = UTEXT_NEXT32(utextp);
-  } while (++i < 9);
-
-  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
+    do {
+      if (got != wanted[i]) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+      got = streamInUtf8_nexti(streamInp);
+    } while (++i < 9);
+    rcb = streamInUtf8_markToCurrentb(streamInp);
+  }
 
   return rcb;
 }
 /************************************************
   _Lex058 ~ '<?xml'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex058b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  static const UChar32 wanted[5] = {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex058b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  static const signed int wanted[5] = {
     0x3c /* < */,
     0x3f /* ? */,
     0x78 /* x */,
     0x6d /* m */,
     0x6c /* l */
   };
-  UChar32              got = c;
-  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  signed int           got = currenti;
   int                  i = 0;
-  xml_1_1_lexemeState_t  rcb = XML_1_1_LEXEMESTATE_OK;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
 
-  do {
-    if (got != wanted[i]) {
-      rcb = (got == U_SENTINEL) ? XML_1_1_LEXEMESTATE_SENTINEL : XML_1_1_LEXEMESTATE_KO;
-      break;
-    }
-    got = UTEXT_NEXT32(utextp);
-  } while (++i < 5);
-
-  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
+    do {
+      if (got != wanted[i]) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+      got = streamInUtf8_nexti(streamInp);
+    } while (++i < 5);
+    rcb = streamInUtf8_markToCurrentb(streamInp);
+  }
 
   return rcb;
 }
 /************************************************
   _Lex059 ~ 'version'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex059b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  static const UChar32 wanted[7] = {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex059b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  static const signed int wanted[7] = {
     0x76 /* v */,
     0x65 /* e */,
     0x72 /* r */,
@@ -8110,60 +8092,62 @@ static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex059b(xml_1_1_t *xml_1_1p, UCh
     0x6f /* o */,
     0x6e /* n */
   };
-  UChar32              got = c;
-  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  signed int           got = currenti;
   int                  i = 0;
-  xml_1_1_lexemeState_t  rcb = XML_1_1_LEXEMESTATE_OK;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
 
-  do {
-    if (got != wanted[i]) {
-      rcb = (got == U_SENTINEL) ? XML_1_1_LEXEMESTATE_SENTINEL : XML_1_1_LEXEMESTATE_KO;
-      break;
-    }
-    got = UTEXT_NEXT32(utextp);
-  } while (++i < 7);
-
-  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
+    do {
+      if (got != wanted[i]) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+      got = streamInUtf8_nexti(streamInp);
+    } while (++i < 7);
+    rcb = streamInUtf8_markToCurrentb(streamInp);
+  }
 
   return rcb;
 }
 /************************************************
   _Lex060 ~ '='
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex060b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c == 0x3d /* = */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex060b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti == 0x3d /* = */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex061 ~ '1.1'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex061b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  static const UChar32 wanted[3] = {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex061b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  static const signed int wanted[3] = {
     0x31 /* 1 */,
     0x2e /* . */,
     0x31 /* 1 */
   };
-  UChar32              got = c;
-  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  signed int           got = currenti;
   int                  i = 0;
-  xml_1_1_lexemeState_t  rcb = XML_1_1_LEXEMESTATE_OK;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
 
-  do {
-    if (got != wanted[i]) {
-      rcb = (got == U_SENTINEL) ? XML_1_1_LEXEMESTATE_SENTINEL : XML_1_1_LEXEMESTATE_KO;
-      break;
-    }
-    got = UTEXT_NEXT32(utextp);
-  } while (++i < 3);
-
-  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
+    do {
+      if (got != wanted[i]) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+      got = streamInUtf8_nexti(streamInp);
+    } while (++i < 3);
+    rcb = streamInUtf8_markToCurrentb(streamInp);
+  }
 
   return rcb;
 }
 /************************************************
   _Lex062 ~ '<!DOCTYPE'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex062b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  static const UChar32 wanted[9] = {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex062b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  static const signed int wanted[9] = {
     0x3c /* < */,
     0x21 /* ! */,
     0x44 /* D */,
@@ -8174,46 +8158,47 @@ static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex062b(xml_1_1_t *xml_1_1p, UCh
     0x50 /* P */,
     0x45 /* E */
   };
-  UChar32              got = c;
-  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  signed int           got = currenti;
   int                  i = 0;
-  xml_1_1_lexemeState_t  rcb = XML_1_1_LEXEMESTATE_OK;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
 
-  do {
-    if (got != wanted[i]) {
-      rcb = (got == U_SENTINEL) ? XML_1_1_LEXEMESTATE_SENTINEL : XML_1_1_LEXEMESTATE_KO;
-      break;
-    }
-    got = UTEXT_NEXT32(utextp);
-  } while (++i < 9);
-
-  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
+    do {
+      if (got != wanted[i]) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+      got = streamInUtf8_nexti(streamInp);
+    } while (++i < 9);
+    rcb = streamInUtf8_markToCurrentb(streamInp);
+  }
 
   return rcb;
 }
 /************************************************
   _Lex063 ~ '['
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex063b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c == 0x5b /* [ */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex063b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti == 0x5b /* [ */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex064 ~ ']'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex064b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c == 0x5d /* ] */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex064b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti == 0x5d /* ] */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex065 ~ '>'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex065b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c == 0x3e /* > */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex065b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti == 0x3e /* > */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex066 ~ 'standalone'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex066b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  static const UChar32 wanted[10] = {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex066b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  static const signed int wanted[10] = {
     0x73 /* s */,
     0x74 /* t */,
     0x61 /* a */,
@@ -8225,135 +8210,140 @@ static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex066b(xml_1_1_t *xml_1_1p, UCh
     0x6e /* n */,
     0x65 /* e */
   };
-  UChar32              got = c;
-  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  signed int           got = currenti;
   int                  i = 0;
-  xml_1_1_lexemeState_t  rcb = XML_1_1_LEXEMESTATE_OK;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
 
-  do {
-    if (got != wanted[i]) {
-      rcb = (got == U_SENTINEL) ? XML_1_1_LEXEMESTATE_SENTINEL : XML_1_1_LEXEMESTATE_KO;
-      break;
-    }
-    got = UTEXT_NEXT32(utextp);
-  } while (++i < 10);
-
-  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
+    do {
+      if (got != wanted[i]) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+      got = streamInUtf8_nexti(streamInp);
+    } while (++i < 10);
+    rcb = streamInUtf8_markToCurrentb(streamInp);
+  }
 
   return rcb;
 }
 /************************************************
   _Lex067 ~ 'yes'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex067b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  static const UChar32 wanted[3] = {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex067b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  static const signed int wanted[3] = {
     0x79 /* y */,
     0x65 /* e */,
     0x73 /* s */
   };
-  UChar32              got = c;
-  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  signed int           got = currenti;
   int                  i = 0;
-  xml_1_1_lexemeState_t  rcb = XML_1_1_LEXEMESTATE_OK;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
 
-  do {
-    if (got != wanted[i]) {
-      rcb = (got == U_SENTINEL) ? XML_1_1_LEXEMESTATE_SENTINEL : XML_1_1_LEXEMESTATE_KO;
-      break;
-    }
-    got = UTEXT_NEXT32(utextp);
-  } while (++i < 3);
-
-  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
+    do {
+      if (got != wanted[i]) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+      got = streamInUtf8_nexti(streamInp);
+    } while (++i < 3);
+    rcb = streamInUtf8_markToCurrentb(streamInp);
+  }
 
   return rcb;
 }
 /************************************************
   _Lex068 ~ 'no'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex068b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  static const UChar32 wanted[2] = {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex068b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  static const signed int wanted[2] = {
     0x6e /* n */,
     0x6f /* o */
   };
-  UChar32              got = c;
-  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  signed int           got = currenti;
   int                  i = 0;
-  xml_1_1_lexemeState_t  rcb = XML_1_1_LEXEMESTATE_OK;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
 
-  do {
-    if (got != wanted[i]) {
-      rcb = (got == U_SENTINEL) ? XML_1_1_LEXEMESTATE_SENTINEL : XML_1_1_LEXEMESTATE_KO;
-      break;
-    }
-    got = UTEXT_NEXT32(utextp);
-  } while (++i < 2);
-
-  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
+    do {
+      if (got != wanted[i]) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+      got = streamInUtf8_nexti(streamInp);
+    } while (++i < 2);
+    rcb = streamInUtf8_markToCurrentb(streamInp);
+  }
 
   return rcb;
 }
 /************************************************
   _Lex069 ~ '<'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex069b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c == 0x3c /* < */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex069b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti == 0x3c /* < */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex070 ~ '</'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex070b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  static const UChar32 wanted[2] = {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex070b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  static const signed int wanted[2] = {
     0x3c /* < */,
     0x2f /* / */
   };
-  UChar32              got = c;
-  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  signed int           got = currenti;
   int                  i = 0;
-  xml_1_1_lexemeState_t  rcb = XML_1_1_LEXEMESTATE_OK;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
 
-  do {
-    if (got != wanted[i]) {
-      rcb = (got == U_SENTINEL) ? XML_1_1_LEXEMESTATE_SENTINEL : XML_1_1_LEXEMESTATE_KO;
-      break;
-    }
-    got = UTEXT_NEXT32(utextp);
-  } while (++i < 2);
-
-  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
+    do {
+      if (got != wanted[i]) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+      got = streamInUtf8_nexti(streamInp);
+    } while (++i < 2);
+    rcb = streamInUtf8_markToCurrentb(streamInp);
+  }
 
   return rcb;
 }
 /************************************************
   _Lex071 ~ '/>'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex071b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  static const UChar32 wanted[2] = {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex071b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  static const signed int wanted[2] = {
     0x2f /* / */,
     0x3e /* > */
   };
-  UChar32              got = c;
-  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  signed int           got = currenti;
   int                  i = 0;
-  xml_1_1_lexemeState_t  rcb = XML_1_1_LEXEMESTATE_OK;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
 
-  do {
-    if (got != wanted[i]) {
-      rcb = (got == U_SENTINEL) ? XML_1_1_LEXEMESTATE_SENTINEL : XML_1_1_LEXEMESTATE_KO;
-      break;
-    }
-    got = UTEXT_NEXT32(utextp);
-  } while (++i < 2);
-
-  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
+    do {
+      if (got != wanted[i]) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+      got = streamInUtf8_nexti(streamInp);
+    } while (++i < 2);
+    rcb = streamInUtf8_markToCurrentb(streamInp);
+  }
 
   return rcb;
 }
 /************************************************
   _Lex072 ~ '<!ELEMENT'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex072b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  static const UChar32 wanted[9] = {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex072b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  static const signed int wanted[9] = {
     0x3c /* < */,
     0x21 /* ! */,
     0x45 /* E */,
@@ -8364,124 +8354,127 @@ static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex072b(xml_1_1_t *xml_1_1p, UCh
     0x4e /* N */,
     0x54 /* T */
   };
-  UChar32              got = c;
-  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  signed int           got = currenti;
   int                  i = 0;
-  xml_1_1_lexemeState_t  rcb = XML_1_1_LEXEMESTATE_OK;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
 
-  do {
-    if (got != wanted[i]) {
-      rcb = (got == U_SENTINEL) ? XML_1_1_LEXEMESTATE_SENTINEL : XML_1_1_LEXEMESTATE_KO;
-      break;
-    }
-    got = UTEXT_NEXT32(utextp);
-  } while (++i < 9);
-
-  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
+    do {
+      if (got != wanted[i]) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+      got = streamInUtf8_nexti(streamInp);
+    } while (++i < 9);
+    rcb = streamInUtf8_markToCurrentb(streamInp);
+  }
 
   return rcb;
 }
 /************************************************
   _Lex073 ~ 'EMPTY'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex073b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  static const UChar32 wanted[5] = {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex073b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  static const signed int wanted[5] = {
     0x45 /* E */,
     0x4d /* M */,
     0x50 /* P */,
     0x54 /* T */,
     0x59 /* Y */
   };
-  UChar32              got = c;
-  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  signed int           got = currenti;
   int                  i = 0;
-  xml_1_1_lexemeState_t  rcb = XML_1_1_LEXEMESTATE_OK;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
 
-  do {
-    if (got != wanted[i]) {
-      rcb = (got == U_SENTINEL) ? XML_1_1_LEXEMESTATE_SENTINEL : XML_1_1_LEXEMESTATE_KO;
-      break;
-    }
-    got = UTEXT_NEXT32(utextp);
-  } while (++i < 5);
-
-  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
+    do {
+      if (got != wanted[i]) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+      got = streamInUtf8_nexti(streamInp);
+    } while (++i < 5);
+    rcb = streamInUtf8_markToCurrentb(streamInp);
+  }
 
   return rcb;
 }
 /************************************************
   _Lex074 ~ 'ANY'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex074b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  static const UChar32 wanted[3] = {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex074b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  static const signed int wanted[3] = {
     0x41 /* A */,
     0x4e /* N */,
     0x59 /* Y */
   };
-  UChar32              got = c;
-  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  signed int           got = currenti;
   int                  i = 0;
-  xml_1_1_lexemeState_t  rcb = XML_1_1_LEXEMESTATE_OK;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
 
-  do {
-    if (got != wanted[i]) {
-      rcb = (got == U_SENTINEL) ? XML_1_1_LEXEMESTATE_SENTINEL : XML_1_1_LEXEMESTATE_KO;
-      break;
-    }
-    got = UTEXT_NEXT32(utextp);
-  } while (++i < 3);
-
-  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
+    do {
+      if (got != wanted[i]) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+      got = streamInUtf8_nexti(streamInp);
+    } while (++i < 3);
+    rcb = streamInUtf8_markToCurrentb(streamInp);
+  }
 
   return rcb;
 }
 /************************************************
   _Lex075 ~ '?'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex075b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c == 0x3f /* ? */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex075b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti == 0x3f /* ? */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex076 ~ '*'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex076b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c == 0x2a /* * */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex076b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti == 0x2a /* * */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex077 ~ '+'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex077b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c == 0x2b /* + */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex077b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti == 0x2b /* + */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex078 ~ '('
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex078b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c == 0x28 /* ( */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex078b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti == 0x28 /* ( */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex079 ~ '|'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex079b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c == 0x7c /* | */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex079b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti == 0x7c /* | */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex080 ~ ')'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex080b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c == 0x29 /* ) */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex080b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti == 0x29 /* ) */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex081 ~ ','
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex081b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c == 0x2c /* , */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex081b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti == 0x2c /* , */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex082 ~ '#PCDATA'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex082b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  static const UChar32 wanted[7] = {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex082b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  static const signed int wanted[7] = {
     0x23 /* # */,
     0x50 /* P */,
     0x43 /* C */,
@@ -8490,53 +8483,55 @@ static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex082b(xml_1_1_t *xml_1_1p, UCh
     0x54 /* T */,
     0x41 /* A */
   };
-  UChar32              got = c;
-  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  signed int           got = currenti;
   int                  i = 0;
-  xml_1_1_lexemeState_t  rcb = XML_1_1_LEXEMESTATE_OK;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
 
-  do {
-    if (got != wanted[i]) {
-      rcb = (got == U_SENTINEL) ? XML_1_1_LEXEMESTATE_SENTINEL : XML_1_1_LEXEMESTATE_KO;
-      break;
-    }
-    got = UTEXT_NEXT32(utextp);
-  } while (++i < 7);
-
-  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
+    do {
+      if (got != wanted[i]) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+      got = streamInUtf8_nexti(streamInp);
+    } while (++i < 7);
+    rcb = streamInUtf8_markToCurrentb(streamInp);
+  }
 
   return rcb;
 }
 /************************************************
   _Lex083 ~ ')*'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex083b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  static const UChar32 wanted[2] = {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex083b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  static const signed int wanted[2] = {
     0x29 /* ) */,
     0x2a /* * */
   };
-  UChar32              got = c;
-  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  signed int           got = currenti;
   int                  i = 0;
-  xml_1_1_lexemeState_t  rcb = XML_1_1_LEXEMESTATE_OK;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
 
-  do {
-    if (got != wanted[i]) {
-      rcb = (got == U_SENTINEL) ? XML_1_1_LEXEMESTATE_SENTINEL : XML_1_1_LEXEMESTATE_KO;
-      break;
-    }
-    got = UTEXT_NEXT32(utextp);
-  } while (++i < 2);
-
-  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
+    do {
+      if (got != wanted[i]) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+      got = streamInUtf8_nexti(streamInp);
+    } while (++i < 2);
+    rcb = streamInUtf8_markToCurrentb(streamInp);
+  }
 
   return rcb;
 }
 /************************************************
   _Lex084 ~ '<!ATTLIST'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex084b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  static const UChar32 wanted[9] = {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex084b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  static const signed int wanted[9] = {
     0x3c /* < */,
     0x21 /* ! */,
     0x41 /* A */,
@@ -8547,109 +8542,113 @@ static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex084b(xml_1_1_t *xml_1_1p, UCh
     0x53 /* S */,
     0x54 /* T */
   };
-  UChar32              got = c;
-  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  signed int           got = currenti;
   int                  i = 0;
-  xml_1_1_lexemeState_t  rcb = XML_1_1_LEXEMESTATE_OK;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
 
-  do {
-    if (got != wanted[i]) {
-      rcb = (got == U_SENTINEL) ? XML_1_1_LEXEMESTATE_SENTINEL : XML_1_1_LEXEMESTATE_KO;
-      break;
-    }
-    got = UTEXT_NEXT32(utextp);
-  } while (++i < 9);
-
-  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
+    do {
+      if (got != wanted[i]) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+      got = streamInUtf8_nexti(streamInp);
+    } while (++i < 9);
+    rcb = streamInUtf8_markToCurrentb(streamInp);
+  }
 
   return rcb;
 }
 /************************************************
   _Lex085 ~ 'CDATA'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex085b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  static const UChar32 wanted[5] = {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex085b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  static const signed int wanted[5] = {
     0x43 /* C */,
     0x44 /* D */,
     0x41 /* A */,
     0x54 /* T */,
     0x41 /* A */
   };
-  UChar32              got = c;
-  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  signed int           got = currenti;
   int                  i = 0;
-  xml_1_1_lexemeState_t  rcb = XML_1_1_LEXEMESTATE_OK;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
 
-  do {
-    if (got != wanted[i]) {
-      rcb = (got == U_SENTINEL) ? XML_1_1_LEXEMESTATE_SENTINEL : XML_1_1_LEXEMESTATE_KO;
-      break;
-    }
-    got = UTEXT_NEXT32(utextp);
-  } while (++i < 5);
-
-  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
+    do {
+      if (got != wanted[i]) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+      got = streamInUtf8_nexti(streamInp);
+    } while (++i < 5);
+    rcb = streamInUtf8_markToCurrentb(streamInp);
+  }
 
   return rcb;
 }
 /************************************************
   _Lex086 ~ 'ID'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex086b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  static const UChar32 wanted[2] = {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex086b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  static const signed int wanted[2] = {
     0x49 /* I */,
     0x44 /* D */
   };
-  UChar32              got = c;
-  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  signed int           got = currenti;
   int                  i = 0;
-  xml_1_1_lexemeState_t  rcb = XML_1_1_LEXEMESTATE_OK;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
 
-  do {
-    if (got != wanted[i]) {
-      rcb = (got == U_SENTINEL) ? XML_1_1_LEXEMESTATE_SENTINEL : XML_1_1_LEXEMESTATE_KO;
-      break;
-    }
-    got = UTEXT_NEXT32(utextp);
-  } while (++i < 2);
-
-  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
+    do {
+      if (got != wanted[i]) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+      got = streamInUtf8_nexti(streamInp);
+    } while (++i < 2);
+    rcb = streamInUtf8_markToCurrentb(streamInp);
+  }
 
   return rcb;
 }
 /************************************************
   _Lex087 ~ 'IDREF'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex087b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  static const UChar32 wanted[5] = {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex087b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  static const signed int wanted[5] = {
     0x49 /* I */,
     0x44 /* D */,
     0x52 /* R */,
     0x45 /* E */,
     0x46 /* F */
   };
-  UChar32              got = c;
-  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  signed int           got = currenti;
   int                  i = 0;
-  xml_1_1_lexemeState_t  rcb = XML_1_1_LEXEMESTATE_OK;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
 
-  do {
-    if (got != wanted[i]) {
-      rcb = (got == U_SENTINEL) ? XML_1_1_LEXEMESTATE_SENTINEL : XML_1_1_LEXEMESTATE_KO;
-      break;
-    }
-    got = UTEXT_NEXT32(utextp);
-  } while (++i < 5);
-
-  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
+    do {
+      if (got != wanted[i]) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+      got = streamInUtf8_nexti(streamInp);
+    } while (++i < 5);
+    rcb = streamInUtf8_markToCurrentb(streamInp);
+  }
 
   return rcb;
 }
 /************************************************
   _Lex088 ~ 'IDREFS'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex088b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  static const UChar32 wanted[6] = {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex088b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  static const signed int wanted[6] = {
     0x49 /* I */,
     0x44 /* D */,
     0x52 /* R */,
@@ -8657,28 +8656,29 @@ static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex088b(xml_1_1_t *xml_1_1p, UCh
     0x46 /* F */,
     0x53 /* S */
   };
-  UChar32              got = c;
-  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  signed int           got = currenti;
   int                  i = 0;
-  xml_1_1_lexemeState_t  rcb = XML_1_1_LEXEMESTATE_OK;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
 
-  do {
-    if (got != wanted[i]) {
-      rcb = (got == U_SENTINEL) ? XML_1_1_LEXEMESTATE_SENTINEL : XML_1_1_LEXEMESTATE_KO;
-      break;
-    }
-    got = UTEXT_NEXT32(utextp);
-  } while (++i < 6);
-
-  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
+    do {
+      if (got != wanted[i]) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+      got = streamInUtf8_nexti(streamInp);
+    } while (++i < 6);
+    rcb = streamInUtf8_markToCurrentb(streamInp);
+  }
 
   return rcb;
 }
 /************************************************
   _Lex089 ~ 'ENTITY'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex089b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  static const UChar32 wanted[6] = {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex089b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  static const signed int wanted[6] = {
     0x45 /* E */,
     0x4e /* N */,
     0x54 /* T */,
@@ -8686,28 +8686,29 @@ static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex089b(xml_1_1_t *xml_1_1p, UCh
     0x54 /* T */,
     0x59 /* Y */
   };
-  UChar32              got = c;
-  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  signed int           got = currenti;
   int                  i = 0;
-  xml_1_1_lexemeState_t  rcb = XML_1_1_LEXEMESTATE_OK;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
 
-  do {
-    if (got != wanted[i]) {
-      rcb = (got == U_SENTINEL) ? XML_1_1_LEXEMESTATE_SENTINEL : XML_1_1_LEXEMESTATE_KO;
-      break;
-    }
-    got = UTEXT_NEXT32(utextp);
-  } while (++i < 6);
-
-  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
+    do {
+      if (got != wanted[i]) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+      got = streamInUtf8_nexti(streamInp);
+    } while (++i < 6);
+    rcb = streamInUtf8_markToCurrentb(streamInp);
+  }
 
   return rcb;
 }
 /************************************************
   _Lex090 ~ 'ENTITIES'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex090b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  static const UChar32 wanted[8] = {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex090b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  static const signed int wanted[8] = {
     0x45 /* E */,
     0x4e /* N */,
     0x54 /* T */,
@@ -8717,28 +8718,29 @@ static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex090b(xml_1_1_t *xml_1_1p, UCh
     0x45 /* E */,
     0x53 /* S */
   };
-  UChar32              got = c;
-  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  signed int           got = currenti;
   int                  i = 0;
-  xml_1_1_lexemeState_t  rcb = XML_1_1_LEXEMESTATE_OK;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
 
-  do {
-    if (got != wanted[i]) {
-      rcb = (got == U_SENTINEL) ? XML_1_1_LEXEMESTATE_SENTINEL : XML_1_1_LEXEMESTATE_KO;
-      break;
-    }
-    got = UTEXT_NEXT32(utextp);
-  } while (++i < 8);
-
-  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
+    do {
+      if (got != wanted[i]) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+      got = streamInUtf8_nexti(streamInp);
+    } while (++i < 8);
+    rcb = streamInUtf8_markToCurrentb(streamInp);
+  }
 
   return rcb;
 }
 /************************************************
   _Lex091 ~ 'NMTOKEN'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex091b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  static const UChar32 wanted[7] = {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex091b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  static const signed int wanted[7] = {
     0x4e /* N */,
     0x4d /* M */,
     0x54 /* T */,
@@ -8747,28 +8749,29 @@ static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex091b(xml_1_1_t *xml_1_1p, UCh
     0x45 /* E */,
     0x4e /* N */
   };
-  UChar32              got = c;
-  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  signed int           got = currenti;
   int                  i = 0;
-  xml_1_1_lexemeState_t  rcb = XML_1_1_LEXEMESTATE_OK;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
 
-  do {
-    if (got != wanted[i]) {
-      rcb = (got == U_SENTINEL) ? XML_1_1_LEXEMESTATE_SENTINEL : XML_1_1_LEXEMESTATE_KO;
-      break;
-    }
-    got = UTEXT_NEXT32(utextp);
-  } while (++i < 7);
-
-  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
+    do {
+      if (got != wanted[i]) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+      got = streamInUtf8_nexti(streamInp);
+    } while (++i < 7);
+    rcb = streamInUtf8_markToCurrentb(streamInp);
+  }
 
   return rcb;
 }
 /************************************************
   _Lex092 ~ 'NMTOKENS'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex092b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  static const UChar32 wanted[8] = {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex092b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  static const signed int wanted[8] = {
     0x4e /* N */,
     0x4d /* M */,
     0x54 /* T */,
@@ -8778,28 +8781,29 @@ static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex092b(xml_1_1_t *xml_1_1p, UCh
     0x4e /* N */,
     0x53 /* S */
   };
-  UChar32              got = c;
-  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  signed int           got = currenti;
   int                  i = 0;
-  xml_1_1_lexemeState_t  rcb = XML_1_1_LEXEMESTATE_OK;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
 
-  do {
-    if (got != wanted[i]) {
-      rcb = (got == U_SENTINEL) ? XML_1_1_LEXEMESTATE_SENTINEL : XML_1_1_LEXEMESTATE_KO;
-      break;
-    }
-    got = UTEXT_NEXT32(utextp);
-  } while (++i < 8);
-
-  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
+    do {
+      if (got != wanted[i]) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+      got = streamInUtf8_nexti(streamInp);
+    } while (++i < 8);
+    rcb = streamInUtf8_markToCurrentb(streamInp);
+  }
 
   return rcb;
 }
 /************************************************
   _Lex093 ~ 'NOTATION'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex093b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  static const UChar32 wanted[8] = {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex093b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  static const signed int wanted[8] = {
     0x4e /* N */,
     0x4f /* O */,
     0x54 /* T */,
@@ -8809,28 +8813,29 @@ static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex093b(xml_1_1_t *xml_1_1p, UCh
     0x4f /* O */,
     0x4e /* N */
   };
-  UChar32              got = c;
-  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  signed int           got = currenti;
   int                  i = 0;
-  xml_1_1_lexemeState_t  rcb = XML_1_1_LEXEMESTATE_OK;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
 
-  do {
-    if (got != wanted[i]) {
-      rcb = (got == U_SENTINEL) ? XML_1_1_LEXEMESTATE_SENTINEL : XML_1_1_LEXEMESTATE_KO;
-      break;
-    }
-    got = UTEXT_NEXT32(utextp);
-  } while (++i < 8);
-
-  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
+    do {
+      if (got != wanted[i]) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+      got = streamInUtf8_nexti(streamInp);
+    } while (++i < 8);
+    rcb = streamInUtf8_markToCurrentb(streamInp);
+  }
 
   return rcb;
 }
 /************************************************
   _Lex094 ~ '#REQUIRED'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex094b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  static const UChar32 wanted[9] = {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex094b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  static const signed int wanted[9] = {
     0x23 /* # */,
     0x52 /* R */,
     0x45 /* E */,
@@ -8841,28 +8846,29 @@ static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex094b(xml_1_1_t *xml_1_1p, UCh
     0x45 /* E */,
     0x44 /* D */
   };
-  UChar32              got = c;
-  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  signed int           got = currenti;
   int                  i = 0;
-  xml_1_1_lexemeState_t  rcb = XML_1_1_LEXEMESTATE_OK;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
 
-  do {
-    if (got != wanted[i]) {
-      rcb = (got == U_SENTINEL) ? XML_1_1_LEXEMESTATE_SENTINEL : XML_1_1_LEXEMESTATE_KO;
-      break;
-    }
-    got = UTEXT_NEXT32(utextp);
-  } while (++i < 9);
-
-  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
+    do {
+      if (got != wanted[i]) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+      got = streamInUtf8_nexti(streamInp);
+    } while (++i < 9);
+    rcb = streamInUtf8_markToCurrentb(streamInp);
+  }
 
   return rcb;
 }
 /************************************************
   _Lex095 ~ '#IMPLIED'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex095b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  static const UChar32 wanted[8] = {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex095b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  static const signed int wanted[8] = {
     0x23 /* # */,
     0x49 /* I */,
     0x4d /* M */,
@@ -8872,28 +8878,29 @@ static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex095b(xml_1_1_t *xml_1_1p, UCh
     0x45 /* E */,
     0x44 /* D */
   };
-  UChar32              got = c;
-  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  signed int           got = currenti;
   int                  i = 0;
-  xml_1_1_lexemeState_t  rcb = XML_1_1_LEXEMESTATE_OK;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
 
-  do {
-    if (got != wanted[i]) {
-      rcb = (got == U_SENTINEL) ? XML_1_1_LEXEMESTATE_SENTINEL : XML_1_1_LEXEMESTATE_KO;
-      break;
-    }
-    got = UTEXT_NEXT32(utextp);
-  } while (++i < 8);
-
-  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
+    do {
+      if (got != wanted[i]) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+      got = streamInUtf8_nexti(streamInp);
+    } while (++i < 8);
+    rcb = streamInUtf8_markToCurrentb(streamInp);
+  }
 
   return rcb;
 }
 /************************************************
   _Lex096 ~ '#FIXED'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex096b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  static const UChar32 wanted[6] = {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex096b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  static const signed int wanted[6] = {
     0x23 /* # */,
     0x46 /* F */,
     0x49 /* I */,
@@ -8901,54 +8908,56 @@ static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex096b(xml_1_1_t *xml_1_1p, UCh
     0x45 /* E */,
     0x44 /* D */
   };
-  UChar32              got = c;
-  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  signed int           got = currenti;
   int                  i = 0;
-  xml_1_1_lexemeState_t  rcb = XML_1_1_LEXEMESTATE_OK;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
 
-  do {
-    if (got != wanted[i]) {
-      rcb = (got == U_SENTINEL) ? XML_1_1_LEXEMESTATE_SENTINEL : XML_1_1_LEXEMESTATE_KO;
-      break;
-    }
-    got = UTEXT_NEXT32(utextp);
-  } while (++i < 6);
-
-  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
+    do {
+      if (got != wanted[i]) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+      got = streamInUtf8_nexti(streamInp);
+    } while (++i < 6);
+    rcb = streamInUtf8_markToCurrentb(streamInp);
+  }
 
   return rcb;
 }
 /************************************************
   _Lex097 ~ '<!['
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex097b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  static const UChar32 wanted[3] = {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex097b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  static const signed int wanted[3] = {
     0x3c /* < */,
     0x21 /* ! */,
     0x5b /* [ */
   };
-  UChar32              got = c;
-  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  signed int           got = currenti;
   int                  i = 0;
-  xml_1_1_lexemeState_t  rcb = XML_1_1_LEXEMESTATE_OK;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
 
-  do {
-    if (got != wanted[i]) {
-      rcb = (got == U_SENTINEL) ? XML_1_1_LEXEMESTATE_SENTINEL : XML_1_1_LEXEMESTATE_KO;
-      break;
-    }
-    got = UTEXT_NEXT32(utextp);
-  } while (++i < 3);
-
-  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
+    do {
+      if (got != wanted[i]) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+      got = streamInUtf8_nexti(streamInp);
+    } while (++i < 3);
+    rcb = streamInUtf8_markToCurrentb(streamInp);
+  }
 
   return rcb;
 }
 /************************************************
   _Lex098 ~ 'INCLUDE'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex098b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  static const UChar32 wanted[7] = {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex098b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  static const signed int wanted[7] = {
     0x49 /* I */,
     0x4e /* N */,
     0x43 /* C */,
@@ -8957,28 +8966,29 @@ static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex098b(xml_1_1_t *xml_1_1p, UCh
     0x44 /* D */,
     0x45 /* E */
   };
-  UChar32              got = c;
-  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  signed int           got = currenti;
   int                  i = 0;
-  xml_1_1_lexemeState_t  rcb = XML_1_1_LEXEMESTATE_OK;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
 
-  do {
-    if (got != wanted[i]) {
-      rcb = (got == U_SENTINEL) ? XML_1_1_LEXEMESTATE_SENTINEL : XML_1_1_LEXEMESTATE_KO;
-      break;
-    }
-    got = UTEXT_NEXT32(utextp);
-  } while (++i < 7);
-
-  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
+    do {
+      if (got != wanted[i]) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+      got = streamInUtf8_nexti(streamInp);
+    } while (++i < 7);
+    rcb = streamInUtf8_markToCurrentb(streamInp);
+  }
 
   return rcb;
 }
 /************************************************
   _Lex099 ~ 'IGNORE'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex099b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  static const UChar32 wanted[6] = {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex099b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  static const signed int wanted[6] = {
     0x49 /* I */,
     0x47 /* G */,
     0x4e /* N */,
@@ -8986,105 +8996,108 @@ static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex099b(xml_1_1_t *xml_1_1p, UCh
     0x52 /* R */,
     0x45 /* E */
   };
-  UChar32              got = c;
-  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  signed int           got = currenti;
   int                  i = 0;
-  xml_1_1_lexemeState_t  rcb = XML_1_1_LEXEMESTATE_OK;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
 
-  do {
-    if (got != wanted[i]) {
-      rcb = (got == U_SENTINEL) ? XML_1_1_LEXEMESTATE_SENTINEL : XML_1_1_LEXEMESTATE_KO;
-      break;
-    }
-    got = UTEXT_NEXT32(utextp);
-  } while (++i < 6);
-
-  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
+    do {
+      if (got != wanted[i]) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+      got = streamInUtf8_nexti(streamInp);
+    } while (++i < 6);
+    rcb = streamInUtf8_markToCurrentb(streamInp);
+  }
 
   return rcb;
 }
 /************************************************
   _Lex100 ~ '&#'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex100b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  static const UChar32 wanted[2] = {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex100b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  static const signed int wanted[2] = {
     0x26 /* & */,
     0x23 /* # */
   };
-  UChar32              got = c;
-  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  signed int           got = currenti;
   int                  i = 0;
-  xml_1_1_lexemeState_t  rcb = XML_1_1_LEXEMESTATE_OK;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
 
-  do {
-    if (got != wanted[i]) {
-      rcb = (got == U_SENTINEL) ? XML_1_1_LEXEMESTATE_SENTINEL : XML_1_1_LEXEMESTATE_KO;
-      break;
-    }
-    got = UTEXT_NEXT32(utextp);
-  } while (++i < 2);
-
-  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
+    do {
+      if (got != wanted[i]) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+      got = streamInUtf8_nexti(streamInp);
+    } while (++i < 2);
+    rcb = streamInUtf8_markToCurrentb(streamInp);
+  }
 
   return rcb;
 }
 /************************************************
   _Lex101 ~ ';'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex101b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c == 0x3b /* ; */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex101b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti == 0x3b /* ; */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex102 ~ '&#x'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex102b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  static const UChar32 wanted[3] = {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex102b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  static const signed int wanted[3] = {
     0x26 /* & */,
     0x23 /* # */,
     0x78 /* x */
   };
-  UChar32              got = c;
-  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  signed int           got = currenti;
   int                  i = 0;
-  xml_1_1_lexemeState_t  rcb = XML_1_1_LEXEMESTATE_OK;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
 
-  do {
-    if (got != wanted[i]) {
-      rcb = (got == U_SENTINEL) ? XML_1_1_LEXEMESTATE_SENTINEL : XML_1_1_LEXEMESTATE_KO;
-      break;
-    }
-    got = UTEXT_NEXT32(utextp);
-  } while (++i < 3);
-
-  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
+    do {
+      if (got != wanted[i]) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+      got = streamInUtf8_nexti(streamInp);
+    } while (++i < 3);
+    rcb = streamInUtf8_markToCurrentb(streamInp);
+  }
 
   return rcb;
 }
 /************************************************
   _Lex103 ~ [0-9a-fA-F]
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex103b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return ((c >= 0x30 && c <= 0x39) /* [0-9] */ ||
-          (c >= 0x61 && c <= 0x66) /* [a-f] */ ||
-          (c >= 0x41 && c <= 0x46) /* [A-F] */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex103b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return ((currenti >= 0x30 && currenti <= 0x39) /* [0-9] */ ||
+          (currenti >= 0x61 && currenti <= 0x66) /* [a-f] */ ||
+          (currenti >= 0x41 && currenti <= 0x46) /* [A-F] */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex104 ~ '&'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex104b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c == 0x26 /* & */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex104b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti == 0x26 /* & */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex105 ~ '%'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex105b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return (c == 0x25 /* % */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex105b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti == 0x25 /* % */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex106 ~ '<!ENTITY'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex106b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  static const UChar32 wanted[8] = {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex106b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  static const signed int wanted[8] = {
     0x3c /* < */,
     0x21 /* ! */,
     0x45 /* E */,
@@ -9094,28 +9107,29 @@ static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex106b(xml_1_1_t *xml_1_1p, UCh
     0x54 /* T */,
     0x59 /* Y */
   };
-  UChar32              got = c;
-  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  signed int           got = currenti;
   int                  i = 0;
-  xml_1_1_lexemeState_t  rcb = XML_1_1_LEXEMESTATE_OK;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
 
-  do {
-    if (got != wanted[i]) {
-      rcb = (got == U_SENTINEL) ? XML_1_1_LEXEMESTATE_SENTINEL : XML_1_1_LEXEMESTATE_KO;
-      break;
-    }
-    got = UTEXT_NEXT32(utextp);
-  } while (++i < 8);
-
-  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
+    do {
+      if (got != wanted[i]) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+      got = streamInUtf8_nexti(streamInp);
+    } while (++i < 8);
+    rcb = streamInUtf8_markToCurrentb(streamInp);
+  }
 
   return rcb;
 }
 /************************************************
   _Lex107 ~ 'SYSTEM'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex107b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  static const UChar32 wanted[6] = {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex107b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  static const signed int wanted[6] = {
     0x53 /* S */,
     0x59 /* Y */,
     0x53 /* S */,
@@ -9123,28 +9137,29 @@ static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex107b(xml_1_1_t *xml_1_1p, UCh
     0x45 /* E */,
     0x4d /* M */
   };
-  UChar32              got = c;
-  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  signed int           got = currenti;
   int                  i = 0;
-  xml_1_1_lexemeState_t  rcb = XML_1_1_LEXEMESTATE_OK;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
 
-  do {
-    if (got != wanted[i]) {
-      rcb = (got == U_SENTINEL) ? XML_1_1_LEXEMESTATE_SENTINEL : XML_1_1_LEXEMESTATE_KO;
-      break;
-    }
-    got = UTEXT_NEXT32(utextp);
-  } while (++i < 6);
-
-  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
+    do {
+      if (got != wanted[i]) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+      got = streamInUtf8_nexti(streamInp);
+    } while (++i < 6);
+    rcb = streamInUtf8_markToCurrentb(streamInp);
+  }
 
   return rcb;
 }
 /************************************************
   _Lex108 ~ 'PUBLIC'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex108b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  static const UChar32 wanted[6] = {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex108b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  static const signed int wanted[6] = {
     0x50 /* P */,
     0x55 /* U */,
     0x42 /* B */,
@@ -9152,56 +9167,58 @@ static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex108b(xml_1_1_t *xml_1_1p, UCh
     0x49 /* I */,
     0x43 /* C */
   };
-  UChar32              got = c;
-  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  signed int           got = currenti;
   int                  i = 0;
-  xml_1_1_lexemeState_t  rcb = XML_1_1_LEXEMESTATE_OK;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
 
-  do {
-    if (got != wanted[i]) {
-      rcb = (got == U_SENTINEL) ? XML_1_1_LEXEMESTATE_SENTINEL : XML_1_1_LEXEMESTATE_KO;
-      break;
-    }
-    got = UTEXT_NEXT32(utextp);
-  } while (++i < 6);
-
-  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
+    do {
+      if (got != wanted[i]) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+      got = streamInUtf8_nexti(streamInp);
+    } while (++i < 6);
+    rcb = streamInUtf8_markToCurrentb(streamInp);
+  }
 
   return rcb;
 }
 /************************************************
   _Lex109 ~ 'NDATA'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex109b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  static const UChar32 wanted[5] = {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex109b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  static const signed int wanted[5] = {
     0x4e /* N */,
     0x44 /* D */,
     0x41 /* A */,
     0x54 /* T */,
     0x41 /* A */
   };
-  UChar32              got = c;
-  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  signed int           got = currenti;
   int                  i = 0;
-  xml_1_1_lexemeState_t  rcb = XML_1_1_LEXEMESTATE_OK;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
 
-  do {
-    if (got != wanted[i]) {
-      rcb = (got == U_SENTINEL) ? XML_1_1_LEXEMESTATE_SENTINEL : XML_1_1_LEXEMESTATE_KO;
-      break;
-    }
-    got = UTEXT_NEXT32(utextp);
-  } while (++i < 5);
-
-  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
+    do {
+      if (got != wanted[i]) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+      got = streamInUtf8_nexti(streamInp);
+    } while (++i < 5);
+    rcb = streamInUtf8_markToCurrentb(streamInp);
+  }
 
   return rcb;
 }
 /************************************************
   _Lex110 ~ 'encoding'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex110b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  static const UChar32 wanted[8] = {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex110b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  static const signed int wanted[8] = {
     0x65 /* e */,
     0x6e /* n */,
     0x63 /* c */,
@@ -9211,45 +9228,46 @@ static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex110b(xml_1_1_t *xml_1_1p, UCh
     0x6e /* n */,
     0x67 /* g */
   };
-  UChar32              got = c;
-  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  signed int           got = currenti;
   int                  i = 0;
-  xml_1_1_lexemeState_t  rcb = XML_1_1_LEXEMESTATE_OK;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
 
-  do {
-    if (got != wanted[i]) {
-      rcb = (got == U_SENTINEL) ? XML_1_1_LEXEMESTATE_SENTINEL : XML_1_1_LEXEMESTATE_KO;
-      break;
-    }
-    got = UTEXT_NEXT32(utextp);
-  } while (++i < 8);
-
-  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
+    do {
+      if (got != wanted[i]) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+      got = streamInUtf8_nexti(streamInp);
+    } while (++i < 8);
+    rcb = streamInUtf8_markToCurrentb(streamInp);
+  }
 
   return rcb;
 }
 /************************************************
   _Lex111 ~ [A-Za-z]
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex111b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return ((c >= 0x41 && c <= 0x5a) /* [A-Z] */ ||
-          (c >= 0x61 && c <= 0x7a) /* [a-z] */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex111b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return ((currenti >= 0x41 && currenti <= 0x5a) /* [A-Z] */ ||
+          (currenti >= 0x61 && currenti <= 0x7a) /* [a-z] */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex112 ~ [A-Za-z0-9._]
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex112b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  return ((c >= 0x41 && c <= 0x5a) /* [A-Z] */ ||
-          (c >= 0x61 && c <= 0x7a) /* [a-z] */ ||
-          (c >= 0x30 && c <= 0x39) /* [0-9] */ ||
-          (c == 0x2e) /* . */ ||
-          (c == 0x5f) /* _ */) ? XML_1_1_LEXEMESTATE_OK : XML_1_1_LEXEMESTATE_KO;
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex112b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  return ((currenti >= 0x41 && currenti <= 0x5a) /* [A-Z] */ ||
+          (currenti >= 0x61 && currenti <= 0x7a) /* [a-z] */ ||
+          (currenti >= 0x30 && currenti <= 0x39) /* [0-9] */ ||
+          (currenti == 0x2e) /* . */ ||
+          (currenti == 0x5f) /* _ */) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 /************************************************
   _Lex113 ~ '<!NOTATION'
  ************************************************/
-static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex113b(xml_1_1_t *xml_1_1p, UChar32 c, UText *utextp) {
-  static const UChar32 wanted[10] = {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Lex113b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp) {
+  static const signed int wanted[10] = {
     0x3c /* < */,
     0x21 /* ! */,
     0x4e /* N */,
@@ -9261,20 +9279,21 @@ static C_INLINE xml_1_1_lexemeState_t _xml_1_1__Lex113b(xml_1_1_t *xml_1_1p, UCh
     0x4f /* O */,
     0x4e /* N */
   };
-  UChar32              got = c;
-  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  signed int           got = currenti;
   int                  i = 0;
-  xml_1_1_lexemeState_t  rcb = XML_1_1_LEXEMESTATE_OK;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
 
-  do {
-    if (got != wanted[i]) {
-      rcb = (got == U_SENTINEL) ? XML_1_1_LEXEMESTATE_SENTINEL : XML_1_1_LEXEMESTATE_KO;
-      break;
-    }
-    got = UTEXT_NEXT32(utextp);
-  } while (++i < 10);
-
-  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
+    do {
+      if (got != wanted[i]) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+      got = streamInUtf8_nexti(streamInp);
+    } while (++i < 10);
+    rcb = streamInUtf8_markToCurrentb(streamInp);
+  }
 
   return rcb;
 }

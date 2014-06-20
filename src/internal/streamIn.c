@@ -62,6 +62,7 @@ static signed int     _streamInUtf8_ICU_currenti(streamIn_t *streamInp);
 static signed int     _streamInUtf8_ICU_nexti(streamIn_t *streamInp);
 static streamInBool_t _streamInUtf8_ICU_markb(streamIn_t *streamInp);
 static streamInBool_t _streamInUtf8_ICU_markPreviousb(streamIn_t *streamInp);
+static streamInBool_t _streamInUtf8_ICU_currentFromMarkedb(streamIn_t *streamInp);
 static streamInBool_t _streamInUtf8_ICU_doneb(streamIn_t *streamInp);
 #endif
 static streamInBool_t _streamIn_charsetdetect_detectb(streamIn_t *streamInp);
@@ -1690,6 +1691,52 @@ static streamInBool_t _streamInUtf8_ICU_markPreviousb(streamIn_t *streamInp) {
     /* This give the index in the native format of the text below - we know this is UChar */
     streamInp->streamIn_ICU.ucharMarkedOffsetl = utext_getPreviousNativeIndex(streamInp->streamIn_ICU.utextp) * sizeof(UChar);
     /* STREAMIN_LOGX(STREAMIN_LOGLEVEL_TRACE, "Marking offset %ld", streamInp->streamIn_ICU.ucharMarkedOffsetl); */
+    rcb = STREAMIN_BOOL_TRUE;
+  }
+
+  return rcb;
+}
+#endif
+
+/********************************/
+/* _streamInUtf8_currentFromMarkedb */
+/********************************/
+streamInBool_t streamInUtf8_currentFromMarkedb(streamIn_t *streamInp) {
+  streamInBool_t rcb = STREAMIN_BOOL_FALSE;
+
+  if (streamInp == NULL || streamInp->utf8b == STREAMIN_BOOL_FALSE) {
+    return rcb;
+  }
+
+  switch (streamInp->streamInUtf8Option.converteri) {
+#ifdef HAVE_ICU
+  case STREAMINUTF8OPTION_CONVERTER_ICU:
+    rcb = _streamInUtf8_ICU_currentFromMarkedb(streamInp);
+    break;
+#endif
+#ifdef HAVE_ICONV
+  case STREAMINUTF8OPTION_CONVERTER_ICONV:
+    rcb = _streamInUtf8_ICONV_currentFromMarkedb(streamInp);
+    break;
+#endif
+  }
+
+  return rcb;
+}
+
+#ifdef HAVE_ICU
+/****************************************/
+/* _streamInUtf8_ICU_currentFromMarkedb */
+/****************************************/
+static streamInBool_t _streamInUtf8_ICU_currentFromMarkedb(streamIn_t *streamInp) {
+  streamInBool_t rcb = STREAMIN_BOOL_FALSE;
+
+  if (streamInp->streamIn_ICU.utextp == NULL) {
+    return rcb;
+  } else {
+    /* This makes the marked character the current character */
+    UTEXT_SETNATIVEINDEX(streamInp->streamIn_ICU.utextp, streamInp->streamIn_ICU.ucharMarkedOffsetl);
+    /* STREAMIN_LOGX(STREAMIN_LOGLEVEL_TRACE, "Making offset %ld as current", streamInp->streamIn_ICU.ucharMarkedOffsetl); */
     rcb = STREAMIN_BOOL_TRUE;
   }
 

@@ -388,8 +388,7 @@ sub generateC {
   $c .= <<INCLUDES;
 #include <stdlib.h>
 #include <errno.h>
-#include "unicode/ustring.h"
-#include "unicode/utext.h"
+#include "internal/streamIn.h"
 #include "internal/grammar/$namespace.h"
 
 INCLUDES
@@ -401,10 +400,10 @@ static C_INLINE marpaWrapperBool_t _${namespace}_buildGrammarb(${namespace}_t *$
 static C_INLINE marpaWrapperBool_t _${namespace}_buildSymbolsb(${namespace}_t *${namespace}p);
 static C_INLINE marpaWrapperBool_t _${namespace}_buildSymbols_withStartb(${namespace}_t *${namespace}p, int starti);
 static C_INLINE marpaWrapperBool_t _${namespace}_buildRulesb(${namespace}_t *${namespace}p);
-static C_INLINE marpaWrapperBool_t _${namespace}_pushLexemeb(${namespace}_t *${namespace}p, ${namespace}_symbol_t ${namespace}_symbol, UText *utextp);
+static C_INLINE marpaWrapperBool_t _${namespace}_pushLexemeb(${namespace}_t *${namespace}p, ${namespace}_symbol_t ${namespace}_symbol, signed int currenti, streamIn_t *streamInp);
 DECLARATIONS
   foreach (sort {$a cmp $b} grep {$value->{symbols}->{$_}->{terminal} == 1} keys %{$value->{symbols}}) {
-    $c .= "static C_INLINE ${namespace}_lexemeState_t _${namespace}_${_}b(${namespace}_t *${namespace}p, UChar32 c, UText *utextp);\n";
+    $c .= "static C_INLINE marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, signed int currenti, streamIn_t *streamInp);\n";
   }
 
   $c .= generateNewp(@_);
@@ -484,13 +483,6 @@ struct $namespace {
   marpaWrapperRule_t   **marpaWrapperRuleArrayp;
   size_t                 marpaWrapperRuleArrayLengthi;
 };
-
-/* Lexeme state */
-typedef enum ${namespace}_lexemeState {
-  ${NAMESPACE}_LEXEMESTATE_SENTINEL = -1,
-  ${NAMESPACE}_LEXEMESTATE_KO = 0,
-  ${NAMESPACE}_LEXEMESTATE_OK = 1
-} ${namespace}_lexemeState_t;
 
 STRUCTURE
 
@@ -675,9 +667,6 @@ sub generatePushLexemeb {
   my ($value, $namespace) = @_;
 
   my $NAMESPACE = uc($namespace);
-  my $SENTINEL  = "${NAMESPACE}_LEXEMESTATE_SENTINEL";
-  my $KO        = "${NAMESPACE}_LEXEMESTATE_KO";
-  my $OK        = "${NAMESPACE}_LEXEMESTATE_OK";
 
   my $pushLexemeb = <<ISLEXEMEB_HEADER;
 
@@ -685,39 +674,22 @@ sub generatePushLexemeb {
 /* _${namespace}_pushLexemeb */
 /************************/
 
-/***************************************************************************************/
-/* exeme Lroutines are called perl character they all maintain their own state:        */
-/*                                                                                     */
-/* SENTINEL   value -1  : need more data                                               */
-/* FALSE      value  0  : KO                                                           */
-/* COMPLETE   value  1  : OK                                                           */
-/*                                                                                     */
-/***************************************************************************************/
-
-static C_INLINE marpaWrapperBool_t _${namespace}_pushLexemeb(${namespace}_t *${namespace}p, ${namespace}_symbol_t ${namespace}_symbol, UText *utextp) {
+static C_INLINE marpaWrapperBool_t _${namespace}_pushLexemeb(${namespace}_t *${namespace}p, ${namespace}_symbol_t ${namespace}_symbol, signed int currenti, streamIn_t *streamInp) {
   marpaWrapperBool_t rcb;
-  ${namespace}_lexemeState_t lexemeb;
-  UChar32 c = UTEXT_CURRENT32(utextp);
 
   switch (${namespace}_symbol) {
 ISLEXEMEB_HEADER
   foreach (sort {$a cmp $b} grep {$value->{symbols}->{$_}->{terminal} == 1} keys %{$value->{symbols}}) {
       $pushLexemeb .= <<ISLEXEMEB;
     case ${namespace}_${_}:
-      lexemeb = _${namespace}_${_}b(${namespace}p, c, utextp);
+      rcb = _${namespace}_${_}b(${namespace}p, currenti, streamInp);
       break;
 ISLEXEMEB
     }
   $pushLexemeb .= <<ISLEXEMEB_TRAILER;
     default:
-      lexemeb = $KO;
+      rcb = MARPAWRAPPER_BOOL_FALSE;
       break;
-  }
-
-  /* Special processing if lexemeb is sentinel */
-  if (lexemeb == $SENTINEL) {
-    /* Try to get another buffer */
-    rcb = $KO;
   }
 
   return rcb;
@@ -732,30 +704,30 @@ ISLEXEMEB_TRAILER
 COMMENT
     if (! exists($value->{lexemesExact}->{$_}->{type})) {
       $pushLexemeb .= <<ISLEXEMEB;
-static C_INLINE ${namespace}_lexemeState_t _${namespace}_${_}b(${namespace}_t *${namespace}p, UChar32 c, UText *utextp) {
+static C_INLINE marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, signed int currenti, streamIn_t *streamInp) {
   /* Writen by hand */
-  return $OK;
+  return MARPAWRAPPER_BOOL_FALSE;
 }
 
 ISLEXEMEB
     } else {
       if ($value->{lexemesExact}->{$_}->{type} == $LEXEME_RANGES ||
 	  $value->{lexemesExact}->{$_}->{type} == $LEXEME_CARET_RANGES) {
-	  my $rcIfMatch = ($value->{lexemesExact}->{$_}->{type} == $LEXEME_RANGES) ? $OK : $KO;
-	  my $rcIfNoMatch = ($value->{lexemesExact}->{$_}->{type} == $LEXEME_RANGES) ? $KO : $OK;
+	  my $rcIfMatch = ($value->{lexemesExact}->{$_}->{type} == $LEXEME_RANGES) ? 'MARPAWRAPPER_BOOL_TRUE' : 'MARPAWRAPPER_BOOL_FALSE';
+	  my $rcIfNoMatch = ($value->{lexemesExact}->{$_}->{type} == $LEXEME_RANGES) ? 'MARPAWRAPPER_BOOL_FALSE' : 'MARPAWRAPPER_BOOL_TRUE';
         my @wanted = ();
         my $n = scalar(@{$value->{lexemesExact}->{$_}->{value}});
         foreach (@{$value->{lexemesExact}->{$_}->{value}}) {
           my @range = @{$_};
 	  if ($range[0] ne $range[1]) {
-	      push(@wanted, sprintf('%sc >= 0x%x && c <= 0x%x%s /* [%s-%s] */', ($n > 1 ? '(' : ''), ord($range[0]), ord($range[1]), ($n > 1 ? ')' : ''), _chprint($range[0]), _chprint($range[1])));
+	      push(@wanted, sprintf('%scurrenti >= 0x%x && currenti <= 0x%x%s /* [%s-%s] */', ($n > 1 ? '(' : ''), ord($range[0]), ord($range[1]), ($n > 1 ? ')' : ''), _chprint($range[0]), _chprint($range[1])));
 	  } else {
-	      push(@wanted, sprintf('%sc == 0x%x%s /* %s */', ($n > 1 ? '(' : ''), ord($range[0]), ($n > 1 ? ')' : ''), _chprint($range[0])));
+	      push(@wanted, sprintf('%scurrenti == 0x%x%s /* %s */', ($n > 1 ? '(' : ''), ord($range[0]), ($n > 1 ? ')' : ''), _chprint($range[0])));
 	  }
         }
 	my $wanted = join(" ||\n          ", @wanted);
 	$pushLexemeb .= <<ISLEXEMEB;
-static C_INLINE ${namespace}_lexemeState_t _${namespace}_${_}b(${namespace}_t *${namespace}p, UChar32 c, UText *utextp) {
+static C_INLINE marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, signed int currenti, streamIn_t *streamInp) {
   return ($wanted) ? $rcIfMatch : $rcIfNoMatch;
 }
 ISLEXEMEB
@@ -764,7 +736,7 @@ ISLEXEMEB
           my $n = scalar(@{$value->{lexemesExact}->{$_}->{value}});
 	  foreach (@{$value->{lexemesExact}->{$_}->{value}}) {
               if ($n > 1) {
-  	        push(@wanted, sprintf('(c == 0x%x) /* %s */', ord($_), _chprint($_)));
+  	        push(@wanted, sprintf('(currenti == 0x%x) /* %s */', ord($_), _chprint($_)));
               } else {
   	        push(@wanted, sprintf('0x%x /* %s */', ord($_), _chprint($_)));
               }
@@ -772,14 +744,14 @@ ISLEXEMEB
 	  my $wanted = join(" ||\n          ", @wanted);
           if ($n == 1) {
           $pushLexemeb .= <<ISLEXEMEB;
-static C_INLINE ${namespace}_lexemeState_t _${namespace}_${_}b(${namespace}_t *${namespace}p, UChar32 c, UText *utextp) {
-  return (c == $wanted) ? $OK : $KO;
+static C_INLINE marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti == $wanted) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 ISLEXEMEB
           } else {
 	$pushLexemeb .= <<ISLEXEMEB;
-static C_INLINE ${namespace}_lexemeState_t _${namespace}_${_}b(${namespace}_t *${namespace}p, UChar32 c, UText *utextp) {
-  return ($wanted) ? $OK : $KO;
+static C_INLINE marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, signed int currenti, streamIn_t *streamInP) {
+  return ($wanted) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 ISLEXEMEB
         }
@@ -787,35 +759,33 @@ ISLEXEMEB
         my @wanted = map {sprintf("0x%x /* %s */", ord($_), _chprint($_))} split('', $value->{lexemesExact}->{$_}->{value});
         my $wanted = join(",\n    ", @wanted);
 	my $length = length($value->{lexemesExact}->{$_}->{value});
-        #
-        # Well, if length is 1 no need to play with the native index
-        #
         if ($length == 1) {
           $pushLexemeb .= <<ISLEXEMEB;
-static C_INLINE ${namespace}_lexemeState_t _${namespace}_${_}b(${namespace}_t *${namespace}p, UChar32 c, UText *utextp) {
-  return (c == $wanted) ? $OK : $KO;
+static C_INLINE marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, signed int currenti, streamIn_t *streamInp) {
+  return (currenti == $wanted) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 }
 ISLEXEMEB
         } else {
           $pushLexemeb .= <<ISLEXEMEB;
-static C_INLINE ${namespace}_lexemeState_t _${namespace}_${_}b(${namespace}_t *${namespace}p, UChar32 c, UText *utextp) {
-  static const UChar32 wanted[$length] = {
+static C_INLINE marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, signed int currenti, streamIn_t *streamInp) {
+  static const signed int wanted[$length] = {
     $wanted
   };
-  UChar32              got = c;
-  int64_t              foundIndex = UTEXT_GETNATIVEINDEX(utextp);
+  signed int           got = currenti;
   int                  i = 0;
-  ${namespace}_lexemeState_t  rcb = $OK;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
 
-  do {
-    if (got != wanted[i]) {
-      rcb = (got == U_SENTINEL) ? $SENTINEL : $KO;
-      break;
-    }
-    got = UTEXT_NEXT32(utextp);
-  } while (++i < $length);
-
-  UTEXT_SETNATIVEINDEX(utextp, foundIndex);
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
+    do {
+      if (got != wanted[i]) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+      got = streamInUtf8_nexti(streamInp);
+    } while (++i < $length);
+    rcb = streamInUtf8_markToCurrentb(streamInp);
+  }
 
   return rcb;
 }
