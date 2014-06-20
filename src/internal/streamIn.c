@@ -95,6 +95,7 @@ struct streamIn {
 #define STREAMIN_LOG0(logLeveli, msgs)      _streamIn_log_any(streamInp, logLeveli, msgs)
 #define STREAMIN_LOGX(logLeveli, fmts, ...) _streamIn_log_any(streamInp, logLeveli, fmts, __VA_ARGS__)
 
+#ifndef STREAMIN_NTRACE
 #define STREAMIN_TRACE0(fmts)      STREAMIN_LOG0(STREAMIN_LOGLEVEL_TRACE, fmts)
 #define STREAMIN_TRACEX(fmts, ...) STREAMIN_LOGX(STREAMIN_LOGLEVEL_TRACE, fmts, __VA_ARGS__)
 #else
@@ -421,8 +422,6 @@ static streamInBool_t _streamInUtf8_ICU_doneBufferb(streamIn_t *streamInp, size_
         } else {
           streamInp->streamIn_ICU.charBuf2UCharByteLengthlp = charBuf2UCharByteLengthlp;
         }
-	streamInp->streamIn_ICU.ucharBufSizel -= bytesToRemovel;
-	streamInp->streamIn_ICU.ucharByteLengthl -= bytesToRemovel;
       } else {
         /* The full UChar buffer is over */
         STREAMIN_FREE(streamInp->streamIn_ICU.ucharBufp);
@@ -542,7 +541,7 @@ static streamInBool_t _streamIn_doneBufferb(streamIn_t *streamInp, size_t bufInd
   }
   else {
 
-    STREAMIN_TRACEX("Moving information of buffers [%d..%d] to [0..%d]", bufIndexi + 1, nCharBufi, nCharBufi - (bufIndexi + 1));
+    STREAMIN_TRACEX("Moving information of buffers [%d..%d] to [0..%d]", bufIndexi + 1, nCharBufi - 1, nCharBufi - (bufIndexi + 1) - 1);
 
     /* We have to realloc, taking care of moving backward */
     /* the informations                                   */
@@ -1307,6 +1306,7 @@ static streamInBool_t _streamInUtf8_ICU_fromConvertb(streamIn_t *streamInp, size
 	break;
       }
 
+      streamInp->streamIn_ICU.ucharBufp = ucharBufp;
       /* Realloc can have moved the buffer */
       origTarget = target                   = (UChar *) (((char *) streamInp->streamIn_ICU.ucharBufp) + streamInp->streamIn_ICU.ucharByteLengthl);
       targetLimit                           = (const UChar *) (((char *) streamInp->streamIn_ICU.ucharBufp) + ucharBufSizel);

@@ -128,11 +128,10 @@ static void _fileTest(streamIn_t *streamInp, streamInBool_t utf8b, char **argv) 
   if (utf8b == STREAMIN_BOOL_TRUE) {
     int utf8;
     while ((utf8 = streamInUtf8_nexti(streamInp)) >= 0) {
-      fprintf(stderr, "0x%0x\n", utf8);
+      // fprintf(stderr, "0x%0x\n", utf8);
       streamInUtf8_markPreviousb(streamInp);
       streamInUtf8_doneb(streamInp);
     }
-    exit;
   } else {
     while (streamIn_nextBufferb(streamInp, &indexBufferi, &charArrayp, &bytesInBuffer)) {
       char *s = malloc(bytesInBuffer + 1);
