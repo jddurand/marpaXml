@@ -784,7 +784,7 @@ static C_INLINE marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespa
       }
       got = streamInUtf8_nexti(streamInp);
     } while (++i < $length);
-    rcb = streamInUtf8_markToCurrentb(streamInp);
+    rcb = streamInUtf8_currentFromMarkedb(streamInp);
   }
 
   return rcb;

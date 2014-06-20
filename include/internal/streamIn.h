@@ -129,17 +129,17 @@ streamInBool_t streamIn_nextBufferb(streamIn_t *streamInp, size_t *indexBufferip
 /************************************************************************************************************************************
    UTF-8 oriented methods : all boolean methods will return STREAMIN_BOOL_FALSE is the called constructor was not streamInUtf8_newp()
 *************************************************************************************************************************************/
-streamIn_t    *streamInUtf8_newp          (streamInOption_t *streamInOptionp, streamInUtf8Option_t *streamInUtf8Optionp);
-streamInBool_t streamInUtf8_optionDefaultb(streamInUtf8Option_t *streamInUtf8Optionp);
+streamIn_t    *streamInUtf8_newp              (streamInOption_t *streamInOptionp, streamInUtf8Option_t *streamInUtf8Optionp);
+streamInBool_t streamInUtf8_optionDefaultb    (streamInUtf8Option_t *streamInUtf8Optionp);
 /* Options at the utf8 level cannot be changed after streamInUtf8_newp() */
-streamInBool_t streamInUtf8_fromEncodings (streamIn_t *streamInp, char **fromEncodingsp);                           /* Get input encoding */
-streamInBool_t streamInUtf8_toEncodings   (streamIn_t *streamInp, char **toEncodingsp);                             /* Get output encoding */
-signed int     streamInUtf8_currenti      (streamIn_t *streamInp);                                                  /* Get current utf8. -1 means EOF.  */
-signed int     streamInUtf8_nexti         (streamIn_t *streamInp);                                                  /* Get next utf8. Moves current by one. -1 means EOF.  */
-streamInBool_t streamInUtf8_markb         (streamIn_t *streamInp);                                                  /* Mark current utf8 */
-streamInBool_t streamInUtf8_markPreviousb (streamIn_t *streamInp);                                                  /* Mark previous utf8 */
-streamInBool_t streamInUtf8_doneb         (streamIn_t *streamInp);                                                  /* Say marked utf8 is done */
+streamInBool_t streamInUtf8_fromEncodings     (streamIn_t *streamInp, char **fromEncodingsp);                           /* Get input encoding */
+streamInBool_t streamInUtf8_toEncodings       (streamIn_t *streamInp, char **toEncodingsp);                             /* Get output encoding */
+signed int     streamInUtf8_currenti          (streamIn_t *streamInp);                                                  /* Get current utf8. -1 means EOF.  */
+signed int     streamInUtf8_nexti             (streamIn_t *streamInp);                                                  /* Get next utf8. Moves current by one. -1 means EOF.  */
+streamInBool_t streamInUtf8_markb             (streamIn_t *streamInp);                                                  /* Mark current utf8 */
+streamInBool_t streamInUtf8_markPreviousb     (streamIn_t *streamInp);                                                  /* Mark previous utf8 */
+streamInBool_t streamInUtf8_doneb             (streamIn_t *streamInp);                                                  /* Say marked utf8 is done */
 /* Behaviour is undefined if you use streamInUtf8_doneb() between calles to mark and markToCurrent */
-streamInBool_t streamInUtf8_markToCurrentb(streamIn_t *streamInp);                                                  /* Set marked utf8 as current */
+streamInBool_t streamInUtf8_currentFromMarkedb(streamIn_t *streamInp);                                                  /* Set marked utf8 as current */
 
 #endif /* MARPAXML_INTERNAL_STREAMIN_H */

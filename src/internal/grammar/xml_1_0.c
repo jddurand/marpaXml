@@ -7654,7 +7654,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex041b(xml_1_0_t *xml_1_0p, signed
       }
       got = streamInUtf8_nexti(streamInp);
     } while (++i < 3);
-    rcb = streamInUtf8_markToCurrentb(streamInp);
+    rcb = streamInUtf8_currentFromMarkedb(streamInp);
   }
 
   return rcb;
@@ -7682,7 +7682,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex042b(xml_1_0_t *xml_1_0p, signed
       }
       got = streamInUtf8_nexti(streamInp);
     } while (++i < 4);
-    rcb = streamInUtf8_markToCurrentb(streamInp);
+    rcb = streamInUtf8_currentFromMarkedb(streamInp);
   }
 
   return rcb;
@@ -7709,7 +7709,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex043b(xml_1_0_t *xml_1_0p, signed
       }
       got = streamInUtf8_nexti(streamInp);
     } while (++i < 3);
-    rcb = streamInUtf8_markToCurrentb(streamInp);
+    rcb = streamInUtf8_currentFromMarkedb(streamInp);
   }
 
   return rcb;
@@ -7735,7 +7735,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex044b(xml_1_0_t *xml_1_0p, signed
       }
       got = streamInUtf8_nexti(streamInp);
     } while (++i < 2);
-    rcb = streamInUtf8_markToCurrentb(streamInp);
+    rcb = streamInUtf8_currentFromMarkedb(streamInp);
   }
 
   return rcb;
@@ -7761,7 +7761,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex045b(xml_1_0_t *xml_1_0p, signed
       }
       got = streamInUtf8_nexti(streamInp);
     } while (++i < 2);
-    rcb = streamInUtf8_markToCurrentb(streamInp);
+    rcb = streamInUtf8_currentFromMarkedb(streamInp);
   }
 
   return rcb;
@@ -7830,7 +7830,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex052b(xml_1_0_t *xml_1_0p, signed
       }
       got = streamInUtf8_nexti(streamInp);
     } while (++i < 9);
-    rcb = streamInUtf8_markToCurrentb(streamInp);
+    rcb = streamInUtf8_currentFromMarkedb(streamInp);
   }
 
   return rcb;
@@ -7859,7 +7859,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex053b(xml_1_0_t *xml_1_0p, signed
       }
       got = streamInUtf8_nexti(streamInp);
     } while (++i < 5);
-    rcb = streamInUtf8_markToCurrentb(streamInp);
+    rcb = streamInUtf8_currentFromMarkedb(streamInp);
   }
 
   return rcb;
@@ -7890,7 +7890,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex054b(xml_1_0_t *xml_1_0p, signed
       }
       got = streamInUtf8_nexti(streamInp);
     } while (++i < 7);
-    rcb = streamInUtf8_markToCurrentb(streamInp);
+    rcb = streamInUtf8_currentFromMarkedb(streamInp);
   }
 
   return rcb;
@@ -7922,7 +7922,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex056b(xml_1_0_t *xml_1_0p, signed
       }
       got = streamInUtf8_nexti(streamInp);
     } while (++i < 2);
-    rcb = streamInUtf8_markToCurrentb(streamInp);
+    rcb = streamInUtf8_currentFromMarkedb(streamInp);
   }
 
   return rcb;
@@ -7955,7 +7955,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex057b(xml_1_0_t *xml_1_0p, signed
       }
       got = streamInUtf8_nexti(streamInp);
     } while (++i < 9);
-    rcb = streamInUtf8_markToCurrentb(streamInp);
+    rcb = streamInUtf8_currentFromMarkedb(streamInp);
   }
 
   return rcb;
@@ -8007,7 +8007,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex061b(xml_1_0_t *xml_1_0p, signed
       }
       got = streamInUtf8_nexti(streamInp);
     } while (++i < 10);
-    rcb = streamInUtf8_markToCurrentb(streamInp);
+    rcb = streamInUtf8_currentFromMarkedb(streamInp);
   }
 
   return rcb;
@@ -8034,7 +8034,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex062b(xml_1_0_t *xml_1_0p, signed
       }
       got = streamInUtf8_nexti(streamInp);
     } while (++i < 3);
-    rcb = streamInUtf8_markToCurrentb(streamInp);
+    rcb = streamInUtf8_currentFromMarkedb(streamInp);
   }
 
   return rcb;
@@ -8060,7 +8060,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex063b(xml_1_0_t *xml_1_0p, signed
       }
       got = streamInUtf8_nexti(streamInp);
     } while (++i < 2);
-    rcb = streamInUtf8_markToCurrentb(streamInp);
+    rcb = streamInUtf8_currentFromMarkedb(streamInp);
   }
 
   return rcb;
@@ -8092,7 +8092,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex065b(xml_1_0_t *xml_1_0p, signed
       }
       got = streamInUtf8_nexti(streamInp);
     } while (++i < 2);
-    rcb = streamInUtf8_markToCurrentb(streamInp);
+    rcb = streamInUtf8_currentFromMarkedb(streamInp);
   }
 
   return rcb;
@@ -8118,7 +8118,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex066b(xml_1_0_t *xml_1_0p, signed
       }
       got = streamInUtf8_nexti(streamInp);
     } while (++i < 2);
-    rcb = streamInUtf8_markToCurrentb(streamInp);
+    rcb = streamInUtf8_currentFromMarkedb(streamInp);
   }
 
   return rcb;
@@ -8151,7 +8151,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex067b(xml_1_0_t *xml_1_0p, signed
       }
       got = streamInUtf8_nexti(streamInp);
     } while (++i < 9);
-    rcb = streamInUtf8_markToCurrentb(streamInp);
+    rcb = streamInUtf8_currentFromMarkedb(streamInp);
   }
 
   return rcb;
@@ -8180,7 +8180,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex068b(xml_1_0_t *xml_1_0p, signed
       }
       got = streamInUtf8_nexti(streamInp);
     } while (++i < 5);
-    rcb = streamInUtf8_markToCurrentb(streamInp);
+    rcb = streamInUtf8_currentFromMarkedb(streamInp);
   }
 
   return rcb;
@@ -8207,7 +8207,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex069b(xml_1_0_t *xml_1_0p, signed
       }
       got = streamInUtf8_nexti(streamInp);
     } while (++i < 3);
-    rcb = streamInUtf8_markToCurrentb(streamInp);
+    rcb = streamInUtf8_currentFromMarkedb(streamInp);
   }
 
   return rcb;
@@ -8280,7 +8280,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex077b(xml_1_0_t *xml_1_0p, signed
       }
       got = streamInUtf8_nexti(streamInp);
     } while (++i < 7);
-    rcb = streamInUtf8_markToCurrentb(streamInp);
+    rcb = streamInUtf8_currentFromMarkedb(streamInp);
   }
 
   return rcb;
@@ -8306,7 +8306,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex078b(xml_1_0_t *xml_1_0p, signed
       }
       got = streamInUtf8_nexti(streamInp);
     } while (++i < 2);
-    rcb = streamInUtf8_markToCurrentb(streamInp);
+    rcb = streamInUtf8_currentFromMarkedb(streamInp);
   }
 
   return rcb;
@@ -8339,7 +8339,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex079b(xml_1_0_t *xml_1_0p, signed
       }
       got = streamInUtf8_nexti(streamInp);
     } while (++i < 9);
-    rcb = streamInUtf8_markToCurrentb(streamInp);
+    rcb = streamInUtf8_currentFromMarkedb(streamInp);
   }
 
   return rcb;
@@ -8368,7 +8368,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex080b(xml_1_0_t *xml_1_0p, signed
       }
       got = streamInUtf8_nexti(streamInp);
     } while (++i < 5);
-    rcb = streamInUtf8_markToCurrentb(streamInp);
+    rcb = streamInUtf8_currentFromMarkedb(streamInp);
   }
 
   return rcb;
@@ -8394,7 +8394,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex081b(xml_1_0_t *xml_1_0p, signed
       }
       got = streamInUtf8_nexti(streamInp);
     } while (++i < 2);
-    rcb = streamInUtf8_markToCurrentb(streamInp);
+    rcb = streamInUtf8_currentFromMarkedb(streamInp);
   }
 
   return rcb;
@@ -8423,7 +8423,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex082b(xml_1_0_t *xml_1_0p, signed
       }
       got = streamInUtf8_nexti(streamInp);
     } while (++i < 5);
-    rcb = streamInUtf8_markToCurrentb(streamInp);
+    rcb = streamInUtf8_currentFromMarkedb(streamInp);
   }
 
   return rcb;
@@ -8453,7 +8453,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex083b(xml_1_0_t *xml_1_0p, signed
       }
       got = streamInUtf8_nexti(streamInp);
     } while (++i < 6);
-    rcb = streamInUtf8_markToCurrentb(streamInp);
+    rcb = streamInUtf8_currentFromMarkedb(streamInp);
   }
 
   return rcb;
@@ -8483,7 +8483,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex084b(xml_1_0_t *xml_1_0p, signed
       }
       got = streamInUtf8_nexti(streamInp);
     } while (++i < 6);
-    rcb = streamInUtf8_markToCurrentb(streamInp);
+    rcb = streamInUtf8_currentFromMarkedb(streamInp);
   }
 
   return rcb;
@@ -8515,7 +8515,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex085b(xml_1_0_t *xml_1_0p, signed
       }
       got = streamInUtf8_nexti(streamInp);
     } while (++i < 8);
-    rcb = streamInUtf8_markToCurrentb(streamInp);
+    rcb = streamInUtf8_currentFromMarkedb(streamInp);
   }
 
   return rcb;
@@ -8546,7 +8546,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex086b(xml_1_0_t *xml_1_0p, signed
       }
       got = streamInUtf8_nexti(streamInp);
     } while (++i < 7);
-    rcb = streamInUtf8_markToCurrentb(streamInp);
+    rcb = streamInUtf8_currentFromMarkedb(streamInp);
   }
 
   return rcb;
@@ -8578,7 +8578,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex087b(xml_1_0_t *xml_1_0p, signed
       }
       got = streamInUtf8_nexti(streamInp);
     } while (++i < 8);
-    rcb = streamInUtf8_markToCurrentb(streamInp);
+    rcb = streamInUtf8_currentFromMarkedb(streamInp);
   }
 
   return rcb;
@@ -8610,7 +8610,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex088b(xml_1_0_t *xml_1_0p, signed
       }
       got = streamInUtf8_nexti(streamInp);
     } while (++i < 8);
-    rcb = streamInUtf8_markToCurrentb(streamInp);
+    rcb = streamInUtf8_currentFromMarkedb(streamInp);
   }
 
   return rcb;
@@ -8643,7 +8643,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex089b(xml_1_0_t *xml_1_0p, signed
       }
       got = streamInUtf8_nexti(streamInp);
     } while (++i < 9);
-    rcb = streamInUtf8_markToCurrentb(streamInp);
+    rcb = streamInUtf8_currentFromMarkedb(streamInp);
   }
 
   return rcb;
@@ -8675,7 +8675,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex090b(xml_1_0_t *xml_1_0p, signed
       }
       got = streamInUtf8_nexti(streamInp);
     } while (++i < 8);
-    rcb = streamInUtf8_markToCurrentb(streamInp);
+    rcb = streamInUtf8_currentFromMarkedb(streamInp);
   }
 
   return rcb;
@@ -8705,7 +8705,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex091b(xml_1_0_t *xml_1_0p, signed
       }
       got = streamInUtf8_nexti(streamInp);
     } while (++i < 6);
-    rcb = streamInUtf8_markToCurrentb(streamInp);
+    rcb = streamInUtf8_currentFromMarkedb(streamInp);
   }
 
   return rcb;
@@ -8732,7 +8732,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex092b(xml_1_0_t *xml_1_0p, signed
       }
       got = streamInUtf8_nexti(streamInp);
     } while (++i < 3);
-    rcb = streamInUtf8_markToCurrentb(streamInp);
+    rcb = streamInUtf8_currentFromMarkedb(streamInp);
   }
 
   return rcb;
@@ -8763,7 +8763,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex093b(xml_1_0_t *xml_1_0p, signed
       }
       got = streamInUtf8_nexti(streamInp);
     } while (++i < 7);
-    rcb = streamInUtf8_markToCurrentb(streamInp);
+    rcb = streamInUtf8_currentFromMarkedb(streamInp);
   }
 
   return rcb;
@@ -8793,7 +8793,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex094b(xml_1_0_t *xml_1_0p, signed
       }
       got = streamInUtf8_nexti(streamInp);
     } while (++i < 6);
-    rcb = streamInUtf8_markToCurrentb(streamInp);
+    rcb = streamInUtf8_currentFromMarkedb(streamInp);
   }
 
   return rcb;
@@ -8819,7 +8819,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex095b(xml_1_0_t *xml_1_0p, signed
       }
       got = streamInUtf8_nexti(streamInp);
     } while (++i < 2);
-    rcb = streamInUtf8_markToCurrentb(streamInp);
+    rcb = streamInUtf8_currentFromMarkedb(streamInp);
   }
 
   return rcb;
@@ -8852,7 +8852,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex097b(xml_1_0_t *xml_1_0p, signed
       }
       got = streamInUtf8_nexti(streamInp);
     } while (++i < 3);
-    rcb = streamInUtf8_markToCurrentb(streamInp);
+    rcb = streamInUtf8_currentFromMarkedb(streamInp);
   }
 
   return rcb;
@@ -8904,7 +8904,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex101b(xml_1_0_t *xml_1_0p, signed
       }
       got = streamInUtf8_nexti(streamInp);
     } while (++i < 8);
-    rcb = streamInUtf8_markToCurrentb(streamInp);
+    rcb = streamInUtf8_currentFromMarkedb(streamInp);
   }
 
   return rcb;
@@ -8934,7 +8934,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex102b(xml_1_0_t *xml_1_0p, signed
       }
       got = streamInUtf8_nexti(streamInp);
     } while (++i < 6);
-    rcb = streamInUtf8_markToCurrentb(streamInp);
+    rcb = streamInUtf8_currentFromMarkedb(streamInp);
   }
 
   return rcb;
@@ -8964,7 +8964,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex103b(xml_1_0_t *xml_1_0p, signed
       }
       got = streamInUtf8_nexti(streamInp);
     } while (++i < 6);
-    rcb = streamInUtf8_markToCurrentb(streamInp);
+    rcb = streamInUtf8_currentFromMarkedb(streamInp);
   }
 
   return rcb;
@@ -8993,7 +8993,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex104b(xml_1_0_t *xml_1_0p, signed
       }
       got = streamInUtf8_nexti(streamInp);
     } while (++i < 5);
-    rcb = streamInUtf8_markToCurrentb(streamInp);
+    rcb = streamInUtf8_currentFromMarkedb(streamInp);
   }
 
   return rcb;
@@ -9025,7 +9025,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex105b(xml_1_0_t *xml_1_0p, signed
       }
       got = streamInUtf8_nexti(streamInp);
     } while (++i < 8);
-    rcb = streamInUtf8_markToCurrentb(streamInp);
+    rcb = streamInUtf8_currentFromMarkedb(streamInp);
   }
 
   return rcb;
@@ -9076,7 +9076,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex108b(xml_1_0_t *xml_1_0p, signed
       }
       got = streamInUtf8_nexti(streamInp);
     } while (++i < 10);
-    rcb = streamInUtf8_markToCurrentb(streamInp);
+    rcb = streamInUtf8_currentFromMarkedb(streamInp);
   }
 
   return rcb;
