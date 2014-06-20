@@ -1,3 +1,6 @@
+/****************************/
+/* This is a generated file */
+/****************************/
 #include <stdlib.h>
 #include <errno.h>
 #include "internal/streamIn.h"
