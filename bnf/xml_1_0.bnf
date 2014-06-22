@@ -1,17 +1,67 @@
 /*
-  The only compatible deviation from the original is:
+  The only compatible deviation from the original are:
+
   [13]  PubidChar ::= #x20 | #xD | #xA | [a-zA-Z0-9] | [-'()+,./:=?;!*#@$_%]
   replaced by
   [13]  PubidChar ::= #x20 | #xD | #xA | [a-zA-Z0-9] | [\-'()+,./:=?;!*#@$_%]
+
+  For efficiency, and because these are truely lexemes:
+
+  Some rules have a RULESEP separator as '~' instead of '::='. All generated rules
+  for lexemes have hardcoded '~', all generated rules for G1 have hardcoded '::='.
+  "Inaccessible" lexemes are used as helpers for hand-writen cases.
+  
+  Char is rewriten from
+  [2]   Char ::= #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF]
+  to
+  [2]   Char ::= [#x9#xA#xD#x20-#xD7FF#xE000-#xFFFD#x10000-#x10FFFF]
+
+  S is rewriten from
+  [3]   S ::= (#x20 | #x9 | #xD | #xA)+
+  to
+  [3]   S ::= [#x20#x9#xD#xA]+
+
+  NameStartChar is rewriten from
+  [4]   NameStartChar ::= ":" | [A-Z] | "_" | [a-z] | [#xC0-#xD6] | [#xD8-#xF6] | [#xF8-#x2FF] | [#x370-#x37D] | [#x37F-#x1FFF] | [#x200C-#x200D] | [#x2070-#x218F] | [#x2C00-#x2FEF] | [#x3001-#xD7FF] | [#xF900-#xFDCF] | [#xFDF0-#xFFFD] | [#x10000-#xEFFFF]
+  to
+  [4]   NameStartChar ::= [:A-Z_a-z#xC0-#xD6#xD8-#xF6#xF8-#x2FF#x370-#x37D#x37F-#x1FFF#x200C-#x200D#x2070-#x218F#x2C00-#x2FEF#x3001-#xD7FF#xF900-#xFDCF#xFDF0-#xFFFD#x10000-#xEFFFF]
+
+  NameChar is rewritem from
+  [4a]  NameChar ::= NameStartChar | "-" | "." | [0-9] | #xB7 | [#x0300-#x036F] | [#x203F-#x2040]
+  to
+  [4a]  NameChar ::= NameStartChar | [\-.0-9#xB7#x0300-#x036F#x203F-#x2040]
+
+  PudidChar is rewriten from
+  [13]  PubidChar ::= #x20 | #xD | #xA | [a-zA-Z0-9] | [\-'()+,./:=?;!*#@$_%]
+  to
+  [13]  PubidChar ::= [a-zA-Z0-9\-'()+,./:=?;!*#@$_%#x20#xD#xA]
+
+  [7]   Nmtoken ::= (NameChar)+
+  is rewriten to
+  [7]   Nmtoken ~ NameChar+
+
+  As confirmed by http://www.cs.ust.hk/~dwood/preprints/xmlRulesRewritten.htm, XML grammar
+  start symbol is: document | extParsedEnt | extSubset
+
 */
+[0]   start ::= document | extParsedEnt | extSubset
 [1]   document ::= prolog element Misc*
-[2]   Char ::= #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF] /* any Unicode character, excluding the surrogate blocks, FFFE, and FFFF. */
-[3]   S ::= (#x20 | #x9 | #xD | #xA)+
-[4]   NameStartChar ::= ":" | [A-Z] | "_" | [a-z] | [#xC0-#xD6] | [#xD8-#xF6] | [#xF8-#x2FF] | [#x370-#x37D] | [#x37F-#x1FFF] | [#x200C-#x200D] | [#x2070-#x218F] | [#x2C00-#x2FEF] | [#x3001-#xD7FF] | [#xF900-#xFDCF] | [#xFDF0-#xFFFD] | [#x10000-#xEFFFF]
-[4a]  NameChar ::= NameStartChar | "-" | "." | [0-9] | #xB7 | [#x0300-#x036F] | [#x203F-#x2040]
-[5]   Name ::= NameStartChar (NameChar)*
+
+/* [2]   Char ::= #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF] */ /* any Unicode character, excluding the surrogate blocks, FFFE, and FFFF. */
+[2]   Char ~ [#x9#xA#xD#x20-#xD7FF#xE000-#xFFFD#x10000-#x10FFFF] /* any Unicode character, excluding the surrogate blocks, FFFE, and FFFF. */
+
+/* [3]   S ::= (#x20 | #x9 | #xD | #xA)+ */
+[3]   S ~ [#x20#x9#xD#xA]+
+
+/* [4]   NameStartChar ::= ":" | [A-Z] | "_" | [a-z] | [#xC0-#xD6] | [#xD8-#xF6] | [#xF8-#x2FF] | [#x370-#x37D] | [#x37F-#x1FFF] | [#x200C-#x200D] | [#x2070-#x218F] | [#x2C00-#x2FEF] | [#x3001-#xD7FF] | [#xF900-#xFDCF] | [#xFDF0-#xFFFD] | [#x10000-#xEFFFF] */
+[4]   NameStartChar ~ [:A-Z_a-z#xC0-#xD6#xD8-#xF6#xF8-#x2FF#x370-#x37D#x37F-#x1FFF#x200C-#x200D#x2070-#x218F#x2C00-#x2FEF#x3001-#xD7FF#xF900-#xFDCF#xFDF0-#xFFFD#x10000-#xEFFFF]
+
+/* [4a]  NameChar ::= NameStartChar | "-" | "." | [0-9] | #xB7 | [#x0300-#x036F] | [#x203F-#x2040] */
+[4a]  NameChar ~ NameStartChar | [\-.0-9#xB7#x0300-#x036F#x203F-#x2040]
+[5]   Name ~ NameStartChar (NameChar)*
 [6]   Names ::= Name (#x20 Name)*
-[7]   Nmtoken ::= (NameChar)+
+/* [7]   Nmtoken ::= (NameChar)+ */
+[7]   Nmtoken ~ (NameChar)+
 [8]   Nmtokens ::= Nmtoken (#x20 Nmtoken)*
 [9]   EntityValue ::= '"' ([^%&"] | PEReference | Reference)* '"'
     |  "'" ([^%&'] | PEReference | Reference)* "'"
@@ -19,9 +69,15 @@
    |  "'" ([^<&'] | Reference)* "'"
 [11]  SystemLiteral ::= ('"' [^"]* '"') | ("'" [^']* "'")
 [12]  PubidLiteral ::= '"' PubidChar* '"' | "'" (PubidChar - "'")* "'"
-[13]  PubidChar ::= #x20 | #xD | #xA | [a-zA-Z0-9] | [\-'()+,./:=?;!*#@$_%]
+
+/* [13]  PubidChar ::= #x20 | #xD | #xA | [a-zA-Z0-9] | [\-'()+,./:=?;!*#@$_%] */
+[13]  PubidChar ::= [a-zA-Z0-9\-'()+,./:=?;!*#@$_%#x20#xD#xA]
+
 [14]  CharData ::= [^<&]* - ([^<&]* ']]>' [^<&]*)
-[15]  Comment ::= '<!--' ((Char - '-') | ('-' (Char - '-')))* '-->'
+
+/* [15]  Comment ::= '<!--' ((Char - '-') | ('-' (Char - '-')))* '-->' */
+[15]  Comment ::= '<!--' Char* '-->'
+
 [16]  PI ::= '<?' PITarget (S (Char* - (Char* '?>' Char*)))? '?>'
 [17]  PITarget ::= Name - (('X' | 'x') ('M' | 'm') ('L' | 'l'))
 [18]  CDSect ::= CDStart CData CDEnd
