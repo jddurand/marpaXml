@@ -14,9 +14,11 @@ typedef enum xml_common_top {
 /* All XML sources may be, or use, a DTD. A DTD can be: */
 /* - internal (intSubset)                               */
 /* - external (ExternalID's value must match extSubset) */
+/* - parsed (extParsedEnt)                              */
 typedef enum xml_common_dtdType {
   XML_COMMON_DTDTYPE_INTERNAL,
-  XML_COMMON_DTDTYPE_EXTERNAL
+  XML_COMMON_DTDTYPE_EXTERNAL,
+  XML_COMMON_DTDTYPE_PARSED,
 } xml_common_dtdType_t;
 
 /* We define structures that correspond to the DTD hierarchy, i.e.: */
