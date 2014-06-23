@@ -7,7 +7,7 @@
 
 typedef struct xml_1_0 xml_1_0_t;
 
-xml_1_0_t *xml_1_0_newp(marpaWrapperOption_t *marpaWrapperOptionp, xml_commonOption_t *xml_commonOptionp);
+xml_1_0_t *xml_1_0_newp(marpaWrapperOption_t *marpaWrapperOptionp, xml_common_option_t *xml_common_optionp);
 void       xml_1_0_destroyv(xml_1_0_t **xml_1_0pp);
 
 #endif /* MARPAXML_INTERNAL_GRAMMAR_XML_1_0_H */

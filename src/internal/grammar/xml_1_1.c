@@ -1302,7 +1302,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_1__Lex086b(xml_1_1_t *xml_1_1p, signed
 /*******************/
 /* xml_1_1_newp  */
 /*******************/
-xml_1_1_t *xml_1_1_newp(marpaWrapperOption_t *marpaWrapperOptionp, xml_commonOption_t *xml_commonOptionp) {
+xml_1_1_t *xml_1_1_newp(marpaWrapperOption_t *marpaWrapperOptionp, xml_common_option_t *xml_common_optionp) {
   xml_1_1_t           *xml_1_1p;
   marpaWrapperOption_t marpaWrapperOption;
 

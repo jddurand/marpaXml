@@ -460,9 +460,8 @@ INCLUDES
   $c .= generateTypedef(@_);
 
   $c .= <<DECLARATIONS;
-static C_INLINE marpaWrapperBool_t _${namespace}_buildGrammarb(${namespace}_t *${namespace}p, marpaWrapperOption_t *marpaWrapperOptionp);
-static C_INLINE marpaWrapperBool_t _${namespace}_buildSymbolsb(${namespace}_t *${namespace}p);
-static C_INLINE marpaWrapperBool_t _${namespace}_buildSymbols_withStartb(${namespace}_t *${namespace}p, int starti);
+static C_INLINE marpaWrapperBool_t _${namespace}_buildGrammarb(${namespace}_t *${namespace}p, marpaWrapperOption_t *marpaWrapperOptionp, xml_common_option_t *xml_common_optionp);
+static C_INLINE marpaWrapperBool_t _${namespace}_buildSymbolsb(${namespace}_t *${namespace}p, marpaWrapperOption_t *marpaWrapperOptionp, xml_common_option_t *xml_common_optionp);
 static C_INLINE marpaWrapperBool_t _${namespace}_buildRulesb(${namespace}_t *${namespace}p);
 static C_INLINE marpaWrapperBool_t _${namespace}_isLexemeb(void *p, signed int currenti, streamIn_t *streamInp, size_t *sizelp);
 DECLARATIONS
@@ -605,7 +604,7 @@ sub generateNewp {
 /*******************/
 /* ${namespace}_newp  */
 /*******************/
-${namespace}_t *${namespace}_newp(marpaWrapperOption_t *marpaWrapperOptionp, xml_commonOption_t *xml_commonOptionp) {
+${namespace}_t *${namespace}_newp(marpaWrapperOption_t *marpaWrapperOptionp, xml_common_option_t *xml_common_optionp) {
   ${namespace}_t           *${namespace}p;
   marpaWrapperOption_t marpaWrapperOption;
 
@@ -614,6 +613,19 @@ ${namespace}_t *${namespace}_newp(marpaWrapperOption_t *marpaWrapperOptionp, xml
     marpaWrapper_optionDefaultb(&marpaWrapperOption);
   } else {
     marpaWrapperOption = *marpaWrapperOptionp;
+  }
+
+  /* xml_common_optionp is internal and should always be setted */
+  if (xml_common_optionp == NULL) {
+    marpaWrapper_logExt(marpaWrapperOption.logCallbackp,
+		        marpaWrapperOption.logCallbackDatavp,
+		        NULL,
+		        marpaWrapperOption.logLevelWantedi,
+		        MARPAWRAPPERERRORORIGIN_NA,
+		        errno,
+		        "Missing xml_common_optionp",
+		        MARPAWRAPPER_LOGLEVEL_ERROR);
+    return NULL;
   }
 
   ${namespace}p = malloc(sizeof(${namespace}_t));
@@ -637,7 +649,7 @@ ${namespace}_t *${namespace}_newp(marpaWrapperOption_t *marpaWrapperOptionp, xml
   ${namespace}p->marpaWrapperSymbolCallbackArrayp = NULL;
   ${namespace}p->marpaWrapperSymbolCallbackArrayLengthi = 0;
 
-  if (_${namespace}_buildGrammarb(${namespace}p, &marpaWrapperOption) == MARPAWRAPPER_BOOL_FALSE) {
+  if (_${namespace}_buildGrammarb(${namespace}p, &marpaWrapperOption, xml_common_optionp) == MARPAWRAPPER_BOOL_FALSE) {
     ${namespace}_destroyv(&${namespace}p);
   }
 
@@ -690,14 +702,14 @@ sub generateBuildGrammarb {
 /**************************/
 /* _${namespace}_buildGrammarb */
 /**************************/
-static C_INLINE marpaWrapperBool_t _${namespace}_buildGrammarb(${namespace}_t *${namespace}p, marpaWrapperOption_t *marpaWrapperOptionp) {
+static C_INLINE marpaWrapperBool_t _${namespace}_buildGrammarb(${namespace}_t *${namespace}p, marpaWrapperOption_t *marpaWrapperOptionp, xml_common_option_t *xml_common_optionp) {
 
   ${namespace}p->marpaWrapperp = marpaWrapper_newp(marpaWrapperOptionp);
   if (${namespace}p->marpaWrapperp == NULL) {
     return MARPAWRAPPER_BOOL_FALSE;
   }
 
-  if (_${namespace}_buildSymbolsb(${namespace}p) == MARPAWRAPPER_BOOL_FALSE) {
+  if (_${namespace}_buildSymbolsb(${namespace}p, marpaWrapperOptionp, xml_common_optionp) == MARPAWRAPPER_BOOL_FALSE) {
     return MARPAWRAPPER_BOOL_FALSE;
   }
 
@@ -725,14 +737,7 @@ sub generateBuildSymbolsb {
 /**************************/
 /* _${namespace}_buildSymbolsb */
 /**************************/
-static C_INLINE marpaWrapperBool_t _${namespace}_buildSymbolsb(${namespace}_t *${namespace}p) {
-  return _${namespace}_buildSymbols_withStartb(${namespace}p, ${namespace}_$value->{start}->{rule});
-}
-
-/**************************/
-/* _${namespace}_buildSymbols_withStartb */
-/**************************/
-static C_INLINE marpaWrapperBool_t _${namespace}_buildSymbols_withStartb(${namespace}_t *${namespace}p, int starti) {
+static C_INLINE marpaWrapperBool_t _${namespace}_buildSymbolsb(${namespace}_t *${namespace}p, marpaWrapperOption_t *marpaWrapperOptionp, xml_common_option_t *xml_common_optionp) {
   int                        i;
   marpaWrapperSymbolOption_t marpaWrapperSymbolOption;
 
@@ -765,7 +770,28 @@ static C_INLINE marpaWrapperBool_t _${namespace}_buildSymbols_withStartb(${names
     marpaWrapperSymbolOption.terminalb = (i <= ${NAMESPACE}_TERMINAL_MAX) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
 
     /* Start rule ? */
-    marpaWrapperSymbolOption.startb = (i == starti) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
+    switch (xml_common_optionp->xml_common_topi) {
+      case XML_COMMON_TOP_DOCUMENT:
+        marpaWrapperSymbolOption.startb = (i == ${namespace}_document) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
+        break;
+      case XML_COMMON_TOP_EXTPARSEDENT:
+        marpaWrapperSymbolOption.startb = (i == ${namespace}_extParsedEnt) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
+        break;
+      case XML_COMMON_TOP_EXTSUBSET:
+        marpaWrapperSymbolOption.startb = (i == ${namespace}_extSubset) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
+        break;
+      default:
+        marpaWrapper_logExt(marpaWrapperOptionp->logCallbackp,
+                            marpaWrapperOptionp->logCallbackDatavp,
+                            ${namespace}p->marpaWrapperp,
+                            marpaWrapperOptionp->logLevelWantedi,
+                            MARPAWRAPPERERRORORIGIN_NA,
+                            EINVAL,
+                            "Bad top-level symbol()",
+                            MARPAWRAPPER_LOGLEVEL_ERROR);
+        return MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
 
     /* Create the symbol */
     ${namespace}p->marpaWrapperSymbolArrayp[i] = marpaWrapper_g_addSymbolp(${namespace}p->marpaWrapperp, &marpaWrapperSymbolOption);

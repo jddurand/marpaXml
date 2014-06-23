@@ -57,6 +57,7 @@ INCLUDE_DIRECTORIES (${LIBCHARSETDETECT_SRC})
 # ---------------------------
 # Specific to Windows, does not hurt to set it in any case
 ADD_DEFINITIONS("-D_CRT_SECURE_NO_WARNINGS")
+ADD_DEFINITIONS("-D_CRT_NONSTDC_NO_DEPRECATE")
 
 SET (CMAKE_C_FLAGS             "${CMAKE_C_FLAGS} $ENV{CFLAGS} ${ICU_CPP_FLAGS} ${ICU_C_FLAGS}")
 SET (CMAKE_CXX_FLAGS           "${CMAKE_CXX_FLAGS} $ENV{CXXFLAGS} ${ICU_CPP_FLAGS} ${ICU_CXX_FLAGS}")
@@ -121,6 +122,7 @@ ADD_LIBRARY (marpaXmlInternal
   ${PROJECT_SOURCE_DIR}/src/internal/marpaWrapper.c
   ${PROJECT_SOURCE_DIR}/src/internal/messageBuilder.c
   ${PROJECT_SOURCE_DIR}/src/internal/streamIn.c
+  ${PROJECT_SOURCE_DIR}/src/internal/grammar/xml_common.c
   ${PROJECT_SOURCE_DIR}/src/internal/grammar/xml_1_0.c
   ${PROJECT_SOURCE_DIR}/src/internal/grammar/xml_1_1.c
   )
