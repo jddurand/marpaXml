@@ -37,6 +37,7 @@
   [13]   	PubidChar	   ::=   	[a-zA-Z0-9\-'()+,./:=?;!*#@$_%#x20#xD#xA]
 */
 
+[0]   start ::= document | extParsedEnt | extSubset
 [1]   	document	   ::=   	( prolog element Misc* ) - ( Char* RestrictedChar Char* ) 
 
 /* [2]   	Char	   ::=   	[#x1-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF] */	/* any Unicode character, excluding the surrogate blocks, FFFE, and FFFF. */

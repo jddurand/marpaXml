@@ -21,7 +21,6 @@ our $LEXEME_HEXMANY      = 3;
 package Actions;
 sub new() {
   my $self = {
-              quantifiers => {},
               rules => [],
               lexemes => {},
               lexemesExact => {},
@@ -129,6 +128,7 @@ sub _rules {
 	  
 	  my $rhs = $rule->{rhs}->[0];
 	  next if (! $self->{symbols}->{$rhs}->{terminal});
+	  next if (! exists($self->{lexemesExact}->{$rhs}));  # Then it is an exclusion, always done by hand
 
 	  my $ok = 1;
 	  foreach (0..$#{$self->{rules}}) {
@@ -1096,15 +1096,15 @@ BUILDRULESB_INNER1
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
 BUILDRULESB_INNER2
     }
-    if ($value->{quantifier} eq '*') {
+    if ($rule->{quantifier} eq '*') {
       $buildRulesb .= <<QUANTIFIER_STAR;
-      marpaWrapperRuleOption.sequenceb = MARPAWRAPPER_BOOL_TRUE;
-      marpaWrapperRuleOption.minimumi = 0;
+    marpaWrapperRuleOption.sequenceb = MARPAWRAPPER_BOOL_TRUE;
+    marpaWrapperRuleOption.minimumi = 0;
 QUANTIFIER_STAR
-    } elsif ($value->{quantifier} eq '+') {
+    } elsif ($rule->{quantifier} eq '+') {
       $buildRulesb .= <<QUANTIFIER_PLUS;
-      marpaWrapperRuleOption.sequenceb = MARPAWRAPPER_BOOL_TRUE;
-      marpaWrapperRuleOption.minimumi = 1;
+    marpaWrapperRuleOption.sequenceb = MARPAWRAPPER_BOOL_TRUE;
+    marpaWrapperRuleOption.minimumi = 1;
 QUANTIFIER_PLUS
     }
     $buildRulesb .= <<BUILDRULESB_GO;

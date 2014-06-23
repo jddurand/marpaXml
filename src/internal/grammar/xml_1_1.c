@@ -10,19 +10,21 @@
 typedef enum xml_1_1_symbol {
   /* Terminals */
   xml_1_1_CDStart = 0           , /* CDStart ~ '<![CDATA[' */
-  xml_1_1_CData                 , /* CData ~ 'Char_any - _Gen088' */
   xml_1_1_Char                  , /* Char ~ [\x{1}-\x{d7ff}\x{e000}-\x{fffd}\x{10000}-\x{10ffff}] */
-  xml_1_1_CharData              , /* CharData ~ '_Lex016_any - _Gen058' */
-  xml_1_1_Ignore                , /* Ignore ~ 'Char_any - _Gen239' */
   xml_1_1_NameStartChar         , /* NameStartChar ~ [:A-Z_a-z\x{c0}-\x{d6}\x{d8}-\x{f6}\x{f8}-\x{2ff}\x{370}-\x{37d}\x{37f}-\x{1fff}\x{200c}-\x{200d}\x{2070}-\x{218f}\x{2c00}-\x{2fef}\x{3001}-\x{d7ff}\x{f900}-\x{fdcf}\x{fdf0}-\x{fffd}\x{10000}-\x{effff}] */
-  xml_1_1_PITarget              , /* PITarget ~ 'Name - _Gen083' */
   xml_1_1_PubidChar             , /* PubidChar ~ [a-zA-Z0-9-'()+,./:=?;!*#@$_%\x{20}\x{d}\x{a}] */
   xml_1_1_RestrictedChar        , /* RestrictedChar ~ [\x{1}-\x{8}\x{b}-\x{c}\x{e}-\x{1f}\x{7f}-\x{84}\x{86}-\x{9f}] */
   xml_1_1_StringType            , /* StringType ~ 'CDATA' */
   xml_1_1_VersionNum            , /* VersionNum ~ '1.1' */
+  xml_1_1__Exclusion001         , /* _Exclusion001 ~ '_Gen005 - _Gen007' */
+  xml_1_1__Exclusion002         , /* _Exclusion002 ~ 'PubidChar - _Lex009' */
+  xml_1_1__Exclusion003         , /* _Exclusion003 ~ '_Lex016_any - _Gen061' */
   xml_1_1__Exclusion004         , /* _Exclusion004 ~ 'Char - _Lex019' */
-  xml_1_1__Gen052               , /* _Gen052 ~ 'PubidChar - _Lex009' */
-  xml_1_1__Gen072               , /* _Gen072 ~ 'Char_any - _Gen070' */
+  xml_1_1__Exclusion005         , /* _Exclusion005 ~ 'Char_any - _Gen073' */
+  xml_1_1__Exclusion006         , /* _Exclusion006 ~ 'Name - _Gen086' */
+  xml_1_1__Exclusion007         , /* _Exclusion007 ~ 'Char_any - _Gen091' */
+  xml_1_1__Exclusion008         , /* _Exclusion008 ~ 'Char_any - _Gen242' */
+  xml_1_1__Exclusion009         , /* _Exclusion009 ~ '_Gen270 - _Gen271' */
   xml_1_1__Lex003               , /* _Lex003 ~ [\x{20}\x{9}\x{d}\x{a}] */
   xml_1_1__Lex005               , /* _Lex005 ~ [-.0-9\x{b7}\x{300}-\x{36f}\x{203f}-\x{2040}] */
   xml_1_1__Lex006               , /* _Lex006 ~ [\x{20}] */
@@ -102,8 +104,6 @@ typedef enum xml_1_1_symbol {
   xml_1_1__Lex084               , /* _Lex084 ~ [A-Za-z] */
   xml_1_1__Lex085               , /* _Lex085 ~ [A-Za-z0-9._] */
   xml_1_1__Lex086               , /* _Lex086 ~ '<!NOTATION' */
-  xml_1_1_document              , /* document ~ '_Gen002 - _Gen004' */
-  xml_1_1_extParsedEnt          , /* extParsedEnt ~ '_Gen267 - _Gen268' */
   /* Non-terminals */
   xml_1_1_AttDef                ,
   xml_1_1_AttDef_any            ,
@@ -113,6 +113,8 @@ typedef enum xml_1_1_symbol {
   xml_1_1_Attribute             ,
   xml_1_1_CDEnd                 ,
   xml_1_1_CDSect                ,
+  xml_1_1_CData                 ,
+  xml_1_1_CharData              ,
   xml_1_1_CharData_maybe        ,
   xml_1_1_CharRef               ,
   xml_1_1_Char_any              ,
@@ -133,6 +135,7 @@ typedef enum xml_1_1_symbol {
   xml_1_1_Eq                    ,
   xml_1_1_ExternalID            ,
   xml_1_1_GEDecl                ,
+  xml_1_1_Ignore                ,
   xml_1_1_Misc                  ,
   xml_1_1_Misc_any              ,
   xml_1_1_Mixed                 ,
@@ -149,6 +152,7 @@ typedef enum xml_1_1_symbol {
   xml_1_1_PEDef                 ,
   xml_1_1_PEReference           ,
   xml_1_1_PI                    ,
+  xml_1_1_PITarget              ,
   xml_1_1_PubidChar_any         ,
   xml_1_1_PubidLiteral          ,
   xml_1_1_PublicID              ,
@@ -165,96 +169,107 @@ typedef enum xml_1_1_symbol {
   xml_1_1_VersionInfo           ,
   xml_1_1_VersionInfo_maybe     ,
   xml_1_1_XMLDecl               ,
-  xml_1_1__Gen002               ,
-  xml_1_1__Gen004               ,
-  xml_1_1__Gen014               ,
-  xml_1_1__Gen014_any           ,
+  xml_1_1__Gen005               ,
+  xml_1_1__Gen007               ,
+  xml_1_1__Gen008               ,
   xml_1_1__Gen017               ,
   xml_1_1__Gen017_any           ,
   xml_1_1__Gen020               ,
-  xml_1_1__Gen020_many          ,
+  xml_1_1__Gen020_any           ,
   xml_1_1__Gen023               ,
-  xml_1_1__Gen023_any           ,
+  xml_1_1__Gen023_many          ,
   xml_1_1__Gen026               ,
   xml_1_1__Gen026_any           ,
-  xml_1_1__Gen030               ,
-  xml_1_1__Gen030_any           ,
-  xml_1_1__Gen036               ,
-  xml_1_1__Gen036_any           ,
+  xml_1_1__Gen029               ,
+  xml_1_1__Gen029_any           ,
+  xml_1_1__Gen033               ,
+  xml_1_1__Gen033_any           ,
   xml_1_1__Gen039               ,
   xml_1_1__Gen039_any           ,
-  xml_1_1__Gen045               ,
-  xml_1_1__Gen047               ,
-  xml_1_1__Gen052_any           ,
-  xml_1_1__Gen058               ,
+  xml_1_1__Gen042               ,
+  xml_1_1__Gen042_any           ,
+  xml_1_1__Gen048               ,
+  xml_1_1__Gen050               ,
+  xml_1_1__Gen054               ,
+  xml_1_1__Gen055               ,
+  xml_1_1__Gen055_any           ,
   xml_1_1__Gen061               ,
   xml_1_1__Gen062               ,
-  xml_1_1__Gen063               ,
   xml_1_1__Gen064               ,
   xml_1_1__Gen065               ,
   xml_1_1__Gen066               ,
-  xml_1_1__Gen066_any           ,
-  xml_1_1__Gen070               ,
+  xml_1_1__Gen067               ,
+  xml_1_1__Gen068               ,
+  xml_1_1__Gen069               ,
+  xml_1_1__Gen069_any           ,
   xml_1_1__Gen073               ,
-  xml_1_1__Gen073_maybe         ,
-  xml_1_1__Gen077               ,
-  xml_1_1__Gen079               ,
-  xml_1_1__Gen081               ,
-  xml_1_1__Gen083               ,
-  xml_1_1__Gen088               ,
+  xml_1_1__Gen074               ,
+  xml_1_1__Gen075               ,
+  xml_1_1__Gen076               ,
+  xml_1_1__Gen076_maybe         ,
+  xml_1_1__Gen080               ,
+  xml_1_1__Gen082               ,
+  xml_1_1__Gen084               ,
+  xml_1_1__Gen086               ,
+  xml_1_1__Gen087               ,
+  xml_1_1__Gen091               ,
+  xml_1_1__Gen092               ,
   xml_1_1__Gen093               ,
-  xml_1_1__Gen093_maybe         ,
-  xml_1_1__Gen104               ,
-  xml_1_1__Gen112               ,
-  xml_1_1__Gen112_maybe         ,
+  xml_1_1__Gen096               ,
+  xml_1_1__Gen096_maybe         ,
+  xml_1_1__Gen107               ,
   xml_1_1__Gen115               ,
   xml_1_1__Gen115_maybe         ,
-  xml_1_1__Gen121               ,
-  xml_1_1__Gen121_any           ,
-  xml_1_1__Gen134               ,
-  xml_1_1__Gen134_any           ,
-  xml_1_1__Gen139               ,
-  xml_1_1__Gen141               ,
+  xml_1_1__Gen118               ,
+  xml_1_1__Gen118_maybe         ,
+  xml_1_1__Gen124               ,
+  xml_1_1__Gen124_any           ,
+  xml_1_1__Gen137               ,
+  xml_1_1__Gen137_any           ,
   xml_1_1__Gen142               ,
   xml_1_1__Gen144               ,
   xml_1_1__Gen145               ,
-  xml_1_1__Gen150               ,
-  xml_1_1__Gen150_any           ,
-  xml_1_1__Gen157               ,
-  xml_1_1__Gen162               ,
-  xml_1_1__Gen162_any           ,
+  xml_1_1__Gen147               ,
+  xml_1_1__Gen148               ,
+  xml_1_1__Gen153               ,
+  xml_1_1__Gen153_any           ,
+  xml_1_1__Gen160               ,
   xml_1_1__Gen165               ,
   xml_1_1__Gen165_any           ,
-  xml_1_1__Gen173               ,
-  xml_1_1__Gen175               ,
-  xml_1_1__Gen175_maybe         ,
-  xml_1_1__Gen181               ,
+  xml_1_1__Gen168               ,
+  xml_1_1__Gen168_any           ,
+  xml_1_1__Gen176               ,
+  xml_1_1__Gen178               ,
+  xml_1_1__Gen178_maybe         ,
   xml_1_1__Gen184               ,
-  xml_1_1__Gen184_maybe         ,
-  xml_1_1__Gen190               ,
-  xml_1_1__Gen190_many          ,
+  xml_1_1__Gen187               ,
+  xml_1_1__Gen187_maybe         ,
   xml_1_1__Gen193               ,
-  xml_1_1__Gen193_any           ,
+  xml_1_1__Gen193_many          ,
   xml_1_1__Gen196               ,
   xml_1_1__Gen196_any           ,
-  xml_1_1__Gen216               ,
-  xml_1_1__Gen216_any           ,
+  xml_1_1__Gen199               ,
+  xml_1_1__Gen199_any           ,
   xml_1_1__Gen219               ,
   xml_1_1__Gen219_any           ,
   xml_1_1__Gen222               ,
-  xml_1_1__Gen222_maybe         ,
+  xml_1_1__Gen222_any           ,
   xml_1_1__Gen225               ,
-  xml_1_1__Gen234               ,
-  xml_1_1__Gen234_any           ,
+  xml_1_1__Gen225_maybe         ,
+  xml_1_1__Gen228               ,
   xml_1_1__Gen237               ,
-  xml_1_1__Gen239               ,
-  xml_1_1__Gen256               ,
-  xml_1_1__Gen267               ,
-  xml_1_1__Gen268               ,
+  xml_1_1__Gen237_any           ,
+  xml_1_1__Gen240               ,
+  xml_1_1__Gen242               ,
+  xml_1_1__Gen243               ,
+  xml_1_1__Gen259               ,
+  xml_1_1__Gen270               ,
   xml_1_1__Gen271               ,
+  xml_1_1__Gen272               ,
   xml_1_1__Gen274               ,
-  xml_1_1__Gen274_any           ,
-  xml_1_1__Gen278               ,
+  xml_1_1__Gen277               ,
+  xml_1_1__Gen277_any           ,
+  xml_1_1__Gen281               ,
   xml_1_1__Lex003_many          ,
   xml_1_1__Lex013_any           ,
   xml_1_1__Lex014_any           ,
@@ -268,8 +283,10 @@ typedef enum xml_1_1_symbol {
   xml_1_1_contentspec           ,
   xml_1_1_cp                    ,
   xml_1_1_doctypedecl           ,
+  xml_1_1_document              ,
   xml_1_1_element               ,
   xml_1_1_elementdecl           ,
+  xml_1_1_extParsedEnt          ,
   xml_1_1_extSubset             ,
   xml_1_1_extSubsetDecl         ,
   xml_1_1_ignoreSect            ,
@@ -280,91 +297,108 @@ typedef enum xml_1_1_symbol {
   xml_1_1_markupdecl            ,
   xml_1_1_prolog                ,
   xml_1_1_seq                   ,
+  xml_1_1_start                 ,
   XML_1_1_SYMBOL_MAX
 } xml_1_1_symbol_t;
 
-#define XML_1_1_TERMINAL_MAX xml_1_1_extParsedEnt
+#define XML_1_1_TERMINAL_MAX xml_1_1__Lex086
 
 /* Rules */
 typedef enum xml_1_1_rule {
-  xml_1_1_Misc_any_001 = 0      , /* Misc_any ::= Misc * */
-  xml_1_1__Gen002_001           , /* _Gen002 ::= prolog element Misc_any  */
+  xml_1_1_start_001 = 0         , /* start ::= document  */
+  xml_1_1_start_002             , /* start ::= extParsedEnt  */
+  xml_1_1_start_003             , /* start ::= extSubset  */
+  xml_1_1_Misc_any_001          , /* Misc_any ::= Misc * */
+  xml_1_1__Gen005_001           , /* _Gen005 ::= prolog element Misc_any  */
   xml_1_1_Char_any_001          , /* Char_any ::= Char * */
-  xml_1_1__Gen004_001           , /* _Gen004 ::= Char_any RestrictedChar Char_any  */
+  xml_1_1__Gen007_001           , /* _Gen007 ::= Char_any RestrictedChar Char_any  */
+  xml_1_1__Gen008_001           , /* _Gen008 ::= _Exclusion001  */
+  xml_1_1_document_001          , /* document ::= _Gen008  */
   xml_1_1__Lex003_many_001      , /* _Lex003_many ::= _Lex003 + */
   xml_1_1_S_001                 , /* S ::= _Lex003_many  */
   xml_1_1_NameChar_001          , /* NameChar ::= NameStartChar  */
   xml_1_1_NameChar_002          , /* NameChar ::= _Lex005  */
-  xml_1_1__Gen014_001           , /* _Gen014 ::= NameChar  */
-  xml_1_1__Gen014_any_001       , /* _Gen014_any ::= _Gen014 * */
-  xml_1_1_Name_001              , /* Name ::= NameStartChar _Gen014_any  */
-  xml_1_1__Gen017_001           , /* _Gen017 ::= _Lex006 Name  */
+  xml_1_1__Gen017_001           , /* _Gen017 ::= NameChar  */
   xml_1_1__Gen017_any_001       , /* _Gen017_any ::= _Gen017 * */
-  xml_1_1_Names_001             , /* Names ::= Name _Gen017_any  */
-  xml_1_1__Gen020_001           , /* _Gen020 ::= NameChar  */
-  xml_1_1__Gen020_many_001      , /* _Gen020_many ::= _Gen020 + */
-  xml_1_1_Nmtoken_001           , /* Nmtoken ::= _Gen020_many  */
-  xml_1_1__Gen023_001           , /* _Gen023 ::= _Lex006 Nmtoken  */
-  xml_1_1__Gen023_any_001       , /* _Gen023_any ::= _Gen023 * */
-  xml_1_1_Nmtokens_001          , /* Nmtokens ::= Nmtoken _Gen023_any  */
-  xml_1_1__Gen026_001           , /* _Gen026 ::= _Lex008  */
-  xml_1_1__Gen026_002           , /* _Gen026 ::= PEReference  */
-  xml_1_1__Gen026_003           , /* _Gen026 ::= Reference  */
+  xml_1_1_Name_001              , /* Name ::= NameStartChar _Gen017_any  */
+  xml_1_1__Gen020_001           , /* _Gen020 ::= _Lex006 Name  */
+  xml_1_1__Gen020_any_001       , /* _Gen020_any ::= _Gen020 * */
+  xml_1_1_Names_001             , /* Names ::= Name _Gen020_any  */
+  xml_1_1__Gen023_001           , /* _Gen023 ::= NameChar  */
+  xml_1_1__Gen023_many_001      , /* _Gen023_many ::= _Gen023 + */
+  xml_1_1_Nmtoken_001           , /* Nmtoken ::= _Gen023_many  */
+  xml_1_1__Gen026_001           , /* _Gen026 ::= _Lex006 Nmtoken  */
   xml_1_1__Gen026_any_001       , /* _Gen026_any ::= _Gen026 * */
-  xml_1_1__Gen030_001           , /* _Gen030 ::= _Lex010  */
-  xml_1_1__Gen030_002           , /* _Gen030 ::= PEReference  */
-  xml_1_1__Gen030_003           , /* _Gen030 ::= Reference  */
-  xml_1_1__Gen030_any_001       , /* _Gen030_any ::= _Gen030 * */
-  xml_1_1_EntityValue_001       , /* EntityValue ::= _Lex007 _Gen026_any _Lex007  */
-  xml_1_1_EntityValue_002       , /* EntityValue ::= _Lex009 _Gen030_any _Lex009  */
-  xml_1_1__Gen036_001           , /* _Gen036 ::= _Lex011  */
-  xml_1_1__Gen036_002           , /* _Gen036 ::= Reference  */
-  xml_1_1__Gen036_any_001       , /* _Gen036_any ::= _Gen036 * */
-  xml_1_1__Gen039_001           , /* _Gen039 ::= _Lex012  */
+  xml_1_1_Nmtokens_001          , /* Nmtokens ::= Nmtoken _Gen026_any  */
+  xml_1_1__Gen029_001           , /* _Gen029 ::= _Lex008  */
+  xml_1_1__Gen029_002           , /* _Gen029 ::= PEReference  */
+  xml_1_1__Gen029_003           , /* _Gen029 ::= Reference  */
+  xml_1_1__Gen029_any_001       , /* _Gen029_any ::= _Gen029 * */
+  xml_1_1__Gen033_001           , /* _Gen033 ::= _Lex010  */
+  xml_1_1__Gen033_002           , /* _Gen033 ::= PEReference  */
+  xml_1_1__Gen033_003           , /* _Gen033 ::= Reference  */
+  xml_1_1__Gen033_any_001       , /* _Gen033_any ::= _Gen033 * */
+  xml_1_1_EntityValue_001       , /* EntityValue ::= _Lex007 _Gen029_any _Lex007  */
+  xml_1_1_EntityValue_002       , /* EntityValue ::= _Lex009 _Gen033_any _Lex009  */
+  xml_1_1__Gen039_001           , /* _Gen039 ::= _Lex011  */
   xml_1_1__Gen039_002           , /* _Gen039 ::= Reference  */
   xml_1_1__Gen039_any_001       , /* _Gen039_any ::= _Gen039 * */
-  xml_1_1_AttValue_001          , /* AttValue ::= _Lex007 _Gen036_any _Lex007  */
-  xml_1_1_AttValue_002          , /* AttValue ::= _Lex009 _Gen039_any _Lex009  */
+  xml_1_1__Gen042_001           , /* _Gen042 ::= _Lex012  */
+  xml_1_1__Gen042_002           , /* _Gen042 ::= Reference  */
+  xml_1_1__Gen042_any_001       , /* _Gen042_any ::= _Gen042 * */
+  xml_1_1_AttValue_001          , /* AttValue ::= _Lex007 _Gen039_any _Lex007  */
+  xml_1_1_AttValue_002          , /* AttValue ::= _Lex009 _Gen042_any _Lex009  */
   xml_1_1__Lex013_any_001       , /* _Lex013_any ::= _Lex013 * */
-  xml_1_1__Gen045_001           , /* _Gen045 ::= _Lex007 _Lex013_any _Lex007  */
+  xml_1_1__Gen048_001           , /* _Gen048 ::= _Lex007 _Lex013_any _Lex007  */
   xml_1_1__Lex014_any_001       , /* _Lex014_any ::= _Lex014 * */
-  xml_1_1__Gen047_001           , /* _Gen047 ::= _Lex009 _Lex014_any _Lex009  */
-  xml_1_1_SystemLiteral_001     , /* SystemLiteral ::= _Gen045  */
-  xml_1_1_SystemLiteral_002     , /* SystemLiteral ::= _Gen047  */
+  xml_1_1__Gen050_001           , /* _Gen050 ::= _Lex009 _Lex014_any _Lex009  */
+  xml_1_1_SystemLiteral_001     , /* SystemLiteral ::= _Gen048  */
+  xml_1_1_SystemLiteral_002     , /* SystemLiteral ::= _Gen050  */
   xml_1_1_PubidChar_any_001     , /* PubidChar_any ::= PubidChar * */
-  xml_1_1__Gen052_any_001       , /* _Gen052_any ::= _Gen052 * */
+  xml_1_1__Gen054_001           , /* _Gen054 ::= _Exclusion002  */
+  xml_1_1__Gen055_001           , /* _Gen055 ::= _Gen054  */
+  xml_1_1__Gen055_any_001       , /* _Gen055_any ::= _Gen055 * */
   xml_1_1_PubidLiteral_001      , /* PubidLiteral ::= _Lex007 PubidChar_any _Lex007  */
-  xml_1_1_PubidLiteral_002      , /* PubidLiteral ::= _Lex009 _Gen052_any _Lex009  */
+  xml_1_1_PubidLiteral_002      , /* PubidLiteral ::= _Lex009 _Gen055_any _Lex009  */
   xml_1_1__Lex016_any_001       , /* _Lex016_any ::= _Lex016 * */
-  xml_1_1__Gen058_001           , /* _Gen058 ::= _Lex016_any _Lex017 _Lex016_any  */
-  xml_1_1__Gen061_001           , /* _Gen061 ::= _Exclusion004  */
-  xml_1_1__Gen062_001           , /* _Gen062 ::= _Gen061  */
-  xml_1_1__Gen063_001           , /* _Gen063 ::= _Exclusion004  */
-  xml_1_1__Gen064_001           , /* _Gen064 ::= _Gen063  */
-  xml_1_1__Gen065_001           , /* _Gen065 ::= _Lex019 _Gen064  */
-  xml_1_1__Gen066_001           , /* _Gen066 ::= _Gen062  */
-  xml_1_1__Gen066_002           , /* _Gen066 ::= _Gen065  */
-  xml_1_1__Gen066_any_001       , /* _Gen066_any ::= _Gen066 * */
-  xml_1_1_Comment_001           , /* Comment ::= _Lex018 _Gen066_any _Lex020  */
-  xml_1_1__Gen070_001           , /* _Gen070 ::= Char_any _Lex022 Char_any  */
-  xml_1_1__Gen073_001           , /* _Gen073 ::= S _Gen072  */
-  xml_1_1__Gen073_maybe_001     , /* _Gen073_maybe ::= _Gen073  */
-  xml_1_1__Gen073_maybe_002     , /* _Gen073_maybe ::=   */
-  xml_1_1_PI_001                , /* PI ::= _Lex021 PITarget _Gen073_maybe _Lex022  */
-  xml_1_1__Gen077_001           , /* _Gen077 ::= _Lex023  */
-  xml_1_1__Gen077_002           , /* _Gen077 ::= _Lex024  */
-  xml_1_1__Gen079_001           , /* _Gen079 ::= _Lex025  */
-  xml_1_1__Gen079_002           , /* _Gen079 ::= _Lex026  */
-  xml_1_1__Gen081_001           , /* _Gen081 ::= _Lex027  */
-  xml_1_1__Gen081_002           , /* _Gen081 ::= _Lex028  */
-  xml_1_1__Gen083_001           , /* _Gen083 ::= _Gen077 _Gen079 _Gen081  */
+  xml_1_1__Gen061_001           , /* _Gen061 ::= _Lex016_any _Lex017 _Lex016_any  */
+  xml_1_1__Gen062_001           , /* _Gen062 ::= _Exclusion003  */
+  xml_1_1_CharData_001          , /* CharData ::= _Gen062  */
+  xml_1_1__Gen064_001           , /* _Gen064 ::= _Exclusion004  */
+  xml_1_1__Gen065_001           , /* _Gen065 ::= _Gen064  */
+  xml_1_1__Gen066_001           , /* _Gen066 ::= _Exclusion004  */
+  xml_1_1__Gen067_001           , /* _Gen067 ::= _Gen066  */
+  xml_1_1__Gen068_001           , /* _Gen068 ::= _Lex019 _Gen067  */
+  xml_1_1__Gen069_001           , /* _Gen069 ::= _Gen065  */
+  xml_1_1__Gen069_002           , /* _Gen069 ::= _Gen068  */
+  xml_1_1__Gen069_any_001       , /* _Gen069_any ::= _Gen069 * */
+  xml_1_1_Comment_001           , /* Comment ::= _Lex018 _Gen069_any _Lex020  */
+  xml_1_1__Gen073_001           , /* _Gen073 ::= Char_any _Lex022 Char_any  */
+  xml_1_1__Gen074_001           , /* _Gen074 ::= _Exclusion005  */
+  xml_1_1__Gen075_001           , /* _Gen075 ::= _Gen074  */
+  xml_1_1__Gen076_001           , /* _Gen076 ::= S _Gen075  */
+  xml_1_1__Gen076_maybe_001     , /* _Gen076_maybe ::= _Gen076  */
+  xml_1_1__Gen076_maybe_002     , /* _Gen076_maybe ::=   */
+  xml_1_1_PI_001                , /* PI ::= _Lex021 PITarget _Gen076_maybe _Lex022  */
+  xml_1_1__Gen080_001           , /* _Gen080 ::= _Lex023  */
+  xml_1_1__Gen080_002           , /* _Gen080 ::= _Lex024  */
+  xml_1_1__Gen082_001           , /* _Gen082 ::= _Lex025  */
+  xml_1_1__Gen082_002           , /* _Gen082 ::= _Lex026  */
+  xml_1_1__Gen084_001           , /* _Gen084 ::= _Lex027  */
+  xml_1_1__Gen084_002           , /* _Gen084 ::= _Lex028  */
+  xml_1_1__Gen086_001           , /* _Gen086 ::= _Gen080 _Gen082 _Gen084  */
+  xml_1_1__Gen087_001           , /* _Gen087 ::= _Exclusion006  */
+  xml_1_1_PITarget_001          , /* PITarget ::= _Gen087  */
   xml_1_1_CDSect_001            , /* CDSect ::= CDStart CData CDEnd  */
-  xml_1_1__Gen088_001           , /* _Gen088 ::= Char_any _Lex017 Char_any  */
+  xml_1_1__Gen091_001           , /* _Gen091 ::= Char_any _Lex017 Char_any  */
+  xml_1_1__Gen092_001           , /* _Gen092 ::= _Exclusion007  */
+  xml_1_1__Gen093_001           , /* _Gen093 ::= _Gen092  */
+  xml_1_1_CData_001             , /* CData ::= _Gen093  */
   xml_1_1_CDEnd_001             , /* CDEnd ::= _Lex017  */
-  xml_1_1__Gen093_001           , /* _Gen093 ::= doctypedecl Misc_any  */
-  xml_1_1__Gen093_maybe_001     , /* _Gen093_maybe ::= _Gen093  */
-  xml_1_1__Gen093_maybe_002     , /* _Gen093_maybe ::=   */
-  xml_1_1_prolog_001            , /* prolog ::= XMLDecl Misc_any _Gen093_maybe  */
+  xml_1_1__Gen096_001           , /* _Gen096 ::= doctypedecl Misc_any  */
+  xml_1_1__Gen096_maybe_001     , /* _Gen096_maybe ::= _Gen096  */
+  xml_1_1__Gen096_maybe_002     , /* _Gen096_maybe ::=   */
+  xml_1_1_prolog_001            , /* prolog ::= XMLDecl Misc_any _Gen096_maybe  */
   xml_1_1_EncodingDecl_maybe_001, /* EncodingDecl_maybe ::= EncodingDecl  */
   xml_1_1_EncodingDecl_maybe_002, /* EncodingDecl_maybe ::=   */
   xml_1_1_SDDecl_maybe_001      , /* SDDecl_maybe ::= SDDecl  */
@@ -372,26 +406,26 @@ typedef enum xml_1_1_rule {
   xml_1_1_S_maybe_001           , /* S_maybe ::= S  */
   xml_1_1_S_maybe_002           , /* S_maybe ::=   */
   xml_1_1_XMLDecl_001           , /* XMLDecl ::= _Lex030 VersionInfo EncodingDecl_maybe SDDecl_maybe S_maybe _Lex022  */
-  xml_1_1__Gen104_001           , /* _Gen104 ::= _Lex009 VersionNum _Lex009  */
-  xml_1_1__Gen104_002           , /* _Gen104 ::= _Lex007 VersionNum _Lex007  */
-  xml_1_1_VersionInfo_001       , /* VersionInfo ::= S _Lex031 Eq _Gen104  */
+  xml_1_1__Gen107_001           , /* _Gen107 ::= _Lex009 VersionNum _Lex009  */
+  xml_1_1__Gen107_002           , /* _Gen107 ::= _Lex007 VersionNum _Lex007  */
+  xml_1_1_VersionInfo_001       , /* VersionInfo ::= S _Lex031 Eq _Gen107  */
   xml_1_1_Eq_001                , /* Eq ::= S_maybe _Lex032 S_maybe  */
   xml_1_1_Misc_001              , /* Misc ::= Comment  */
   xml_1_1_Misc_002              , /* Misc ::= PI  */
   xml_1_1_Misc_003              , /* Misc ::= S  */
-  xml_1_1__Gen112_001           , /* _Gen112 ::= S ExternalID  */
-  xml_1_1__Gen112_maybe_001     , /* _Gen112_maybe ::= _Gen112  */
-  xml_1_1__Gen112_maybe_002     , /* _Gen112_maybe ::=   */
-  xml_1_1__Gen115_001           , /* _Gen115 ::= _Lex035 intSubset _Lex036 S_maybe  */
+  xml_1_1__Gen115_001           , /* _Gen115 ::= S ExternalID  */
   xml_1_1__Gen115_maybe_001     , /* _Gen115_maybe ::= _Gen115  */
   xml_1_1__Gen115_maybe_002     , /* _Gen115_maybe ::=   */
-  xml_1_1_doctypedecl_001       , /* doctypedecl ::= _Lex034 S Name _Gen112_maybe S_maybe _Gen115_maybe _Lex037  */
+  xml_1_1__Gen118_001           , /* _Gen118 ::= _Lex035 intSubset _Lex036 S_maybe  */
+  xml_1_1__Gen118_maybe_001     , /* _Gen118_maybe ::= _Gen118  */
+  xml_1_1__Gen118_maybe_002     , /* _Gen118_maybe ::=   */
+  xml_1_1_doctypedecl_001       , /* doctypedecl ::= _Lex034 S Name _Gen115_maybe S_maybe _Gen118_maybe _Lex037  */
   xml_1_1_DeclSep_001           , /* DeclSep ::= PEReference  */
   xml_1_1_DeclSep_002           , /* DeclSep ::= S  */
-  xml_1_1__Gen121_001           , /* _Gen121 ::= markupdecl  */
-  xml_1_1__Gen121_002           , /* _Gen121 ::= DeclSep  */
-  xml_1_1__Gen121_any_001       , /* _Gen121_any ::= _Gen121 * */
-  xml_1_1_intSubset_001         , /* intSubset ::= _Gen121_any  */
+  xml_1_1__Gen124_001           , /* _Gen124 ::= markupdecl  */
+  xml_1_1__Gen124_002           , /* _Gen124 ::= DeclSep  */
+  xml_1_1__Gen124_any_001       , /* _Gen124_any ::= _Gen124 * */
+  xml_1_1_intSubset_001         , /* intSubset ::= _Gen124_any  */
   xml_1_1_markupdecl_001        , /* markupdecl ::= elementdecl  */
   xml_1_1_markupdecl_002        , /* markupdecl ::= AttlistDecl  */
   xml_1_1_markupdecl_003        , /* markupdecl ::= EntityDecl  */
@@ -401,71 +435,71 @@ typedef enum xml_1_1_rule {
   xml_1_1_TextDecl_maybe_001    , /* TextDecl_maybe ::= TextDecl  */
   xml_1_1_TextDecl_maybe_002    , /* TextDecl_maybe ::=   */
   xml_1_1_extSubset_001         , /* extSubset ::= TextDecl_maybe extSubsetDecl  */
-  xml_1_1__Gen134_001           , /* _Gen134 ::= markupdecl  */
-  xml_1_1__Gen134_002           , /* _Gen134 ::= conditionalSect  */
-  xml_1_1__Gen134_003           , /* _Gen134 ::= DeclSep  */
-  xml_1_1__Gen134_any_001       , /* _Gen134_any ::= _Gen134 * */
-  xml_1_1_extSubsetDecl_001     , /* extSubsetDecl ::= _Gen134_any  */
-  xml_1_1__Gen139_001           , /* _Gen139 ::= _Lex039  */
-  xml_1_1__Gen139_002           , /* _Gen139 ::= _Lex040  */
-  xml_1_1__Gen141_001           , /* _Gen141 ::= _Lex009 _Gen139 _Lex009  */
+  xml_1_1__Gen137_001           , /* _Gen137 ::= markupdecl  */
+  xml_1_1__Gen137_002           , /* _Gen137 ::= conditionalSect  */
+  xml_1_1__Gen137_003           , /* _Gen137 ::= DeclSep  */
+  xml_1_1__Gen137_any_001       , /* _Gen137_any ::= _Gen137 * */
+  xml_1_1_extSubsetDecl_001     , /* extSubsetDecl ::= _Gen137_any  */
   xml_1_1__Gen142_001           , /* _Gen142 ::= _Lex039  */
   xml_1_1__Gen142_002           , /* _Gen142 ::= _Lex040  */
-  xml_1_1__Gen144_001           , /* _Gen144 ::= _Lex007 _Gen142 _Lex007  */
-  xml_1_1__Gen145_001           , /* _Gen145 ::= _Gen141  */
-  xml_1_1__Gen145_002           , /* _Gen145 ::= _Gen144  */
-  xml_1_1_SDDecl_001            , /* SDDecl ::= S _Lex038 Eq _Gen145  */
+  xml_1_1__Gen144_001           , /* _Gen144 ::= _Lex009 _Gen142 _Lex009  */
+  xml_1_1__Gen145_001           , /* _Gen145 ::= _Lex039  */
+  xml_1_1__Gen145_002           , /* _Gen145 ::= _Lex040  */
+  xml_1_1__Gen147_001           , /* _Gen147 ::= _Lex007 _Gen145 _Lex007  */
+  xml_1_1__Gen148_001           , /* _Gen148 ::= _Gen144  */
+  xml_1_1__Gen148_002           , /* _Gen148 ::= _Gen147  */
+  xml_1_1_SDDecl_001            , /* SDDecl ::= S _Lex038 Eq _Gen148  */
   xml_1_1_element_001           , /* element ::= EmptyElemTag  */
   xml_1_1_element_002           , /* element ::= STag content ETag  */
-  xml_1_1__Gen150_001           , /* _Gen150 ::= S Attribute  */
-  xml_1_1__Gen150_any_001       , /* _Gen150_any ::= _Gen150 * */
-  xml_1_1_STag_001              , /* STag ::= _Lex041 Name _Gen150_any S_maybe _Lex037  */
+  xml_1_1__Gen153_001           , /* _Gen153 ::= S Attribute  */
+  xml_1_1__Gen153_any_001       , /* _Gen153_any ::= _Gen153 * */
+  xml_1_1_STag_001              , /* STag ::= _Lex041 Name _Gen153_any S_maybe _Lex037  */
   xml_1_1_Attribute_001         , /* Attribute ::= Name Eq AttValue  */
   xml_1_1_ETag_001              , /* ETag ::= _Lex042 Name S_maybe _Lex037  */
   xml_1_1_CharData_maybe_001    , /* CharData_maybe ::= CharData  */
   xml_1_1_CharData_maybe_002    , /* CharData_maybe ::=   */
-  xml_1_1__Gen157_001           , /* _Gen157 ::= element  */
-  xml_1_1__Gen157_002           , /* _Gen157 ::= Reference  */
-  xml_1_1__Gen157_003           , /* _Gen157 ::= CDSect  */
-  xml_1_1__Gen157_004           , /* _Gen157 ::= PI  */
-  xml_1_1__Gen157_005           , /* _Gen157 ::= Comment  */
-  xml_1_1__Gen162_001           , /* _Gen162 ::= _Gen157 CharData_maybe  */
-  xml_1_1__Gen162_any_001       , /* _Gen162_any ::= _Gen162 * */
-  xml_1_1_content_001           , /* content ::= CharData_maybe _Gen162_any  */
-  xml_1_1__Gen165_001           , /* _Gen165 ::= S Attribute  */
+  xml_1_1__Gen160_001           , /* _Gen160 ::= element  */
+  xml_1_1__Gen160_002           , /* _Gen160 ::= Reference  */
+  xml_1_1__Gen160_003           , /* _Gen160 ::= CDSect  */
+  xml_1_1__Gen160_004           , /* _Gen160 ::= PI  */
+  xml_1_1__Gen160_005           , /* _Gen160 ::= Comment  */
+  xml_1_1__Gen165_001           , /* _Gen165 ::= _Gen160 CharData_maybe  */
   xml_1_1__Gen165_any_001       , /* _Gen165_any ::= _Gen165 * */
-  xml_1_1_EmptyElemTag_001      , /* EmptyElemTag ::= _Lex041 Name _Gen165_any S_maybe _Lex043  */
+  xml_1_1_content_001           , /* content ::= CharData_maybe _Gen165_any  */
+  xml_1_1__Gen168_001           , /* _Gen168 ::= S Attribute  */
+  xml_1_1__Gen168_any_001       , /* _Gen168_any ::= _Gen168 * */
+  xml_1_1_EmptyElemTag_001      , /* EmptyElemTag ::= _Lex041 Name _Gen168_any S_maybe _Lex043  */
   xml_1_1_elementdecl_001       , /* elementdecl ::= _Lex044 S Name S contentspec S_maybe _Lex037  */
   xml_1_1_contentspec_001       , /* contentspec ::= _Lex045  */
   xml_1_1_contentspec_002       , /* contentspec ::= _Lex046  */
   xml_1_1_contentspec_003       , /* contentspec ::= Mixed  */
   xml_1_1_contentspec_004       , /* contentspec ::= children  */
-  xml_1_1__Gen173_001           , /* _Gen173 ::= choice  */
-  xml_1_1__Gen173_002           , /* _Gen173 ::= seq  */
-  xml_1_1__Gen175_001           , /* _Gen175 ::= _Lex047  */
-  xml_1_1__Gen175_002           , /* _Gen175 ::= _Lex048  */
-  xml_1_1__Gen175_003           , /* _Gen175 ::= _Lex049  */
-  xml_1_1__Gen175_maybe_001     , /* _Gen175_maybe ::= _Gen175  */
-  xml_1_1__Gen175_maybe_002     , /* _Gen175_maybe ::=   */
-  xml_1_1_children_001          , /* children ::= _Gen173 _Gen175_maybe  */
-  xml_1_1__Gen181_001           , /* _Gen181 ::= Name  */
-  xml_1_1__Gen181_002           , /* _Gen181 ::= choice  */
-  xml_1_1__Gen181_003           , /* _Gen181 ::= seq  */
-  xml_1_1__Gen184_001           , /* _Gen184 ::= _Lex047  */
-  xml_1_1__Gen184_002           , /* _Gen184 ::= _Lex048  */
-  xml_1_1__Gen184_003           , /* _Gen184 ::= _Lex049  */
-  xml_1_1__Gen184_maybe_001     , /* _Gen184_maybe ::= _Gen184  */
-  xml_1_1__Gen184_maybe_002     , /* _Gen184_maybe ::=   */
-  xml_1_1_cp_001                , /* cp ::= _Gen181 _Gen184_maybe  */
-  xml_1_1__Gen190_001           , /* _Gen190 ::= S_maybe _Lex051 S_maybe cp  */
-  xml_1_1__Gen190_many_001      , /* _Gen190_many ::= _Gen190 + */
-  xml_1_1_choice_001            , /* choice ::= _Lex050 S_maybe cp _Gen190_many S_maybe _Lex052  */
-  xml_1_1__Gen193_001           , /* _Gen193 ::= S_maybe _Lex053 S_maybe cp  */
-  xml_1_1__Gen193_any_001       , /* _Gen193_any ::= _Gen193 * */
-  xml_1_1_seq_001               , /* seq ::= _Lex050 S_maybe cp _Gen193_any S_maybe _Lex052  */
-  xml_1_1__Gen196_001           , /* _Gen196 ::= S_maybe _Lex051 S_maybe Name  */
+  xml_1_1__Gen176_001           , /* _Gen176 ::= choice  */
+  xml_1_1__Gen176_002           , /* _Gen176 ::= seq  */
+  xml_1_1__Gen178_001           , /* _Gen178 ::= _Lex047  */
+  xml_1_1__Gen178_002           , /* _Gen178 ::= _Lex048  */
+  xml_1_1__Gen178_003           , /* _Gen178 ::= _Lex049  */
+  xml_1_1__Gen178_maybe_001     , /* _Gen178_maybe ::= _Gen178  */
+  xml_1_1__Gen178_maybe_002     , /* _Gen178_maybe ::=   */
+  xml_1_1_children_001          , /* children ::= _Gen176 _Gen178_maybe  */
+  xml_1_1__Gen184_001           , /* _Gen184 ::= Name  */
+  xml_1_1__Gen184_002           , /* _Gen184 ::= choice  */
+  xml_1_1__Gen184_003           , /* _Gen184 ::= seq  */
+  xml_1_1__Gen187_001           , /* _Gen187 ::= _Lex047  */
+  xml_1_1__Gen187_002           , /* _Gen187 ::= _Lex048  */
+  xml_1_1__Gen187_003           , /* _Gen187 ::= _Lex049  */
+  xml_1_1__Gen187_maybe_001     , /* _Gen187_maybe ::= _Gen187  */
+  xml_1_1__Gen187_maybe_002     , /* _Gen187_maybe ::=   */
+  xml_1_1_cp_001                , /* cp ::= _Gen184 _Gen187_maybe  */
+  xml_1_1__Gen193_001           , /* _Gen193 ::= S_maybe _Lex051 S_maybe cp  */
+  xml_1_1__Gen193_many_001      , /* _Gen193_many ::= _Gen193 + */
+  xml_1_1_choice_001            , /* choice ::= _Lex050 S_maybe cp _Gen193_many S_maybe _Lex052  */
+  xml_1_1__Gen196_001           , /* _Gen196 ::= S_maybe _Lex053 S_maybe cp  */
   xml_1_1__Gen196_any_001       , /* _Gen196_any ::= _Gen196 * */
-  xml_1_1_Mixed_001             , /* Mixed ::= _Lex050 S_maybe _Lex054 _Gen196_any S_maybe _Lex055  */
+  xml_1_1_seq_001               , /* seq ::= _Lex050 S_maybe cp _Gen196_any S_maybe _Lex052  */
+  xml_1_1__Gen199_001           , /* _Gen199 ::= S_maybe _Lex051 S_maybe Name  */
+  xml_1_1__Gen199_any_001       , /* _Gen199_any ::= _Gen199 * */
+  xml_1_1_Mixed_001             , /* Mixed ::= _Lex050 S_maybe _Lex054 _Gen199_any S_maybe _Lex055  */
   xml_1_1_Mixed_002             , /* Mixed ::= _Lex050 S_maybe _Lex054 S_maybe _Lex052  */
   xml_1_1_AttDef_any_001        , /* AttDef_any ::= AttDef * */
   xml_1_1_AttlistDecl_001       , /* AttlistDecl ::= _Lex056 S Name AttDef_any S_maybe _Lex037  */
@@ -482,30 +516,32 @@ typedef enum xml_1_1_rule {
   xml_1_1_TokenizedType_007     , /* TokenizedType ::= _Lex064  */
   xml_1_1_EnumeratedType_001    , /* EnumeratedType ::= NotationType  */
   xml_1_1_EnumeratedType_002    , /* EnumeratedType ::= Enumeration  */
-  xml_1_1__Gen216_001           , /* _Gen216 ::= S_maybe _Lex051 S_maybe Name  */
-  xml_1_1__Gen216_any_001       , /* _Gen216_any ::= _Gen216 * */
-  xml_1_1_NotationType_001      , /* NotationType ::= _Lex065 S _Lex050 S_maybe Name _Gen216_any S_maybe _Lex052  */
-  xml_1_1__Gen219_001           , /* _Gen219 ::= S_maybe _Lex051 S_maybe Nmtoken  */
+  xml_1_1__Gen219_001           , /* _Gen219 ::= S_maybe _Lex051 S_maybe Name  */
   xml_1_1__Gen219_any_001       , /* _Gen219_any ::= _Gen219 * */
-  xml_1_1_Enumeration_001       , /* Enumeration ::= _Lex050 S_maybe Nmtoken _Gen219_any S_maybe _Lex052  */
-  xml_1_1__Gen222_001           , /* _Gen222 ::= _Lex068 S  */
-  xml_1_1__Gen222_maybe_001     , /* _Gen222_maybe ::= _Gen222  */
-  xml_1_1__Gen222_maybe_002     , /* _Gen222_maybe ::=   */
-  xml_1_1__Gen225_001           , /* _Gen225 ::= _Gen222_maybe AttValue  */
+  xml_1_1_NotationType_001      , /* NotationType ::= _Lex065 S _Lex050 S_maybe Name _Gen219_any S_maybe _Lex052  */
+  xml_1_1__Gen222_001           , /* _Gen222 ::= S_maybe _Lex051 S_maybe Nmtoken  */
+  xml_1_1__Gen222_any_001       , /* _Gen222_any ::= _Gen222 * */
+  xml_1_1_Enumeration_001       , /* Enumeration ::= _Lex050 S_maybe Nmtoken _Gen222_any S_maybe _Lex052  */
+  xml_1_1__Gen225_001           , /* _Gen225 ::= _Lex068 S  */
+  xml_1_1__Gen225_maybe_001     , /* _Gen225_maybe ::= _Gen225  */
+  xml_1_1__Gen225_maybe_002     , /* _Gen225_maybe ::=   */
+  xml_1_1__Gen228_001           , /* _Gen228 ::= _Gen225_maybe AttValue  */
   xml_1_1_DefaultDecl_001       , /* DefaultDecl ::= _Lex066  */
   xml_1_1_DefaultDecl_002       , /* DefaultDecl ::= _Lex067  */
-  xml_1_1_DefaultDecl_003       , /* DefaultDecl ::= _Gen225  */
+  xml_1_1_DefaultDecl_003       , /* DefaultDecl ::= _Gen228  */
   xml_1_1_conditionalSect_001   , /* conditionalSect ::= includeSect  */
   xml_1_1_conditionalSect_002   , /* conditionalSect ::= ignoreSect  */
   xml_1_1_includeSect_001       , /* includeSect ::= _Lex069 S_maybe _Lex070 S_maybe _Lex035 extSubsetDecl _Lex017  */
   xml_1_1_ignoreSectContents_any_001, /* ignoreSectContents_any ::= ignoreSectContents * */
   xml_1_1_ignoreSect_001        , /* ignoreSect ::= _Lex069 S_maybe _Lex071 S_maybe _Lex035 ignoreSectContents_any _Lex017  */
-  xml_1_1__Gen234_001           , /* _Gen234 ::= _Lex069 ignoreSectContents _Lex017 Ignore  */
-  xml_1_1__Gen234_any_001       , /* _Gen234_any ::= _Gen234 * */
-  xml_1_1_ignoreSectContents_001, /* ignoreSectContents ::= Ignore _Gen234_any  */
-  xml_1_1__Gen237_001           , /* _Gen237 ::= _Lex069  */
-  xml_1_1__Gen237_002           , /* _Gen237 ::= _Lex017  */
-  xml_1_1__Gen239_001           , /* _Gen239 ::= Char_any _Gen237 Char_any  */
+  xml_1_1__Gen237_001           , /* _Gen237 ::= _Lex069 ignoreSectContents _Lex017 Ignore  */
+  xml_1_1__Gen237_any_001       , /* _Gen237_any ::= _Gen237 * */
+  xml_1_1_ignoreSectContents_001, /* ignoreSectContents ::= Ignore _Gen237_any  */
+  xml_1_1__Gen240_001           , /* _Gen240 ::= _Lex069  */
+  xml_1_1__Gen240_002           , /* _Gen240 ::= _Lex017  */
+  xml_1_1__Gen242_001           , /* _Gen242 ::= Char_any _Gen240 Char_any  */
+  xml_1_1__Gen243_001           , /* _Gen243 ::= _Exclusion008  */
+  xml_1_1_Ignore_001            , /* Ignore ::= _Gen243  */
   xml_1_1__Lex073_many_001      , /* _Lex073_many ::= _Lex073 + */
   xml_1_1__Lex076_many_001      , /* _Lex076_many ::= _Lex076 + */
   xml_1_1_CharRef_001           , /* CharRef ::= _Lex072 _Lex073_many _Lex074  */
@@ -520,9 +556,9 @@ typedef enum xml_1_1_rule {
   xml_1_1_PEDecl_001            , /* PEDecl ::= _Lex079 S _Lex078 S Name S PEDef S_maybe _Lex037  */
   xml_1_1_NDataDecl_maybe_001   , /* NDataDecl_maybe ::= NDataDecl  */
   xml_1_1_NDataDecl_maybe_002   , /* NDataDecl_maybe ::=   */
-  xml_1_1__Gen256_001           , /* _Gen256 ::= ExternalID NDataDecl_maybe  */
+  xml_1_1__Gen259_001           , /* _Gen259 ::= ExternalID NDataDecl_maybe  */
   xml_1_1_EntityDef_001         , /* EntityDef ::= EntityValue  */
-  xml_1_1_EntityDef_002         , /* EntityDef ::= _Gen256  */
+  xml_1_1_EntityDef_002         , /* EntityDef ::= _Gen259  */
   xml_1_1_PEDef_001             , /* PEDef ::= EntityValue  */
   xml_1_1_PEDef_002             , /* PEDef ::= ExternalID  */
   xml_1_1_ExternalID_001        , /* ExternalID ::= _Lex080 S SystemLiteral  */
@@ -531,18 +567,20 @@ typedef enum xml_1_1_rule {
   xml_1_1_VersionInfo_maybe_001 , /* VersionInfo_maybe ::= VersionInfo  */
   xml_1_1_VersionInfo_maybe_002 , /* VersionInfo_maybe ::=   */
   xml_1_1_TextDecl_001          , /* TextDecl ::= _Lex030 VersionInfo_maybe EncodingDecl S_maybe _Lex022  */
-  xml_1_1__Gen267_001           , /* _Gen267 ::= TextDecl_maybe content  */
-  xml_1_1__Gen268_001           , /* _Gen268 ::= Char_any RestrictedChar Char_any  */
-  xml_1_1__Gen271_001           , /* _Gen271 ::= _Lex007 EncName _Lex007  */
-  xml_1_1__Gen271_002           , /* _Gen271 ::= _Lex009 EncName _Lex009  */
-  xml_1_1_EncodingDecl_001      , /* EncodingDecl ::= S _Lex083 Eq _Gen271  */
-  xml_1_1__Gen274_001           , /* _Gen274 ::= _Lex085  */
-  xml_1_1__Gen274_002           , /* _Gen274 ::= _Lex019  */
-  xml_1_1__Gen274_any_001       , /* _Gen274_any ::= _Gen274 * */
-  xml_1_1_EncName_001           , /* EncName ::= _Lex084 _Gen274_any  */
-  xml_1_1__Gen278_001           , /* _Gen278 ::= ExternalID  */
-  xml_1_1__Gen278_002           , /* _Gen278 ::= PublicID  */
-  xml_1_1_NotationDecl_001      , /* NotationDecl ::= _Lex086 S Name S _Gen278 S_maybe _Lex037  */
+  xml_1_1__Gen270_001           , /* _Gen270 ::= TextDecl_maybe content  */
+  xml_1_1__Gen271_001           , /* _Gen271 ::= Char_any RestrictedChar Char_any  */
+  xml_1_1__Gen272_001           , /* _Gen272 ::= _Exclusion009  */
+  xml_1_1_extParsedEnt_001      , /* extParsedEnt ::= _Gen272  */
+  xml_1_1__Gen274_001           , /* _Gen274 ::= _Lex007 EncName _Lex007  */
+  xml_1_1__Gen274_002           , /* _Gen274 ::= _Lex009 EncName _Lex009  */
+  xml_1_1_EncodingDecl_001      , /* EncodingDecl ::= S _Lex083 Eq _Gen274  */
+  xml_1_1__Gen277_001           , /* _Gen277 ::= _Lex085  */
+  xml_1_1__Gen277_002           , /* _Gen277 ::= _Lex019  */
+  xml_1_1__Gen277_any_001       , /* _Gen277_any ::= _Gen277 * */
+  xml_1_1_EncName_001           , /* EncName ::= _Lex084 _Gen277_any  */
+  xml_1_1__Gen281_001           , /* _Gen281 ::= ExternalID  */
+  xml_1_1__Gen281_002           , /* _Gen281 ::= PublicID  */
+  xml_1_1_NotationDecl_001      , /* NotationDecl ::= _Lex086 S Name S _Gen281 S_maybe _Lex037  */
   xml_1_1_PublicID_001          , /* PublicID ::= _Lex081 S PubidLiteral  */
   XML_1_1_RULE_MAX
 } xml_1_1_rule_t;
@@ -569,19 +607,21 @@ struct xml_1_1 {
 static const char *symbolsToString[] = {
     /* Terminals */
   "CDStart ~ '<![CDATA['",
-  "CData ~ 'Char_any - _Gen088'",
   "Char ~ [\\x{1}-\\x{d7ff}\\x{e000}-\\x{fffd}\\x{10000}-\\x{10ffff}]",
-  "CharData ~ '_Lex016_any - _Gen058'",
-  "Ignore ~ 'Char_any - _Gen239'",
   "NameStartChar ~ [:A-Z_a-z\\x{c0}-\\x{d6}\\x{d8}-\\x{f6}\\x{f8}-\\x{2ff}\\x{370}-\\x{37d}\\x{37f}-\\x{1fff}\\x{200c}-\\x{200d}\\x{2070}-\\x{218f}\\x{2c00}-\\x{2fef}\\x{3001}-\\x{d7ff}\\x{f900}-\\x{fdcf}\\x{fdf0}-\\x{fffd}\\x{10000}-\\x{effff}]",
-  "PITarget ~ 'Name - _Gen083'",
   "PubidChar ~ [a-zA-Z0-9-'()+,./:=?;!*#@$_%\\x{20}\\x{d}\\x{a}]",
   "RestrictedChar ~ [\\x{1}-\\x{8}\\x{b}-\\x{c}\\x{e}-\\x{1f}\\x{7f}-\\x{84}\\x{86}-\\x{9f}]",
   "StringType ~ 'CDATA'",
   "VersionNum ~ '1.1'",
+  "_Exclusion001 ~ '_Gen005 - _Gen007'",
+  "_Exclusion002 ~ 'PubidChar - _Lex009'",
+  "_Exclusion003 ~ '_Lex016_any - _Gen061'",
   "_Exclusion004 ~ 'Char - _Lex019'",
-  "_Gen052 ~ 'PubidChar - _Lex009'",
-  "_Gen072 ~ 'Char_any - _Gen070'",
+  "_Exclusion005 ~ 'Char_any - _Gen073'",
+  "_Exclusion006 ~ 'Name - _Gen086'",
+  "_Exclusion007 ~ 'Char_any - _Gen091'",
+  "_Exclusion008 ~ 'Char_any - _Gen242'",
+  "_Exclusion009 ~ '_Gen270 - _Gen271'",
   "_Lex003 ~ [\\x{20}\\x{9}\\x{d}\\x{a}]",
   "_Lex005 ~ [-.0-9\\x{b7}\\x{300}-\\x{36f}\\x{203f}-\\x{2040}]",
   "_Lex006 ~ [\\x{20}]",
@@ -661,8 +701,6 @@ static const char *symbolsToString[] = {
   "_Lex084 ~ [A-Za-z]",
   "_Lex085 ~ [A-Za-z0-9._]",
   "_Lex086 ~ '<!NOTATION'",
-  "document ~ '_Gen002 - _Gen004'",
-  "extParsedEnt ~ '_Gen267 - _Gen268'",
   /* Non-terminals */
   "AttDef",
   "AttDef_any",
@@ -672,6 +710,8 @@ static const char *symbolsToString[] = {
   "Attribute",
   "CDEnd",
   "CDSect",
+  "CData",
+  "CharData",
   "CharData_maybe",
   "CharRef",
   "Char_any",
@@ -692,6 +732,7 @@ static const char *symbolsToString[] = {
   "Eq",
   "ExternalID",
   "GEDecl",
+  "Ignore",
   "Misc",
   "Misc_any",
   "Mixed",
@@ -708,6 +749,7 @@ static const char *symbolsToString[] = {
   "PEDef",
   "PEReference",
   "PI",
+  "PITarget",
   "PubidChar_any",
   "PubidLiteral",
   "PublicID",
@@ -724,96 +766,107 @@ static const char *symbolsToString[] = {
   "VersionInfo",
   "VersionInfo_maybe",
   "XMLDecl",
-  "_Gen002",
-  "_Gen004",
-  "_Gen014",
-  "_Gen014_any",
+  "_Gen005",
+  "_Gen007",
+  "_Gen008",
   "_Gen017",
   "_Gen017_any",
   "_Gen020",
-  "_Gen020_many",
+  "_Gen020_any",
   "_Gen023",
-  "_Gen023_any",
+  "_Gen023_many",
   "_Gen026",
   "_Gen026_any",
-  "_Gen030",
-  "_Gen030_any",
-  "_Gen036",
-  "_Gen036_any",
+  "_Gen029",
+  "_Gen029_any",
+  "_Gen033",
+  "_Gen033_any",
   "_Gen039",
   "_Gen039_any",
-  "_Gen045",
-  "_Gen047",
-  "_Gen052_any",
-  "_Gen058",
+  "_Gen042",
+  "_Gen042_any",
+  "_Gen048",
+  "_Gen050",
+  "_Gen054",
+  "_Gen055",
+  "_Gen055_any",
   "_Gen061",
   "_Gen062",
-  "_Gen063",
   "_Gen064",
   "_Gen065",
   "_Gen066",
-  "_Gen066_any",
-  "_Gen070",
+  "_Gen067",
+  "_Gen068",
+  "_Gen069",
+  "_Gen069_any",
   "_Gen073",
-  "_Gen073_maybe",
-  "_Gen077",
-  "_Gen079",
-  "_Gen081",
-  "_Gen083",
-  "_Gen088",
+  "_Gen074",
+  "_Gen075",
+  "_Gen076",
+  "_Gen076_maybe",
+  "_Gen080",
+  "_Gen082",
+  "_Gen084",
+  "_Gen086",
+  "_Gen087",
+  "_Gen091",
+  "_Gen092",
   "_Gen093",
-  "_Gen093_maybe",
-  "_Gen104",
-  "_Gen112",
-  "_Gen112_maybe",
+  "_Gen096",
+  "_Gen096_maybe",
+  "_Gen107",
   "_Gen115",
   "_Gen115_maybe",
-  "_Gen121",
-  "_Gen121_any",
-  "_Gen134",
-  "_Gen134_any",
-  "_Gen139",
-  "_Gen141",
+  "_Gen118",
+  "_Gen118_maybe",
+  "_Gen124",
+  "_Gen124_any",
+  "_Gen137",
+  "_Gen137_any",
   "_Gen142",
   "_Gen144",
   "_Gen145",
-  "_Gen150",
-  "_Gen150_any",
-  "_Gen157",
-  "_Gen162",
-  "_Gen162_any",
+  "_Gen147",
+  "_Gen148",
+  "_Gen153",
+  "_Gen153_any",
+  "_Gen160",
   "_Gen165",
   "_Gen165_any",
-  "_Gen173",
-  "_Gen175",
-  "_Gen175_maybe",
-  "_Gen181",
+  "_Gen168",
+  "_Gen168_any",
+  "_Gen176",
+  "_Gen178",
+  "_Gen178_maybe",
   "_Gen184",
-  "_Gen184_maybe",
-  "_Gen190",
-  "_Gen190_many",
+  "_Gen187",
+  "_Gen187_maybe",
   "_Gen193",
-  "_Gen193_any",
+  "_Gen193_many",
   "_Gen196",
   "_Gen196_any",
-  "_Gen216",
-  "_Gen216_any",
+  "_Gen199",
+  "_Gen199_any",
   "_Gen219",
   "_Gen219_any",
   "_Gen222",
-  "_Gen222_maybe",
+  "_Gen222_any",
   "_Gen225",
-  "_Gen234",
-  "_Gen234_any",
+  "_Gen225_maybe",
+  "_Gen228",
   "_Gen237",
-  "_Gen239",
-  "_Gen256",
-  "_Gen267",
-  "_Gen268",
+  "_Gen237_any",
+  "_Gen240",
+  "_Gen242",
+  "_Gen243",
+  "_Gen259",
+  "_Gen270",
   "_Gen271",
+  "_Gen272",
   "_Gen274",
-  "_Gen274_any",
-  "_Gen278",
+  "_Gen277",
+  "_Gen277_any",
+  "_Gen281",
   "_Lex003_many",
   "_Lex013_any",
   "_Lex014_any",
@@ -827,8 +880,10 @@ static const char *symbolsToString[] = {
   "contentspec",
   "cp",
   "doctypedecl",
+  "document",
   "element",
   "elementdecl",
+  "extParsedEnt",
   "extSubset",
   "extSubsetDecl",
   "ignoreSect",
@@ -838,89 +893,106 @@ static const char *symbolsToString[] = {
   "intSubset",
   "markupdecl",
   "prolog",
-  "seq"
+  "seq",
+  "start"
 };
 
 /* Rules to string indexed by xml_1_1_rule_t */
 static const char *rulesToString[] = {
+  "start ::= document ",
+  "start ::= extParsedEnt ",
+  "start ::= extSubset ",
   "Misc_any ::= Misc *",
-  "_Gen002 ::= prolog element Misc_any ",
+  "_Gen005 ::= prolog element Misc_any ",
   "Char_any ::= Char *",
-  "_Gen004 ::= Char_any RestrictedChar Char_any ",
+  "_Gen007 ::= Char_any RestrictedChar Char_any ",
+  "_Gen008 ::= _Exclusion001 ",
+  "document ::= _Gen008 ",
   "_Lex003_many ::= _Lex003 +",
   "S ::= _Lex003_many ",
   "NameChar ::= NameStartChar ",
   "NameChar ::= _Lex005 ",
-  "_Gen014 ::= NameChar ",
-  "_Gen014_any ::= _Gen014 *",
-  "Name ::= NameStartChar _Gen014_any ",
-  "_Gen017 ::= _Lex006 Name ",
+  "_Gen017 ::= NameChar ",
   "_Gen017_any ::= _Gen017 *",
-  "Names ::= Name _Gen017_any ",
-  "_Gen020 ::= NameChar ",
-  "_Gen020_many ::= _Gen020 +",
-  "Nmtoken ::= _Gen020_many ",
-  "_Gen023 ::= _Lex006 Nmtoken ",
-  "_Gen023_any ::= _Gen023 *",
-  "Nmtokens ::= Nmtoken _Gen023_any ",
-  "_Gen026 ::= _Lex008 ",
-  "_Gen026 ::= PEReference ",
-  "_Gen026 ::= Reference ",
+  "Name ::= NameStartChar _Gen017_any ",
+  "_Gen020 ::= _Lex006 Name ",
+  "_Gen020_any ::= _Gen020 *",
+  "Names ::= Name _Gen020_any ",
+  "_Gen023 ::= NameChar ",
+  "_Gen023_many ::= _Gen023 +",
+  "Nmtoken ::= _Gen023_many ",
+  "_Gen026 ::= _Lex006 Nmtoken ",
   "_Gen026_any ::= _Gen026 *",
-  "_Gen030 ::= _Lex010 ",
-  "_Gen030 ::= PEReference ",
-  "_Gen030 ::= Reference ",
-  "_Gen030_any ::= _Gen030 *",
-  "EntityValue ::= _Lex007 _Gen026_any _Lex007 ",
-  "EntityValue ::= _Lex009 _Gen030_any _Lex009 ",
-  "_Gen036 ::= _Lex011 ",
-  "_Gen036 ::= Reference ",
-  "_Gen036_any ::= _Gen036 *",
-  "_Gen039 ::= _Lex012 ",
+  "Nmtokens ::= Nmtoken _Gen026_any ",
+  "_Gen029 ::= _Lex008 ",
+  "_Gen029 ::= PEReference ",
+  "_Gen029 ::= Reference ",
+  "_Gen029_any ::= _Gen029 *",
+  "_Gen033 ::= _Lex010 ",
+  "_Gen033 ::= PEReference ",
+  "_Gen033 ::= Reference ",
+  "_Gen033_any ::= _Gen033 *",
+  "EntityValue ::= _Lex007 _Gen029_any _Lex007 ",
+  "EntityValue ::= _Lex009 _Gen033_any _Lex009 ",
+  "_Gen039 ::= _Lex011 ",
   "_Gen039 ::= Reference ",
   "_Gen039_any ::= _Gen039 *",
-  "AttValue ::= _Lex007 _Gen036_any _Lex007 ",
-  "AttValue ::= _Lex009 _Gen039_any _Lex009 ",
+  "_Gen042 ::= _Lex012 ",
+  "_Gen042 ::= Reference ",
+  "_Gen042_any ::= _Gen042 *",
+  "AttValue ::= _Lex007 _Gen039_any _Lex007 ",
+  "AttValue ::= _Lex009 _Gen042_any _Lex009 ",
   "_Lex013_any ::= _Lex013 *",
-  "_Gen045 ::= _Lex007 _Lex013_any _Lex007 ",
+  "_Gen048 ::= _Lex007 _Lex013_any _Lex007 ",
   "_Lex014_any ::= _Lex014 *",
-  "_Gen047 ::= _Lex009 _Lex014_any _Lex009 ",
-  "SystemLiteral ::= _Gen045 ",
-  "SystemLiteral ::= _Gen047 ",
+  "_Gen050 ::= _Lex009 _Lex014_any _Lex009 ",
+  "SystemLiteral ::= _Gen048 ",
+  "SystemLiteral ::= _Gen050 ",
   "PubidChar_any ::= PubidChar *",
-  "_Gen052_any ::= _Gen052 *",
+  "_Gen054 ::= _Exclusion002 ",
+  "_Gen055 ::= _Gen054 ",
+  "_Gen055_any ::= _Gen055 *",
   "PubidLiteral ::= _Lex007 PubidChar_any _Lex007 ",
-  "PubidLiteral ::= _Lex009 _Gen052_any _Lex009 ",
+  "PubidLiteral ::= _Lex009 _Gen055_any _Lex009 ",
   "_Lex016_any ::= _Lex016 *",
-  "_Gen058 ::= _Lex016_any _Lex017 _Lex016_any ",
-  "_Gen061 ::= _Exclusion004 ",
-  "_Gen062 ::= _Gen061 ",
-  "_Gen063 ::= _Exclusion004 ",
-  "_Gen064 ::= _Gen063 ",
-  "_Gen065 ::= _Lex019 _Gen064 ",
-  "_Gen066 ::= _Gen062 ",
-  "_Gen066 ::= _Gen065 ",
-  "_Gen066_any ::= _Gen066 *",
-  "Comment ::= _Lex018 _Gen066_any _Lex020 ",
-  "_Gen070 ::= Char_any _Lex022 Char_any ",
-  "_Gen073 ::= S _Gen072 ",
-  "_Gen073_maybe ::= _Gen073 ",
-  "_Gen073_maybe ::=  ",
-  "PI ::= _Lex021 PITarget _Gen073_maybe _Lex022 ",
-  "_Gen077 ::= _Lex023 ",
-  "_Gen077 ::= _Lex024 ",
-  "_Gen079 ::= _Lex025 ",
-  "_Gen079 ::= _Lex026 ",
-  "_Gen081 ::= _Lex027 ",
-  "_Gen081 ::= _Lex028 ",
-  "_Gen083 ::= _Gen077 _Gen079 _Gen081 ",
+  "_Gen061 ::= _Lex016_any _Lex017 _Lex016_any ",
+  "_Gen062 ::= _Exclusion003 ",
+  "CharData ::= _Gen062 ",
+  "_Gen064 ::= _Exclusion004 ",
+  "_Gen065 ::= _Gen064 ",
+  "_Gen066 ::= _Exclusion004 ",
+  "_Gen067 ::= _Gen066 ",
+  "_Gen068 ::= _Lex019 _Gen067 ",
+  "_Gen069 ::= _Gen065 ",
+  "_Gen069 ::= _Gen068 ",
+  "_Gen069_any ::= _Gen069 *",
+  "Comment ::= _Lex018 _Gen069_any _Lex020 ",
+  "_Gen073 ::= Char_any _Lex022 Char_any ",
+  "_Gen074 ::= _Exclusion005 ",
+  "_Gen075 ::= _Gen074 ",
+  "_Gen076 ::= S _Gen075 ",
+  "_Gen076_maybe ::= _Gen076 ",
+  "_Gen076_maybe ::=  ",
+  "PI ::= _Lex021 PITarget _Gen076_maybe _Lex022 ",
+  "_Gen080 ::= _Lex023 ",
+  "_Gen080 ::= _Lex024 ",
+  "_Gen082 ::= _Lex025 ",
+  "_Gen082 ::= _Lex026 ",
+  "_Gen084 ::= _Lex027 ",
+  "_Gen084 ::= _Lex028 ",
+  "_Gen086 ::= _Gen080 _Gen082 _Gen084 ",
+  "_Gen087 ::= _Exclusion006 ",
+  "PITarget ::= _Gen087 ",
   "CDSect ::= CDStart CData CDEnd ",
-  "_Gen088 ::= Char_any _Lex017 Char_any ",
+  "_Gen091 ::= Char_any _Lex017 Char_any ",
+  "_Gen092 ::= _Exclusion007 ",
+  "_Gen093 ::= _Gen092 ",
+  "CData ::= _Gen093 ",
   "CDEnd ::= _Lex017 ",
-  "_Gen093 ::= doctypedecl Misc_any ",
-  "_Gen093_maybe ::= _Gen093 ",
-  "_Gen093_maybe ::=  ",
-  "prolog ::= XMLDecl Misc_any _Gen093_maybe ",
+  "_Gen096 ::= doctypedecl Misc_any ",
+  "_Gen096_maybe ::= _Gen096 ",
+  "_Gen096_maybe ::=  ",
+  "prolog ::= XMLDecl Misc_any _Gen096_maybe ",
   "EncodingDecl_maybe ::= EncodingDecl ",
   "EncodingDecl_maybe ::=  ",
   "SDDecl_maybe ::= SDDecl ",
@@ -928,26 +1000,26 @@ static const char *rulesToString[] = {
   "S_maybe ::= S ",
   "S_maybe ::=  ",
   "XMLDecl ::= _Lex030 VersionInfo EncodingDecl_maybe SDDecl_maybe S_maybe _Lex022 ",
-  "_Gen104 ::= _Lex009 VersionNum _Lex009 ",
-  "_Gen104 ::= _Lex007 VersionNum _Lex007 ",
-  "VersionInfo ::= S _Lex031 Eq _Gen104 ",
+  "_Gen107 ::= _Lex009 VersionNum _Lex009 ",
+  "_Gen107 ::= _Lex007 VersionNum _Lex007 ",
+  "VersionInfo ::= S _Lex031 Eq _Gen107 ",
   "Eq ::= S_maybe _Lex032 S_maybe ",
   "Misc ::= Comment ",
   "Misc ::= PI ",
   "Misc ::= S ",
-  "_Gen112 ::= S ExternalID ",
-  "_Gen112_maybe ::= _Gen112 ",
-  "_Gen112_maybe ::=  ",
-  "_Gen115 ::= _Lex035 intSubset _Lex036 S_maybe ",
+  "_Gen115 ::= S ExternalID ",
   "_Gen115_maybe ::= _Gen115 ",
   "_Gen115_maybe ::=  ",
-  "doctypedecl ::= _Lex034 S Name _Gen112_maybe S_maybe _Gen115_maybe _Lex037 ",
+  "_Gen118 ::= _Lex035 intSubset _Lex036 S_maybe ",
+  "_Gen118_maybe ::= _Gen118 ",
+  "_Gen118_maybe ::=  ",
+  "doctypedecl ::= _Lex034 S Name _Gen115_maybe S_maybe _Gen118_maybe _Lex037 ",
   "DeclSep ::= PEReference ",
   "DeclSep ::= S ",
-  "_Gen121 ::= markupdecl ",
-  "_Gen121 ::= DeclSep ",
-  "_Gen121_any ::= _Gen121 *",
-  "intSubset ::= _Gen121_any ",
+  "_Gen124 ::= markupdecl ",
+  "_Gen124 ::= DeclSep ",
+  "_Gen124_any ::= _Gen124 *",
+  "intSubset ::= _Gen124_any ",
   "markupdecl ::= elementdecl ",
   "markupdecl ::= AttlistDecl ",
   "markupdecl ::= EntityDecl ",
@@ -957,71 +1029,71 @@ static const char *rulesToString[] = {
   "TextDecl_maybe ::= TextDecl ",
   "TextDecl_maybe ::=  ",
   "extSubset ::= TextDecl_maybe extSubsetDecl ",
-  "_Gen134 ::= markupdecl ",
-  "_Gen134 ::= conditionalSect ",
-  "_Gen134 ::= DeclSep ",
-  "_Gen134_any ::= _Gen134 *",
-  "extSubsetDecl ::= _Gen134_any ",
-  "_Gen139 ::= _Lex039 ",
-  "_Gen139 ::= _Lex040 ",
-  "_Gen141 ::= _Lex009 _Gen139 _Lex009 ",
+  "_Gen137 ::= markupdecl ",
+  "_Gen137 ::= conditionalSect ",
+  "_Gen137 ::= DeclSep ",
+  "_Gen137_any ::= _Gen137 *",
+  "extSubsetDecl ::= _Gen137_any ",
   "_Gen142 ::= _Lex039 ",
   "_Gen142 ::= _Lex040 ",
-  "_Gen144 ::= _Lex007 _Gen142 _Lex007 ",
-  "_Gen145 ::= _Gen141 ",
-  "_Gen145 ::= _Gen144 ",
-  "SDDecl ::= S _Lex038 Eq _Gen145 ",
+  "_Gen144 ::= _Lex009 _Gen142 _Lex009 ",
+  "_Gen145 ::= _Lex039 ",
+  "_Gen145 ::= _Lex040 ",
+  "_Gen147 ::= _Lex007 _Gen145 _Lex007 ",
+  "_Gen148 ::= _Gen144 ",
+  "_Gen148 ::= _Gen147 ",
+  "SDDecl ::= S _Lex038 Eq _Gen148 ",
   "element ::= EmptyElemTag ",
   "element ::= STag content ETag ",
-  "_Gen150 ::= S Attribute ",
-  "_Gen150_any ::= _Gen150 *",
-  "STag ::= _Lex041 Name _Gen150_any S_maybe _Lex037 ",
+  "_Gen153 ::= S Attribute ",
+  "_Gen153_any ::= _Gen153 *",
+  "STag ::= _Lex041 Name _Gen153_any S_maybe _Lex037 ",
   "Attribute ::= Name Eq AttValue ",
   "ETag ::= _Lex042 Name S_maybe _Lex037 ",
   "CharData_maybe ::= CharData ",
   "CharData_maybe ::=  ",
-  "_Gen157 ::= element ",
-  "_Gen157 ::= Reference ",
-  "_Gen157 ::= CDSect ",
-  "_Gen157 ::= PI ",
-  "_Gen157 ::= Comment ",
-  "_Gen162 ::= _Gen157 CharData_maybe ",
-  "_Gen162_any ::= _Gen162 *",
-  "content ::= CharData_maybe _Gen162_any ",
-  "_Gen165 ::= S Attribute ",
+  "_Gen160 ::= element ",
+  "_Gen160 ::= Reference ",
+  "_Gen160 ::= CDSect ",
+  "_Gen160 ::= PI ",
+  "_Gen160 ::= Comment ",
+  "_Gen165 ::= _Gen160 CharData_maybe ",
   "_Gen165_any ::= _Gen165 *",
-  "EmptyElemTag ::= _Lex041 Name _Gen165_any S_maybe _Lex043 ",
+  "content ::= CharData_maybe _Gen165_any ",
+  "_Gen168 ::= S Attribute ",
+  "_Gen168_any ::= _Gen168 *",
+  "EmptyElemTag ::= _Lex041 Name _Gen168_any S_maybe _Lex043 ",
   "elementdecl ::= _Lex044 S Name S contentspec S_maybe _Lex037 ",
   "contentspec ::= _Lex045 ",
   "contentspec ::= _Lex046 ",
   "contentspec ::= Mixed ",
   "contentspec ::= children ",
-  "_Gen173 ::= choice ",
-  "_Gen173 ::= seq ",
-  "_Gen175 ::= _Lex047 ",
-  "_Gen175 ::= _Lex048 ",
-  "_Gen175 ::= _Lex049 ",
-  "_Gen175_maybe ::= _Gen175 ",
-  "_Gen175_maybe ::=  ",
-  "children ::= _Gen173 _Gen175_maybe ",
-  "_Gen181 ::= Name ",
-  "_Gen181 ::= choice ",
-  "_Gen181 ::= seq ",
-  "_Gen184 ::= _Lex047 ",
-  "_Gen184 ::= _Lex048 ",
-  "_Gen184 ::= _Lex049 ",
-  "_Gen184_maybe ::= _Gen184 ",
-  "_Gen184_maybe ::=  ",
-  "cp ::= _Gen181 _Gen184_maybe ",
-  "_Gen190 ::= S_maybe _Lex051 S_maybe cp ",
-  "_Gen190_many ::= _Gen190 +",
-  "choice ::= _Lex050 S_maybe cp _Gen190_many S_maybe _Lex052 ",
-  "_Gen193 ::= S_maybe _Lex053 S_maybe cp ",
-  "_Gen193_any ::= _Gen193 *",
-  "seq ::= _Lex050 S_maybe cp _Gen193_any S_maybe _Lex052 ",
-  "_Gen196 ::= S_maybe _Lex051 S_maybe Name ",
+  "_Gen176 ::= choice ",
+  "_Gen176 ::= seq ",
+  "_Gen178 ::= _Lex047 ",
+  "_Gen178 ::= _Lex048 ",
+  "_Gen178 ::= _Lex049 ",
+  "_Gen178_maybe ::= _Gen178 ",
+  "_Gen178_maybe ::=  ",
+  "children ::= _Gen176 _Gen178_maybe ",
+  "_Gen184 ::= Name ",
+  "_Gen184 ::= choice ",
+  "_Gen184 ::= seq ",
+  "_Gen187 ::= _Lex047 ",
+  "_Gen187 ::= _Lex048 ",
+  "_Gen187 ::= _Lex049 ",
+  "_Gen187_maybe ::= _Gen187 ",
+  "_Gen187_maybe ::=  ",
+  "cp ::= _Gen184 _Gen187_maybe ",
+  "_Gen193 ::= S_maybe _Lex051 S_maybe cp ",
+  "_Gen193_many ::= _Gen193 +",
+  "choice ::= _Lex050 S_maybe cp _Gen193_many S_maybe _Lex052 ",
+  "_Gen196 ::= S_maybe _Lex053 S_maybe cp ",
   "_Gen196_any ::= _Gen196 *",
-  "Mixed ::= _Lex050 S_maybe _Lex054 _Gen196_any S_maybe _Lex055 ",
+  "seq ::= _Lex050 S_maybe cp _Gen196_any S_maybe _Lex052 ",
+  "_Gen199 ::= S_maybe _Lex051 S_maybe Name ",
+  "_Gen199_any ::= _Gen199 *",
+  "Mixed ::= _Lex050 S_maybe _Lex054 _Gen199_any S_maybe _Lex055 ",
   "Mixed ::= _Lex050 S_maybe _Lex054 S_maybe _Lex052 ",
   "AttDef_any ::= AttDef *",
   "AttlistDecl ::= _Lex056 S Name AttDef_any S_maybe _Lex037 ",
@@ -1038,30 +1110,32 @@ static const char *rulesToString[] = {
   "TokenizedType ::= _Lex064 ",
   "EnumeratedType ::= NotationType ",
   "EnumeratedType ::= Enumeration ",
-  "_Gen216 ::= S_maybe _Lex051 S_maybe Name ",
-  "_Gen216_any ::= _Gen216 *",
-  "NotationType ::= _Lex065 S _Lex050 S_maybe Name _Gen216_any S_maybe _Lex052 ",
-  "_Gen219 ::= S_maybe _Lex051 S_maybe Nmtoken ",
+  "_Gen219 ::= S_maybe _Lex051 S_maybe Name ",
   "_Gen219_any ::= _Gen219 *",
-  "Enumeration ::= _Lex050 S_maybe Nmtoken _Gen219_any S_maybe _Lex052 ",
-  "_Gen222 ::= _Lex068 S ",
-  "_Gen222_maybe ::= _Gen222 ",
-  "_Gen222_maybe ::=  ",
-  "_Gen225 ::= _Gen222_maybe AttValue ",
+  "NotationType ::= _Lex065 S _Lex050 S_maybe Name _Gen219_any S_maybe _Lex052 ",
+  "_Gen222 ::= S_maybe _Lex051 S_maybe Nmtoken ",
+  "_Gen222_any ::= _Gen222 *",
+  "Enumeration ::= _Lex050 S_maybe Nmtoken _Gen222_any S_maybe _Lex052 ",
+  "_Gen225 ::= _Lex068 S ",
+  "_Gen225_maybe ::= _Gen225 ",
+  "_Gen225_maybe ::=  ",
+  "_Gen228 ::= _Gen225_maybe AttValue ",
   "DefaultDecl ::= _Lex066 ",
   "DefaultDecl ::= _Lex067 ",
-  "DefaultDecl ::= _Gen225 ",
+  "DefaultDecl ::= _Gen228 ",
   "conditionalSect ::= includeSect ",
   "conditionalSect ::= ignoreSect ",
   "includeSect ::= _Lex069 S_maybe _Lex070 S_maybe _Lex035 extSubsetDecl _Lex017 ",
   "ignoreSectContents_any ::= ignoreSectContents *",
   "ignoreSect ::= _Lex069 S_maybe _Lex071 S_maybe _Lex035 ignoreSectContents_any _Lex017 ",
-  "_Gen234 ::= _Lex069 ignoreSectContents _Lex017 Ignore ",
-  "_Gen234_any ::= _Gen234 *",
-  "ignoreSectContents ::= Ignore _Gen234_any ",
-  "_Gen237 ::= _Lex069 ",
-  "_Gen237 ::= _Lex017 ",
-  "_Gen239 ::= Char_any _Gen237 Char_any ",
+  "_Gen237 ::= _Lex069 ignoreSectContents _Lex017 Ignore ",
+  "_Gen237_any ::= _Gen237 *",
+  "ignoreSectContents ::= Ignore _Gen237_any ",
+  "_Gen240 ::= _Lex069 ",
+  "_Gen240 ::= _Lex017 ",
+  "_Gen242 ::= Char_any _Gen240 Char_any ",
+  "_Gen243 ::= _Exclusion008 ",
+  "Ignore ::= _Gen243 ",
   "_Lex073_many ::= _Lex073 +",
   "_Lex076_many ::= _Lex076 +",
   "CharRef ::= _Lex072 _Lex073_many _Lex074 ",
@@ -1076,9 +1150,9 @@ static const char *rulesToString[] = {
   "PEDecl ::= _Lex079 S _Lex078 S Name S PEDef S_maybe _Lex037 ",
   "NDataDecl_maybe ::= NDataDecl ",
   "NDataDecl_maybe ::=  ",
-  "_Gen256 ::= ExternalID NDataDecl_maybe ",
+  "_Gen259 ::= ExternalID NDataDecl_maybe ",
   "EntityDef ::= EntityValue ",
-  "EntityDef ::= _Gen256 ",
+  "EntityDef ::= _Gen259 ",
   "PEDef ::= EntityValue ",
   "PEDef ::= ExternalID ",
   "ExternalID ::= _Lex080 S SystemLiteral ",
@@ -1087,18 +1161,20 @@ static const char *rulesToString[] = {
   "VersionInfo_maybe ::= VersionInfo ",
   "VersionInfo_maybe ::=  ",
   "TextDecl ::= _Lex030 VersionInfo_maybe EncodingDecl S_maybe _Lex022 ",
-  "_Gen267 ::= TextDecl_maybe content ",
-  "_Gen268 ::= Char_any RestrictedChar Char_any ",
-  "_Gen271 ::= _Lex007 EncName _Lex007 ",
-  "_Gen271 ::= _Lex009 EncName _Lex009 ",
-  "EncodingDecl ::= S _Lex083 Eq _Gen271 ",
-  "_Gen274 ::= _Lex085 ",
-  "_Gen274 ::= _Lex019 ",
-  "_Gen274_any ::= _Gen274 *",
-  "EncName ::= _Lex084 _Gen274_any ",
-  "_Gen278 ::= ExternalID ",
-  "_Gen278 ::= PublicID ",
-  "NotationDecl ::= _Lex086 S Name S _Gen278 S_maybe _Lex037 ",
+  "_Gen270 ::= TextDecl_maybe content ",
+  "_Gen271 ::= Char_any RestrictedChar Char_any ",
+  "_Gen272 ::= _Exclusion009 ",
+  "extParsedEnt ::= _Gen272 ",
+  "_Gen274 ::= _Lex007 EncName _Lex007 ",
+  "_Gen274 ::= _Lex009 EncName _Lex009 ",
+  "EncodingDecl ::= S _Lex083 Eq _Gen274 ",
+  "_Gen277 ::= _Lex085 ",
+  "_Gen277 ::= _Lex019 ",
+  "_Gen277_any ::= _Gen277 *",
+  "EncName ::= _Lex084 _Gen277_any ",
+  "_Gen281 ::= ExternalID ",
+  "_Gen281 ::= PublicID ",
+  "NotationDecl ::= _Lex086 S Name S _Gen281 S_maybe _Lex037 ",
   "PublicID ::= _Lex081 S PubidLiteral "
 };
 
@@ -1107,19 +1183,21 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildSymbolsb(xml_1_1_t *xml_1_1p, m
 static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p);
 static C_INLINE marpaWrapperBool_t _xml_1_1_isLexemeb(void *p, signed int currenti, streamIn_t *streamInp, size_t *sizelp);
 static C_INLINE marpaWrapperBool_t _xml_1_1_CDStartb(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp);
-static C_INLINE marpaWrapperBool_t _xml_1_1_CDatab(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp);
 static C_INLINE marpaWrapperBool_t _xml_1_1_Charb(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp);
-static C_INLINE marpaWrapperBool_t _xml_1_1_CharDatab(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp);
-static C_INLINE marpaWrapperBool_t _xml_1_1_Ignoreb(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp);
 static C_INLINE marpaWrapperBool_t _xml_1_1_NameStartCharb(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp);
-static C_INLINE marpaWrapperBool_t _xml_1_1_PITargetb(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp);
 static C_INLINE marpaWrapperBool_t _xml_1_1_PubidCharb(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp);
 static C_INLINE marpaWrapperBool_t _xml_1_1_RestrictedCharb(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp);
 static C_INLINE marpaWrapperBool_t _xml_1_1_StringTypeb(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp);
 static C_INLINE marpaWrapperBool_t _xml_1_1_VersionNumb(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Exclusion001b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Exclusion002b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Exclusion003b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp);
 static C_INLINE marpaWrapperBool_t _xml_1_1__Exclusion004b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp);
-static C_INLINE marpaWrapperBool_t _xml_1_1__Gen052b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp);
-static C_INLINE marpaWrapperBool_t _xml_1_1__Gen072b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Exclusion005b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Exclusion006b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Exclusion007b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Exclusion008b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp);
+static C_INLINE marpaWrapperBool_t _xml_1_1__Exclusion009b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp);
 static C_INLINE marpaWrapperBool_t _xml_1_1__Lex003b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp);
 static C_INLINE marpaWrapperBool_t _xml_1_1__Lex005b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp);
 static C_INLINE marpaWrapperBool_t _xml_1_1__Lex006b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp);
@@ -1199,8 +1277,6 @@ static C_INLINE marpaWrapperBool_t _xml_1_1__Lex083b(xml_1_1_t *xml_1_1p, signed
 static C_INLINE marpaWrapperBool_t _xml_1_1__Lex084b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp);
 static C_INLINE marpaWrapperBool_t _xml_1_1__Lex085b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp);
 static C_INLINE marpaWrapperBool_t _xml_1_1__Lex086b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp);
-static C_INLINE marpaWrapperBool_t _xml_1_1_documentb(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp);
-static C_INLINE marpaWrapperBool_t _xml_1_1_extParsedEntb(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp);
 
 /*******************/
 /* xml_1_1_newp  */
@@ -1391,6 +1467,63 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
   xml_1_1p->marpaWrapperRuleArrayLengthi = XML_1_1_RULE_MAX;
 
   {
+    /* [xml_1_1_start_001] start ::= document  */
+    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_document]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1_start_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_start];
+    marpaWrapperRuleOption.nRhsSymboli = 1;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_start_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_start_001] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1_start_002] start ::= extParsedEnt  */
+    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_extParsedEnt]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1_start_002;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_start];
+    marpaWrapperRuleOption.nRhsSymboli = 1;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_start_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_start_002] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1_start_003] start ::= extSubset  */
+    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_extSubset]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1_start_003;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_start];
+    marpaWrapperRuleOption.nRhsSymboli = 1;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_start_003] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_start_003] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
     /* [xml_1_1_Misc_any_001] Misc_any ::= Misc * */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Misc]
@@ -1403,6 +1536,8 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Misc_any];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    marpaWrapperRuleOption.sequenceb = MARPAWRAPPER_BOOL_TRUE;
+    marpaWrapperRuleOption.minimumi = 0;
     /* Create the rule */
     xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_Misc_any_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
     if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_Misc_any_001] == NULL) {
@@ -1410,7 +1545,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen002_001] _Gen002 ::= prolog element Misc_any  */
+    /* [xml_1_1__Gen005_001] _Gen005 ::= prolog element Misc_any  */
     marpaWrapperSymbol_t *rhsSymbolpp[3] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_prolog],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_element],
@@ -1420,13 +1555,13 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen002_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen002];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen005_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen005];
     marpaWrapperRuleOption.nRhsSymboli = 3;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen002_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen002_001] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen005_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen005_001] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
@@ -1443,6 +1578,8 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Char_any];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    marpaWrapperRuleOption.sequenceb = MARPAWRAPPER_BOOL_TRUE;
+    marpaWrapperRuleOption.minimumi = 0;
     /* Create the rule */
     xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_Char_any_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
     if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_Char_any_001] == NULL) {
@@ -1450,7 +1587,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen004_001] _Gen004 ::= Char_any RestrictedChar Char_any  */
+    /* [xml_1_1__Gen007_001] _Gen007 ::= Char_any RestrictedChar Char_any  */
     marpaWrapperSymbol_t *rhsSymbolpp[3] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Char_any],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_RestrictedChar],
@@ -1460,13 +1597,51 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen004_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen004];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen007_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen007];
     marpaWrapperRuleOption.nRhsSymboli = 3;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen004_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen004_001] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen007_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen007_001] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1__Gen008_001] _Gen008 ::= _Exclusion001  */
+    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Exclusion001]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen008_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen008];
+    marpaWrapperRuleOption.nRhsSymboli = 1;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen008_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen008_001] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1_document_001] document ::= _Gen008  */
+    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen008]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1_document_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_document];
+    marpaWrapperRuleOption.nRhsSymboli = 1;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_document_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_document_001] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
@@ -1483,6 +1658,8 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex003_many];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    marpaWrapperRuleOption.sequenceb = MARPAWRAPPER_BOOL_TRUE;
+    marpaWrapperRuleOption.minimumi = 1;
     /* Create the rule */
     xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Lex003_many_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
     if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Lex003_many_001] == NULL) {
@@ -1547,7 +1724,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen014_001] _Gen014 ::= NameChar  */
+    /* [xml_1_1__Gen017_001] _Gen017 ::= NameChar  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_NameChar]
     };
@@ -1555,68 +1732,9 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen014_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen014];
-    marpaWrapperRuleOption.nRhsSymboli = 1;
-    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
-    /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen014_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen014_001] == NULL) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-  }
-  {
-    /* [xml_1_1__Gen014_any_001] _Gen014_any ::= _Gen014 * */
-    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen014]
-    };
-    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-    /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen014_any_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen014_any];
-    marpaWrapperRuleOption.nRhsSymboli = 1;
-    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
-    /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen014_any_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen014_any_001] == NULL) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-  }
-  {
-    /* [xml_1_1_Name_001] Name ::= NameStartChar _Gen014_any  */
-    marpaWrapperSymbol_t *rhsSymbolpp[2] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_NameStartChar],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen014_any]
-    };
-    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-    /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1_Name_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Name];
-    marpaWrapperRuleOption.nRhsSymboli = 2;
-    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
-    /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_Name_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_Name_001] == NULL) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-  }
-  {
-    /* [xml_1_1__Gen017_001] _Gen017 ::= _Lex006 Name  */
-    marpaWrapperSymbol_t *rhsSymbolpp[2] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex006],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Name]
-    };
-    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-    /* Opaque data associated to rule will be the lhs symbol enum */
     marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen017_001;
     marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen017];
-    marpaWrapperRuleOption.nRhsSymboli = 2;
+    marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
     xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen017_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
@@ -1637,6 +1755,8 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen017_any];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    marpaWrapperRuleOption.sequenceb = MARPAWRAPPER_BOOL_TRUE;
+    marpaWrapperRuleOption.minimumi = 0;
     /* Create the rule */
     xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen017_any_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
     if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen017_any_001] == NULL) {
@@ -1644,10 +1764,71 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1_Names_001] Names ::= Name _Gen017_any  */
+    /* [xml_1_1_Name_001] Name ::= NameStartChar _Gen017_any  */
+    marpaWrapperSymbol_t *rhsSymbolpp[2] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_NameStartChar],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen017_any]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1_Name_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Name];
+    marpaWrapperRuleOption.nRhsSymboli = 2;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_Name_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_Name_001] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1__Gen020_001] _Gen020 ::= _Lex006 Name  */
+    marpaWrapperSymbol_t *rhsSymbolpp[2] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex006],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Name]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen020_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen020];
+    marpaWrapperRuleOption.nRhsSymboli = 2;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen020_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen020_001] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1__Gen020_any_001] _Gen020_any ::= _Gen020 * */
+    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen020]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen020_any_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen020_any];
+    marpaWrapperRuleOption.nRhsSymboli = 1;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    marpaWrapperRuleOption.sequenceb = MARPAWRAPPER_BOOL_TRUE;
+    marpaWrapperRuleOption.minimumi = 0;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen020_any_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen020_any_001] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1_Names_001] Names ::= Name _Gen020_any  */
     marpaWrapperSymbol_t *rhsSymbolpp[2] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Name],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen017_any]
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen020_any]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
@@ -1664,7 +1845,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen020_001] _Gen020 ::= NameChar  */
+    /* [xml_1_1__Gen023_001] _Gen023 ::= NameChar  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_NameChar]
     };
@@ -1672,39 +1853,41 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen020_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen020];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen023_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen023];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen020_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen020_001] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen023_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen023_001] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1__Gen020_many_001] _Gen020_many ::= _Gen020 + */
+    /* [xml_1_1__Gen023_many_001] _Gen023_many ::= _Gen023 + */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen020]
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen023]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen020_many_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen020_many];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen023_many_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen023_many];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    marpaWrapperRuleOption.sequenceb = MARPAWRAPPER_BOOL_TRUE;
+    marpaWrapperRuleOption.minimumi = 1;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen020_many_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen020_many_001] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen023_many_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen023_many_001] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1_Nmtoken_001] Nmtoken ::= _Gen020_many  */
+    /* [xml_1_1_Nmtoken_001] Nmtoken ::= _Gen023_many  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen020_many]
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen023_many]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
@@ -1721,7 +1904,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen023_001] _Gen023 ::= _Lex006 Nmtoken  */
+    /* [xml_1_1__Gen026_001] _Gen026 ::= _Lex006 Nmtoken  */
     marpaWrapperSymbol_t *rhsSymbolpp[2] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex006],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Nmtoken]
@@ -1730,109 +1913,13 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen023_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen023];
-    marpaWrapperRuleOption.nRhsSymboli = 2;
-    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
-    /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen023_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen023_001] == NULL) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-  }
-  {
-    /* [xml_1_1__Gen023_any_001] _Gen023_any ::= _Gen023 * */
-    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen023]
-    };
-    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-    /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen023_any_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen023_any];
-    marpaWrapperRuleOption.nRhsSymboli = 1;
-    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
-    /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen023_any_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen023_any_001] == NULL) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-  }
-  {
-    /* [xml_1_1_Nmtokens_001] Nmtokens ::= Nmtoken _Gen023_any  */
-    marpaWrapperSymbol_t *rhsSymbolpp[2] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Nmtoken],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen023_any]
-    };
-    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-    /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1_Nmtokens_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Nmtokens];
-    marpaWrapperRuleOption.nRhsSymboli = 2;
-    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
-    /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_Nmtokens_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_Nmtokens_001] == NULL) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-  }
-  {
-    /* [xml_1_1__Gen026_001] _Gen026 ::= _Lex008  */
-    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex008]
-    };
-    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-    /* Opaque data associated to rule will be the lhs symbol enum */
     marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen026_001;
     marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen026];
-    marpaWrapperRuleOption.nRhsSymboli = 1;
+    marpaWrapperRuleOption.nRhsSymboli = 2;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
     xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen026_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
     if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen026_001] == NULL) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-  }
-  {
-    /* [xml_1_1__Gen026_002] _Gen026 ::= PEReference  */
-    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_PEReference]
-    };
-    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-    /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen026_002;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen026];
-    marpaWrapperRuleOption.nRhsSymboli = 1;
-    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
-    /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen026_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen026_002] == NULL) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-  }
-  {
-    /* [xml_1_1__Gen026_003] _Gen026 ::= Reference  */
-    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Reference]
-    };
-    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-    /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen026_003;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen026];
-    marpaWrapperRuleOption.nRhsSymboli = 1;
-    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
-    /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen026_003] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen026_003] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
@@ -1849,6 +1936,8 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen026_any];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    marpaWrapperRuleOption.sequenceb = MARPAWRAPPER_BOOL_TRUE;
+    marpaWrapperRuleOption.minimumi = 0;
     /* Create the rule */
     xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen026_any_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
     if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen026_any_001] == NULL) {
@@ -1856,26 +1945,46 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen030_001] _Gen030 ::= _Lex010  */
-    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex010]
+    /* [xml_1_1_Nmtokens_001] Nmtokens ::= Nmtoken _Gen026_any  */
+    marpaWrapperSymbol_t *rhsSymbolpp[2] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Nmtoken],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen026_any]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen030_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen030];
-    marpaWrapperRuleOption.nRhsSymboli = 1;
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1_Nmtokens_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Nmtokens];
+    marpaWrapperRuleOption.nRhsSymboli = 2;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen030_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen030_001] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_Nmtokens_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_Nmtokens_001] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1__Gen030_002] _Gen030 ::= PEReference  */
+    /* [xml_1_1__Gen029_001] _Gen029 ::= _Lex008  */
+    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex008]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen029_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen029];
+    marpaWrapperRuleOption.nRhsSymboli = 1;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen029_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen029_001] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1__Gen029_002] _Gen029 ::= PEReference  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_PEReference]
     };
@@ -1883,18 +1992,18 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen030_002;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen030];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen029_002;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen029];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen030_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen030_002] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen029_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen029_002] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1__Gen030_003] _Gen030 ::= Reference  */
+    /* [xml_1_1__Gen029_003] _Gen029 ::= Reference  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Reference]
     };
@@ -1902,40 +2011,120 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen030_003;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen030];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen029_003;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen029];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen030_003] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen030_003] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen029_003] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen029_003] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1__Gen030_any_001] _Gen030_any ::= _Gen030 * */
+    /* [xml_1_1__Gen029_any_001] _Gen029_any ::= _Gen029 * */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen030]
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen029]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen030_any_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen030_any];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen029_any_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen029_any];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    marpaWrapperRuleOption.sequenceb = MARPAWRAPPER_BOOL_TRUE;
+    marpaWrapperRuleOption.minimumi = 0;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen030_any_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen030_any_001] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen029_any_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen029_any_001] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1_EntityValue_001] EntityValue ::= _Lex007 _Gen026_any _Lex007  */
+    /* [xml_1_1__Gen033_001] _Gen033 ::= _Lex010  */
+    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex010]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen033_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen033];
+    marpaWrapperRuleOption.nRhsSymboli = 1;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen033_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen033_001] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1__Gen033_002] _Gen033 ::= PEReference  */
+    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_PEReference]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen033_002;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen033];
+    marpaWrapperRuleOption.nRhsSymboli = 1;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen033_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen033_002] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1__Gen033_003] _Gen033 ::= Reference  */
+    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Reference]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen033_003;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen033];
+    marpaWrapperRuleOption.nRhsSymboli = 1;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen033_003] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen033_003] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1__Gen033_any_001] _Gen033_any ::= _Gen033 * */
+    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen033]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen033_any_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen033_any];
+    marpaWrapperRuleOption.nRhsSymboli = 1;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    marpaWrapperRuleOption.sequenceb = MARPAWRAPPER_BOOL_TRUE;
+    marpaWrapperRuleOption.minimumi = 0;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen033_any_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen033_any_001] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1_EntityValue_001] EntityValue ::= _Lex007 _Gen029_any _Lex007  */
     marpaWrapperSymbol_t *rhsSymbolpp[3] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex007],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen026_any],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen029_any],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex007]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
@@ -1953,10 +2142,10 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1_EntityValue_002] EntityValue ::= _Lex009 _Gen030_any _Lex009  */
+    /* [xml_1_1_EntityValue_002] EntityValue ::= _Lex009 _Gen033_any _Lex009  */
     marpaWrapperSymbol_t *rhsSymbolpp[3] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex009],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen030_any],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen033_any],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex009]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
@@ -1974,66 +2163,9 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen036_001] _Gen036 ::= _Lex011  */
+    /* [xml_1_1__Gen039_001] _Gen039 ::= _Lex011  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex011]
-    };
-    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-    /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen036_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen036];
-    marpaWrapperRuleOption.nRhsSymboli = 1;
-    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
-    /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen036_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen036_001] == NULL) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-  }
-  {
-    /* [xml_1_1__Gen036_002] _Gen036 ::= Reference  */
-    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Reference]
-    };
-    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-    /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen036_002;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen036];
-    marpaWrapperRuleOption.nRhsSymboli = 1;
-    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
-    /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen036_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen036_002] == NULL) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-  }
-  {
-    /* [xml_1_1__Gen036_any_001] _Gen036_any ::= _Gen036 * */
-    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen036]
-    };
-    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-    /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen036_any_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen036_any];
-    marpaWrapperRuleOption.nRhsSymboli = 1;
-    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
-    /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen036_any_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen036_any_001] == NULL) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-  }
-  {
-    /* [xml_1_1__Gen039_001] _Gen039 ::= _Lex012  */
-    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex012]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
@@ -2081,6 +2213,8 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen039_any];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    marpaWrapperRuleOption.sequenceb = MARPAWRAPPER_BOOL_TRUE;
+    marpaWrapperRuleOption.minimumi = 0;
     /* Create the rule */
     xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen039_any_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
     if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen039_any_001] == NULL) {
@@ -2088,10 +2222,69 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1_AttValue_001] AttValue ::= _Lex007 _Gen036_any _Lex007  */
+    /* [xml_1_1__Gen042_001] _Gen042 ::= _Lex012  */
+    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex012]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen042_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen042];
+    marpaWrapperRuleOption.nRhsSymboli = 1;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen042_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen042_001] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1__Gen042_002] _Gen042 ::= Reference  */
+    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Reference]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen042_002;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen042];
+    marpaWrapperRuleOption.nRhsSymboli = 1;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen042_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen042_002] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1__Gen042_any_001] _Gen042_any ::= _Gen042 * */
+    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen042]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen042_any_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen042_any];
+    marpaWrapperRuleOption.nRhsSymboli = 1;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    marpaWrapperRuleOption.sequenceb = MARPAWRAPPER_BOOL_TRUE;
+    marpaWrapperRuleOption.minimumi = 0;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen042_any_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen042_any_001] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1_AttValue_001] AttValue ::= _Lex007 _Gen039_any _Lex007  */
     marpaWrapperSymbol_t *rhsSymbolpp[3] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex007],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen036_any],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen039_any],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex007]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
@@ -2109,10 +2302,10 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1_AttValue_002] AttValue ::= _Lex009 _Gen039_any _Lex009  */
+    /* [xml_1_1_AttValue_002] AttValue ::= _Lex009 _Gen042_any _Lex009  */
     marpaWrapperSymbol_t *rhsSymbolpp[3] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex009],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen039_any],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen042_any],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex009]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
@@ -2142,6 +2335,8 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex013_any];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    marpaWrapperRuleOption.sequenceb = MARPAWRAPPER_BOOL_TRUE;
+    marpaWrapperRuleOption.minimumi = 0;
     /* Create the rule */
     xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Lex013_any_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
     if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Lex013_any_001] == NULL) {
@@ -2149,7 +2344,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen045_001] _Gen045 ::= _Lex007 _Lex013_any _Lex007  */
+    /* [xml_1_1__Gen048_001] _Gen048 ::= _Lex007 _Lex013_any _Lex007  */
     marpaWrapperSymbol_t *rhsSymbolpp[3] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex007],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex013_any],
@@ -2159,13 +2354,13 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen045_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen045];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen048_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen048];
     marpaWrapperRuleOption.nRhsSymboli = 3;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen045_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen045_001] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen048_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen048_001] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
@@ -2182,6 +2377,8 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex014_any];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    marpaWrapperRuleOption.sequenceb = MARPAWRAPPER_BOOL_TRUE;
+    marpaWrapperRuleOption.minimumi = 0;
     /* Create the rule */
     xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Lex014_any_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
     if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Lex014_any_001] == NULL) {
@@ -2189,7 +2386,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen047_001] _Gen047 ::= _Lex009 _Lex014_any _Lex009  */
+    /* [xml_1_1__Gen050_001] _Gen050 ::= _Lex009 _Lex014_any _Lex009  */
     marpaWrapperSymbol_t *rhsSymbolpp[3] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex009],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex014_any],
@@ -2199,20 +2396,20 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen047_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen047];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen050_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen050];
     marpaWrapperRuleOption.nRhsSymboli = 3;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen047_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen047_001] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen050_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen050_001] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1_SystemLiteral_001] SystemLiteral ::= _Gen045  */
+    /* [xml_1_1_SystemLiteral_001] SystemLiteral ::= _Gen048  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen045]
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen048]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
@@ -2229,9 +2426,9 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1_SystemLiteral_002] SystemLiteral ::= _Gen047  */
+    /* [xml_1_1_SystemLiteral_002] SystemLiteral ::= _Gen050  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen047]
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen050]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
@@ -2260,6 +2457,8 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_PubidChar_any];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    marpaWrapperRuleOption.sequenceb = MARPAWRAPPER_BOOL_TRUE;
+    marpaWrapperRuleOption.minimumi = 0;
     /* Create the rule */
     xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_PubidChar_any_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
     if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_PubidChar_any_001] == NULL) {
@@ -2267,21 +2466,61 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen052_any_001] _Gen052_any ::= _Gen052 * */
+    /* [xml_1_1__Gen054_001] _Gen054 ::= _Exclusion002  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen052]
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Exclusion002]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen052_any_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen052_any];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen054_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen054];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen052_any_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen052_any_001] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen054_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen054_001] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1__Gen055_001] _Gen055 ::= _Gen054  */
+    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen054]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen055_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen055];
+    marpaWrapperRuleOption.nRhsSymboli = 1;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen055_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen055_001] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1__Gen055_any_001] _Gen055_any ::= _Gen055 * */
+    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen055]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen055_any_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen055_any];
+    marpaWrapperRuleOption.nRhsSymboli = 1;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    marpaWrapperRuleOption.sequenceb = MARPAWRAPPER_BOOL_TRUE;
+    marpaWrapperRuleOption.minimumi = 0;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen055_any_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen055_any_001] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
@@ -2307,10 +2546,10 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1_PubidLiteral_002] PubidLiteral ::= _Lex009 _Gen052_any _Lex009  */
+    /* [xml_1_1_PubidLiteral_002] PubidLiteral ::= _Lex009 _Gen055_any _Lex009  */
     marpaWrapperSymbol_t *rhsSymbolpp[3] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex009],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen052_any],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen055_any],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex009]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
@@ -2340,6 +2579,8 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex016_any];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    marpaWrapperRuleOption.sequenceb = MARPAWRAPPER_BOOL_TRUE;
+    marpaWrapperRuleOption.minimumi = 0;
     /* Create the rule */
     xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Lex016_any_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
     if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Lex016_any_001] == NULL) {
@@ -2347,7 +2588,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen058_001] _Gen058 ::= _Lex016_any _Lex017 _Lex016_any  */
+    /* [xml_1_1__Gen061_001] _Gen061 ::= _Lex016_any _Lex017 _Lex016_any  */
     marpaWrapperSymbol_t *rhsSymbolpp[3] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex016_any],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex017],
@@ -2357,28 +2598,9 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen058_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen058];
-    marpaWrapperRuleOption.nRhsSymboli = 3;
-    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
-    /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen058_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen058_001] == NULL) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-  }
-  {
-    /* [xml_1_1__Gen061_001] _Gen061 ::= _Exclusion004  */
-    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Exclusion004]
-    };
-    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-    /* Opaque data associated to rule will be the lhs symbol enum */
     marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen061_001;
     marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen061];
-    marpaWrapperRuleOption.nRhsSymboli = 1;
+    marpaWrapperRuleOption.nRhsSymboli = 3;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
     xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen061_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
@@ -2387,9 +2609,9 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen062_001] _Gen062 ::= _Gen061  */
+    /* [xml_1_1__Gen062_001] _Gen062 ::= _Exclusion003  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen061]
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Exclusion003]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
@@ -2406,28 +2628,28 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen063_001] _Gen063 ::= _Exclusion004  */
+    /* [xml_1_1_CharData_001] CharData ::= _Gen062  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Exclusion004]
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen062]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen063_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen063];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1_CharData_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_CharData];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen063_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen063_001] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_CharData_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_CharData_001] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1__Gen064_001] _Gen064 ::= _Gen063  */
+    /* [xml_1_1__Gen064_001] _Gen064 ::= _Exclusion004  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen063]
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Exclusion004]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
@@ -2444,9 +2666,8 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen065_001] _Gen065 ::= _Lex019 _Gen064  */
-    marpaWrapperSymbol_t *rhsSymbolpp[2] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex019],
+    /* [xml_1_1__Gen065_001] _Gen065 ::= _Gen064  */
+    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen064]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
@@ -2455,7 +2676,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     /* Opaque data associated to rule will be the lhs symbol enum */
     marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen065_001;
     marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen065];
-    marpaWrapperRuleOption.nRhsSymboli = 2;
+    marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
     xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen065_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
@@ -2464,9 +2685,9 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen066_001] _Gen066 ::= _Gen062  */
+    /* [xml_1_1__Gen066_001] _Gen066 ::= _Exclusion004  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen062]
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Exclusion004]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
@@ -2483,26 +2704,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen066_002] _Gen066 ::= _Gen065  */
-    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen065]
-    };
-    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-    /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen066_002;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen066];
-    marpaWrapperRuleOption.nRhsSymboli = 1;
-    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
-    /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen066_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen066_002] == NULL) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-  }
-  {
-    /* [xml_1_1__Gen066_any_001] _Gen066_any ::= _Gen066 * */
+    /* [xml_1_1__Gen067_001] _Gen067 ::= _Gen066  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen066]
     };
@@ -2510,21 +2712,100 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen066_any_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen066_any];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen067_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen067];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen066_any_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen066_any_001] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen067_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen067_001] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1_Comment_001] Comment ::= _Lex018 _Gen066_any _Lex020  */
+    /* [xml_1_1__Gen068_001] _Gen068 ::= _Lex019 _Gen067  */
+    marpaWrapperSymbol_t *rhsSymbolpp[2] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex019],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen067]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen068_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen068];
+    marpaWrapperRuleOption.nRhsSymboli = 2;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen068_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen068_001] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1__Gen069_001] _Gen069 ::= _Gen065  */
+    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen065]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen069_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen069];
+    marpaWrapperRuleOption.nRhsSymboli = 1;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen069_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen069_001] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1__Gen069_002] _Gen069 ::= _Gen068  */
+    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen068]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen069_002;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen069];
+    marpaWrapperRuleOption.nRhsSymboli = 1;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen069_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen069_002] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1__Gen069_any_001] _Gen069_any ::= _Gen069 * */
+    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen069]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen069_any_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen069_any];
+    marpaWrapperRuleOption.nRhsSymboli = 1;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    marpaWrapperRuleOption.sequenceb = MARPAWRAPPER_BOOL_TRUE;
+    marpaWrapperRuleOption.minimumi = 0;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen069_any_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen069_any_001] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1_Comment_001] Comment ::= _Lex018 _Gen069_any _Lex020  */
     marpaWrapperSymbol_t *rhsSymbolpp[3] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex018],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen066_any],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen069_any],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex020]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
@@ -2542,7 +2823,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen070_001] _Gen070 ::= Char_any _Lex022 Char_any  */
+    /* [xml_1_1__Gen073_001] _Gen073 ::= Char_any _Lex022 Char_any  */
     marpaWrapperSymbol_t *rhsSymbolpp[3] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Char_any],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex022],
@@ -2552,29 +2833,9 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen070_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen070];
-    marpaWrapperRuleOption.nRhsSymboli = 3;
-    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
-    /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen070_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen070_001] == NULL) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-  }
-  {
-    /* [xml_1_1__Gen073_001] _Gen073 ::= S _Gen072  */
-    marpaWrapperSymbol_t *rhsSymbolpp[2] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen072]
-    };
-    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-    /* Opaque data associated to rule will be the lhs symbol enum */
     marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen073_001;
     marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen073];
-    marpaWrapperRuleOption.nRhsSymboli = 2;
+    marpaWrapperRuleOption.nRhsSymboli = 3;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
     xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen073_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
@@ -2583,44 +2844,102 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen073_maybe_001] _Gen073_maybe ::= _Gen073  */
+    /* [xml_1_1__Gen074_001] _Gen074 ::= _Exclusion005  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen073]
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Exclusion005]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen073_maybe_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen073_maybe];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen074_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen074];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen073_maybe_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen073_maybe_001] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen074_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen074_001] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1__Gen073_maybe_002] _Gen073_maybe ::=   */
+    /* [xml_1_1__Gen075_001] _Gen075 ::= _Gen074  */
+    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen074]
+    };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen073_maybe_002;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen073_maybe];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen075_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen075];
+    marpaWrapperRuleOption.nRhsSymboli = 1;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen073_maybe_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen073_maybe_002] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen075_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen075_001] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1_PI_001] PI ::= _Lex021 PITarget _Gen073_maybe _Lex022  */
+    /* [xml_1_1__Gen076_001] _Gen076 ::= S _Gen075  */
+    marpaWrapperSymbol_t *rhsSymbolpp[2] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen075]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen076_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen076];
+    marpaWrapperRuleOption.nRhsSymboli = 2;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen076_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen076_001] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1__Gen076_maybe_001] _Gen076_maybe ::= _Gen076  */
+    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen076]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen076_maybe_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen076_maybe];
+    marpaWrapperRuleOption.nRhsSymboli = 1;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen076_maybe_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen076_maybe_001] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1__Gen076_maybe_002] _Gen076_maybe ::=   */
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen076_maybe_002;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen076_maybe];
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen076_maybe_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen076_maybe_002] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1_PI_001] PI ::= _Lex021 PITarget _Gen076_maybe _Lex022  */
     marpaWrapperSymbol_t *rhsSymbolpp[4] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex021],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_PITarget],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen073_maybe],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen076_maybe],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex022]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
@@ -2638,7 +2957,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen077_001] _Gen077 ::= _Lex023  */
+    /* [xml_1_1__Gen080_001] _Gen080 ::= _Lex023  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex023]
     };
@@ -2646,18 +2965,18 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen077_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen077];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen080_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen080];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen077_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen077_001] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen080_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen080_001] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1__Gen077_002] _Gen077 ::= _Lex024  */
+    /* [xml_1_1__Gen080_002] _Gen080 ::= _Lex024  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex024]
     };
@@ -2665,18 +2984,18 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen077_002;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen077];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen080_002;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen080];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen077_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen077_002] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen080_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen080_002] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1__Gen079_001] _Gen079 ::= _Lex025  */
+    /* [xml_1_1__Gen082_001] _Gen082 ::= _Lex025  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex025]
     };
@@ -2684,18 +3003,18 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen079_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen079];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen082_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen082];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen079_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen079_001] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen082_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen082_001] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1__Gen079_002] _Gen079 ::= _Lex026  */
+    /* [xml_1_1__Gen082_002] _Gen082 ::= _Lex026  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex026]
     };
@@ -2703,18 +3022,18 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen079_002;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen079];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen082_002;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen082];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen079_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen079_002] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen082_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen082_002] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1__Gen081_001] _Gen081 ::= _Lex027  */
+    /* [xml_1_1__Gen084_001] _Gen084 ::= _Lex027  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex027]
     };
@@ -2722,18 +3041,18 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen081_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen081];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen084_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen084];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen081_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen081_001] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen084_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen084_001] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1__Gen081_002] _Gen081 ::= _Lex028  */
+    /* [xml_1_1__Gen084_002] _Gen084 ::= _Lex028  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex028]
     };
@@ -2741,34 +3060,72 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen081_002;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen081];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen084_002;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen084];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen081_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen081_002] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen084_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen084_002] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1__Gen083_001] _Gen083 ::= _Gen077 _Gen079 _Gen081  */
+    /* [xml_1_1__Gen086_001] _Gen086 ::= _Gen080 _Gen082 _Gen084  */
     marpaWrapperSymbol_t *rhsSymbolpp[3] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen077],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen079],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen081]
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen080],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen082],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen084]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen083_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen083];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen086_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen086];
     marpaWrapperRuleOption.nRhsSymboli = 3;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen083_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen083_001] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen086_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen086_001] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1__Gen087_001] _Gen087 ::= _Exclusion006  */
+    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Exclusion006]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen087_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen087];
+    marpaWrapperRuleOption.nRhsSymboli = 1;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen087_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen087_001] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1_PITarget_001] PITarget ::= _Gen087  */
+    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen087]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1_PITarget_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_PITarget];
+    marpaWrapperRuleOption.nRhsSymboli = 1;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_PITarget_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_PITarget_001] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
@@ -2794,7 +3151,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen088_001] _Gen088 ::= Char_any _Lex017 Char_any  */
+    /* [xml_1_1__Gen091_001] _Gen091 ::= Char_any _Lex017 Char_any  */
     marpaWrapperSymbol_t *rhsSymbolpp[3] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Char_any],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex017],
@@ -2804,13 +3161,70 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen088_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen088];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen091_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen091];
     marpaWrapperRuleOption.nRhsSymboli = 3;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen088_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen088_001] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen091_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen091_001] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1__Gen092_001] _Gen092 ::= _Exclusion007  */
+    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Exclusion007]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen092_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen092];
+    marpaWrapperRuleOption.nRhsSymboli = 1;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen092_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen092_001] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1__Gen093_001] _Gen093 ::= _Gen092  */
+    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen092]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen093_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen093];
+    marpaWrapperRuleOption.nRhsSymboli = 1;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen093_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen093_001] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1_CData_001] CData ::= _Gen093  */
+    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen093]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1_CData_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_CData];
+    marpaWrapperRuleOption.nRhsSymboli = 1;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_CData_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_CData_001] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
@@ -2834,7 +3248,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen093_001] _Gen093 ::= doctypedecl Misc_any  */
+    /* [xml_1_1__Gen096_001] _Gen096 ::= doctypedecl Misc_any  */
     marpaWrapperSymbol_t *rhsSymbolpp[2] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_doctypedecl],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Misc_any]
@@ -2843,55 +3257,55 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen093_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen093];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen096_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen096];
     marpaWrapperRuleOption.nRhsSymboli = 2;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen093_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen093_001] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen096_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen096_001] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1__Gen093_maybe_001] _Gen093_maybe ::= _Gen093  */
+    /* [xml_1_1__Gen096_maybe_001] _Gen096_maybe ::= _Gen096  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen093]
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen096]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen093_maybe_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen093_maybe];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen096_maybe_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen096_maybe];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen093_maybe_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen093_maybe_001] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen096_maybe_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen096_maybe_001] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1__Gen093_maybe_002] _Gen093_maybe ::=   */
+    /* [xml_1_1__Gen096_maybe_002] _Gen096_maybe ::=   */
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen093_maybe_002;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen093_maybe];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen096_maybe_002;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen096_maybe];
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen093_maybe_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen093_maybe_002] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen096_maybe_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen096_maybe_002] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1_prolog_001] prolog ::= XMLDecl Misc_any _Gen093_maybe  */
+    /* [xml_1_1_prolog_001] prolog ::= XMLDecl Misc_any _Gen096_maybe  */
     marpaWrapperSymbol_t *rhsSymbolpp[3] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_XMLDecl],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Misc_any],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen093_maybe]
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen096_maybe]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
@@ -3031,7 +3445,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen104_001] _Gen104 ::= _Lex009 VersionNum _Lex009  */
+    /* [xml_1_1__Gen107_001] _Gen107 ::= _Lex009 VersionNum _Lex009  */
     marpaWrapperSymbol_t *rhsSymbolpp[3] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex009],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_VersionNum],
@@ -3041,18 +3455,18 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen104_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen104];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen107_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen107];
     marpaWrapperRuleOption.nRhsSymboli = 3;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen104_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen104_001] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen107_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen107_001] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1__Gen104_002] _Gen104 ::= _Lex007 VersionNum _Lex007  */
+    /* [xml_1_1__Gen107_002] _Gen107 ::= _Lex007 VersionNum _Lex007  */
     marpaWrapperSymbol_t *rhsSymbolpp[3] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex007],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_VersionNum],
@@ -3062,23 +3476,23 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen104_002;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen104];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen107_002;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen107];
     marpaWrapperRuleOption.nRhsSymboli = 3;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen104_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen104_002] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen107_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen107_002] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1_VersionInfo_001] VersionInfo ::= S _Lex031 Eq _Gen104  */
+    /* [xml_1_1_VersionInfo_001] VersionInfo ::= S _Lex031 Eq _Gen107  */
     marpaWrapperSymbol_t *rhsSymbolpp[4] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex031],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Eq],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen104]
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen107]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
@@ -3173,7 +3587,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen112_001] _Gen112 ::= S ExternalID  */
+    /* [xml_1_1__Gen115_001] _Gen115 ::= S ExternalID  */
     marpaWrapperSymbol_t *rhsSymbolpp[2] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_ExternalID]
@@ -3182,64 +3596,9 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen112_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen112];
-    marpaWrapperRuleOption.nRhsSymboli = 2;
-    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
-    /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen112_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen112_001] == NULL) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-  }
-  {
-    /* [xml_1_1__Gen112_maybe_001] _Gen112_maybe ::= _Gen112  */
-    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen112]
-    };
-    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-    /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen112_maybe_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen112_maybe];
-    marpaWrapperRuleOption.nRhsSymboli = 1;
-    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
-    /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen112_maybe_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen112_maybe_001] == NULL) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-  }
-  {
-    /* [xml_1_1__Gen112_maybe_002] _Gen112_maybe ::=   */
-    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-    /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen112_maybe_002;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen112_maybe];
-    /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen112_maybe_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen112_maybe_002] == NULL) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-  }
-  {
-    /* [xml_1_1__Gen115_001] _Gen115 ::= _Lex035 intSubset _Lex036 S_maybe  */
-    marpaWrapperSymbol_t *rhsSymbolpp[4] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex035],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_intSubset],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex036],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S_maybe]
-    };
-    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-    /* Opaque data associated to rule will be the lhs symbol enum */
     marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen115_001;
     marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen115];
-    marpaWrapperRuleOption.nRhsSymboli = 4;
+    marpaWrapperRuleOption.nRhsSymboli = 2;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
     xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen115_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
@@ -3281,14 +3640,69 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1_doctypedecl_001] doctypedecl ::= _Lex034 S Name _Gen112_maybe S_maybe _Gen115_maybe _Lex037  */
+    /* [xml_1_1__Gen118_001] _Gen118 ::= _Lex035 intSubset _Lex036 S_maybe  */
+    marpaWrapperSymbol_t *rhsSymbolpp[4] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex035],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_intSubset],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex036],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S_maybe]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen118_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen118];
+    marpaWrapperRuleOption.nRhsSymboli = 4;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen118_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen118_001] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1__Gen118_maybe_001] _Gen118_maybe ::= _Gen118  */
+    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen118]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen118_maybe_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen118_maybe];
+    marpaWrapperRuleOption.nRhsSymboli = 1;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen118_maybe_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen118_maybe_001] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1__Gen118_maybe_002] _Gen118_maybe ::=   */
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen118_maybe_002;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen118_maybe];
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen118_maybe_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen118_maybe_002] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1_doctypedecl_001] doctypedecl ::= _Lex034 S Name _Gen115_maybe S_maybe _Gen118_maybe _Lex037  */
     marpaWrapperSymbol_t *rhsSymbolpp[7] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex034],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Name],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen112_maybe],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S_maybe],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen115_maybe],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S_maybe],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen118_maybe],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex037]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
@@ -3344,7 +3758,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen121_001] _Gen121 ::= markupdecl  */
+    /* [xml_1_1__Gen124_001] _Gen124 ::= markupdecl  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_markupdecl]
     };
@@ -3352,18 +3766,18 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen121_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen121];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen124_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen124];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen121_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen121_001] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen124_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen124_001] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1__Gen121_002] _Gen121 ::= DeclSep  */
+    /* [xml_1_1__Gen124_002] _Gen124 ::= DeclSep  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_DeclSep]
     };
@@ -3371,39 +3785,41 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen121_002;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen121];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen124_002;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen124];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen121_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen121_002] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen124_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen124_002] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1__Gen121_any_001] _Gen121_any ::= _Gen121 * */
+    /* [xml_1_1__Gen124_any_001] _Gen124_any ::= _Gen124 * */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen121]
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen124]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen121_any_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen121_any];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen124_any_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen124_any];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    marpaWrapperRuleOption.sequenceb = MARPAWRAPPER_BOOL_TRUE;
+    marpaWrapperRuleOption.minimumi = 0;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen121_any_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen121_any_001] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen124_any_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen124_any_001] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1_intSubset_001] intSubset ::= _Gen121_any  */
+    /* [xml_1_1_intSubset_001] intSubset ::= _Gen124_any  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen121_any]
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen124_any]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
@@ -3587,7 +4003,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen134_001] _Gen134 ::= markupdecl  */
+    /* [xml_1_1__Gen137_001] _Gen137 ::= markupdecl  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_markupdecl]
     };
@@ -3595,18 +4011,18 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen134_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen134];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen137_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen137];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen134_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen134_001] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen137_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen137_001] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1__Gen134_002] _Gen134 ::= conditionalSect  */
+    /* [xml_1_1__Gen137_002] _Gen137 ::= conditionalSect  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_conditionalSect]
     };
@@ -3614,18 +4030,18 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen134_002;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen134];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen137_002;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen137];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen134_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen134_002] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen137_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen137_002] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1__Gen134_003] _Gen134 ::= DeclSep  */
+    /* [xml_1_1__Gen137_003] _Gen137 ::= DeclSep  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_DeclSep]
     };
@@ -3633,39 +4049,41 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen134_003;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen134];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen137_003;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen137];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen134_003] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen134_003] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen137_003] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen137_003] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1__Gen134_any_001] _Gen134_any ::= _Gen134 * */
+    /* [xml_1_1__Gen137_any_001] _Gen137_any ::= _Gen137 * */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen134]
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen137]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen134_any_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen134_any];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen137_any_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen137_any];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    marpaWrapperRuleOption.sequenceb = MARPAWRAPPER_BOOL_TRUE;
+    marpaWrapperRuleOption.minimumi = 0;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen134_any_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen134_any_001] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen137_any_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen137_any_001] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1_extSubsetDecl_001] extSubsetDecl ::= _Gen134_any  */
+    /* [xml_1_1_extSubsetDecl_001] extSubsetDecl ::= _Gen137_any  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen134_any]
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen137_any]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
@@ -3678,65 +4096,6 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     /* Create the rule */
     xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_extSubsetDecl_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
     if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_extSubsetDecl_001] == NULL) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-  }
-  {
-    /* [xml_1_1__Gen139_001] _Gen139 ::= _Lex039  */
-    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex039]
-    };
-    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-    /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen139_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen139];
-    marpaWrapperRuleOption.nRhsSymboli = 1;
-    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
-    /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen139_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen139_001] == NULL) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-  }
-  {
-    /* [xml_1_1__Gen139_002] _Gen139 ::= _Lex040  */
-    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex040]
-    };
-    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-    /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen139_002;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen139];
-    marpaWrapperRuleOption.nRhsSymboli = 1;
-    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
-    /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen139_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen139_002] == NULL) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-  }
-  {
-    /* [xml_1_1__Gen141_001] _Gen141 ::= _Lex009 _Gen139 _Lex009  */
-    marpaWrapperSymbol_t *rhsSymbolpp[3] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex009],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen139],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex009]
-    };
-    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-    /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen141_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen141];
-    marpaWrapperRuleOption.nRhsSymboli = 3;
-    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
-    /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen141_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen141_001] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
@@ -3779,11 +4138,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen144_001] _Gen144 ::= _Lex007 _Gen142 _Lex007  */
+    /* [xml_1_1__Gen144_001] _Gen144 ::= _Lex009 _Gen142 _Lex009  */
     marpaWrapperSymbol_t *rhsSymbolpp[3] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex007],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex009],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen142],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex007]
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex009]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
@@ -3800,9 +4159,9 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen145_001] _Gen145 ::= _Gen141  */
+    /* [xml_1_1__Gen145_001] _Gen145 ::= _Lex039  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen141]
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex039]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
@@ -3819,9 +4178,9 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen145_002] _Gen145 ::= _Gen144  */
+    /* [xml_1_1__Gen145_002] _Gen145 ::= _Lex040  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen144]
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex040]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
@@ -3838,12 +4197,71 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1_SDDecl_001] SDDecl ::= S _Lex038 Eq _Gen145  */
+    /* [xml_1_1__Gen147_001] _Gen147 ::= _Lex007 _Gen145 _Lex007  */
+    marpaWrapperSymbol_t *rhsSymbolpp[3] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex007],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen145],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex007]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen147_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen147];
+    marpaWrapperRuleOption.nRhsSymboli = 3;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen147_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen147_001] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1__Gen148_001] _Gen148 ::= _Gen144  */
+    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen144]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen148_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen148];
+    marpaWrapperRuleOption.nRhsSymboli = 1;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen148_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen148_001] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1__Gen148_002] _Gen148 ::= _Gen147  */
+    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen147]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen148_002;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen148];
+    marpaWrapperRuleOption.nRhsSymboli = 1;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen148_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen148_002] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1_SDDecl_001] SDDecl ::= S _Lex038 Eq _Gen148  */
     marpaWrapperSymbol_t *rhsSymbolpp[4] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex038],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Eq],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen145]
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen148]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
@@ -3900,7 +4318,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen150_001] _Gen150 ::= S Attribute  */
+    /* [xml_1_1__Gen153_001] _Gen153 ::= S Attribute  */
     marpaWrapperSymbol_t *rhsSymbolpp[2] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Attribute]
@@ -3909,41 +4327,43 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen150_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen150];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen153_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen153];
     marpaWrapperRuleOption.nRhsSymboli = 2;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen150_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen150_001] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen153_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen153_001] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1__Gen150_any_001] _Gen150_any ::= _Gen150 * */
+    /* [xml_1_1__Gen153_any_001] _Gen153_any ::= _Gen153 * */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen150]
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen153]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen150_any_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen150_any];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen153_any_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen153_any];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    marpaWrapperRuleOption.sequenceb = MARPAWRAPPER_BOOL_TRUE;
+    marpaWrapperRuleOption.minimumi = 0;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen150_any_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen150_any_001] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen153_any_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen153_any_001] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1_STag_001] STag ::= _Lex041 Name _Gen150_any S_maybe _Lex037  */
+    /* [xml_1_1_STag_001] STag ::= _Lex041 Name _Gen153_any S_maybe _Lex037  */
     marpaWrapperSymbol_t *rhsSymbolpp[5] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex041],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Name],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen150_any],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen153_any],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S_maybe],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex037]
     };
@@ -4038,7 +4458,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen157_001] _Gen157 ::= element  */
+    /* [xml_1_1__Gen160_001] _Gen160 ::= element  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_element]
     };
@@ -4046,18 +4466,18 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen157_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen157];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen160_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen160];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen157_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen157_001] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen160_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen160_001] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1__Gen157_002] _Gen157 ::= Reference  */
+    /* [xml_1_1__Gen160_002] _Gen160 ::= Reference  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Reference]
     };
@@ -4065,18 +4485,18 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen157_002;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen157];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen160_002;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen160];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen157_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen157_002] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen160_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen160_002] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1__Gen157_003] _Gen157 ::= CDSect  */
+    /* [xml_1_1__Gen160_003] _Gen160 ::= CDSect  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_CDSect]
     };
@@ -4084,18 +4504,18 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen157_003;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen157];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen160_003;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen160];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen157_003] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen157_003] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen160_003] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen160_003] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1__Gen157_004] _Gen157 ::= PI  */
+    /* [xml_1_1__Gen160_004] _Gen160 ::= PI  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_PI]
     };
@@ -4103,18 +4523,18 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen157_004;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen157];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen160_004;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen160];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen157_004] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen157_004] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen160_004] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen160_004] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1__Gen157_005] _Gen157 ::= Comment  */
+    /* [xml_1_1__Gen160_005] _Gen160 ::= Comment  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Comment]
     };
@@ -4122,80 +4542,21 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen157_005;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen157];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen160_005;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen160];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen157_005] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen157_005] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen160_005] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen160_005] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1__Gen162_001] _Gen162 ::= _Gen157 CharData_maybe  */
+    /* [xml_1_1__Gen165_001] _Gen165 ::= _Gen160 CharData_maybe  */
     marpaWrapperSymbol_t *rhsSymbolpp[2] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen157],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen160],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_CharData_maybe]
-    };
-    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-    /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen162_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen162];
-    marpaWrapperRuleOption.nRhsSymboli = 2;
-    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
-    /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen162_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen162_001] == NULL) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-  }
-  {
-    /* [xml_1_1__Gen162_any_001] _Gen162_any ::= _Gen162 * */
-    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen162]
-    };
-    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-    /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen162_any_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen162_any];
-    marpaWrapperRuleOption.nRhsSymboli = 1;
-    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
-    /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen162_any_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen162_any_001] == NULL) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-  }
-  {
-    /* [xml_1_1_content_001] content ::= CharData_maybe _Gen162_any  */
-    marpaWrapperSymbol_t *rhsSymbolpp[2] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_CharData_maybe],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen162_any]
-    };
-    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-    /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1_content_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_content];
-    marpaWrapperRuleOption.nRhsSymboli = 2;
-    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
-    /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_content_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_content_001] == NULL) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-  }
-  {
-    /* [xml_1_1__Gen165_001] _Gen165 ::= S Attribute  */
-    marpaWrapperSymbol_t *rhsSymbolpp[2] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Attribute]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
@@ -4224,6 +4585,8 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen165_any];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    marpaWrapperRuleOption.sequenceb = MARPAWRAPPER_BOOL_TRUE;
+    marpaWrapperRuleOption.minimumi = 0;
     /* Create the rule */
     xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen165_any_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
     if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen165_any_001] == NULL) {
@@ -4231,11 +4594,72 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1_EmptyElemTag_001] EmptyElemTag ::= _Lex041 Name _Gen165_any S_maybe _Lex043  */
+    /* [xml_1_1_content_001] content ::= CharData_maybe _Gen165_any  */
+    marpaWrapperSymbol_t *rhsSymbolpp[2] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_CharData_maybe],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen165_any]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1_content_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_content];
+    marpaWrapperRuleOption.nRhsSymboli = 2;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_content_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_content_001] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1__Gen168_001] _Gen168 ::= S Attribute  */
+    marpaWrapperSymbol_t *rhsSymbolpp[2] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Attribute]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen168_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen168];
+    marpaWrapperRuleOption.nRhsSymboli = 2;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen168_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen168_001] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1__Gen168_any_001] _Gen168_any ::= _Gen168 * */
+    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen168]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen168_any_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen168_any];
+    marpaWrapperRuleOption.nRhsSymboli = 1;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    marpaWrapperRuleOption.sequenceb = MARPAWRAPPER_BOOL_TRUE;
+    marpaWrapperRuleOption.minimumi = 0;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen168_any_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen168_any_001] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1_EmptyElemTag_001] EmptyElemTag ::= _Lex041 Name _Gen168_any S_maybe _Lex043  */
     marpaWrapperSymbol_t *rhsSymbolpp[5] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex041],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Name],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen165_any],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen168_any],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S_maybe],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex043]
     };
@@ -4355,7 +4779,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen173_001] _Gen173 ::= choice  */
+    /* [xml_1_1__Gen176_001] _Gen176 ::= choice  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_choice]
     };
@@ -4363,18 +4787,18 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen173_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen173];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen176_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen176];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen173_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen173_001] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen176_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen176_001] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1__Gen173_002] _Gen173 ::= seq  */
+    /* [xml_1_1__Gen176_002] _Gen176 ::= seq  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_seq]
     };
@@ -4382,18 +4806,18 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen173_002;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen173];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen176_002;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen176];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen173_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen173_002] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen176_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen176_002] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1__Gen175_001] _Gen175 ::= _Lex047  */
+    /* [xml_1_1__Gen178_001] _Gen178 ::= _Lex047  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex047]
     };
@@ -4401,18 +4825,18 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen175_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen175];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen178_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen178];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen175_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen175_001] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen178_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen178_001] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1__Gen175_002] _Gen175 ::= _Lex048  */
+    /* [xml_1_1__Gen178_002] _Gen178 ::= _Lex048  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex048]
     };
@@ -4420,18 +4844,18 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen175_002;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen175];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen178_002;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen178];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen175_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen175_002] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen178_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen178_002] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1__Gen175_003] _Gen175 ::= _Lex049  */
+    /* [xml_1_1__Gen178_003] _Gen178 ::= _Lex049  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex049]
     };
@@ -4439,54 +4863,54 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen175_003;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen175];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen178_003;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen178];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen175_003] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen175_003] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen178_003] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen178_003] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1__Gen175_maybe_001] _Gen175_maybe ::= _Gen175  */
+    /* [xml_1_1__Gen178_maybe_001] _Gen178_maybe ::= _Gen178  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen175]
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen178]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen175_maybe_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen175_maybe];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen178_maybe_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen178_maybe];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen175_maybe_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen175_maybe_001] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen178_maybe_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen178_maybe_001] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1__Gen175_maybe_002] _Gen175_maybe ::=   */
+    /* [xml_1_1__Gen178_maybe_002] _Gen178_maybe ::=   */
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen175_maybe_002;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen175_maybe];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen178_maybe_002;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen178_maybe];
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen175_maybe_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen175_maybe_002] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen178_maybe_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen178_maybe_002] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1_children_001] children ::= _Gen173 _Gen175_maybe  */
+    /* [xml_1_1_children_001] children ::= _Gen176 _Gen178_maybe  */
     marpaWrapperSymbol_t *rhsSymbolpp[2] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen173],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen175_maybe]
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen176],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen178_maybe]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
@@ -4503,66 +4927,9 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen181_001] _Gen181 ::= Name  */
+    /* [xml_1_1__Gen184_001] _Gen184 ::= Name  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Name]
-    };
-    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-    /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen181_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen181];
-    marpaWrapperRuleOption.nRhsSymboli = 1;
-    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
-    /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen181_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen181_001] == NULL) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-  }
-  {
-    /* [xml_1_1__Gen181_002] _Gen181 ::= choice  */
-    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_choice]
-    };
-    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-    /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen181_002;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen181];
-    marpaWrapperRuleOption.nRhsSymboli = 1;
-    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
-    /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen181_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen181_002] == NULL) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-  }
-  {
-    /* [xml_1_1__Gen181_003] _Gen181 ::= seq  */
-    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_seq]
-    };
-    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-    /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen181_003;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen181];
-    marpaWrapperRuleOption.nRhsSymboli = 1;
-    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
-    /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen181_003] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen181_003] == NULL) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-  }
-  {
-    /* [xml_1_1__Gen184_001] _Gen184 ::= _Lex047  */
-    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex047]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
@@ -4579,9 +4946,9 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen184_002] _Gen184 ::= _Lex048  */
+    /* [xml_1_1__Gen184_002] _Gen184 ::= choice  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex048]
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_choice]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
@@ -4598,9 +4965,9 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen184_003] _Gen184 ::= _Lex049  */
+    /* [xml_1_1__Gen184_003] _Gen184 ::= seq  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex049]
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_seq]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
@@ -4617,43 +4984,100 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen184_maybe_001] _Gen184_maybe ::= _Gen184  */
+    /* [xml_1_1__Gen187_001] _Gen187 ::= _Lex047  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen184]
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex047]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen184_maybe_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen184_maybe];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen187_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen187];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen184_maybe_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen184_maybe_001] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen187_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen187_001] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1__Gen184_maybe_002] _Gen184_maybe ::=   */
+    /* [xml_1_1__Gen187_002] _Gen187 ::= _Lex048  */
+    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex048]
+    };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen184_maybe_002;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen184_maybe];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen187_002;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen187];
+    marpaWrapperRuleOption.nRhsSymboli = 1;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen184_maybe_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen184_maybe_002] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen187_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen187_002] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1_cp_001] cp ::= _Gen181 _Gen184_maybe  */
+    /* [xml_1_1__Gen187_003] _Gen187 ::= _Lex049  */
+    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex049]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen187_003;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen187];
+    marpaWrapperRuleOption.nRhsSymboli = 1;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen187_003] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen187_003] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1__Gen187_maybe_001] _Gen187_maybe ::= _Gen187  */
+    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen187]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen187_maybe_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen187_maybe];
+    marpaWrapperRuleOption.nRhsSymboli = 1;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen187_maybe_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen187_maybe_001] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1__Gen187_maybe_002] _Gen187_maybe ::=   */
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen187_maybe_002;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen187_maybe];
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen187_maybe_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen187_maybe_002] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1_cp_001] cp ::= _Gen184 _Gen187_maybe  */
     marpaWrapperSymbol_t *rhsSymbolpp[2] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen181],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen184_maybe]
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen184],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen187_maybe]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
@@ -4670,75 +5094,10 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen190_001] _Gen190 ::= S_maybe _Lex051 S_maybe cp  */
+    /* [xml_1_1__Gen193_001] _Gen193 ::= S_maybe _Lex051 S_maybe cp  */
     marpaWrapperSymbol_t *rhsSymbolpp[4] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S_maybe],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex051],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S_maybe],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_cp]
-    };
-    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-    /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen190_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen190];
-    marpaWrapperRuleOption.nRhsSymboli = 4;
-    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
-    /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen190_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen190_001] == NULL) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-  }
-  {
-    /* [xml_1_1__Gen190_many_001] _Gen190_many ::= _Gen190 + */
-    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen190]
-    };
-    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-    /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen190_many_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen190_many];
-    marpaWrapperRuleOption.nRhsSymboli = 1;
-    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
-    /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen190_many_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen190_many_001] == NULL) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-  }
-  {
-    /* [xml_1_1_choice_001] choice ::= _Lex050 S_maybe cp _Gen190_many S_maybe _Lex052  */
-    marpaWrapperSymbol_t *rhsSymbolpp[6] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex050],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S_maybe],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_cp],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen190_many],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S_maybe],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex052]
-    };
-    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-    /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1_choice_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_choice];
-    marpaWrapperRuleOption.nRhsSymboli = 6;
-    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
-    /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_choice_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_choice_001] == NULL) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-  }
-  {
-    /* [xml_1_1__Gen193_001] _Gen193 ::= S_maybe _Lex053 S_maybe cp  */
-    marpaWrapperSymbol_t *rhsSymbolpp[4] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S_maybe],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex053],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S_maybe],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_cp]
     };
@@ -4757,7 +5116,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen193_any_001] _Gen193_any ::= _Gen193 * */
+    /* [xml_1_1__Gen193_many_001] _Gen193_many ::= _Gen193 + */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen193]
     };
@@ -4765,23 +5124,25 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen193_any_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen193_any];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen193_many_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen193_many];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    marpaWrapperRuleOption.sequenceb = MARPAWRAPPER_BOOL_TRUE;
+    marpaWrapperRuleOption.minimumi = 1;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen193_any_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen193_any_001] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen193_many_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen193_many_001] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1_seq_001] seq ::= _Lex050 S_maybe cp _Gen193_any S_maybe _Lex052  */
+    /* [xml_1_1_choice_001] choice ::= _Lex050 S_maybe cp _Gen193_many S_maybe _Lex052  */
     marpaWrapperSymbol_t *rhsSymbolpp[6] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex050],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S_maybe],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_cp],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen193_any],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen193_many],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S_maybe],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex052]
     };
@@ -4789,23 +5150,23 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1_seq_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_seq];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1_choice_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_choice];
     marpaWrapperRuleOption.nRhsSymboli = 6;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_seq_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_seq_001] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_choice_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_choice_001] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1__Gen196_001] _Gen196 ::= S_maybe _Lex051 S_maybe Name  */
+    /* [xml_1_1__Gen196_001] _Gen196 ::= S_maybe _Lex053 S_maybe cp  */
     marpaWrapperSymbol_t *rhsSymbolpp[4] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S_maybe],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex051],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex053],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S_maybe],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Name]
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_cp]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
@@ -4834,6 +5195,8 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen196_any];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    marpaWrapperRuleOption.sequenceb = MARPAWRAPPER_BOOL_TRUE;
+    marpaWrapperRuleOption.minimumi = 0;
     /* Create the rule */
     xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen196_any_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
     if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen196_any_001] == NULL) {
@@ -4841,12 +5204,79 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1_Mixed_001] Mixed ::= _Lex050 S_maybe _Lex054 _Gen196_any S_maybe _Lex055  */
+    /* [xml_1_1_seq_001] seq ::= _Lex050 S_maybe cp _Gen196_any S_maybe _Lex052  */
+    marpaWrapperSymbol_t *rhsSymbolpp[6] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex050],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S_maybe],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_cp],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen196_any],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S_maybe],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex052]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1_seq_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_seq];
+    marpaWrapperRuleOption.nRhsSymboli = 6;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_seq_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_seq_001] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1__Gen199_001] _Gen199 ::= S_maybe _Lex051 S_maybe Name  */
+    marpaWrapperSymbol_t *rhsSymbolpp[4] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S_maybe],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex051],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S_maybe],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Name]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen199_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen199];
+    marpaWrapperRuleOption.nRhsSymboli = 4;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen199_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen199_001] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1__Gen199_any_001] _Gen199_any ::= _Gen199 * */
+    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen199]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen199_any_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen199_any];
+    marpaWrapperRuleOption.nRhsSymboli = 1;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    marpaWrapperRuleOption.sequenceb = MARPAWRAPPER_BOOL_TRUE;
+    marpaWrapperRuleOption.minimumi = 0;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen199_any_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen199_any_001] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1_Mixed_001] Mixed ::= _Lex050 S_maybe _Lex054 _Gen199_any S_maybe _Lex055  */
     marpaWrapperSymbol_t *rhsSymbolpp[6] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex050],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S_maybe],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex054],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen196_any],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen199_any],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S_maybe],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex055]
     };
@@ -4900,6 +5330,8 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_AttDef_any];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    marpaWrapperRuleOption.sequenceb = MARPAWRAPPER_BOOL_TRUE;
+    marpaWrapperRuleOption.minimumi = 0;
     /* Create the rule */
     xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_AttDef_any_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
     if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_AttDef_any_001] == NULL) {
@@ -5183,79 +5615,12 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen216_001] _Gen216 ::= S_maybe _Lex051 S_maybe Name  */
+    /* [xml_1_1__Gen219_001] _Gen219 ::= S_maybe _Lex051 S_maybe Name  */
     marpaWrapperSymbol_t *rhsSymbolpp[4] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S_maybe],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex051],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S_maybe],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Name]
-    };
-    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-    /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen216_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen216];
-    marpaWrapperRuleOption.nRhsSymboli = 4;
-    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
-    /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen216_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen216_001] == NULL) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-  }
-  {
-    /* [xml_1_1__Gen216_any_001] _Gen216_any ::= _Gen216 * */
-    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen216]
-    };
-    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-    /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen216_any_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen216_any];
-    marpaWrapperRuleOption.nRhsSymboli = 1;
-    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
-    /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen216_any_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen216_any_001] == NULL) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-  }
-  {
-    /* [xml_1_1_NotationType_001] NotationType ::= _Lex065 S _Lex050 S_maybe Name _Gen216_any S_maybe _Lex052  */
-    marpaWrapperSymbol_t *rhsSymbolpp[8] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex065],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex050],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S_maybe],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Name],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen216_any],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S_maybe],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex052]
-    };
-    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-    /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1_NotationType_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_NotationType];
-    marpaWrapperRuleOption.nRhsSymboli = 8;
-    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
-    /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_NotationType_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_NotationType_001] == NULL) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-  }
-  {
-    /* [xml_1_1__Gen219_001] _Gen219 ::= S_maybe _Lex051 S_maybe Nmtoken  */
-    marpaWrapperSymbol_t *rhsSymbolpp[4] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S_maybe],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex051],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S_maybe],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Nmtoken]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
@@ -5284,6 +5649,8 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen219_any];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    marpaWrapperRuleOption.sequenceb = MARPAWRAPPER_BOOL_TRUE;
+    marpaWrapperRuleOption.minimumi = 0;
     /* Create the rule */
     xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen219_any_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
     if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen219_any_001] == NULL) {
@@ -5291,12 +5658,81 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1_Enumeration_001] Enumeration ::= _Lex050 S_maybe Nmtoken _Gen219_any S_maybe _Lex052  */
+    /* [xml_1_1_NotationType_001] NotationType ::= _Lex065 S _Lex050 S_maybe Name _Gen219_any S_maybe _Lex052  */
+    marpaWrapperSymbol_t *rhsSymbolpp[8] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex065],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex050],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S_maybe],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Name],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen219_any],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S_maybe],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex052]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1_NotationType_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_NotationType];
+    marpaWrapperRuleOption.nRhsSymboli = 8;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_NotationType_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_NotationType_001] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1__Gen222_001] _Gen222 ::= S_maybe _Lex051 S_maybe Nmtoken  */
+    marpaWrapperSymbol_t *rhsSymbolpp[4] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S_maybe],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex051],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S_maybe],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Nmtoken]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen222_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen222];
+    marpaWrapperRuleOption.nRhsSymboli = 4;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen222_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen222_001] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1__Gen222_any_001] _Gen222_any ::= _Gen222 * */
+    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen222]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen222_any_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen222_any];
+    marpaWrapperRuleOption.nRhsSymboli = 1;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    marpaWrapperRuleOption.sequenceb = MARPAWRAPPER_BOOL_TRUE;
+    marpaWrapperRuleOption.minimumi = 0;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen222_any_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen222_any_001] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1_Enumeration_001] Enumeration ::= _Lex050 S_maybe Nmtoken _Gen222_any S_maybe _Lex052  */
     marpaWrapperSymbol_t *rhsSymbolpp[6] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex050],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S_maybe],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Nmtoken],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen219_any],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen222_any],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S_maybe],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex052]
     };
@@ -5315,63 +5751,10 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen222_001] _Gen222 ::= _Lex068 S  */
+    /* [xml_1_1__Gen225_001] _Gen225 ::= _Lex068 S  */
     marpaWrapperSymbol_t *rhsSymbolpp[2] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex068],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S]
-    };
-    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-    /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen222_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen222];
-    marpaWrapperRuleOption.nRhsSymboli = 2;
-    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
-    /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen222_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen222_001] == NULL) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-  }
-  {
-    /* [xml_1_1__Gen222_maybe_001] _Gen222_maybe ::= _Gen222  */
-    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen222]
-    };
-    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-    /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen222_maybe_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen222_maybe];
-    marpaWrapperRuleOption.nRhsSymboli = 1;
-    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
-    /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen222_maybe_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen222_maybe_001] == NULL) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-  }
-  {
-    /* [xml_1_1__Gen222_maybe_002] _Gen222_maybe ::=   */
-    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-    /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen222_maybe_002;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen222_maybe];
-    /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen222_maybe_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen222_maybe_002] == NULL) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-  }
-  {
-    /* [xml_1_1__Gen225_001] _Gen225 ::= _Gen222_maybe AttValue  */
-    marpaWrapperSymbol_t *rhsSymbolpp[2] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen222_maybe],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_AttValue]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
@@ -5384,6 +5767,59 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     /* Create the rule */
     xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen225_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
     if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen225_001] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1__Gen225_maybe_001] _Gen225_maybe ::= _Gen225  */
+    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen225]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen225_maybe_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen225_maybe];
+    marpaWrapperRuleOption.nRhsSymboli = 1;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen225_maybe_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen225_maybe_001] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1__Gen225_maybe_002] _Gen225_maybe ::=   */
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen225_maybe_002;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen225_maybe];
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen225_maybe_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen225_maybe_002] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1__Gen228_001] _Gen228 ::= _Gen225_maybe AttValue  */
+    marpaWrapperSymbol_t *rhsSymbolpp[2] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen225_maybe],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_AttValue]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen228_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen228];
+    marpaWrapperRuleOption.nRhsSymboli = 2;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen228_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen228_001] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
@@ -5426,9 +5862,9 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1_DefaultDecl_003] DefaultDecl ::= _Gen225  */
+    /* [xml_1_1_DefaultDecl_003] DefaultDecl ::= _Gen228  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen225]
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen228]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
@@ -5520,6 +5956,8 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_ignoreSectContents_any];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    marpaWrapperRuleOption.sequenceb = MARPAWRAPPER_BOOL_TRUE;
+    marpaWrapperRuleOption.minimumi = 0;
     /* Create the rule */
     xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_ignoreSectContents_any_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
     if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_ignoreSectContents_any_001] == NULL) {
@@ -5552,7 +5990,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen234_001] _Gen234 ::= _Lex069 ignoreSectContents _Lex017 Ignore  */
+    /* [xml_1_1__Gen237_001] _Gen237 ::= _Lex069 ignoreSectContents _Lex017 Ignore  */
     marpaWrapperSymbol_t *rhsSymbolpp[4] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex069],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_ignoreSectContents],
@@ -5563,40 +6001,42 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen234_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen234];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen237_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen237];
     marpaWrapperRuleOption.nRhsSymboli = 4;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen234_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen234_001] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen237_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen237_001] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1__Gen234_any_001] _Gen234_any ::= _Gen234 * */
+    /* [xml_1_1__Gen237_any_001] _Gen237_any ::= _Gen237 * */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen234]
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen237]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen234_any_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen234_any];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen237_any_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen237_any];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    marpaWrapperRuleOption.sequenceb = MARPAWRAPPER_BOOL_TRUE;
+    marpaWrapperRuleOption.minimumi = 0;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen234_any_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen234_any_001] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen237_any_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen237_any_001] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1_ignoreSectContents_001] ignoreSectContents ::= Ignore _Gen234_any  */
+    /* [xml_1_1_ignoreSectContents_001] ignoreSectContents ::= Ignore _Gen237_any  */
     marpaWrapperSymbol_t *rhsSymbolpp[2] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Ignore],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen234_any]
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen237_any]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
@@ -5613,7 +6053,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen237_001] _Gen237 ::= _Lex069  */
+    /* [xml_1_1__Gen240_001] _Gen240 ::= _Lex069  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex069]
     };
@@ -5621,18 +6061,18 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen237_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen237];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen240_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen240];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen237_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen237_001] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen240_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen240_001] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1__Gen237_002] _Gen237 ::= _Lex017  */
+    /* [xml_1_1__Gen240_002] _Gen240 ::= _Lex017  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex017]
     };
@@ -5640,34 +6080,72 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen237_002;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen237];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen240_002;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen240];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen237_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen237_002] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen240_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen240_002] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1__Gen239_001] _Gen239 ::= Char_any _Gen237 Char_any  */
+    /* [xml_1_1__Gen242_001] _Gen242 ::= Char_any _Gen240 Char_any  */
     marpaWrapperSymbol_t *rhsSymbolpp[3] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Char_any],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen237],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen240],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Char_any]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen239_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen239];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen242_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen242];
     marpaWrapperRuleOption.nRhsSymboli = 3;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen239_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen239_001] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen242_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen242_001] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1__Gen243_001] _Gen243 ::= _Exclusion008  */
+    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Exclusion008]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen243_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen243];
+    marpaWrapperRuleOption.nRhsSymboli = 1;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen243_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen243_001] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1_Ignore_001] Ignore ::= _Gen243  */
+    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen243]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1_Ignore_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Ignore];
+    marpaWrapperRuleOption.nRhsSymboli = 1;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_Ignore_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_Ignore_001] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
@@ -5684,6 +6162,8 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex073_many];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    marpaWrapperRuleOption.sequenceb = MARPAWRAPPER_BOOL_TRUE;
+    marpaWrapperRuleOption.minimumi = 1;
     /* Create the rule */
     xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Lex073_many_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
     if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Lex073_many_001] == NULL) {
@@ -5703,6 +6183,8 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex076_many];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    marpaWrapperRuleOption.sequenceb = MARPAWRAPPER_BOOL_TRUE;
+    marpaWrapperRuleOption.minimumi = 1;
     /* Create the rule */
     xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Lex076_many_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
     if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Lex076_many_001] == NULL) {
@@ -5955,7 +6437,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen256_001] _Gen256 ::= ExternalID NDataDecl_maybe  */
+    /* [xml_1_1__Gen259_001] _Gen259 ::= ExternalID NDataDecl_maybe  */
     marpaWrapperSymbol_t *rhsSymbolpp[2] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_ExternalID],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_NDataDecl_maybe]
@@ -5964,13 +6446,13 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen256_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen256];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen259_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen259];
     marpaWrapperRuleOption.nRhsSymboli = 2;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen256_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen256_001] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen259_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen259_001] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
@@ -5994,9 +6476,9 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1_EntityDef_002] EntityDef ::= _Gen256  */
+    /* [xml_1_1_EntityDef_002] EntityDef ::= _Gen259  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen256]
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen259]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
@@ -6173,7 +6655,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen267_001] _Gen267 ::= TextDecl_maybe content  */
+    /* [xml_1_1__Gen270_001] _Gen270 ::= TextDecl_maybe content  */
     marpaWrapperSymbol_t *rhsSymbolpp[2] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_TextDecl_maybe],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_content]
@@ -6182,43 +6664,22 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen267_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen267];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen270_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen270];
     marpaWrapperRuleOption.nRhsSymboli = 2;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen267_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen267_001] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen270_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen270_001] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1__Gen268_001] _Gen268 ::= Char_any RestrictedChar Char_any  */
+    /* [xml_1_1__Gen271_001] _Gen271 ::= Char_any RestrictedChar Char_any  */
     marpaWrapperSymbol_t *rhsSymbolpp[3] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Char_any],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_RestrictedChar],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Char_any]
-    };
-    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-    /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen268_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen268];
-    marpaWrapperRuleOption.nRhsSymboli = 3;
-    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
-    /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen268_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen268_001] == NULL) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    }
-  }
-  {
-    /* [xml_1_1__Gen271_001] _Gen271 ::= _Lex007 EncName _Lex007  */
-    marpaWrapperSymbol_t *rhsSymbolpp[3] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex007],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_EncName],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex007]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
@@ -6235,7 +6696,66 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen271_002] _Gen271 ::= _Lex009 EncName _Lex009  */
+    /* [xml_1_1__Gen272_001] _Gen272 ::= _Exclusion009  */
+    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Exclusion009]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen272_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen272];
+    marpaWrapperRuleOption.nRhsSymboli = 1;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen272_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen272_001] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1_extParsedEnt_001] extParsedEnt ::= _Gen272  */
+    marpaWrapperSymbol_t *rhsSymbolpp[1] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen272]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1_extParsedEnt_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_extParsedEnt];
+    marpaWrapperRuleOption.nRhsSymboli = 1;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_extParsedEnt_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1_extParsedEnt_001] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1__Gen274_001] _Gen274 ::= _Lex007 EncName _Lex007  */
+    marpaWrapperSymbol_t *rhsSymbolpp[3] = {
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex007],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_EncName],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex007]
+    };
+    if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+    /* Opaque data associated to rule will be the lhs symbol enum */
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen274_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen274];
+    marpaWrapperRuleOption.nRhsSymboli = 3;
+    marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    /* Create the rule */
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen274_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen274_001] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  {
+    /* [xml_1_1__Gen274_002] _Gen274 ::= _Lex009 EncName _Lex009  */
     marpaWrapperSymbol_t *rhsSymbolpp[3] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex009],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_EncName],
@@ -6245,23 +6765,23 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen271_002;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen271];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen274_002;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen274];
     marpaWrapperRuleOption.nRhsSymboli = 3;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen271_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen271_002] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen274_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen274_002] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1_EncodingDecl_001] EncodingDecl ::= S _Lex083 Eq _Gen271  */
+    /* [xml_1_1_EncodingDecl_001] EncodingDecl ::= S _Lex083 Eq _Gen274  */
     marpaWrapperSymbol_t *rhsSymbolpp[4] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex083],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Eq],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen271]
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen274]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
@@ -6278,7 +6798,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen274_001] _Gen274 ::= _Lex085  */
+    /* [xml_1_1__Gen277_001] _Gen277 ::= _Lex085  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex085]
     };
@@ -6286,18 +6806,18 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen274_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen274];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen277_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen277];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen274_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen274_001] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen277_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen277_001] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1__Gen274_002] _Gen274 ::= _Lex019  */
+    /* [xml_1_1__Gen277_002] _Gen277 ::= _Lex019  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex019]
     };
@@ -6305,40 +6825,42 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen274_002;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen274];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen277_002;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen277];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen274_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen274_002] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen277_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen277_002] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1__Gen274_any_001] _Gen274_any ::= _Gen274 * */
+    /* [xml_1_1__Gen277_any_001] _Gen277_any ::= _Gen277 * */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen274]
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen277]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen274_any_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen274_any];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen277_any_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen277_any];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
+    marpaWrapperRuleOption.sequenceb = MARPAWRAPPER_BOOL_TRUE;
+    marpaWrapperRuleOption.minimumi = 0;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen274_any_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen274_any_001] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen277_any_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen277_any_001] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1_EncName_001] EncName ::= _Lex084 _Gen274_any  */
+    /* [xml_1_1_EncName_001] EncName ::= _Lex084 _Gen277_any  */
     marpaWrapperSymbol_t *rhsSymbolpp[2] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex084],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen274_any]
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen277_any]
     };
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
@@ -6355,7 +6877,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
     }
   }
   {
-    /* [xml_1_1__Gen278_001] _Gen278 ::= ExternalID  */
+    /* [xml_1_1__Gen281_001] _Gen281 ::= ExternalID  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_ExternalID]
     };
@@ -6363,18 +6885,18 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen278_001;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen278];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen281_001;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen281];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen278_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen278_001] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen281_001] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen281_001] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1__Gen278_002] _Gen278 ::= PublicID  */
+    /* [xml_1_1__Gen281_002] _Gen281 ::= PublicID  */
     marpaWrapperSymbol_t *rhsSymbolpp[1] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_PublicID]
     };
@@ -6382,24 +6904,24 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_buildRulesb(xml_1_1_t *xml_1_1p) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
     /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen278_002;
-    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen278];
+    marpaWrapperRuleOption.datavp = (void *) xml_1_1__Gen281_002;
+    marpaWrapperRuleOption.lhsSymbolp = xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen281];
     marpaWrapperRuleOption.nRhsSymboli = 1;
     marpaWrapperRuleOption.rhsSymbolpp = rhsSymbolpp;
     /* Create the rule */
-    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen278_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
-    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen278_002] == NULL) {
+    xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen281_002] = marpaWrapper_g_addRulep(xml_1_1p->marpaWrapperp, &marpaWrapperRuleOption);
+    if (xml_1_1p->marpaWrapperRuleArrayp[xml_1_1__Gen281_002] == NULL) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
   {
-    /* [xml_1_1_NotationDecl_001] NotationDecl ::= _Lex086 S Name S _Gen278 S_maybe _Lex037  */
+    /* [xml_1_1_NotationDecl_001] NotationDecl ::= _Lex086 S Name S _Gen281 S_maybe _Lex037  */
     marpaWrapperSymbol_t *rhsSymbolpp[7] = {
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex086],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_Name],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S],
-      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen278],
+      xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Gen281],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1_S_maybe],
       xml_1_1p->marpaWrapperSymbolArrayp[xml_1_1__Lex037]
     };
@@ -6453,23 +6975,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_isLexemeb(void *p, signed int curren
     case xml_1_1_CDStart:
       rcb = _xml_1_1_CDStartb(xml_1_1_callbackp->xml_1_1p, currenti, streamInp, sizelp);
       break;
-    case xml_1_1_CData:
-      rcb = _xml_1_1_CDatab(xml_1_1_callbackp->xml_1_1p, currenti, streamInp, sizelp);
-      break;
     case xml_1_1_Char:
       rcb = _xml_1_1_Charb(xml_1_1_callbackp->xml_1_1p, currenti, streamInp, sizelp);
       break;
-    case xml_1_1_CharData:
-      rcb = _xml_1_1_CharDatab(xml_1_1_callbackp->xml_1_1p, currenti, streamInp, sizelp);
-      break;
-    case xml_1_1_Ignore:
-      rcb = _xml_1_1_Ignoreb(xml_1_1_callbackp->xml_1_1p, currenti, streamInp, sizelp);
-      break;
     case xml_1_1_NameStartChar:
       rcb = _xml_1_1_NameStartCharb(xml_1_1_callbackp->xml_1_1p, currenti, streamInp, sizelp);
-      break;
-    case xml_1_1_PITarget:
-      rcb = _xml_1_1_PITargetb(xml_1_1_callbackp->xml_1_1p, currenti, streamInp, sizelp);
       break;
     case xml_1_1_PubidChar:
       rcb = _xml_1_1_PubidCharb(xml_1_1_callbackp->xml_1_1p, currenti, streamInp, sizelp);
@@ -6483,14 +6993,32 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_isLexemeb(void *p, signed int curren
     case xml_1_1_VersionNum:
       rcb = _xml_1_1_VersionNumb(xml_1_1_callbackp->xml_1_1p, currenti, streamInp, sizelp);
       break;
+    case xml_1_1__Exclusion001:
+      rcb = _xml_1_1__Exclusion001b(xml_1_1_callbackp->xml_1_1p, currenti, streamInp, sizelp);
+      break;
+    case xml_1_1__Exclusion002:
+      rcb = _xml_1_1__Exclusion002b(xml_1_1_callbackp->xml_1_1p, currenti, streamInp, sizelp);
+      break;
+    case xml_1_1__Exclusion003:
+      rcb = _xml_1_1__Exclusion003b(xml_1_1_callbackp->xml_1_1p, currenti, streamInp, sizelp);
+      break;
     case xml_1_1__Exclusion004:
       rcb = _xml_1_1__Exclusion004b(xml_1_1_callbackp->xml_1_1p, currenti, streamInp, sizelp);
       break;
-    case xml_1_1__Gen052:
-      rcb = _xml_1_1__Gen052b(xml_1_1_callbackp->xml_1_1p, currenti, streamInp, sizelp);
+    case xml_1_1__Exclusion005:
+      rcb = _xml_1_1__Exclusion005b(xml_1_1_callbackp->xml_1_1p, currenti, streamInp, sizelp);
       break;
-    case xml_1_1__Gen072:
-      rcb = _xml_1_1__Gen072b(xml_1_1_callbackp->xml_1_1p, currenti, streamInp, sizelp);
+    case xml_1_1__Exclusion006:
+      rcb = _xml_1_1__Exclusion006b(xml_1_1_callbackp->xml_1_1p, currenti, streamInp, sizelp);
+      break;
+    case xml_1_1__Exclusion007:
+      rcb = _xml_1_1__Exclusion007b(xml_1_1_callbackp->xml_1_1p, currenti, streamInp, sizelp);
+      break;
+    case xml_1_1__Exclusion008:
+      rcb = _xml_1_1__Exclusion008b(xml_1_1_callbackp->xml_1_1p, currenti, streamInp, sizelp);
+      break;
+    case xml_1_1__Exclusion009:
+      rcb = _xml_1_1__Exclusion009b(xml_1_1_callbackp->xml_1_1p, currenti, streamInp, sizelp);
       break;
     case xml_1_1__Lex003:
       rcb = _xml_1_1__Lex003b(xml_1_1_callbackp->xml_1_1p, currenti, streamInp, sizelp);
@@ -6729,12 +7257,6 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_isLexemeb(void *p, signed int curren
     case xml_1_1__Lex086:
       rcb = _xml_1_1__Lex086b(xml_1_1_callbackp->xml_1_1p, currenti, streamInp, sizelp);
       break;
-    case xml_1_1_document:
-      rcb = _xml_1_1_documentb(xml_1_1_callbackp->xml_1_1p, currenti, streamInp, sizelp);
-      break;
-    case xml_1_1_extParsedEnt:
-      rcb = _xml_1_1_extParsedEntb(xml_1_1_callbackp->xml_1_1p, currenti, streamInp, sizelp);
-      break;
     default:
       rcb = MARPAWRAPPER_BOOL_FALSE;
       break;
@@ -6782,14 +7304,6 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_CDStartb(xml_1_1_t *xml_1_1p, signed
   return rcb;
 }
 /************************************************
-  CData ~ 'Char_any - _Gen088'
- ************************************************/
-static C_INLINE marpaWrapperBool_t _xml_1_1_CDatab(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
-  /* Writen by hand */
-  return MARPAWRAPPER_BOOL_FALSE;
-}
-
-/************************************************
   Char ~ [\x{1}-\x{d7ff}\x{e000}-\x{fffd}\x{10000}-\x{10ffff}]
  ************************************************/
 static C_INLINE marpaWrapperBool_t _xml_1_1_Charb(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
@@ -6802,22 +7316,6 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_Charb(xml_1_1_t *xml_1_1p, signed in
     return MARPAWRAPPER_BOOL_FALSE;
   }
 }
-/************************************************
-  CharData ~ '_Lex016_any - _Gen058'
- ************************************************/
-static C_INLINE marpaWrapperBool_t _xml_1_1_CharDatab(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
-  /* Writen by hand */
-  return MARPAWRAPPER_BOOL_FALSE;
-}
-
-/************************************************
-  Ignore ~ 'Char_any - _Gen239'
- ************************************************/
-static C_INLINE marpaWrapperBool_t _xml_1_1_Ignoreb(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
-  /* Writen by hand */
-  return MARPAWRAPPER_BOOL_FALSE;
-}
-
 /************************************************
   NameStartChar ~ [:A-Z_a-z\x{c0}-\x{d6}\x{d8}-\x{f6}\x{f8}-\x{2ff}\x{370}-\x{37d}\x{37f}-\x{1fff}\x{200c}-\x{200d}\x{2070}-\x{218f}\x{2c00}-\x{2fef}\x{3001}-\x{d7ff}\x{f900}-\x{fdcf}\x{fdf0}-\x{fffd}\x{10000}-\x{effff}]
  ************************************************/
@@ -6844,14 +7342,6 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_NameStartCharb(xml_1_1_t *xml_1_1p, 
     return MARPAWRAPPER_BOOL_FALSE;
   }
 }
-/************************************************
-  PITarget ~ 'Name - _Gen083'
- ************************************************/
-static C_INLINE marpaWrapperBool_t _xml_1_1_PITargetb(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
-  /* Writen by hand */
-  return MARPAWRAPPER_BOOL_FALSE;
-}
-
 /************************************************
   PubidChar ~ [a-zA-Z0-9-'()+,./:=?;!*#@$_%\x{20}\x{d}\x{a}]
  ************************************************/
@@ -6971,6 +7461,30 @@ static C_INLINE marpaWrapperBool_t _xml_1_1_VersionNumb(xml_1_1_t *xml_1_1p, sig
   return rcb;
 }
 /************************************************
+  _Exclusion001 ~ '_Gen005 - _Gen007'
+ ************************************************/
+static C_INLINE marpaWrapperBool_t _xml_1_1__Exclusion001b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
+  /* Writen by hand */
+  return MARPAWRAPPER_BOOL_FALSE;
+}
+
+/************************************************
+  _Exclusion002 ~ 'PubidChar - _Lex009'
+ ************************************************/
+static C_INLINE marpaWrapperBool_t _xml_1_1__Exclusion002b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
+  /* Writen by hand */
+  return MARPAWRAPPER_BOOL_FALSE;
+}
+
+/************************************************
+  _Exclusion003 ~ '_Lex016_any - _Gen061'
+ ************************************************/
+static C_INLINE marpaWrapperBool_t _xml_1_1__Exclusion003b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
+  /* Writen by hand */
+  return MARPAWRAPPER_BOOL_FALSE;
+}
+
+/************************************************
   _Exclusion004 ~ 'Char - _Lex019'
  ************************************************/
 static C_INLINE marpaWrapperBool_t _xml_1_1__Exclusion004b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
@@ -6979,17 +7493,41 @@ static C_INLINE marpaWrapperBool_t _xml_1_1__Exclusion004b(xml_1_1_t *xml_1_1p, 
 }
 
 /************************************************
-  _Gen052 ~ 'PubidChar - _Lex009'
+  _Exclusion005 ~ 'Char_any - _Gen073'
  ************************************************/
-static C_INLINE marpaWrapperBool_t _xml_1_1__Gen052b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Exclusion005b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
   /* Writen by hand */
   return MARPAWRAPPER_BOOL_FALSE;
 }
 
 /************************************************
-  _Gen072 ~ 'Char_any - _Gen070'
+  _Exclusion006 ~ 'Name - _Gen086'
  ************************************************/
-static C_INLINE marpaWrapperBool_t _xml_1_1__Gen072b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
+static C_INLINE marpaWrapperBool_t _xml_1_1__Exclusion006b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
+  /* Writen by hand */
+  return MARPAWRAPPER_BOOL_FALSE;
+}
+
+/************************************************
+  _Exclusion007 ~ 'Char_any - _Gen091'
+ ************************************************/
+static C_INLINE marpaWrapperBool_t _xml_1_1__Exclusion007b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
+  /* Writen by hand */
+  return MARPAWRAPPER_BOOL_FALSE;
+}
+
+/************************************************
+  _Exclusion008 ~ 'Char_any - _Gen242'
+ ************************************************/
+static C_INLINE marpaWrapperBool_t _xml_1_1__Exclusion008b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
+  /* Writen by hand */
+  return MARPAWRAPPER_BOOL_FALSE;
+}
+
+/************************************************
+  _Exclusion009 ~ '_Gen270 - _Gen271'
+ ************************************************/
+static C_INLINE marpaWrapperBool_t _xml_1_1__Exclusion009b(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
   /* Writen by hand */
   return MARPAWRAPPER_BOOL_FALSE;
 }
@@ -8892,19 +9430,3 @@ static C_INLINE marpaWrapperBool_t _xml_1_1__Lex086b(xml_1_1_t *xml_1_1p, signed
 
   return rcb;
 }
-/************************************************
-  document ~ '_Gen002 - _Gen004'
- ************************************************/
-static C_INLINE marpaWrapperBool_t _xml_1_1_documentb(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
-  /* Writen by hand */
-  return MARPAWRAPPER_BOOL_FALSE;
-}
-
-/************************************************
-  extParsedEnt ~ '_Gen267 - _Gen268'
- ************************************************/
-static C_INLINE marpaWrapperBool_t _xml_1_1_extParsedEntb(xml_1_1_t *xml_1_1p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
-  /* Writen by hand */
-  return MARPAWRAPPER_BOOL_FALSE;
-}
-
