@@ -7,10 +7,6 @@
 
   For efficiency, and because these are truely lexemes:
 
-  Some rules have a RULESEP separator as '~' instead of '::='. All generated rules
-  for lexemes have hardcoded '~', all generated rules for G1 have hardcoded '::='.
-  "Inaccessible" lexemes are used as helpers for hand-writen cases.
-  
   Char is rewriten from
   [2]   Char ::= #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF]
   to
@@ -36,10 +32,6 @@
   to
   [13]  PubidChar ::= [a-zA-Z0-9\-'()+,./:=?;!*#@$_%#x20#xD#xA]
 
-  [7]   Nmtoken ::= (NameChar)+
-  is rewriten to
-  [7]   Nmtoken ~ NameChar+
-
   As confirmed by http://www.cs.ust.hk/~dwood/preprints/xmlRulesRewritten.htm, XML grammar
   start symbol is: document | extParsedEnt | extSubset
 
@@ -60,8 +52,7 @@
 [4a]  NameChar ~ NameStartChar | [\-.0-9#xB7#x0300-#x036F#x203F-#x2040]
 [5]   Name ~ NameStartChar (NameChar)*
 [6]   Names ::= Name (#x20 Name)*
-/* [7]   Nmtoken ::= (NameChar)+ */
-[7]   Nmtoken ~ (NameChar)+
+[7]   Nmtoken ::= (NameChar)+
 [8]   Nmtokens ::= Nmtoken (#x20 Nmtoken)*
 [9]   EntityValue ::= '"' ([^%&"] | PEReference | Reference)* '"'
     |  "'" ([^%&'] | PEReference | Reference)* "'"

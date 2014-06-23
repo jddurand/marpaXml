@@ -6,7 +6,7 @@ int main(int argc, char **argv) {
   marpaWrapperOption_t       marpaWrapperOption;
 
   marpaWrapper_optionDefaultb(&marpaWrapperOption);
-  marpaWrapperOption.logLevelWantedi     = MARPAWRAPPER_LOGLEVEL_TRACE;
+  marpaWrapperOption.logLevelWantedi     = MARPAWRAPPER_LOGLEVEL_WARNING;
 
   xml_1_1p = xml_1_1_newp(&marpaWrapperOption, NULL);
   if (xml_1_1p != NULL) {

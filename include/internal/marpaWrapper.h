@@ -127,7 +127,10 @@ typedef enum marpaWrapperErrorOrigin {
   MARPAWRAPPERERRORORIGIN_MARPA,
   MARPAWRAPPERERRORORIGIN_NA,
 } marpaWrapperErrorOrigin_t;
-void                      marpaWrapper_log(marpaWrapperLogCallback_t logCallbackp, void *logCallbackDatavp, marpaWrapper_t *marpaWrapperp, marpaWrapperLogLevel_t logLevelWantedi, marpaWrapperErrorOrigin_t errorOrigini, int errorNumberi, const char *calls, marpaWrapperLogLevel_t logLeveli);
+void                     marpaWrapper_log(marpaWrapper_t *marpaWrapperp, marpaWrapperLogLevel_t marpaWrapperLogLeveli, marpaWrapperErrorOrigin_t marpaWrapperErrorOrigini, int errorCodei, const char *fmts, ...);
+/* If marpaWrapperp is not available, it is still possible to use this library's logging method via the following call                   */
+/* where marpaWrapperp may be used ONLY if logCallbackp() is a user's method. Give NULL to have a generic method not using marpaWrapperp */
+void                     marpaWrapper_logExt(marpaWrapperLogCallback_t logCallbackp, void *logCallbackDatavp, marpaWrapper_t *marpaWrapperp, marpaWrapperLogLevel_t logLevelWantedi, marpaWrapperErrorOrigin_t errorOrigini, int errorNumberi, const char *calls, marpaWrapperLogLevel_t logLeveli);
 
 /**************************************************/
 /* Phase 1: Grammar definition and precomputation */

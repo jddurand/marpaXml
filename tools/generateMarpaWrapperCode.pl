@@ -618,14 +618,14 @@ ${namespace}_t *${namespace}_newp(marpaWrapperOption_t *marpaWrapperOptionp, xml
 
   ${namespace}p = malloc(sizeof(${namespace}_t));
   if (${namespace}p == NULL) {
-    marpaWrapper_log(marpaWrapperOption.logCallbackp,
-		     marpaWrapperOption.logCallbackDatavp,
-		     NULL,
-		     marpaWrapperOption.logLevelWantedi,
-		     MARPAWRAPPERERRORORIGIN_SYSTEM,
-		     errno,
-		     "malloc()",
-		     MARPAWRAPPER_LOGLEVEL_ERROR);
+    marpaWrapper_logExt(marpaWrapperOption.logCallbackp,
+		        marpaWrapperOption.logCallbackDatavp,
+		        NULL,
+		        marpaWrapperOption.logLevelWantedi,
+		        MARPAWRAPPERERRORORIGIN_SYSTEM,
+		        errno,
+		        "malloc()",
+		        MARPAWRAPPER_LOGLEVEL_ERROR);
     return NULL;
   }
 

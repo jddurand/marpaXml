@@ -1259,14 +1259,14 @@ xml_1_0_t *xml_1_0_newp(marpaWrapperOption_t *marpaWrapperOptionp, xml_commonOpt
 
   xml_1_0p = malloc(sizeof(xml_1_0_t));
   if (xml_1_0p == NULL) {
-    marpaWrapper_log(marpaWrapperOption.logCallbackp,
-		     marpaWrapperOption.logCallbackDatavp,
-		     NULL,
-		     marpaWrapperOption.logLevelWantedi,
-		     MARPAWRAPPERERRORORIGIN_SYSTEM,
-		     errno,
-		     "malloc()",
-		     MARPAWRAPPER_LOGLEVEL_ERROR);
+    marpaWrapper_logExt(marpaWrapperOption.logCallbackp,
+		        marpaWrapperOption.logCallbackDatavp,
+		        NULL,
+		        marpaWrapperOption.logLevelWantedi,
+		        MARPAWRAPPERERRORORIGIN_SYSTEM,
+		        errno,
+		        "malloc()",
+		        MARPAWRAPPER_LOGLEVEL_ERROR);
     return NULL;
   }
 
