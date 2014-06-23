@@ -113,6 +113,66 @@ sub _rules {
       }
   }
 
+  my $replaced;
+  do {
+      $replaced = 0;
+      #
+      # If a rule depend on a single lexeme, and this lexeme is not accessed everywhere else then
+      # the rule becomes this lexeme
+      #
+      foreach (0..$#{$self->{rules}}) {
+	  my $irule = $_;
+	  my $rule = $self->{rules}->[$irule];
+	  my $lhs = $rule->{lhs};
+	  next if ($#{$rule->{rhs}} != 0);
+	  next if ($rule->{quantifier});   # Quantified lexemes do really require a rule
+	  
+	  my $rhs = $rule->{rhs}->[0];
+	  next if (! $self->{symbols}->{$rhs}->{terminal});
+
+	  my $ok = 1;
+	  foreach (0..$#{$self->{rules}}) {
+	      my $irule2 = $_;
+	      next if ($irule == $irule2);
+	      my $rule2 = $self->{rules}->[$irule2];
+	      my $lhs2 = $rule2->{lhs};
+	      if ($lhs2 eq $lhs) {
+		  $ok = 0;         # $rule has at least one alternative
+		  last;
+	      }
+	      my $found = 0;
+	      
+	      foreach (@{$rule2->{rhs}}) {
+		  my $rhs2 = $_;
+		  if ($rhs2 eq $rhs) {
+		      $found = 1;
+		      last;
+		  }
+	      }
+	      if ($found) {
+		  $ok = 0;
+		  last;
+	      }
+	  }
+	  if ($ok) {
+	      my $content = $self->{symbols}->{$rhs}->{content};
+	      print STDERR "Replacing LHS of <$content> by $lhs\n";
+	      $self->{symbols}->{$lhs} = $self->{symbols}->{$rhs};
+	      $self->{symbols}->{$lhs}->{content} =~ s/$rhs/$lhs/;
+	      delete($self->{symbols}->{$rhs});
+	      $rule->{rhs}->[0] = $lhs;
+	      $self->{lexemes}->{$lhs} = $self->{lexemes}->{$rhs};
+	      splice(@{$self->{rules}}, $irule, 1);
+	      delete($self->{lexemes}->{$rhs});
+	      if (exists($self->{lexemesExact}->{$rhs})) {
+		  $self->{lexemesExact}->{$lhs} = $self->{lexemesExact}->{$rhs};
+		  delete($self->{lexemesExact}->{$rhs});
+	      }
+	      $replaced = 1;
+	  }
+      }
+  } while ($replaced);
+
   $self->{grammar} = join("\n", @rc) . "\n";
 
   return $self;
