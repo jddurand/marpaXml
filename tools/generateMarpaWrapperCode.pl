@@ -428,6 +428,7 @@ package main;
 use Marpa::R2;
 use Getopt::Long;
 use File::Slurp;
+use File::Spec;
 use File::Basename qw/basename/;
 use POSIX qw/EXIT_SUCCESS EXIT_FAILURE/;
 
@@ -909,13 +910,21 @@ ISLEXEMEB_TRAILER
  ************************************************/
 COMMENT
     if (! exists($value->{lexemesExact}->{$_}->{type})) {
-      $pushLexemeb .= <<ISLEXEMEB;
-static C_INLINE marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
+      my $func = "_${namespace}_${_}b";
+      my $byHand = File::Spec->catfile('src', 'internal', 'grammar', $namespace, $func . '.c');
+      if (-s $byHand) {
+        $pushLexemeb .= read_file($byHand);
+	print STDERR "[WARN] Inserted $byHand\n";
+      } else {
+	print STDERR "[WARN] Routine $func to be writen by hand\n";
+        $pushLexemeb .= <<ISLEXEMEB;
+static C_INLINE marpaWrapperBool_t $func(${namespace}_t *${namespace}p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
   /* Writen by hand */
   return MARPAWRAPPER_BOOL_FALSE;
 }
 
 ISLEXEMEB
+    }
     } else {
       if ($value->{lexemesExact}->{$_}->{type} == $LEXEME_RANGES ||
 	  $value->{lexemesExact}->{$_}->{type} == $LEXEME_CARET_RANGES) {
