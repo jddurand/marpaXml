@@ -1,8 +1,8 @@
 #include "internal/grammar/xml_common.h"
 
-/***************************/
-/* xml_common_optionDefaultb
-/***************************/
+/*****************************/
+/* xml_common_optionDefaultb */
+/*****************************/
 marpaWrapperBool_t xml_common_optionDefaultb(xml_common_option_t *xml_common_optionp) {
 
   if (xml_common_optionp == NULL) {
