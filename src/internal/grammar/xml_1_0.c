@@ -7130,51 +7130,301 @@ static C_INLINE marpaWrapperBool_t _xml_1_0_StringTypeb(xml_1_0_t *xml_1_0p, sig
 /************************************************
   _Exclusion001 ~ 'PubidChar - _Lex008'
  ************************************************/
+/************************************************
+  _Exclusion001 ~ 'PubidChar - _Lex008'
+ ************************************************/
 static C_INLINE marpaWrapperBool_t _xml_1_0__Exclusion001b(xml_1_0_t *xml_1_0p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
-  /* Writen by hand */
-  return MARPAWRAPPER_BOOL_FALSE;
-}
+  size_t             sizePubidCharl;
+  size_t             sizeLex008l;
+  marpaWrapperBool_t PubidCharb = _xml_1_0_PubidCharb(xml_1_0p, currenti, streamInp, &sizePubidCharl);
+  marpaWrapperBool_t Lex008b    = _xml_1_0__Lex008b(xml_1_0p, currenti, streamInp, &sizeLex008l);
 
+  if (PubidCharb == MARPAWRAPPER_BOOL_TRUE && Lex008b == MARPAWRAPPER_BOOL_FALSE) {
+    *sizelp = sizePubidCharl;
+    return MARPAWRAPPER_BOOL_TRUE;
+  } else {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+}
 /************************************************
   _Exclusion002 ~ '_Lex015_any - _Gen056'
  ************************************************/
-static C_INLINE marpaWrapperBool_t _xml_1_0__Exclusion002b(xml_1_0_t *xml_1_0p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
-  /* Writen by hand */
-  return MARPAWRAPPER_BOOL_FALSE;
-}
+/************************************************
+  _Exclusion002 ~ '_Lex015_any - _Gen056'
+  _Gen056 ::= _Lex015_any _Lex016 _Lex015_any
+  _Lex016 ~ ']]>'
 
+  which means:
+
+  _Exclusion002 ~ _Lex015_any minus _Lex016
+  
+ ************************************************/
+static C_INLINE marpaWrapperBool_t _xml_1_0__Exclusion002b(xml_1_0_t *xml_1_0p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
+  size_t             sizeLex015l;
+  size_t             sizeLex016l;
+  size_t             sizel;
+
+  if (_xml_1_0__Lex016b(xml_1_0p, currenti, streamInp, &sizeLex016l) == MARPAWRAPPER_BOOL_TRUE) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_FALSE) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+
+  /* Consume any Lex015 */
+  sizel = 0;
+  while(_xml_1_0__Lex015b(xml_1_0p, currenti, streamInp, &sizeLex015l) == MARPAWRAPPER_BOOL_TRUE) {
+    sizel += sizeLex015l;
+    currenti = streamInUtf8_nexti(streamInp);
+  }
+  if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+
+  if (sizel > 0) {
+    *sizelp = sizel;
+    return MARPAWRAPPER_BOOL_TRUE;
+  } else {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+}
 /************************************************
   _Exclusion003 ~ 'Char_any - _Gen061'
  ************************************************/
-static C_INLINE marpaWrapperBool_t _xml_1_0__Exclusion003b(xml_1_0_t *xml_1_0p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
-  /* Writen by hand */
-  return MARPAWRAPPER_BOOL_FALSE;
-}
+/************************************************
+  _Exclusion003 ~ 'Char_any - _Gen061'
+  _Gen061 ::= Char_any _Lex020 Char_any
+  _Lex020 ~ '?>'
 
+  which means:
+
+  _Exclusion003 ~ Char_any minus _Lex020
+  
+ ************************************************/
+static C_INLINE marpaWrapperBool_t _xml_1_0__Exclusion003b(xml_1_0_t *xml_1_0p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
+  size_t             sizeCharl;
+  size_t             sizeLex020l;
+  size_t             sizel;
+
+  if (_xml_1_0__Lex020b(xml_1_0p, currenti, streamInp, &sizeLex020l) == MARPAWRAPPER_BOOL_TRUE) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_FALSE) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+
+  /* Consume any Char */
+  sizel = 0;
+  while(_xml_1_0_Charb(xml_1_0p, currenti, streamInp, &sizeCharl) == MARPAWRAPPER_BOOL_TRUE) {
+    sizel += sizeCharl;
+    currenti = streamInUtf8_nexti(streamInp);
+  }
+  if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+
+  if (sizel > 0) {
+    *sizelp = sizel;
+    return MARPAWRAPPER_BOOL_TRUE;
+  } else {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+}
 /************************************************
   _Exclusion004 ~ 'Name - _Gen074'
  ************************************************/
-static C_INLINE marpaWrapperBool_t _xml_1_0__Exclusion004b(xml_1_0_t *xml_1_0p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
-  /* Writen by hand */
-  return MARPAWRAPPER_BOOL_FALSE;
-}
+/************************************************
+  _Exclusion004 ~ 'Name - _Gen074'
+  Name ::= NameStartChar _Gen012_any
+  _Gen012 ::= NameChar
+  NameChar ::= NameStartChar
+  NameChar ::= _Lex004
+  _Gen074 ::= _Gen068 _Gen070 _Gen072
+  _Gen068 ::= _Lex021
+  _Gen068 ::= _Lex022
+  _Gen070 ::= _Lex023
+  _Gen070 ::= _Lex024
+  _Gen072 ::= _Lex025
+  _Gen072 ::= _Lex026
+  _Lex021 ~ 'X'
+  _Lex022 ~ 'x'
+  _Lex023 ~ 'M'
+  _Lex024 ~ 'm'
+  _Lex025 ~ 'L'
+  _Lex026 ~ 'l'
 
+  which means:
+
+  _Exclusion003 ~ Name minus [xX][mM][lL]
+  
+ ************************************************/
+static C_INLINE marpaWrapperBool_t _xml_1_0__Exclusion004b(xml_1_0_t *xml_1_0p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
+  size_t               sizel = 0;
+  size_t               dummySizel = 0;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
+  marpaWrapperBool_t   xb = MARPAWRAPPER_BOOL_FALSE;
+  marpaWrapperBool_t   mb = MARPAWRAPPER_BOOL_FALSE;
+
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_FALSE) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+
+  do {
+    if (sizel == 0) {
+      if (_xml_1_0__Lex021b(xml_1_0p, currenti, streamInp, &dummySizel) == MARPAWRAPPER_BOOL_TRUE ||
+          _xml_1_0__Lex022b(xml_1_0p, currenti, streamInp, &dummySizel) == MARPAWRAPPER_BOOL_TRUE) {
+        /* Per def Lex021b or Lex022b also matched NameStartCharb */
+        xb = MARPAWRAPPER_BOOL_TRUE;
+        sizel++;
+      } else if (_xml_1_0_NameStartCharb(xml_1_0p, currenti, streamInp, &dummySizel) == MARPAWRAPPER_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } else if (sizel == 1) {
+      if (xb == MARPAWRAPPER_BOOL_TRUE) {
+        if (_xml_1_0__Lex023b(xml_1_0p, currenti, streamInp, &dummySizel) == MARPAWRAPPER_BOOL_TRUE ||
+            _xml_1_0__Lex024b(xml_1_0p, currenti, streamInp, &dummySizel) == MARPAWRAPPER_BOOL_TRUE) {
+          /* Per def Lex021b or Lex022b also matched NameStartCharb */
+          mb = MARPAWRAPPER_BOOL_TRUE;
+          sizel++;
+        } else if (_xml_1_0_NameStartCharb(xml_1_0p, currenti, streamInp, &sizel) == MARPAWRAPPER_BOOL_TRUE ||
+                   _xml_1_0__Lex004b(xml_1_0p, currenti, streamInp, &sizel) == MARPAWRAPPER_BOOL_TRUE) {
+          sizel++;
+        }
+      } else if (_xml_1_0_NameStartCharb(xml_1_0p, currenti, streamInp, &sizel) == MARPAWRAPPER_BOOL_TRUE ||
+                 _xml_1_0__Lex004b(xml_1_0p, currenti, streamInp, &sizel) == MARPAWRAPPER_BOOL_TRUE) {
+        sizel++;
+      }
+    } else if (sizel == 2) {
+      if (mb == MARPAWRAPPER_BOOL_TRUE) {
+        if (_xml_1_0__Lex025b(xml_1_0p, currenti, streamInp, &dummySizel) == MARPAWRAPPER_BOOL_TRUE ||
+            _xml_1_0__Lex026b(xml_1_0p, currenti, streamInp, &dummySizel) == MARPAWRAPPER_BOOL_TRUE) {
+          /* Per def Lex021b or Lex022b also matched NameStartCharb */
+          rcb = MARPAWRAPPER_BOOL_FALSE;
+          break;
+        } else if (_xml_1_0_NameStartCharb(xml_1_0p, currenti, streamInp, &sizel) == MARPAWRAPPER_BOOL_TRUE ||
+                   _xml_1_0__Lex004b(xml_1_0p, currenti, streamInp, &sizel) == MARPAWRAPPER_BOOL_TRUE) {
+          sizel++;
+        }
+      } else if (_xml_1_0_NameStartCharb(xml_1_0p, currenti, streamInp, &sizel) == MARPAWRAPPER_BOOL_TRUE ||
+                 _xml_1_0__Lex004b(xml_1_0p, currenti, streamInp, &sizel) == MARPAWRAPPER_BOOL_TRUE) {
+        sizel++;
+      }
+    } else if (_xml_1_0_NameStartCharb(xml_1_0p, currenti, streamInp, &sizel) == MARPAWRAPPER_BOOL_TRUE ||
+               _xml_1_0__Lex004b(xml_1_0p, currenti, streamInp, &sizel) == MARPAWRAPPER_BOOL_TRUE) {
+      sizel++;
+    }
+    currenti = streamInUtf8_nexti(streamInp);
+  } while (currenti >= 0);
+
+  if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
+    rcb = MARPAWRAPPER_BOOL_FALSE;
+  }
+
+  if (rcb == MARPAWRAPPER_BOOL_TRUE) {
+    *sizelp = sizel;
+  }
+
+  return rcb;
+}
 /************************************************
   _Exclusion005 ~ 'Char_any - _Gen079'
  ************************************************/
-static C_INLINE marpaWrapperBool_t _xml_1_0__Exclusion005b(xml_1_0_t *xml_1_0p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
-  /* Writen by hand */
-  return MARPAWRAPPER_BOOL_FALSE;
-}
+/************************************************
+  _Exclusion005 ~ 'Char_any - _Gen079'
+  Char ~ [\x{9}\x{a}\x{d}\x{20}-\x{d7ff}\x{e000}-\x{fffd}\x{10000}-\x{10ffff}]
+  _Gen079 ::= Char_any _Lex016 Char_any
+  _Lex016 ~ ']]>'
+  
+  which means:
 
+  _Exclusion005 ~ Char_any - ']]>'
+ ************************************************/
+static C_INLINE marpaWrapperBool_t _xml_1_0__Exclusion005b(xml_1_0_t *xml_1_0p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
+  size_t             sizeCharl;
+  size_t             sizeLex016l;
+  size_t             sizel;
+
+  if (_xml_1_0__Lex016b(xml_1_0p, currenti, streamInp, &sizeLex016l) == MARPAWRAPPER_BOOL_TRUE) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_FALSE) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+
+  /* Consume any Char */
+  sizel = 0;
+  while(_xml_1_0_Charb(xml_1_0p, currenti, streamInp, &sizeCharl) == MARPAWRAPPER_BOOL_TRUE) {
+    sizel += sizeCharl;
+    currenti = streamInUtf8_nexti(streamInp);
+  }
+  if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+
+  if (sizel > 0) {
+    *sizelp = sizel;
+    return MARPAWRAPPER_BOOL_TRUE;
+  } else {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+}
 /************************************************
   _Exclusion006 ~ 'Char_any - _Gen233'
  ************************************************/
-static C_INLINE marpaWrapperBool_t _xml_1_0__Exclusion006b(xml_1_0_t *xml_1_0p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
-  /* Writen by hand */
-  return MARPAWRAPPER_BOOL_FALSE;
-}
+/************************************************
+  _Exclusion005 ~ 'Char_any - _Gen233'
+  Char ~ [\x{9}\x{a}\x{d}\x{20}-\x{d7ff}\x{e000}-\x{fffd}\x{10000}-\x{10ffff}]
+  _Gen233 ::= Char_any _Gen231 Char_any
+  _Gen231 ::= _Lex068
+  _Gen231 ::= _Lex016
+  _Lex068 ~ '<!['
+  _Lex016 ~ ']]>'
+  
+  which means:
 
+  _Exclusion005 ~ Char_any - ('<![' or ']]>')
+ ************************************************/
+static C_INLINE marpaWrapperBool_t _xml_1_0__Exclusion006b(xml_1_0_t *xml_1_0p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
+  size_t             sizeCharl;
+  size_t             sizeLex016l;
+  size_t             sizeLex068l;
+  size_t             sizel;
+
+  if (_xml_1_0__Lex016b(xml_1_0p, currenti, streamInp, &sizeLex016l) == MARPAWRAPPER_BOOL_TRUE ||
+      _xml_1_0__Lex068b(xml_1_0p, currenti, streamInp, &sizeLex068l) == MARPAWRAPPER_BOOL_TRUE) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+
+  /* We will move current character, so we want to restore it */
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_FALSE) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+
+  /* Consume any Char */
+  sizel = 0;
+  while(_xml_1_0_Charb(xml_1_0p, currenti, streamInp, &sizeCharl) == MARPAWRAPPER_BOOL_TRUE) {
+    sizel += sizeCharl;
+    currenti = streamInUtf8_nexti(streamInp);
+  }
+  if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+
+  if (sizel > 0) {
+    *sizelp = sizel;
+    return MARPAWRAPPER_BOOL_TRUE;
+  } else {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+}
 /************************************************
   _Lex002 ~ [\x{20}\x{9}\x{d}\x{a}]
  ************************************************/

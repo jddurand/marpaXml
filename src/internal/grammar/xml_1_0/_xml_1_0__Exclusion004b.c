@@ -24,13 +24,11 @@
   
  ************************************************/
 static C_INLINE marpaWrapperBool_t _xml_1_0__Exclusion004b(xml_1_0_t *xml_1_0p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
-  signed int           got = currenti;
   size_t               sizel = 0;
   size_t               dummySizel = 0;
   marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
   marpaWrapperBool_t   xb = MARPAWRAPPER_BOOL_FALSE;
   marpaWrapperBool_t   mb = MARPAWRAPPER_BOOL_FALSE;
-  marpaWrapperBool_t   lb = MARPAWRAPPER_BOOL_FALSE;
 
   /* We will move current character, so we want to restore it */
   if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_FALSE) {
