@@ -35,6 +35,13 @@
   [13]   	PubidChar	   ::=   	#x20 | #xD | #xA | [a-zA-Z0-9] | [\-'()+,./:=?;!*#@$_%]
   to
   [13]   	PubidChar	   ::=   	[a-zA-Z0-9\-'()+,./:=?;!*#@$_%#x20#xD#xA]
+
+  As per http://lists.w3.org/Archives/Public/xml-editor/2011OctDec/0004.html
+  CharData is rewriten from
+  [14]   	CharData	   ::=   	[^<&]* - ([^<&]* ']]>' [^<&]*)
+  to
+  [14]   	CharData	   ::=   	[^<&]+ - ([^<&]* ']]>' [^<&]*)
+
 */
 
 [0]   start ::= document | extParsedEnt | extSubset
@@ -70,7 +77,8 @@
 /* [13]   	PubidChar	   ::=   	#x20 | #xD | #xA | [a-zA-Z0-9] | [\-'()+,./:=?;!*#@$_%] */
 [13]   	PubidChar	   ::=   	[a-zA-Z0-9\-'()+,./:=?;!*#@$_%#x20#xD#xA]
 
-[14]   	CharData	   ::=   	[^<&]* - ([^<&]* ']]>' [^<&]*)
+/* [14]   	CharData	   ::=   	[^<&]* - ([^<&]* ']]>' [^<&]*) */
+[14]   	CharData	   ::=   	[^<&]+ - ([^<&]* ']]>' [^<&]*)
 [15]   	Comment	   ::=   	'<!--' ((Char - '-') | ('-' (Char - '-')))* '-->'
 [16]   	PI	   ::=   	'<?' PITarget (S (Char* - (Char* '?>' Char*)))? '?>'
 [17]   	PITarget	   ::=   	Name - (('X' | 'x') ('M' | 'm') ('L' | 'l'))

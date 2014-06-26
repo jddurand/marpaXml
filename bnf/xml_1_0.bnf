@@ -32,6 +32,34 @@
   to
   [13]  PubidChar ::= [a-zA-Z0-9\-'()+,./:=?;!*#@$_%#x20#xD#xA]
 
+  As per http://lists.w3.org/Archives/Public/xml-editor/2011OctDec/0004.html
+  CharData is rewriten from
+  [14]  CharData ::= [^<&]* - ([^<&]* ']]>' [^<&]*)
+  to
+  [14]  CharData ::= [^<&]+ - ([^<&]* ']]>' [^<&]*)
+
+  The nullable exclusion in PI is rewriten from
+  [16]  PI ::= '<?' PITarget (S (Char* - (Char* '?>' Char*)))? '?>'
+  to
+  [16]  PI ::= '<?' PITarget (S (Char+ - (Char* '?>' Char*)))? '?>'
+             | '<?' PITarget (S                             )? '?>'
+
+  The nullable Ignore is rewriten from
+  [65]  Ignore ::= Char* - (Char* ('<![' | ']]>') Char*)
+  to a non nullable form
+  [65]  Ignore ::= Char+ - (Char* ('<![' | ']]>') Char*)
+  which implies that ignoreSectContents is not nullable anymore; so
+  The rule ignoreSecContents is rewriten from
+  [64]  ignoreSectContents ::= Ignore ('<![' ignoreSectContents ']]>' Ignore)*
+  to
+  [64] ignoreSectContents ::= Ignore ('<![' ignoreSectContents ']]>' Ignore)*
+                            | Ignore ('<!['                    ']]>' Ignore)*
+  and ignoreSect is rewriten from
+  [63]  ignoreSect ::= '<![' S? 'IGNORE' S? '[' ignoreSectContents* ']]>' [VC: Proper Conditional Section/PE Nesting]
+  to
+  [63] ignoreSect ::= '<![' S? 'IGNORE' S? '[' ignoreSectContents* ']]>'
+                    | '<![' S? 'IGNORE' S? '['                     ']]>' [VC: Proper Conditional Section/PE Nesting]
+
   As confirmed by http://www.cs.ust.hk/~dwood/preprints/xmlRulesRewritten.htm, XML grammar
   start symbol is: document | extParsedEnt | extSubset
 
@@ -64,12 +92,16 @@
 /* [13]  PubidChar ::= #x20 | #xD | #xA | [a-zA-Z0-9] | [\-'()+,./:=?;!*#@$_%] */
 [13]  PubidChar ::= [a-zA-Z0-9\-'()+,./:=?;!*#@$_%#x20#xD#xA]
 
-[14]  CharData ::= [^<&]* - ([^<&]* ']]>' [^<&]*)
+/* [14]  CharData ::= [^<&]* - ([^<&]* ']]>' [^<&]*) */
+[14]  CharData ::= [^<&]+ - ([^<&]* ']]>' [^<&]*)
 
 /* [15]  Comment ::= '<!--' ((Char - '-') | ('-' (Char - '-')))* '-->' */
 [15]  Comment ::= '<!--' Char* '-->'
 
-[16]  PI ::= '<?' PITarget (S (Char* - (Char* '?>' Char*)))? '?>'
+/* [16]  PI ::= '<?' PITarget (S (Char* - (Char* '?>' Char*)))? '?>' */
+[16]  PI ::= '<?' PITarget (S (Char+ - (Char* '?>' Char*)))? '?>'
+           | '<?' PITarget (S                             )? '?>'
+
 [17]  PITarget ::= Name - (('X' | 'x') ('M' | 'm') ('L' | 'l'))
 [18]  CDSect ::= CDStart CData CDEnd
 [19]  CDStart ::= '<![CDATA['
@@ -137,9 +169,14 @@
                               [WFC: No External Entity References]
 [61]  conditionalSect ::= includeSect | ignoreSect
 [62]  includeSect ::= '<![' S? 'INCLUDE' S? '[' extSubsetDecl ']]>'  [VC: Proper Conditional Section/PE Nesting]
-[63]  ignoreSect ::= '<![' S? 'IGNORE' S? '[' ignoreSectContents* ']]>' [VC: Proper Conditional Section/PE Nesting]
-[64]  ignoreSectContents ::= Ignore ('<![' ignoreSectContents ']]>' Ignore)*
-[65]  Ignore ::= Char* - (Char* ('<![' | ']]>') Char*) 
+/* [63]  ignoreSect ::= '<![' S? 'IGNORE' S? '[' ignoreSectContents* ']]>' [VC: Proper Conditional Section/PE Nesting] */
+[63] ignoreSect ::= '<![' S? 'IGNORE' S? '[' ignoreSectContents* ']]>'
+                  | '<![' S? 'IGNORE' S? '['                     ']]>' [VC: Proper Conditional Section/PE Nesting]
+/* [64]  ignoreSectContents ::= Ignore ('<![' ignoreSectContents ']]>' Ignore)* */
+[64] ignoreSectContents ::= Ignore ('<![' ignoreSectContents ']]>' Ignore)*
+                          | Ignore ('<!['                    ']]>' Ignore)*
+/* [65]  Ignore ::= Char* - (Char* ('<![' | ']]>') Char*)  */
+[65]  Ignore ::= Char+ - (Char* ('<![' | ']]>') Char*) 
 [66]  CharRef ::= '&#' [0-9]+ ';'
    | '&#x' [0-9a-fA-F]+ ';' [WFC: Legal Character]
 [67]  Reference ::= EntityRef | CharRef

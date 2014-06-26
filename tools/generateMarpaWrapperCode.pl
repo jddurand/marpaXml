@@ -410,12 +410,24 @@ sub _exceptionTermMinusTerm {
 	$name = sprintf('_Exclusion%03d', 1 + (keys %{$self->{lexemesWithExclusion}}));
 	$self->{lexemesWithExclusion}->{$name} = $value;
 	# $self->{lexemesWithExclusion}->{$name} = $term1;
-	print STDERR "[WARN] Lexeme with exclusion: $name ::= $value\n";
+	print STDERR "[INFO] Lexeme with exclusion: $name ::= $value\n";
     } else {
 	$name = $name[0];
     }
     my $symbol = sprintf('_Gen%03d', 1 + (scalar @{$self->{rules}}));
     $self->_rule(undef, $symbol, '~', [ [ $name ] ], []);
+    #
+    # hHis is ASSUMING that none of the original symbols already end with _any or _many.
+    # If this would the case this is ASSUMING that xxx_any is a nullable, and xxx_many is not
+    #
+    if ($term1 =~ /_any/) {
+	print STDERR "[INFO] Lexeme with exclusion: $name ::= $value appears to be nullable\n";
+	$self->_rule(undef, $symbol, '~', [ [] ], []);
+    } elsif ($term1 =~ /_many/) {
+	print STDERR "[INFO] Lexeme with exclusion: $name ::= $value appears to be not nullable\n";
+    } else {
+	print STDERR "[WARN] Lexeme with exclusion: $name ::= $value : cannot determine its nullability - ASSUMING NOT\n";
+    }
     # $self->_rule(undef, $symbol, '~', [ [ $term1 ] ], []);
     return $symbol;
 }
