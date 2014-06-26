@@ -28,12 +28,14 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Exclusion004b(xml_1_0_t *xml_1_0p, 
   size_t               dummySizel = 0;
   marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
   signed int           lastthreei[3];
+  marpaWrapperBool_t   noMoreTestb = MARPAWRAPPER_BOOL_FALSE;
 
   /* We will move current character, so we want to restore it */
   if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_FALSE) {
     return MARPAWRAPPER_BOOL_FALSE;
   }
 
+  /* Do the if only on the three first character ... */
   do {
     if (sizel == 0 && _xml_1_0_NameStartCharb(xml_1_0p, currenti, streamInp, &dummySizel) == MARPAWRAPPER_BOOL_FALSE) {
       rcb = MARPAWRAPPER_BOOL_FALSE;
@@ -56,10 +58,20 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Exclusion004b(xml_1_0_t *xml_1_0p, 
 	/* Never reached */
 	break;
       }
+      noMoreTestb = MARPAWRAPPER_BOOL_TRUE; /* No more test needed */
+      break;
     }
-    
     currenti = streamInUtf8_nexti(streamInp);
   } while (currenti >= 0);
+
+  /* And stop the if when more */
+  if (noMoreTestb == MARPAWRAPPER_BOOL_TRUE) {
+    while ((currenti = streamInUtf8_nexti(streamInp)) >= 0) {
+      if (_xml_1_0_NameStartCharb(xml_1_0p, currenti, streamInp, &sizel) == MARPAWRAPPER_BOOL_FALSE) {
+	break;
+      }
+    }
+  }
 
   if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
     rcb = MARPAWRAPPER_BOOL_FALSE;

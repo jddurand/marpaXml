@@ -24,17 +24,9 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Exclusion006b(xml_1_0_t *xml_1_0p, 
   /* Consume any Char - we KNOW in advance that lex015 does not play with utf8 mark and have a size 1 */
   sizel = 0;
   while(_xml_1_0_Charb(xml_1_0p, currenti, streamInp, &sizeCharl) == MARPAWRAPPER_BOOL_TRUE) {
-    if (sizel == 0) {
-      lastthreei[0] = currenti;
-    } else if (sizel == 1) {
-      lastthreei[1] = currenti;
-    } else if (sizel == 2) {
-      if ((lastthreei[0] == '<' && lastthreei[1] == '!' && currenti == '[') ||
-	  (lastthreei[0] == ']' && lastthreei[1] == ']' && currenti == '>')) {
-	break;
-      }
-      lastthreei[2] = currenti;
-    } else {
+    /* For performance reason it is better to do the test on sizel >= 3 first: the probability      */
+    /* to have three or more characters is much higher than having less than three characters       */
+    if (sizel >= 3) {
       if ((lastthreei[1] == '<' && lastthreei[2] == '!' && currenti == '[') ||
 	  (lastthreei[1] == ']' && lastthreei[2] == ']' && currenti == '>')) {
 	break;
@@ -42,6 +34,16 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Exclusion006b(xml_1_0_t *xml_1_0p, 
       lastthreei[0] = lastthreei[1];
       lastthreei[1] = lastthreei[2];
       lastthreei[2] = currenti;
+    } else if (sizel == 2) {
+      if ((lastthreei[0] == '<' && lastthreei[1] == '!' && currenti == '[') ||
+	  (lastthreei[0] == ']' && lastthreei[1] == ']' && currenti == '>')) {
+	break;
+      }
+      lastthreei[2] = currenti;
+    } else if (sizel == 1) {
+      lastthreei[1] = currenti;
+    } else {
+      lastthreei[0] = currenti;
     }
     sizel++;
     currenti = streamInUtf8_nexti(streamInp);
