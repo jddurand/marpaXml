@@ -11,12 +11,21 @@
   macros. This implementation only support inheritance. Which is enough in case of DOM3 and SAX2.
 */
 
-#define module(name) MARPAXML ## _ ## name
+/* Generic prefix for symbol unicity */
+#define module(name) marpaXml ## _ ## name
 
-#define class_decl(class) typedef struct class *class;
-#define class_meth(class, meth) class ## _ ## method
+/* Class definition: structure pointer, constructor, destructor */
+#define class_decl(class) {						\
+    typedef struct module(module(class)) *module(class) ## p;		\
+    void * ## module(class) ## _newp();					\
+    void   ## module(class) ## _destroyv(& ## module(class) ## p);	\
+}
 
-#define subclass_decl(subclass, class) typedef struct subclass { class *parent; } *subclass;
-#define subclass_meth(subclass, class, meth) subclass ## _ ## meth
+/* Class method */
+#define class_meth(class, meth) module(class) ## _ ## meth
+
+/* Subclass definition */
+#define subclass_decl(subclass, class) class_decl(subclass)
+#define subclass_meth(subclass, class, meth) class_meth(subclass, meth)
 
 #endif /* MARPAXML_STATICCLASSPROTOTYPE */

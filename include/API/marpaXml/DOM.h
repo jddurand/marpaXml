@@ -10,7 +10,14 @@
  * [1] http://www.w3.org/Consortium/Legal/2002/copyright-software-20021231
  */
 
-// File: http://www.w3.org/TR/2004/REC-DOM-Level-3-Core-20040407/dom.idl
+/* File: http://www.w3.org/TR/2004/REC-DOM-Level-3-Core-20040407/dom.idl */
+
+/* We do not need C general frameworks like COS, SOOC, etc... Here, DOM is */
+/* static class: instances of it are not gonna be modified at runtime.     */
+/* Therefore, except for the notion of exceptions that adds a paramter to  */
+/* some functions, we can avoid the function pointers, that is the main    */
+/* performance penalty in a non-ultra-macro-maybe-compiler-specific OOC    */
+/* stuff.                                                                  */
 
 #ifndef _DOM_IDL_
 #define _DOM_IDL_
