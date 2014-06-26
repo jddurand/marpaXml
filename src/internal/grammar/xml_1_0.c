@@ -7481,19 +7481,21 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Exclusion003b(xml_1_0_t *xml_1_0p, 
   /* Consume many Char - we KNOW in advance that lex015 does not play with utf8 mark and have a size 1 */
   sizel = 0;
   while(_xml_1_0_Charb(xml_1_0p, currenti, streamInp, &sizeCharl) == MARPAWRAPPER_BOOL_TRUE) {
-    if (sizel == 0) {
-      lasttwoi[0] = currenti;
-    } else if (sizel == 1) {
-      if (lasttwoi[0] == '?' && currenti == '>') {
-	break;
-      }
-      lasttwoi[1] = currenti;
-    } else {
-      if (lasttwoi[1] == '?' && currenti == '>') {
+    /* For performance reason it is better to do the test on sizel >= 2 first: the probability  */
+    /* to have two or more characters is much higher than having less than two characters       */
+    if (sizel >= 2) {
+      if (currenti == '>' && lasttwoi[1] == '?') {
 	break;
       }
       lasttwoi[0] = lasttwoi[1];
       lasttwoi[1] = currenti;
+    } else if (sizel == 1) {
+      if (currenti == '>' && lasttwoi[0] == '?') {
+	break;
+      }
+      lasttwoi[1] = currenti;
+    } else {
+      lasttwoi[0] = currenti;
     }
     sizel++;
     currenti = streamInUtf8_nexti(streamInp);
@@ -7695,16 +7697,16 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Exclusion006b(xml_1_0_t *xml_1_0p, 
     /* For performance reason it is better to do the test on sizel >= 3 first: the probability      */
     /* to have three or more characters is much higher than having less than three characters       */
     if (sizel >= 3) {
-      if ((lastthreei[1] == '<' && lastthreei[2] == '!' && currenti == '[') ||
-	  (lastthreei[1] == ']' && lastthreei[2] == ']' && currenti == '>')) {
+      if ((currenti == '[' && lastthreei[1] == '<' && lastthreei[2] == '!') ||
+	  (currenti == '>' && lastthreei[1] == ']' && lastthreei[2] == ']')) {
 	break;
       }
       lastthreei[0] = lastthreei[1];
       lastthreei[1] = lastthreei[2];
       lastthreei[2] = currenti;
     } else if (sizel == 2) {
-      if ((lastthreei[0] == '<' && lastthreei[1] == '!' && currenti == '[') ||
-	  (lastthreei[0] == ']' && lastthreei[1] == ']' && currenti == '>')) {
+      if ((currenti == '[' && lastthreei[0] == '<' && lastthreei[1] == '!') ||
+	  (currenti == '>' && lastthreei[0] == ']' && lastthreei[1] == ']')) {
 	break;
       }
       lastthreei[2] = currenti;

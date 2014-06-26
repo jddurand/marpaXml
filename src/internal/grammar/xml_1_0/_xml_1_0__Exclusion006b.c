@@ -27,16 +27,16 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Exclusion006b(xml_1_0_t *xml_1_0p, 
     /* For performance reason it is better to do the test on sizel >= 3 first: the probability      */
     /* to have three or more characters is much higher than having less than three characters       */
     if (sizel >= 3) {
-      if ((lastthreei[1] == '<' && lastthreei[2] == '!' && currenti == '[') ||
-	  (lastthreei[1] == ']' && lastthreei[2] == ']' && currenti == '>')) {
+      if ((currenti == '[' && lastthreei[1] == '<' && lastthreei[2] == '!') ||
+	  (currenti == '>' && lastthreei[1] == ']' && lastthreei[2] == ']')) {
 	break;
       }
       lastthreei[0] = lastthreei[1];
       lastthreei[1] = lastthreei[2];
       lastthreei[2] = currenti;
     } else if (sizel == 2) {
-      if ((lastthreei[0] == '<' && lastthreei[1] == '!' && currenti == '[') ||
-	  (lastthreei[0] == ']' && lastthreei[1] == ']' && currenti == '>')) {
+      if ((currenti == '[' && lastthreei[0] == '<' && lastthreei[1] == '!') ||
+	  (currenti == '>' && lastthreei[0] == ']' && lastthreei[1] == ']')) {
 	break;
       }
       lastthreei[2] = currenti;
