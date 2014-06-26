@@ -17,11 +17,11 @@
 
 const static char *_streamIn_defaultFromEncodings = "UTF-8";
 
-static streamInBool_t _streamInUtf8_doneBufferb(streamIn_t *streamInp, size_t bufIndexi);
-static void           _streamInUtf8_detectb(streamIn_t *streamInp);
-static streamInBool_t _streamInUtf8_fromConvertb(streamIn_t *streamInp, size_t bufIndexi);
-static void           _streamInUtf8_destroyv(streamIn_t *streamInp);
-static streamInBool_t _streamInUtf8_readb(streamIn_t *streamInp, size_t bufIndexi);
+static C_INLINE streamInBool_t _streamInUtf8_doneBufferb(streamIn_t *streamInp, size_t bufIndexi);
+static C_INLINE void           _streamInUtf8_detectb(streamIn_t *streamInp);
+static C_INLINE streamInBool_t _streamInUtf8_fromConvertb(streamIn_t *streamInp, size_t bufIndexi);
+static C_INLINE void           _streamInUtf8_destroyv(streamIn_t *streamInp);
+static C_INLINE streamInBool_t _streamInUtf8_readb(streamIn_t *streamInp, size_t bufIndexi);
 
 #ifdef HAVE_ICONV
 typedef struct streamIn_ICONV {
@@ -32,7 +32,7 @@ typedef struct streamIn_ICONV {
   size_t                     utf8BufOffseti;           /* Offset of current character within buffer No utf8BufMarki */
   size_t                     utf8BufLengthi;           /* Number of valid bytes in utf8 buffer */
 } streamIn_ICONV_t;
-static streamInBool_t *streamInUtf8_ICONV_newb(streamIn_t *streamInp);
+static C_INLINE streamInBool_t *streamInUtf8_ICONV_newb(streamIn_t *streamInp);
 #endif
 #ifdef HAVE_ICU
 typedef struct streamIn_ICU {
@@ -51,21 +51,21 @@ typedef struct streamIn_ICU {
   const void                 *uConverterToUCallbackCtxp;
   UText                      *utextp;
 } streamIn_ICU_t;
-static streamInBool_t  streamInUtf8_ICU_newb(streamIn_t *streamInp);
-static streamInBool_t _streamInUtf8_ICU_optionb(streamIn_t *streamInp, streamInUtf8Option_t *streamInUtf8Optionp);
-static streamInBool_t _streamInUtf8_ICU_doneBufferb(streamIn_t *streamInp, size_t bufIndexi);
-static streamInBool_t _streamInUtf8_ICU_readb(streamIn_t *streamInp, size_t bufIndexi);
-static streamInBool_t _streamInUtf8_ICU_detectb(streamIn_t *streamInp);
-static streamInBool_t _streamInUtf8_ICU_fromConvertb(streamIn_t *streamInp, size_t bufIndexi);
-static unsigned char  _streaminUtf8_ICU_nibbleToHex(uint8_t n);
-static signed int     _streamInUtf8_ICU_currenti(streamIn_t *streamInp);
-static signed int     _streamInUtf8_ICU_nexti(streamIn_t *streamInp);
-static streamInBool_t _streamInUtf8_ICU_markb(streamIn_t *streamInp);
-static streamInBool_t _streamInUtf8_ICU_markPreviousb(streamIn_t *streamInp);
-static streamInBool_t _streamInUtf8_ICU_currentFromMarkedb(streamIn_t *streamInp);
-static streamInBool_t _streamInUtf8_ICU_doneb(streamIn_t *streamInp);
+static C_INLINE streamInBool_t  streamInUtf8_ICU_newb(streamIn_t *streamInp);
+static C_INLINE streamInBool_t _streamInUtf8_ICU_optionb(streamIn_t *streamInp, streamInUtf8Option_t *streamInUtf8Optionp);
+static C_INLINE streamInBool_t _streamInUtf8_ICU_doneBufferb(streamIn_t *streamInp, size_t bufIndexi);
+static C_INLINE streamInBool_t _streamInUtf8_ICU_readb(streamIn_t *streamInp, size_t bufIndexi);
+static C_INLINE streamInBool_t _streamInUtf8_ICU_detectb(streamIn_t *streamInp);
+static C_INLINE streamInBool_t _streamInUtf8_ICU_fromConvertb(streamIn_t *streamInp, size_t bufIndexi);
+static C_INLINE unsigned char  _streaminUtf8_ICU_nibbleToHex(uint8_t n);
+static C_INLINE signed int     _streamInUtf8_ICU_currenti(streamIn_t *streamInp);
+static C_INLINE signed int     _streamInUtf8_ICU_nexti(streamIn_t *streamInp);
+static C_INLINE streamInBool_t _streamInUtf8_ICU_markb(streamIn_t *streamInp);
+static C_INLINE streamInBool_t _streamInUtf8_ICU_markPreviousb(streamIn_t *streamInp);
+static C_INLINE streamInBool_t _streamInUtf8_ICU_currentFromMarkedb(streamIn_t *streamInp);
+static C_INLINE streamInBool_t _streamInUtf8_ICU_doneb(streamIn_t *streamInp);
 #endif
-static streamInBool_t _streamIn_charsetdetect_detectb(streamIn_t *streamInp);
+static C_INLINE streamInBool_t _streamIn_charsetdetect_detectb(streamIn_t *streamInp);
 
 /*****************************************************************************/
 /* Generic class handling read-only streaming on buffers that can ONLY go on */
@@ -107,13 +107,13 @@ struct streamIn {
 #define STREAMIN_FREE(x) { free(x); x = NULL; }
 #define STREAMIN_FREE_REPLACEMENT(x, replacement) { free(x); x = replacement; }
 
-static streamInBool_t _streamIn_getBufferb (streamIn_t *streamInp, size_t wantedIndexi, size_t *indexBufferip, char **charArraypp, size_t *bytesInBufferp);
-static streamInBool_t _streamIn_doneBufferb(streamIn_t *streamInp, size_t bufIndexi);
-static streamInBool_t _streamIn_readb      (streamIn_t *streamInp);
-static void           _streamIn_log_any    (streamIn_t *streamInp, streamInLogLevel_t streamInLogLeveli, const char *fmts, ...);
-static void           _streamIn_logCallback(void *logCallbackDatavp, streamIn_t *marpaWrapperp, streamInLogLevel_t logLeveli, const char *msgs);
-static streamInBool_t _streamIn_optionb    (streamIn_t *streamInp, streamInOption_t *streamInOptionp);
-static streamInBool_t _streamInUtf8_optionb(streamIn_t *streamInp, streamInUtf8Option_t *streamInUtf8Optionp);
+static C_INLINE streamInBool_t _streamIn_getBufferb (streamIn_t *streamInp, size_t wantedIndexi, size_t *indexBufferip, char **charArraypp, size_t *bytesInBufferp);
+static C_INLINE streamInBool_t _streamIn_doneBufferb(streamIn_t *streamInp, size_t bufIndexi);
+static C_INLINE streamInBool_t _streamIn_readb      (streamIn_t *streamInp);
+static C_INLINE void           _streamIn_log_any    (streamIn_t *streamInp, streamInLogLevel_t streamInLogLeveli, const char *fmts, ...);
+static C_INLINE void           _streamIn_logCallback(void *logCallbackDatavp, streamIn_t *marpaWrapperp, streamInLogLevel_t logLeveli, const char *msgs);
+static C_INLINE streamInBool_t _streamIn_optionb    (streamIn_t *streamInp, streamInOption_t *streamInOptionp);
+static C_INLINE streamInBool_t _streamInUtf8_optionb(streamIn_t *streamInp, streamInUtf8Option_t *streamInUtf8Optionp);
 
 /***************************/
 /* streamIn_optionDefaultb */
@@ -176,7 +176,7 @@ streamIn_t *streamIn_newp(streamInOption_t *streamInOptionp) {
 /***************************/
 /* streamInUtf8_ICONV_newp */
 /***************************/
-static streamInBool_t *streamInUtf8_ICONV_newb(streamIn_t *streamInp) {
+static C_INLINE streamInBool_t *streamInUtf8_ICONV_newb(streamIn_t *streamInp) {
   streamInBool_t  rcb               = STREAMIN_BOOL_TRUE;
   streamIn_ICONV_t *streamIn_ICONVp = &(streamInp->streamIn_ICONV);
 
@@ -194,7 +194,7 @@ static streamInBool_t *streamInUtf8_ICONV_newb(streamIn_t *streamInp) {
 /*************************/
 /* streamInUtf8_ICU_newb */
 /*************************/
-static streamInBool_t streamInUtf8_ICU_newb(streamIn_t *streamInp) {
+static C_INLINE streamInBool_t streamInUtf8_ICU_newb(streamIn_t *streamInp) {
   streamInBool_t  rcb           = STREAMIN_BOOL_TRUE;
 
   streamInp->streamIn_ICU.charBuf2UCharByteLengthlp = NULL;
@@ -355,7 +355,7 @@ streamIn_t *streamInUtf8_newp(streamInOption_t *streamInOptionp, streamInUtf8Opt
 /*********************************/
 /* _streamInUtf8_ICU_doneBufferb */
 /*********************************/
-static streamInBool_t _streamInUtf8_ICU_doneBufferb(streamIn_t *streamInp, size_t bufIndexi) {
+static C_INLINE streamInBool_t _streamInUtf8_ICU_doneBufferb(streamIn_t *streamInp, size_t bufIndexi) {
   streamInBool_t  rcb           = STREAMIN_BOOL_TRUE;
   int64_t         bytesToRemovel;
   int64_t         ucharsToRemovel;
@@ -443,7 +443,7 @@ static streamInBool_t _streamInUtf8_ICU_doneBufferb(streamIn_t *streamInp, size_
 /********************************************/
 /* _streamInUtf8_doneBufferb                */
 /********************************************/
-static streamInBool_t _streamInUtf8_doneBufferb(streamIn_t *streamInp, size_t bufIndexi) {
+static C_INLINE streamInBool_t _streamInUtf8_doneBufferb(streamIn_t *streamInp, size_t bufIndexi) {
   streamInBool_t  rcb = STREAMIN_BOOL_TRUE;
 
   if (streamInp->utf8b == STREAMIN_BOOL_TRUE) {
@@ -467,7 +467,7 @@ static streamInBool_t _streamInUtf8_doneBufferb(streamIn_t *streamInp, size_t bu
 /**************************************/
 /* _streamInUtf8_readb                */
 /**************************************/
-static streamInBool_t _streamInUtf8_readb(streamIn_t *streamInp, size_t bufIndexi) {
+static C_INLINE streamInBool_t _streamInUtf8_readb(streamIn_t *streamInp, size_t bufIndexi) {
   streamInBool_t  rcb = STREAMIN_BOOL_TRUE;
 
   if (streamInp->utf8b == STREAMIN_BOOL_TRUE) {
@@ -509,7 +509,7 @@ static streamInBool_t _streamInUtf8_readb(streamIn_t *streamInp, size_t bufIndex
 
 /* Take care: this routine will destroy buffers, and the call to utf8 stuff */
 /* will rely on streamInp->nCharBufi without modify it */
-static streamInBool_t _streamIn_doneBufferb(streamIn_t *streamInp, size_t bufIndexi)
+static C_INLINE streamInBool_t _streamIn_doneBufferb(streamIn_t *streamInp, size_t bufIndexi)
 {
   size_t          i, j;
   char          **charBufpp;
@@ -589,7 +589,7 @@ static streamInBool_t _streamIn_doneBufferb(streamIn_t *streamInp, size_t bufInd
 /********************************************/
 /* _streamInUtf8_ICU_readb                  */
 /********************************************/
-  static streamInBool_t _streamInUtf8_ICU_readb(streamIn_t *streamInp, size_t bufIndexi) {
+static C_INLINE streamInBool_t _streamInUtf8_ICU_readb(streamIn_t *streamInp, size_t bufIndexi) {
   UChar          *ucharBufp;
   int64_t        *charBuf2UCharByteLengthlp;
   int64_t         ucharBufSizel = streamInp->streamIn_ICU.ucharBufSizel;
@@ -655,7 +655,7 @@ static streamInBool_t _streamIn_doneBufferb(streamIn_t *streamInp, size_t bufInd
 /********************************************/
 /* _streamIn_readb                          */
 /********************************************/
-static streamInBool_t _streamIn_readb(streamIn_t *streamInp) {
+static C_INLINE streamInBool_t _streamIn_readb(streamIn_t *streamInp) {
   size_t          nCharBufi;
   size_t          bufIndexi;
   char          **charBufpp;
@@ -785,7 +785,7 @@ static streamInBool_t _streamIn_readb(streamIn_t *streamInp) {
 /*********************/
 /* _streamIn_log_any */
 /*********************/
-static void _streamIn_log_any(streamIn_t *streamInp, streamInLogLevel_t streamInLogLeveli, const char *fmts, ...) {
+static C_INLINE void _streamIn_log_any(streamIn_t *streamInp, streamInLogLevel_t streamInLogLeveli, const char *fmts, ...) {
   va_list               ap;
 #ifdef VA_COPY
   va_list               ap2;
@@ -831,7 +831,7 @@ static void _streamIn_log_any(streamIn_t *streamInp, streamInLogLevel_t streamIn
 /*************************/
 /* _streamIn_logCallback */
 /*************************/
-static void _streamIn_logCallback(void *logCallbackDatavp, streamIn_t *streaminp, streamInLogLevel_t logLeveli, const char *msgs) {
+static C_INLINE void _streamIn_logCallback(void *logCallbackDatavp, streamIn_t *streaminp, streamInLogLevel_t logLeveli, const char *msgs) {
   const char *prefix;
 
   switch (logLeveli) {
@@ -881,7 +881,7 @@ void streamIn_destroyv(streamIn_t **streamInpp) {
 /************************/
 /* _streamIn_getBufferb */
 /************************/
-static streamInBool_t _streamIn_getBufferb(streamIn_t *streamInp, size_t wantedIndexi, size_t *indexBufferip, char **charArraypp, size_t *bytesInBufferp) {
+static C_INLINE streamInBool_t _streamIn_getBufferb(streamIn_t *streamInp, size_t wantedIndexi, size_t *indexBufferip, char **charArraypp, size_t *bytesInBufferp) {
   char          *charArrayp;
   size_t         bytesInBuffer;
   streamInBool_t rcb = STREAMIN_BOOL_FALSE;
@@ -985,7 +985,7 @@ streamInBool_t streamIn_optionb(streamIn_t *streamInp, streamInOption_t *streamI
 /*********************/
 /* _streamIn_optionb */
 /*********************/
-static streamInBool_t _streamIn_optionb(streamIn_t *streamInp, streamInOption_t *streamInOptionp) {
+static C_INLINE streamInBool_t _streamIn_optionb(streamIn_t *streamInp, streamInOption_t *streamInOptionp) {
   streamInBool_t rcb = STREAMIN_BOOL_TRUE;
 
   if (streamInOptionp != NULL) {
@@ -1018,7 +1018,7 @@ streamInBool_t streamIn_nextBufferb(streamIn_t *streamInp, size_t *indexBufferip
 /*************************/
 /* _streamInUtf8_detectb */
 /*************************/
-static void _streamInUtf8_detectb(streamIn_t *streamInp) {
+static C_INLINE void _streamInUtf8_detectb(streamIn_t *streamInp) {
   if (
 #ifdef HAVE_ICU
       _streamInUtf8_ICU_detectb(streamInp) == STREAMIN_BOOL_TRUE ||
@@ -1036,7 +1036,7 @@ static void _streamInUtf8_detectb(streamIn_t *streamInp) {
 /*****************************/
 /* _streamInUtf8_ICU_detectb */
 /*****************************/
-static streamInBool_t _streamInUtf8_ICU_detectb(streamIn_t *streamInp) {
+static C_INLINE streamInBool_t _streamInUtf8_ICU_detectb(streamIn_t *streamInp) {
   UErrorCode           uErrorCode = U_ZERO_ERROR;
   UCharsetDetector    *uCharsetDetector;
   const UCharsetMatch *uCharsetMatch;
@@ -1134,7 +1134,7 @@ static streamInBool_t _streamInUtf8_ICU_detectb(streamIn_t *streamInp) {
 /***********************************/
 /* _streamIn_charsetdetect_detectb */
 /***********************************/
-static streamInBool_t _streamIn_charsetdetect_detectb(streamIn_t *streamInp) {
+static C_INLINE streamInBool_t _streamIn_charsetdetect_detectb(streamIn_t *streamInp) {
   csd_t       csdp;
   int         result;
   const char *fromEncodings;
@@ -1222,7 +1222,7 @@ signed int streamInUtf8_nexti(streamIn_t *streamInp) {
 /******************************/
 /* _streamInUtf8_fromConvertb */
 /******************************/
-static streamInBool_t _streamInUtf8_fromConvertb(streamIn_t *streamInp, size_t bufIndexi) {
+static C_INLINE streamInBool_t _streamInUtf8_fromConvertb(streamIn_t *streamInp, size_t bufIndexi) {
   streamInBool_t  rcb = STREAMIN_BOOL_TRUE;
 
   if (streamInp->utf8b == STREAMIN_BOOL_TRUE) {
@@ -1247,7 +1247,7 @@ static streamInBool_t _streamInUtf8_fromConvertb(streamIn_t *streamInp, size_t b
 /**********************************/
 /* _streamInUtf8_ICU_fromConvertb */
 /**********************************/
-static streamInBool_t _streamInUtf8_ICU_fromConvertb(streamIn_t *streamInp, size_t bufIndexi) {
+static C_INLINE streamInBool_t _streamInUtf8_ICU_fromConvertb(streamIn_t *streamInp, size_t bufIndexi) {
   streamInBool_t rcb            = STREAMIN_BOOL_TRUE;
   int64_t        ucharBufSizel  = streamInp->streamIn_ICU.ucharBufSizel;
   UChar         *target         = (UChar *) (((char *) streamInp->streamIn_ICU.ucharBufp) + streamInp->streamIn_ICU.ucharByteLengthl);
@@ -1401,7 +1401,7 @@ streamInBool_t streamInUtf8_optionDefaultb(streamInUtf8Option_t *streamInUtf8Opt
 /*****************************/
 /* _streamInUtf8_ICU_optionb */
 /*****************************/
-static streamInBool_t _streamInUtf8_ICU_optionb(streamIn_t *streamInp, streamInUtf8Option_t *streamInUtf8Optionp) {
+static C_INLINE streamInBool_t _streamInUtf8_ICU_optionb(streamIn_t *streamInp, streamInUtf8Option_t *streamInUtf8Optionp) {
   streamInBool_t rcb = STREAMIN_BOOL_TRUE;
 
   if (streamInUtf8Optionp != NULL) {
@@ -1449,7 +1449,7 @@ static streamInBool_t _streamInUtf8_ICU_optionb(streamIn_t *streamInp, streamInU
 /*************************/
 /* _streamInUtf8_optionb */
 /*************************/
-static streamInBool_t _streamInUtf8_optionb(streamIn_t *streamInp, streamInUtf8Option_t *streamInUtf8Optionp) {
+static C_INLINE streamInBool_t _streamInUtf8_optionb(streamIn_t *streamInp, streamInUtf8Option_t *streamInUtf8Optionp) {
   streamInBool_t rcb = STREAMIN_BOOL_TRUE;
 
   streamInp->fromEncodingsManagedb = STREAMIN_BOOL_FALSE;
@@ -1500,7 +1500,7 @@ static streamInBool_t _streamInUtf8_optionb(streamIn_t *streamInp, streamInUtf8O
 /**************************/
 /* _streamInUtf8_destroyv */
 /**************************/
-static void _streamInUtf8_destroyv(streamIn_t *streamInp) {
+static C_INLINE void _streamInUtf8_destroyv(streamIn_t *streamInp) {
   if (streamInp->utf8b == STREAMIN_BOOL_TRUE) {
     if (streamInp->streamInUtf8Option.fromEncodings != NULL && streamInp->fromEncodingsManagedb == STREAMIN_BOOL_FALSE) {
       /* The fromEncodings is not managed by the caller */
@@ -1534,7 +1534,7 @@ static void _streamInUtf8_destroyv(streamIn_t *streamInp) {
 /*********************************/
 /* _streaminUtf8_ICU_nibbleToHex */
 /*********************************/
-static unsigned char _streaminUtf8_ICU_nibbleToHex(uint8_t n) {
+static C_INLINE unsigned char _streaminUtf8_ICU_nibbleToHex(uint8_t n) {
   n &= 0xf;
   return
     n <= 9 ?
@@ -1576,7 +1576,7 @@ signed int streamInUtf8_currenti(streamIn_t *streamInp) {
 /******************************/
 /* _streamInUtf8_ICU_currenti */
 /******************************/
-static signed int _streamInUtf8_ICU_currenti(streamIn_t *streamInp) {
+static C_INLINE signed int _streamInUtf8_ICU_currenti(streamIn_t *streamInp) {
   signed int rci = -1;
 
   if (streamInp->streamIn_ICU.utextp == NULL) {
@@ -1593,7 +1593,7 @@ static signed int _streamInUtf8_ICU_currenti(streamIn_t *streamInp) {
 /***************************/
 /* _streamInUtf8_ICU_nexti */
 /***************************/
-static signed int _streamInUtf8_ICU_nexti(streamIn_t *streamInp) {
+static C_INLINE signed int _streamInUtf8_ICU_nexti(streamIn_t *streamInp) {
   signed int rci = -1;
 
   if (streamInp->streamIn_ICU.utextp == NULL) {
@@ -1636,7 +1636,7 @@ streamInBool_t streamInUtf8_markb(streamIn_t *streamInp) {
 /***************************/
 /* _streamInUtf8_ICU_markb */
 /***************************/
-static streamInBool_t _streamInUtf8_ICU_markb(streamIn_t *streamInp) {
+static C_INLINE streamInBool_t _streamInUtf8_ICU_markb(streamIn_t *streamInp) {
   streamInBool_t rcb = STREAMIN_BOOL_FALSE;
 
   if (streamInp->streamIn_ICU.utextp == NULL) {
@@ -1682,7 +1682,7 @@ streamInBool_t streamInUtf8_markPreviousb(streamIn_t *streamInp) {
 /***********************************/
 /* _streamInUtf8_ICU_markPreviousb */
 /***********************************/
-static streamInBool_t _streamInUtf8_ICU_markPreviousb(streamIn_t *streamInp) {
+static C_INLINE streamInBool_t _streamInUtf8_ICU_markPreviousb(streamIn_t *streamInp) {
   streamInBool_t rcb = STREAMIN_BOOL_FALSE;
 
   if (streamInp->streamIn_ICU.utextp == NULL) {
@@ -1728,7 +1728,7 @@ streamInBool_t streamInUtf8_currentFromMarkedb(streamIn_t *streamInp) {
 /****************************************/
 /* _streamInUtf8_ICU_currentFromMarkedb */
 /****************************************/
-static streamInBool_t _streamInUtf8_ICU_currentFromMarkedb(streamIn_t *streamInp) {
+static C_INLINE streamInBool_t _streamInUtf8_ICU_currentFromMarkedb(streamIn_t *streamInp) {
   streamInBool_t rcb = STREAMIN_BOOL_FALSE;
 
   if (streamInp->streamIn_ICU.utextp == NULL) {
@@ -1774,7 +1774,7 @@ streamInBool_t streamInUtf8_doneb(streamIn_t *streamInp) {
 /***************************/
 /* _streamInUtf8_ICU_doneb */
 /***************************/
-static streamInBool_t _streamInUtf8_ICU_doneb(streamIn_t *streamInp) {
+static C_INLINE streamInBool_t _streamInUtf8_ICU_doneb(streamIn_t *streamInp) {
   streamInBool_t rcb = STREAMIN_BOOL_FALSE;
   size_t         i;
 

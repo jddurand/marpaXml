@@ -120,6 +120,7 @@ ADD_LIBRARY (libmarpa ${marpa_lib_src})
 ADD_LIBRARY (marpaXmlInternal
   ${PROJECT_SOURCE_DIR}/src/internal/genericStack.c
   ${PROJECT_SOURCE_DIR}/src/internal/marpaWrapper.c
+  ${PROJECT_SOURCE_DIR}/src/internal/bufManager.c
   ${PROJECT_SOURCE_DIR}/src/internal/messageBuilder.c
   ${PROJECT_SOURCE_DIR}/src/internal/streamIn.c
   ${PROJECT_SOURCE_DIR}/src/internal/grammar/xml_common.c
