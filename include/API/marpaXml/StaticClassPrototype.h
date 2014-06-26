@@ -14,11 +14,13 @@
 /* Generic prefix for symbol unicity */
 #define module(name) marpaXml ## _ ## name
 
+#define MARPAXLM_STATICCLASSPROTOTYPE_REFERENCE(a) &a
+
 /* Class definition: structure pointer, constructor, destructor */
-#define class_decl(class) {						\
-    typedef struct module(module(class)) *module(class) ## p;		\
-    void * ## module(class) ## _newp();					\
-    void   ## module(class) ## _destroyv(& ## module(class) ## p);	\
+#define class_decl(class) {   						\
+  typedef struct module(class) * module(class ## p);                    \
+  void * module(class ## _newp());                                      \
+  void   module(class ## _destroyv( struct module(class) * module(class ## p) ) );
 }
 
 /* Class method */
@@ -27,5 +29,8 @@
 /* Subclass definition */
 #define subclass_decl(subclass, class) class_decl(subclass)
 #define subclass_meth(subclass, class, meth) class_meth(subclass, meth)
+
+class_decl(dom)
+
 
 #endif /* MARPAXML_STATICCLASSPROTOTYPE */
