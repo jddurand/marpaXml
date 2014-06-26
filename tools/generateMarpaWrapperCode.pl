@@ -491,9 +491,20 @@ if ($nbvalue != 1) {
     # - this is a valid Marpa grammar
     # - this is an unambiguous grammar
     #
-    print STDERR "Marpa grammar:\n" . $value->{grammar} . "\n";
-    my $grammar = Marpa::R2::Scanless::G->new( { source => \$value->{grammar} } );
-    if (0) {
+    my $withDiscard = $value->{grammar} . "\n_DISCARD ~ [\\s]\n:discard ~ _DISCARD\n";
+    my $withoutExclusions = $withDiscard;
+    foreach (sort keys %{$value->{lexemesWithExclusion}}) {
+	my ($key, $keyValue) = ($_, $value->{lexemesWithExclusion}->{$_});
+	print STDERR "[TEST] Bypassing $key ~ '$keyValue'\n";
+	my $newKeyValue = $keyValue;
+	$newKeyValue =~ /(\w+)/;
+	$newKeyValue = $1;
+	my $quotedKeyValue = quotemeta("'$keyValue'");
+	$withoutExclusions =~ s/\s*~\s*$quotedKeyValue/ ::= $newKeyValue/g;
+    }
+    print STDERR "[TEST] Marpa grammar: $withoutExclusions\n";
+    my $grammar = Marpa::R2::Scanless::G->new( { source => \$withoutExclusions } );
+    if (1) {
 	foreach (grep {$_ ne 'bnf'} __PACKAGE__->section_data_names) {
 	    my $dataSection = $_;
 	    my $testDatap = __PACKAGE__->section_data($dataSection);
