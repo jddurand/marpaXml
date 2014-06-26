@@ -2,8 +2,8 @@
 #define MARPAXML_INTERNAL_GRAMMAR_XML_1_1_H
 
 #include <stddef.h>
-#include "internal/grammar/xml_common.h"
-#include "internal/marpaWrapper.h"
+#include "grammar/xml_common.h"
+#include "marpaWrapper.h"
 
 typedef struct xml_1_1 xml_1_1_t;
 

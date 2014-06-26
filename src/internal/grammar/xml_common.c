@@ -1,4 +1,4 @@
-#include "internal/grammar/xml_common.h"
+#include "grammar/xml_common.h"
 
 /*****************************/
 /* xml_common_optionDefaultb */

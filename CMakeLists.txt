@@ -20,7 +20,8 @@ ENDIF ()
 PROJECT (marpaXml)
 
 # In any case we include our include directory for all targets
-INCLUDE_DIRECTORIES (${PROJECT_SOURCE_DIR}/include)
+INCLUDE_DIRECTORIES (${PROJECT_SOURCE_DIR}/include/internal)
+INCLUDE_DIRECTORIES (${PROJECT_SOURCE_DIR}/include/API)
 
 # ---------------------------------------
 # Add current path to modules search path

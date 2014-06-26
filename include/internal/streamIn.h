@@ -14,7 +14,7 @@
 /* - streamIn_destroyv()                                                                */
 /****************************************************************************************/
 
-#include "internal/config.h"
+#include "config.h"
 #include <stddef.h>               /*  size_t definition */
 
 /*************************

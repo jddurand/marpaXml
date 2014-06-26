@@ -2,7 +2,7 @@
 #define MARPAXML_INTERNAL_GRAMMAR_XML_COMMON_H
 
 #include <stddef.h>
-#include "internal/marpaWrapper.h"
+#include "marpaWrapper.h"
 
 /* There are always three top-level grammars: document, extParsedEnt and extSubset */
 typedef enum xml_common_top {

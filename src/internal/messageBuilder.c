@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "internal/config.h"
-#include "internal/messageBuilder.h"
+#include "config.h"
+#include "messageBuilder.h"
 
 static const char *_messageBuilder_internalErrors = "Internal error";
 

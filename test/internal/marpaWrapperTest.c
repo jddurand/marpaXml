@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
-#include "internal/marpaWrapper.h"
+#include "marpaWrapper.h"
 
 enum { S = 0, E, op, number, MAX_SYMBOL };
 enum { START_RULE = 0, OP_RULE, NUMBER_RULE };

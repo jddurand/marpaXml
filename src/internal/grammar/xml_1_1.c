@@ -3,8 +3,8 @@
 /****************************/
 #include <stdlib.h>
 #include <errno.h>
-#include "internal/streamIn.h"
-#include "internal/grammar/xml_1_1.h"
+#include "streamIn.h"
+#include "grammar/xml_1_1.h"
 
 /* Symbols */
 typedef enum xml_1_1_symbol {

@@ -513,8 +513,8 @@ sub generateC {
 /****************************/
 #include <stdlib.h>
 #include <errno.h>
-#include "internal/streamIn.h"
-#include "internal/grammar/$namespace.h"
+#include "streamIn.h"
+#include "grammar/$namespace.h"
 
 INCLUDES
 

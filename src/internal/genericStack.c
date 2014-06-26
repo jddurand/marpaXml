@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include "internal/genericStack.h"
+#include "genericStack.h"
 
 #define STACK_INIT_SIZE 4
 

@@ -4,9 +4,9 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#include "internal/config.h"
-#include "internal/streamIn.h"
-#include "internal/messageBuilder.h"
+#include "config.h"
+#include "streamIn.h"
+#include "messageBuilder.h"
 #ifdef HAVE_ICU
 #include "unicode/ucsdet.h"
 #include "unicode/uclean.h"
