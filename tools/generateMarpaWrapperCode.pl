@@ -491,8 +491,7 @@ if ($nbvalue != 1) {
     # - this is a valid Marpa grammar
     # - this is an unambiguous grammar
     #
-    my $withDiscard = $value->{grammar} . "\n_DISCARD ~ [\\s]\n:discard ~ _DISCARD\n";
-    my $withoutExclusions = $withDiscard;
+    my $withoutExclusions = $value->{grammar};
     foreach (sort keys %{$value->{lexemesWithExclusion}}) {
 	my ($key, $keyValue) = ($_, $value->{lexemesWithExclusion}->{$_});
 	print STDERR "[TEST] Bypassing $key ~ '$keyValue'\n";
