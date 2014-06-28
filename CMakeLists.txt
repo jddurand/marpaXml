@@ -109,6 +109,14 @@ IF (NOT EXISTS "${MARPA_DIR}" OR NOT IS_DIRECTORY "${MARPA_DIR}")
   GET_FILENAME_COMPONENT (CC_BASENAME ${CMAKE_C_COMPILER} NAME)
   # CMAKE_C_FLAGS is not really important here, and this is fortunate, since this variable is not easily accessible at this precise time
   EXECUTE_PROCESS (
+    #
+    # Take care:
+    # The following will build libmarpa in two ways:
+    # - one that is guaranteed to use OUR compiler in libmarpa_dist
+    # - one that is compiled with perl's configured compiler and that we will reuse when
+    #   generating src/internal/grammar/xml_1_0.c and src/internal/grammar/xml_1_1.c
+    #   Note that Marpa::R2 procedure uses libmarpa_build
+    #
     COMMAND "${PERL}" tools/prepare_libmarpa.pl "${MARPA_VERSION}" "${CC_BASENAME}" "" "${CMAKE_C_OUTPUT_EXTENSION}"
     )
 ENDIF ()
