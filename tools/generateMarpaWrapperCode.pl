@@ -447,12 +447,17 @@ use POSIX qw/EXIT_SUCCESS EXIT_FAILURE/;
 our $DATA = ${__PACKAGE__->section_data('bnf')};
 
 my $bnf = '';
-GetOptions('bnf=s' => \$bnf)
+my $output = '';
+GetOptions('bnf=s' => \$bnf, 'output=s' => \$output)
   or die("Error in command line arguments\n");
 
 if (! $bnf) {
   print STDERR "Usage: $^X $0 --bnf filename.bnf\n";
   exit(EXIT_FAILURE);
+}
+
+if ($output) {
+    open(STDOUT, '>', $output) || die "Cannot redirect STDOUT to $output";
 }
 
 my $grammar = Marpa::R2::Scanless::G->new( { source => \$DATA, action_object => 'Actions' });
