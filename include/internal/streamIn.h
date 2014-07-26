@@ -12,6 +12,8 @@
 /* - streamIn_optionDefaultb()                                                          */
 /* - streamIn_optionb()                                                                 */
 /* - streamIn_destroyv()                                                                */
+/*                                                                                      */
+/* It is assumed that an int is at least 32bits                                         */
 /****************************************************************************************/
 
 #include "config.h"
@@ -139,7 +141,7 @@ signed int     streamInUtf8_nexti             (streamIn_t *streamInp);          
 streamInBool_t streamInUtf8_markb             (streamIn_t *streamInp);                                                  /* Mark current utf8 */
 streamInBool_t streamInUtf8_markPreviousb     (streamIn_t *streamInp);                                                  /* Mark previous utf8 */
 streamInBool_t streamInUtf8_doneb             (streamIn_t *streamInp);                                                  /* Say marked utf8 is done */
-/* Behaviour is undefined if you use streamInUtf8_doneb() between calles to mark and markToCurrent */
+/* Behaviour is undefined if you use streamInUtf8_doneb() between calls to mark and markToCurrent. Let's say it will very likely crash */
 streamInBool_t streamInUtf8_currentFromMarkedb(streamIn_t *streamInp);                                                  /* Set marked utf8 as current */
 
 #endif /* MARPAXML_INTERNAL_STREAMIN_H */
