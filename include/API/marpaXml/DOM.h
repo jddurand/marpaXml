@@ -90,8 +90,8 @@
   void marpaXml_DOM_ ## type ## _destroy()
 
 typedef enum {
-  DOM_FALSE = 0,
-  DOM_TRUE = 1
+  MARPAXML_DOM_FALSE = 0,
+  MARPAXML_DOM_TRUE = 1
 } MARPAXML_DOM_TYPE(boolean);
 
 typedef unsigned char                  *MARPAXML_DOM_TYPE(DOMString);    /* We use UTF-8 */
