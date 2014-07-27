@@ -90,33 +90,38 @@ typedef unsigned char                  *DOMString_t;    /* We use UTF-8 */
 typedef unsigned long long              DOMTimeStamp_t;
 typedef void                           *DOMUserData_t;
 typedef void                           *DOMObject_t;
-typedef struct DOMImplementation       *DOMImplementation_t;
-typedef struct DocumentType            *DocumentType_t;
-typedef struct Document                *Document_t;
-typedef struct NodeList                *NodeList_t;
-typedef struct NamedNodeMap            *NamedNodeMap_t;
-typedef struct UserDataHandler         *UserDataHandler_t;
-typedef struct Element                 *Element_t;
-typedef struct TypeInfo                *TypeInfo_t;
-typedef struct DOMLocator              *DOMLocator_t;
-typedef struct DOMException            *DOMException_t;
-typedef struct DOMStringList           *DOMStringList_t;
-typedef struct NameList                *NameList_t;
-typedef struct DOMImplementationList   *DOMImplementationList_t;
-typedef struct DOMImplementationSource *DOMImplementationSource_t;
-typedef struct Node                    *Node_t;
-typedef struct Attr                    *Attr_t;
-typedef struct Text                    *Text_t;
-typedef struct Comment                 *Comment_t;
-typedef struct DOMError                *DOMError_t;
-typedef struct DOMErrorHandler         *DOMErrorHandler_t;
-typedef struct DOMConfiguration        *DOMConfiguration_t;
-typedef struct CDATASection            *CDATASection_t;
-typedef struct Notation                *Notation_t;
-typedef struct Entity                  *Entity_t;
-typedef struct EntityReference         *EntityReference_t;
-typedef struct ProcessingInstruction   *ProcessingInstruction_t;
-typedef struct DocumentFragment        *DocumentFragment_t;
+#define MARPAXML_DOM_OBJECT_DECLARATION(type)			\
+  typedef struct type *type ## _t;				\
+  type ## _t type ## _new();					\
+  void type ## _destroy()
+
+MARPAXML_DOM_OBJECT_DECLARATION(DOMImplementation);
+MARPAXML_DOM_OBJECT_DECLARATION(DocumentType);
+MARPAXML_DOM_OBJECT_DECLARATION(Document);
+MARPAXML_DOM_OBJECT_DECLARATION(NodeList);
+MARPAXML_DOM_OBJECT_DECLARATION(NamedNodeMap);
+MARPAXML_DOM_OBJECT_DECLARATION(UserDataHandler);
+MARPAXML_DOM_OBJECT_DECLARATION(Element);
+MARPAXML_DOM_OBJECT_DECLARATION(TypeInfo);
+MARPAXML_DOM_OBJECT_DECLARATION(DOMLocator);
+MARPAXML_DOM_OBJECT_DECLARATION(DOMException);
+MARPAXML_DOM_OBJECT_DECLARATION(DOMStringList);
+MARPAXML_DOM_OBJECT_DECLARATION(NameList);
+MARPAXML_DOM_OBJECT_DECLARATION(DOMImplementationList);
+MARPAXML_DOM_OBJECT_DECLARATION(DOMImplementationSource);
+MARPAXML_DOM_OBJECT_DECLARATION(Node);
+MARPAXML_DOM_OBJECT_DECLARATION(Attr);
+MARPAXML_DOM_OBJECT_DECLARATION(Text);
+MARPAXML_DOM_OBJECT_DECLARATION(Comment);
+MARPAXML_DOM_OBJECT_DECLARATION(DOMError);
+MARPAXML_DOM_OBJECT_DECLARATION(DOMErrorHandler);
+MARPAXML_DOM_OBJECT_DECLARATION(DOMConfiguration);
+MARPAXML_DOM_OBJECT_DECLARATION(CDATASection);
+MARPAXML_DOM_OBJECT_DECLARATION(Notation);
+MARPAXML_DOM_OBJECT_DECLARATION(Entity);
+MARPAXML_DOM_OBJECT_DECLARATION(EntityReference);
+MARPAXML_DOM_OBJECT_DECLARATION(ProcessingInstruction);
+MARPAXML_DOM_OBJECT_DECLARATION(DocumentFragment);
 
 struct DOMException {
   unsigned short  code;
