@@ -133,6 +133,7 @@ struct DOMException {
   unsigned short  code;
 };
 define_exception_type(MARPAXML_DOM_TYPE(DOMException));
+extern struct exception_context the_exception_context[1];
 
 enum {
   /* ExceptionCode */
