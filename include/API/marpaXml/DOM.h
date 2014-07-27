@@ -81,6 +81,8 @@
 #ifndef MARPAXML_DOM_H
 #define MARPAXML_DOM_H
 
+#include "cexcept.h"
+
 #define MARPAXML_DOM_TYPE(type)         marpaXml_DOM_ ## type ## _t
 #define MARPAXML_DOM_STRUCT(type)       struct marpaXml_DOM_ ## type
 
@@ -130,6 +132,7 @@ MARPAXML_DOM_OBJECT_DECLARATION(DocumentFragment);
 struct DOMException {
   unsigned short  code;
 };
+define_exception_type(MARPAXML_DOM_TYPE(DOMException));
 
 enum {
   /* ExceptionCode */
