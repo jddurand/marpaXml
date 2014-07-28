@@ -44,7 +44,7 @@ SET (HAVE_ICONV ${ICONV_FOUND} CACHE STRING "HAVE_ICONV")
 # At least one of ICU or ICONV must be true
 # -----------------------------------------
 IF (NOT ICU_FOUND AND NOT ICONV_FOUND)
-    MESSAGE (FATAL_ERROR "At one of ICU or ICONV must be detected")
+    MESSAGE (FATAL_ERROR "At least one of ICU or ICONV must be detected")
 ENDIF ()
 
 # ----------------
