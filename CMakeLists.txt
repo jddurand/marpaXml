@@ -40,6 +40,13 @@ SET (HAVE_ICU ${ICU_FOUND} CACHE STRING "HAVE_ICU")
 FIND_PACKAGE (ICONV)
 SET (HAVE_ICONV ${ICONV_FOUND} CACHE STRING "HAVE_ICONV")
 
+# -----------------------------------------
+# At least one of ICU or ICONV must be true
+# -----------------------------------------
+IF (NOT ICU_FOUND AND NOT ICONV_FOUND)
+    MESSAGE (FATAL_ERROR "At one of ICU or ICONV must be detected")
+ENDIF ()
+
 # ----------------
 # Check for inline
 # ----------------
