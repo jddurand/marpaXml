@@ -70,8 +70,7 @@
    If exception code is  > 0, this is a DOM error code.
    If exception code is  < 0, this is a -errno error code.
 
-   About DOMString, this API is explicitely using UTF-8, both in input and in output. Any attempt
-   to use another encoding will result into unpredictable and definitely unreliable result.
+   About DOMString, this API is explicitely using UTF-16, as required by DOM spec.
 
    Up to the caller to convert DOMString to another encoding.
    Up to the caller to make sure input is in that particular encoding.
@@ -81,24 +80,31 @@
 #ifndef MARPAXML_DOM_H
 #define MARPAXML_DOM_H
 
-#define MARPAXML_DOM_TYPE(type)         marpaXml_DOM_ ## type ## _t
-#define MARPAXML_DOM_STRUCT(type)       struct marpaXml_DOM_ ## type
+#include <sys/types.h>
 
-#define MARPAXML_DOM_OBJECT_DECLARATION(type)				\
-  typedef struct marpaXml_DOM_ ## type *marpaXml_DOM_ ## type ## _t;	\
-  marpaXml_DOM_ ## type ## _t marpaXml_DOM_ ## type ## _new();		\
-  void marpaXml_DOM_ ## type ## _destroy()
+#define MARPAXML_DOM_TYPE(typeName)           marpaXml_DOM_ ## typeName ## _t
+#define MARPAXML_DOM_STRUCT(structName)       struct marpaXml_DOM_ ## structName
+#define MARPAXML_DOM_ENUM(enumName)           marpaXml_DOM_ ## enumName
+
+#define MARPAXML_DOM_OBJECT_DECLARATION(typeName)				\
+  typedef struct marpaXml_DOM_ ## typeName *marpaXml_DOM_ ## typeName ## _t;	\
+  marpaXml_DOM_ ## typeName ## _t marpaXml_DOM_ ## typeName ## _new(); /* raises(DOMException):  -errno */ \
+  void marpaXml_DOM_ ## typeName ## _destroy()
 
 typedef enum {
   MARPAXML_DOM_FALSE = 0,
   MARPAXML_DOM_TRUE = 1
 } MARPAXML_DOM_TYPE(boolean);
 
-typedef unsigned char                  *MARPAXML_DOM_TYPE(DOMString);    /* We use UTF-8 */
-typedef unsigned long long              MARPAXML_DOM_TYPE(DOMTimeStamp);
+/* We use our own structure for a string, that contains: */
+/* - pointer, length, encoding as a native C string      */
+typedef unsigned short                 *MARPAXML_DOM_TYPE(DOMString);
 typedef void                           *MARPAXML_DOM_TYPE(DOMUserData);
 typedef void                           *MARPAXML_DOM_TYPE(DOMObject);
 
+/* We use a structure that mimics the timeb structure to represent time up to milli-second precision */
+/* Original spec says unsigned long long */
+MARPAXML_DOM_OBJECT_DECLARATION(DOMTimeStamp);
 MARPAXML_DOM_OBJECT_DECLARATION(DOMImplementation);
 MARPAXML_DOM_OBJECT_DECLARATION(DocumentType);
 MARPAXML_DOM_OBJECT_DECLARATION(Document);
@@ -127,11 +133,14 @@ MARPAXML_DOM_OBJECT_DECLARATION(EntityReference);
 MARPAXML_DOM_OBJECT_DECLARATION(ProcessingInstruction);
 MARPAXML_DOM_OBJECT_DECLARATION(DocumentFragment);
 
-struct DOMException {
+MARPAXML_DOM_STRUCT(DOMException) {
   unsigned short  code;
 };
 
 enum {
+  /* No error */
+  DOM_NO_ERR                     =  0,
+
   /* ExceptionCode */
   INDEX_SIZE_ERR                 =  1,
   DOMSTRING_SIZE_ERR             =  2,
@@ -150,7 +159,9 @@ enum {
   INVALID_ACCESS_ERR             = 15, /* Introduced in DOM Level 2: */
   VALIDATION_ERR                 = 16, /* Introduced in DOM Level 3: */
   TYPE_MISMATCH_ERR              = 17, /* Introduced in DOM Level 3: */
+};
 
+enum {
   /* NodeType */
   ELEMENT_NODE                   =  1,
   ATTRIBUTE_NODE                 =  2,
@@ -164,7 +175,9 @@ enum {
   DOCUMENT_TYPE_NODE             = 10,
   DOCUMENT_FRAGMENT_NODE         = 11,
   NOTATION_NODE                  = 12,
+};
 
+enum {
   /* DocumentPosition */
   DOCUMENT_POSITION_DISCONNECTED = 0x01,
   DOCUMENT_POSITION_PRECEDING    = 0x02,
@@ -172,37 +185,42 @@ enum {
   DOCUMENT_POSITION_CONTAINS     = 0x08,
   DOCUMENT_POSITION_CONTAINED_BY = 0x10,
   DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC = 0x20,
+};
 
+enum {
   /* DerivationMethods */
   DERIVATION_RESTRICTION         = 0x00000001,
   DERIVATION_EXTENSION           = 0x00000002,
   DERIVATION_UNION               = 0x00000004,
   DERIVATION_LIST                = 0x00000008,
+};
 
+enum {
   /* OperationType */
   NODE_CLONED                    = 1,
   NODE_IMPORTED                  = 2,
   NODE_DELETED                   = 3,
   NODE_RENAMED                   = 4,
   NODE_ADOPTED                   = 5,
+};
 
+enum {
   /* ErrorSeverity */
   SEVERITY_WARNING               = 1,
   SEVERITY_ERROR                 = 2,
   SEVERITY_FATAL_ERROR           = 3
-
 };
 
 
 /* Introduced in DOM Level 3: */
-struct DOMStringList {
+MARPAXML_DOM_STRUCT(DOMStringList) {
   MARPAXML_DOM_TYPE(DOMString)            (*item)(unsigned long index);
   unsigned long                           (*length_get)();
   MARPAXML_DOM_TYPE(boolean)              (*contains)(MARPAXML_DOM_TYPE(DOMString) str);
 };
 
 /* Introduced in DOM Level 3: */
-struct NameList {
+MARPAXML_DOM_STRUCT(NameList) {
   MARPAXML_DOM_TYPE(DOMString)            (*getName)(unsigned long index);
   MARPAXML_DOM_TYPE(DOMString)            (*getNamespaceURI)(unsigned long index);
   unsigned long                           (*length_get)();
@@ -211,18 +229,18 @@ struct NameList {
 };
 
 /* Introduced in DOM Level 3: */
-struct DOMImplementationList {
+MARPAXML_DOM_STRUCT(DOMImplementationList) {
   MARPAXML_DOM_TYPE(DOMImplementation)    (*item)(unsigned long index);
   unsigned long   length;
 };
 
 /* Introduced in DOM Level 3: */
-struct DOMImplementationSource {
+MARPAXML_DOM_STRUCT(DOMImplementationSource) {
   MARPAXML_DOM_TYPE(DOMImplementation)     (*getDOMImplementation)(MARPAXML_DOM_TYPE(DOMString) features);
   MARPAXML_DOM_TYPE(DOMImplementationList) (*getDOMImplementationList)(MARPAXML_DOM_TYPE(DOMString) features);
 };
 
-struct DOMImplementation {
+MARPAXML_DOM_STRUCT(DOMImplementation) {
   MARPAXML_DOM_TYPE(boolean)               (*hasFeature)(MARPAXML_DOM_TYPE(DOMString) feature, MARPAXML_DOM_TYPE(DOMString) version);
   /* Introduced in DOM Level 2: */
   MARPAXML_DOM_TYPE(DocumentType)          (*createDocumentType)(MARPAXML_DOM_TYPE(DOMString) qualifiedName, MARPAXML_DOM_TYPE(DOMString) publicId, MARPAXML_DOM_TYPE(DOMString) systemId); /* raises(DOMException):  INVALID_CHARACTER_ERR, NAMESPACE_ERR, NOT_SUPPORTED_ERR */
@@ -293,16 +311,16 @@ struct DOMImplementation {
   /* Introduced in DOM Level 3: */					\
   MARPAXML_DOM_TYPE(DOMUserData)           (*getUserData)(MARPAXML_DOM_TYPE(DOMString) key);
 
-struct Node {
+MARPAXML_DOM_STRUCT(Node) {
   MARPAXML_NODE_DECLARATIONS;
 };
 
-struct NodeList {
+MARPAXML_DOM_STRUCT(NodeList) {
   MARPAXML_DOM_TYPE(Node)                  (*item)(unsigned long index);
   unsigned long                            (*length_get)();
 };
 
-struct NamedNodeMap {
+MARPAXML_DOM_STRUCT(NamedNodeMap) {
   MARPAXML_DOM_TYPE(Node)                  (*getNamedItem)(MARPAXML_DOM_TYPE(DOMString) name);
   MARPAXML_DOM_TYPE(Node)                  (*setNamedItem)(MARPAXML_DOM_TYPE(Node) arg); /* raises(DOMException): WRONG_DOCUMENT_ERR, NO_MODIFICATION_ALLOWED_ERR, INUSE_ATTRIBUTE_ERR, HIERARCHY_REQUEST_ERR */
   MARPAXML_DOM_TYPE(Node)                  (*removeNamedItem)(MARPAXML_DOM_TYPE(DOMString) name); /* raises(DOMException): NOT_FOUND_ERR, NO_MODIFICATION_ALLOWED_ERR */
@@ -327,11 +345,11 @@ struct NamedNodeMap {
   void                                     (*deleteData)(unsigned long offset, unsigned long count); /* raises(DOMException): INDEX_SIZE_ERR, NO_MODIFICATION_ALLOWED_ERR */ \
   void                                     (*replaceData)(unsigned long offset, unsigned long count, MARPAXML_DOM_TYPE(DOMString) arg); /* raises(DOMException): INDEX_SIZE_ERR, NO_MODIFICATION_ALLOWED_ERR */ \
 
-struct CharacterData {
+MARPAXML_DOM_STRUCT(CharacterData) {
   MARPAXML_CHARACTERDATA_DECLARATIONS;
 };
 
-struct Attr {
+MARPAXML_DOM_STRUCT(Attr) {
   MARPAXML_NODE_DECLARATIONS;	 /* derived from Node */
   MARPAXML_DOM_TYPE(DOMString)             (*name_get)();
   MARPAXML_DOM_TYPE(boolean)               (*specified_get)();
@@ -345,7 +363,7 @@ struct Attr {
   MARPAXML_DOM_TYPE(boolean)               (*isId_get)();
 };
 
-struct Element {
+MARPAXML_DOM_STRUCT(Element) {
   MARPAXML_NODE_DECLARATIONS;	 /* derived from Node */
   MARPAXML_DOM_TYPE(DOMString)             (*tagName_get)();
   MARPAXML_DOM_TYPE(DOMString)             (*getAttribute)(MARPAXML_DOM_TYPE(DOMString) name);
@@ -391,28 +409,28 @@ struct Element {
   /* Introduced in DOM Level 3: */					\
   MARPAXML_DOM_TYPE(Text)                  (*replaceWholeText)(MARPAXML_DOM_TYPE(DOMString) content); /* raises(DOMException): NO_MODIFICATION_ALLOWED_ERR */ \
 
-struct Text {
+MARPAXML_DOM_STRUCT(Text) {
   MARPAXML_TEXT_DECLARATIONS;
 };
 
-struct Comment {
+MARPAXML_DOM_STRUCT(Comment) {
   MARPAXML_CHARACTERDATA_DECLARATIONS;	 /* derived from CharacterData */
 };
 
 /* Introduced in DOM Level 3: */
-struct TypeInfo {
+MARPAXML_DOM_STRUCT(TypeInfo) {
   MARPAXML_DOM_TYPE(DOMString)             (*typeName_get)();
   MARPAXML_DOM_TYPE(DOMString)             (*typeNamespace_get)();
   MARPAXML_DOM_TYPE(boolean)               (*isDerivedFrom)(MARPAXML_DOM_TYPE(DOMString) typeNamespaceArg, MARPAXML_DOM_TYPE(DOMString) typeNameArg, unsigned long derivationMethod);
 };
 
 /* Introduced in DOM Level 3: */
-struct UserDataHandler {
+MARPAXML_DOM_STRUCT(UserDataHandler) {
   void                                     (*handle)(unsigned short operation, MARPAXML_DOM_TYPE(DOMString) key, MARPAXML_DOM_TYPE(DOMUserData) data, MARPAXML_DOM_TYPE(Node) src, MARPAXML_DOM_TYPE(Node) dst);
 };
 
 /* Introduced in DOM Level 3: */
-struct DOMError {
+MARPAXML_DOM_STRUCT(DOMError) {
   unsigned short                           (*severity_get)();
   MARPAXML_DOM_TYPE(DOMString)             (*message_get)();
   MARPAXML_DOM_TYPE(DOMString)             (*type_get)();
@@ -422,12 +440,12 @@ struct DOMError {
 };
 
 /* Introduced in DOM Level 3: */
-struct DOMErrorHandler {
+MARPAXML_DOM_STRUCT(DOMErrorHandler) {
   MARPAXML_DOM_TYPE(boolean)               (*handleError)(MARPAXML_DOM_TYPE(DOMError) error);
 };
 
 /* Introduced in DOM Level 3: */
-struct DOMLocator {
+MARPAXML_DOM_STRUCT(DOMLocator) {
   long                                     (*lineNumber_get)();
   long                                     (*columnNumber_get)();
   long                                     (*byteOffset_get)();
@@ -437,18 +455,18 @@ struct DOMLocator {
 };
 
 /* Introduced in DOM Level 3: */
-struct DOMConfiguration {
+MARPAXML_DOM_STRUCT(DOMConfiguration) {
   void                                     (*setParameter)(MARPAXML_DOM_TYPE(DOMString) name, MARPAXML_DOM_TYPE(DOMUserData) value); /* raises(DOMException): NOT_FOUND_ERR, NOT_SUPPORTED_ERR, TYPE_MISMATCH_ERR */
   MARPAXML_DOM_TYPE(DOMUserData)           (*getParameter)(MARPAXML_DOM_TYPE(DOMString) name); /* raises(DOMException): NOT_FOUND_ERR */
   MARPAXML_DOM_TYPE(boolean)               (*canSetParameter)(MARPAXML_DOM_TYPE(DOMString) name, MARPAXML_DOM_TYPE(DOMUserData) value);
   MARPAXML_DOM_TYPE(DOMStringList)         (*parameterNames_get)();
 };
 
-struct CDATASection {
+MARPAXML_DOM_STRUCT(CDATASection) {
   MARPAXML_TEXT_DECLARATIONS;	 /* derived from Text */
 };
 
-struct DocumentType {
+MARPAXML_DOM_STRUCT(DocumentType) {
   MARPAXML_NODE_DECLARATIONS; 	 /* derived from Node */
   MARPAXML_DOM_TYPE(DOMString)             (*name_get)();
   MARPAXML_DOM_TYPE(NamedNodeMap)          (*entities_get)();
@@ -461,13 +479,13 @@ struct DocumentType {
   MARPAXML_DOM_TYPE(DOMString)             (*internalSubset_get)();
 };
 
-struct Notation {
+MARPAXML_DOM_STRUCT(Notation) {
   MARPAXML_NODE_DECLARATIONS; 	 /* derived from Node */
   MARPAXML_DOM_TYPE(DOMString)             (*publicId_get)();
   MARPAXML_DOM_TYPE(DOMString)             (*systemId_get)();
 };
 
-struct Entity {
+MARPAXML_DOM_STRUCT(Entity) {
   MARPAXML_NODE_DECLARATIONS; 	 /* derived from Node */
   MARPAXML_DOM_TYPE(DOMString)             (*publicId_get)();
   MARPAXML_DOM_TYPE(DOMString)             (*systemId_get)();
@@ -480,22 +498,22 @@ struct Entity {
   MARPAXML_DOM_TYPE(DOMString)             (*xmlVersion_get)();
 };
 
-struct EntityReference {
+MARPAXML_DOM_STRUCT(EntityReference) {
   MARPAXML_NODE_DECLARATIONS; 	 /* derived from Node */
 };
 
-struct ProcessingInstruction {
+MARPAXML_DOM_STRUCT(ProcessingInstruction) {
   MARPAXML_NODE_DECLARATIONS; 	 /* derived from Node */
   MARPAXML_DOM_TYPE(DOMString)             (*target_get)();
   MARPAXML_DOM_TYPE(DOMString)             (*data_get)();
   MARPAXML_DOM_TYPE(DOMString)             (*data_set)(MARPAXML_DOM_TYPE(DOMString) data); /* raises(DOMException): NO_MODIFICATION_ALLOWED_ERR */
 };
 
-struct DocumentFragment {
+MARPAXML_DOM_STRUCT(DocumentFragment) {
   MARPAXML_NODE_DECLARATIONS; 	 /* derived from Node */
 };
 
-struct Document {
+MARPAXML_DOM_STRUCT(Document) {
   MARPAXML_NODE_DECLARATIONS; 	 /* derived from Node */
   /* Modified in DOM Level 3: */
   MARPAXML_DOM_TYPE(DocumentType)          (*doctype_get)();
@@ -544,6 +562,14 @@ struct Document {
   void                                     (*normalizeDocument)();
   /* Introduced in DOM Level 3: */
   MARPAXML_DOM_TYPE(Node)                  (*renameNode)(MARPAXML_DOM_TYPE(Node) n, MARPAXML_DOM_TYPE(DOMString) namespaceURI, MARPAXML_DOM_TYPE(DOMString) qualifiedName); /* raises(DOMException): NOT_SUPPORTED_ERR, INVALID_CHARACTER_ERR, WRONG_DOCUMENT_ERR, NAMESPACE_ERR */
+};
+
+/* Our implementation of DOMTimeStamp */
+MARPAXML_DOM_STRUCT(DOMTimeStamp) {
+  time_t                      time;     /* The seconds portion of the current time.  */
+  unsigned short              millitm;  /* The milliseconds portion of the current time.  */
+  short                       timezone; /* The local timezone in minutes west of Greenwich.  */
+  MARPAXML_DOM_TYPE(boolean)  dstflag;  /* TRUE if Daylight Savings Time is in effect.  */
 };
 
 #endif /* MARPAXML_DOM_H_ */
