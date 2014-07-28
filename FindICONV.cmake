@@ -85,10 +85,35 @@ endif()
 
 
 if(ICONV_FOUND)
-      message(STATUS "Found iconv library: ${ICONV_LIBRARY}")
-   if(NOT ICONV_FIND_QUIETLY)
-      message(STATUS "Found iconv library: ${ICONV_LIBRARY}")
-      #message(STATUS "Found iconv   dll  : ${ICONV_DLL}")
+  TRY_COMPILE(ICONV_SECOND_ARGUMENT_IS_CONST ${CMAKE_CURRENT_BINARY_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/iconv.c
+    COMPILE_DEFINITIONS "-DICONV_SECOND_ARGUMENT_IS_CONST=const")
+  IF(NOT ICONV_SECOND_ARGUMENT_IS_CONST)
+    # Make sure it compiles anyway
+    TRY_COMPILE(ICONV_SECOND_ARGUMENT_IS_NOT_CONST ${CMAKE_CURRENT_BINARY_DIR}
+      ${CMAKE_CURRENT_SOURCE_DIR}/cmake/iconv.c
+      COMPILE_DEFINITIONS "-DICONV_SECOND_ARGUMENT_IS_CONST=")
+    IF(NOT ICONV_SECOND_ARGUMENT_IS_NOT_CONST)
+      message(FATAL_ERROR "Could not check if iconv second argument is const or not")
+      set(ICONV_FOUND FALSE)
+    endif()
+  endif()
+endif(ICONV_FOUND)
+
+if(ICONV_FOUND)
+   if(WIN32)
+      message(STATUS "Found iconv dll      : ${ICONV_DLL}")
+   else()
+      if(HAVE_ICONV_IN_LIBC)
+         message(STATUS "Found iconv library      : [in libc]")
+      else()
+         message(STATUS "Found iconv library      : ${ICONV_LIBRARY}")
+      endif()
+   endif()
+   if(ICONV_SECOND_ARGUMENT_IS_CONST)
+      message(STATUS "Check iconv library      : Second argument in iconv is a const")
+   else()
+      message(STATUS "Check iconv library      : Second argument in iconv is not a const")
    endif()
 else()
    if(ICONV_FIND_REQUIRED)
@@ -100,4 +125,4 @@ else()
    endif()
 endif()
 
-mark_as_advanced(ICONV_LIBRARY ICONV_INCLUDE_DIR)
+mark_as_advanced(ICONV_LIBRARY ICONV_INCLUDE_DIR ICONV_SECOND_ARGUMENT_IS_CONST)
