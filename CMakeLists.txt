@@ -35,6 +35,12 @@ FIND_PACKAGE (ICU)
 SET (HAVE_ICU ${ICU_FOUND} CACHE STRING "HAVE_ICU")
 
 # ----------------
+# ICONV dependency
+# ----------------
+FIND_PACKAGE (ICONV)
+SET (HAVE_ICONV ${ICONV_FOUND} CACHE STRING "HAVE_ICONV")
+
+# ----------------
 # Check for inline
 # ----------------
 FIND_PACKAGE (Inline)
