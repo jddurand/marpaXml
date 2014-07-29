@@ -166,23 +166,6 @@ NULL_IS_ZEROES()
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/include/internal/config.h.in
                ${CMAKE_CURRENT_BINARY_DIR}/include/internal/config.h)
 
-# --------------------------------------------------------------------------------------
-# Now that if have checked what is available, setted all flags of all external libraries
-# we want to check the types that are available
-# Internally CheckTypeSize will automatically check <sys/types.h>, <stdint.h> and <stddef.h>
-# --------------------------------------------------------------------------------------
-INCLUDE(CheckTypeSize)
-
-CHECK_TYPE_SIZE("int8_t"   INT8_T)
-CHECK_TYPE_SIZE("int16_t"  INT16_T)
-CHECK_TYPE_SIZE("int32_t"  INT32_T)
-CHECK_TYPE_SIZE("int64_t"  INT64_T)
-
-CHECK_TYPE_SIZE("uint8_t"  UINT8_T)
-CHECK_TYPE_SIZE("uint16_t" UINT16_T)
-CHECK_TYPE_SIZE("uint32_t" UINT32_T)
-CHECK_TYPE_SIZE("uint64_t" UINT64_T)
-
 # -----------
 # Executables
 # -----------
