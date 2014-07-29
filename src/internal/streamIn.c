@@ -66,7 +66,6 @@ struct streamIn {
   /* UTF-8 section */
   streamInBool_t             utf8b;                    /* STREAMIN_BOOL_TRUE only if streamInUtf8_newp() is called */
   streamInBool_t             fromEncodingsManagedb;    /* STREAMIN_BOOL_TRUE only if fromEncodings is given */
-  streamInBool_t             isNativeUtf8b;            /* STREAMIN_BOOL_TRUE only if original stream is already UTF-8 */
   streamInUtf8Option_t       streamInUtf8Option;       /* utf8 options */
 
   streamIn_ICU_t             streamIn_ICU;
@@ -414,11 +413,6 @@ static C_INLINE streamInBool_t _streamInUtf8_readb(streamIn_t *streamInp, size_t
     if (streamInp->streamInUtf8Option.fromEncodings == NULL) {
       /* User did a streamInUtf8_newp. The very first time, we auto-detect encoding */
       _streamInUtf8_detectb(streamInp);
-      if (strcmp(streamInp->streamInUtf8Option.fromEncodings, _streamIn_defaultFromEncodings) == 0) {
-        streamInp->isNativeUtf8b = STREAMIN_BOOL_TRUE;
-      } else {
-        streamInp->isNativeUtf8b = STREAMIN_BOOL_FALSE;
-      }
     }
 
     rcb = _streamInUtf8_ICU_readb(streamInp, bufIndexi);
@@ -1119,7 +1113,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_fromConvertb(streamIn_t *stream
   int8_t        errorLength;
   int           i;
 
-  /* Create "From" converter */
+  /* Create "From" converter - we KEEP using the converter even if user or we say this is an UTF-8 */
   if (streamInp->streamIn_ICU.uConverterFrom == NULL) {
     UBool fallback = (streamInp->streamInUtf8Option.ICUFromFallback == STREAMIN_BOOL_TRUE) ? TRUE : FALSE;
 
