@@ -7,13 +7,11 @@
 #include "config.h"
 #include "streamIn.h"
 #include "messageBuilder.h"
-#ifdef HAVE_ICU
+
 #include "unicode/ucsdet.h"
 #include "unicode/uclean.h"
 #include "unicode/ucnv.h"
 #include "unicode/utext.h"
-#endif
-#include "charsetdetect.h"
 
 const static char *_streamIn_defaultFromEncodings = "UTF-8";
 
@@ -23,18 +21,6 @@ static C_INLINE streamInBool_t _streamInUtf8_fromConvertb(streamIn_t *streamInp,
 static C_INLINE void           _streamInUtf8_destroyv(streamIn_t *streamInp);
 static C_INLINE streamInBool_t _streamInUtf8_readb(streamIn_t *streamInp, size_t bufIndexi);
 
-#ifdef HAVE_ICONV
-typedef struct streamIn_ICONV {
-  /* With iconv we do a single conversion Native => UTF-8 */
-  size_t                     utf8BufMulSizei;          /* A heuristic guess of the utf8 takes maximum twice more space than native bytes */
-  char                      *utf8Bufp;                 /* utf8 buffer */
-  size_t                     utf8BufMarki;             /* Buffer index hosting current character */
-  size_t                     utf8BufOffseti;           /* Offset of current character within buffer No utf8BufMarki */
-  size_t                     utf8BufLengthi;           /* Number of valid bytes in utf8 buffer */
-} streamIn_ICONV_t;
-static C_INLINE streamInBool_t *streamInUtf8_ICONV_newb(streamIn_t *streamInp);
-#endif
-#ifdef HAVE_ICU
 typedef struct streamIn_ICU {
   /* With ICU we do a single conversion Native => UChar                */
   /* into a SINGLE buffer. We maintain a mapping charBufpp[] -> offset */
@@ -51,7 +37,7 @@ typedef struct streamIn_ICU {
   const void                 *uConverterToUCallbackCtxp;
   UText                      *utextp;
 } streamIn_ICU_t;
-static C_INLINE streamInBool_t  streamInUtf8_ICU_newb(streamIn_t *streamInp);
+static C_INLINE streamInBool_t _streamInUtf8_ICU_newb(streamIn_t *streamInp);
 static C_INLINE streamInBool_t _streamInUtf8_ICU_optionb(streamIn_t *streamInp, streamInUtf8Option_t *streamInUtf8Optionp);
 static C_INLINE streamInBool_t _streamInUtf8_ICU_doneBufferb(streamIn_t *streamInp, size_t bufIndexi);
 static C_INLINE streamInBool_t _streamInUtf8_ICU_readb(streamIn_t *streamInp, size_t bufIndexi);
@@ -64,8 +50,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_markb(streamIn_t *streamInp);
 static C_INLINE streamInBool_t _streamInUtf8_ICU_markPreviousb(streamIn_t *streamInp);
 static C_INLINE streamInBool_t _streamInUtf8_ICU_currentFromMarkedb(streamIn_t *streamInp);
 static C_INLINE streamInBool_t _streamInUtf8_ICU_doneb(streamIn_t *streamInp);
-#endif
-static C_INLINE streamInBool_t _streamIn_charsetdetect_detectb(streamIn_t *streamInp);
+static C_INLINE void           _streamInUtf8_ICU_destroyv(streamIn_t *streamInp);
 
 /*****************************************************************************/
 /* Generic class handling read-only streaming on buffers that can ONLY go on */
@@ -80,15 +65,11 @@ struct streamIn {
 
   /* UTF-8 section */
   streamInBool_t             utf8b;                    /* STREAMIN_BOOL_TRUE only if streamInUtf8_newp() is called */
-  streamInBool_t             fromEncodingsManagedb;    /* STREAMIN_BOOL_TRUE only if streamInUtf8_newp() is called */
-  streamInBool_t             nativeIsUtf8b;            /* STREAMIN_BOOL_TRUE only if original stream is rleady UTF-8 */
+  streamInBool_t             fromEncodingsManagedb;    /* STREAMIN_BOOL_TRUE only if fromEncodings is given */
+  streamInBool_t             nativeIsUtf8b;            /* STREAMIN_BOOL_TRUE only if original stream is already UTF-8 */
   streamInUtf8Option_t       streamInUtf8Option;       /* utf8 options */
-#ifdef HAVE_ICONV
-  streamIn_ICONV_t           streamIn_ICONV;
-#endif
-#ifdef HAVE_ICU
+
   streamIn_ICU_t             streamIn_ICU;
-#endif
 };
 
 #define STREAMIN_DEFAULT_BUFMAXSIZEI (1024*1024)
@@ -172,29 +153,10 @@ streamIn_t *streamIn_newp(streamInOption_t *streamInOptionp) {
   return streamInp;
 }
 
-#ifdef HAVE_ICONV
-/***************************/
-/* streamInUtf8_ICONV_newp */
-/***************************/
-static C_INLINE streamInBool_t *streamInUtf8_ICONV_newb(streamIn_t *streamInp) {
-  streamInBool_t  rcb               = STREAMIN_BOOL_TRUE;
-  streamIn_ICONV_t *streamIn_ICONVp = &(streamInp->streamIn_ICONV);
-
-  streamIn_ICONVp->utf8BufMulSizei          = 2;
-  streamIn_ICONVp->utf8Bufp                 = NULL;
-  streamIn_ICONVp->utf8BufMarki             = 0;
-  streamIn_ICONVp->utf8BufOffseti           = 0;
-  streamIn_ICONVp->utf8BufLengthi           = 0;
-
-  return rcb;
-}
-#endif
-
-#ifdef HAVE_ICU
-/*************************/
-/* streamInUtf8_ICU_newb */
-/*************************/
-static C_INLINE streamInBool_t streamInUtf8_ICU_newb(streamIn_t *streamInp) {
+/**************************/
+/* _streamInUtf8_ICU_newb */
+/**************************/
+static C_INLINE streamInBool_t _streamInUtf8_ICU_newb(streamIn_t *streamInp) {
   streamInBool_t  rcb           = STREAMIN_BOOL_TRUE;
 
   streamInp->streamIn_ICU.charBuf2UCharByteLengthlp = NULL;
@@ -207,47 +169,49 @@ static C_INLINE streamInBool_t streamInUtf8_ICU_newb(streamIn_t *streamInp) {
   streamInp->streamIn_ICU.utextp                   = NULL;
 
   switch (streamInp->streamInUtf8Option.ICUFromCallback) {
-  case STREAMINUTF8OPTION_ICUCALLBACK_SUBSTITUTE:
+  case STREAMINUTF8OPTION_ICU_DEFAULT:
+    break;
+  case STREAMINUTF8OPTION_ICU_SUBSTITUTE:
     streamInp->streamIn_ICU.uConverterFromUCallback     = UCNV_FROM_U_CALLBACK_SUBSTITUTE;
     streamInp->streamIn_ICU.uConverterFromUCallbackCtxp = NULL;
     break;
-  case STREAMINUTF8OPTION_ICUCALLBACK_SKIP:
+  case STREAMINUTF8OPTION_ICU_SKIP:
     streamInp->streamIn_ICU.uConverterFromUCallback     = UCNV_FROM_U_CALLBACK_SKIP;
     streamInp->streamIn_ICU.uConverterFromUCallbackCtxp = NULL;
     break;
-  case STREAMINUTF8OPTION_ICUCALLBACK_STOP:
+  case STREAMINUTF8OPTION_ICU_STOP:
     streamInp->streamIn_ICU.uConverterFromUCallback     = UCNV_FROM_U_CALLBACK_STOP;
     streamInp->streamIn_ICU.uConverterFromUCallbackCtxp = NULL;
     break;
-  case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE:
+  case STREAMINUTF8OPTION_ICU_ESCAPE:
     streamInp->streamIn_ICU.uConverterFromUCallback     = UCNV_FROM_U_CALLBACK_ESCAPE;
     streamInp->streamIn_ICU.uConverterFromUCallbackCtxp = NULL;
     break;
-  case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_ICU:
+  case STREAMINUTF8OPTION_ICU_ESCAPE_ICU:
     streamInp->streamIn_ICU.uConverterFromUCallback     = UCNV_FROM_U_CALLBACK_ESCAPE;
     streamInp->streamIn_ICU.uConverterFromUCallbackCtxp = UCNV_ESCAPE_ICU;
     break;
-  case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_JAVA:
+  case STREAMINUTF8OPTION_ICU_ESCAPE_JAVA:
     streamInp->streamIn_ICU.uConverterFromUCallback     = UCNV_FROM_U_CALLBACK_ESCAPE;
     streamInp->streamIn_ICU.uConverterFromUCallbackCtxp = UCNV_ESCAPE_JAVA;
     break;
-  case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_C:
+  case STREAMINUTF8OPTION_ICU_ESCAPE_C:
     streamInp->streamIn_ICU.uConverterFromUCallback     = UCNV_FROM_U_CALLBACK_ESCAPE;
     streamInp->streamIn_ICU.uConverterFromUCallbackCtxp = UCNV_ESCAPE_C;
     break;
-  case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_XML:
+  case STREAMINUTF8OPTION_ICU_ESCAPE_XML:
     streamInp->streamIn_ICU.uConverterFromUCallback     = UCNV_FROM_U_CALLBACK_ESCAPE;
     streamInp->streamIn_ICU.uConverterFromUCallbackCtxp = UCNV_ESCAPE_XML_HEX;
     break;
-  case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_XML_HEX:
+  case STREAMINUTF8OPTION_ICU_ESCAPE_XML_HEX:
     streamInp->streamIn_ICU.uConverterFromUCallback     = UCNV_FROM_U_CALLBACK_ESCAPE;
     streamInp->streamIn_ICU.uConverterFromUCallbackCtxp = UCNV_ESCAPE_XML_HEX;
     break;
-  case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_XML_DEC:
+  case STREAMINUTF8OPTION_ICU_ESCAPE_XML_DEC:
     streamInp->streamIn_ICU.uConverterFromUCallback     = UCNV_FROM_U_CALLBACK_ESCAPE;
     streamInp->streamIn_ICU.uConverterFromUCallbackCtxp = UCNV_ESCAPE_XML_DEC;
     break;
-  case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_UNICODE:
+  case STREAMINUTF8OPTION_ICU_ESCAPE_UNICODE:
     streamInp->streamIn_ICU.uConverterFromUCallback     = UCNV_FROM_U_CALLBACK_ESCAPE;
     streamInp->streamIn_ICU.uConverterFromUCallbackCtxp = UCNV_ESCAPE_UNICODE;
     break;
@@ -258,47 +222,47 @@ static C_INLINE streamInBool_t streamInUtf8_ICU_newb(streamIn_t *streamInp) {
   }
 
   switch (streamInp->streamInUtf8Option.ICUToCallback) {
-  case STREAMINUTF8OPTION_ICUCALLBACK_SUBSTITUTE:
+  case STREAMINUTF8OPTION_ICU_SUBSTITUTE:
     streamInp->streamIn_ICU.uConverterToUCallback     = UCNV_TO_U_CALLBACK_SUBSTITUTE;
     streamInp->streamIn_ICU.uConverterToUCallbackCtxp = NULL;
     break;
-  case STREAMINUTF8OPTION_ICUCALLBACK_SKIP:
+  case STREAMINUTF8OPTION_ICU_SKIP:
     streamInp->streamIn_ICU.uConverterToUCallback     = UCNV_TO_U_CALLBACK_SKIP;
     streamInp->streamIn_ICU.uConverterToUCallbackCtxp = NULL;
     break;
-  case STREAMINUTF8OPTION_ICUCALLBACK_STOP:
+  case STREAMINUTF8OPTION_ICU_STOP:
     streamInp->streamIn_ICU.uConverterToUCallback     = UCNV_TO_U_CALLBACK_STOP;
     streamInp->streamIn_ICU.uConverterToUCallbackCtxp = NULL;
     break;
-  case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE:
+  case STREAMINUTF8OPTION_ICU_ESCAPE:
     streamInp->streamIn_ICU.uConverterToUCallback     = UCNV_TO_U_CALLBACK_ESCAPE;
     streamInp->streamIn_ICU.uConverterToUCallbackCtxp = NULL;
     break;
-  case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_ICU:
+  case STREAMINUTF8OPTION_ICU_ESCAPE_ICU:
     streamInp->streamIn_ICU.uConverterToUCallback     = UCNV_TO_U_CALLBACK_ESCAPE;
     streamInp->streamIn_ICU.uConverterToUCallbackCtxp = UCNV_ESCAPE_ICU;
     break;
-  case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_JAVA:
+  case STREAMINUTF8OPTION_ICU_ESCAPE_JAVA:
     streamInp->streamIn_ICU.uConverterToUCallback     = UCNV_TO_U_CALLBACK_ESCAPE;
     streamInp->streamIn_ICU.uConverterToUCallbackCtxp = UCNV_ESCAPE_JAVA;
     break;
-  case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_C:
+  case STREAMINUTF8OPTION_ICU_ESCAPE_C:
     streamInp->streamIn_ICU.uConverterToUCallback     = UCNV_TO_U_CALLBACK_ESCAPE;
     streamInp->streamIn_ICU.uConverterToUCallbackCtxp = UCNV_ESCAPE_C;
     break;
-  case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_XML:
+  case STREAMINUTF8OPTION_ICU_ESCAPE_XML:
     streamInp->streamIn_ICU.uConverterToUCallback     = UCNV_TO_U_CALLBACK_ESCAPE;
     streamInp->streamIn_ICU.uConverterToUCallbackCtxp = UCNV_ESCAPE_XML_HEX;
     break;
-  case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_XML_HEX:
+  case STREAMINUTF8OPTION_ICU_ESCAPE_XML_HEX:
     streamInp->streamIn_ICU.uConverterToUCallback     = UCNV_TO_U_CALLBACK_ESCAPE;
     streamInp->streamIn_ICU.uConverterToUCallbackCtxp = UCNV_ESCAPE_XML_HEX;
     break;
-  case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_XML_DEC:
+  case STREAMINUTF8OPTION_ICU_ESCAPE_XML_DEC:
     streamInp->streamIn_ICU.uConverterToUCallback     = UCNV_TO_U_CALLBACK_ESCAPE;
     streamInp->streamIn_ICU.uConverterToUCallbackCtxp = UCNV_ESCAPE_XML_DEC;
     break;
-  case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_UNICODE:
+  case STREAMINUTF8OPTION_ICU_ESCAPE_UNICODE:
     streamInp->streamIn_ICU.uConverterToUCallback     = UCNV_TO_U_CALLBACK_ESCAPE;
     streamInp->streamIn_ICU.uConverterToUCallbackCtxp = UCNV_ESCAPE_UNICODE;
     break;
@@ -310,7 +274,6 @@ static C_INLINE streamInBool_t streamInUtf8_ICU_newb(streamIn_t *streamInp) {
 
   return rcb;
 }
-#endif
 
 /*********************/
 /* streamInUtf8_newp */
@@ -329,18 +292,7 @@ streamIn_t *streamInUtf8_newp(streamInOption_t *streamInOptionp, streamInUtf8Opt
   if (_streamInUtf8_optionb(streamInp, streamInUtf8Optionp) == STREAMIN_BOOL_FALSE) {
     streamIn_destroyv(&streamInp);
   } else {
-    switch (streamInp->streamInUtf8Option.converteri) {
-#ifdef HAVE_ICONV
-    case STREAMINUTF8OPTION_CONVERTER_ICONV:
-      rcb = streamInUtf8_ICONV_newb(streamInp);
-      break;
-#endif
-#ifdef HAVE_ICU
-    case STREAMINUTF8OPTION_CONVERTER_ICU:
-      rcb = streamInUtf8_ICU_newb(streamInp);
-      break;
-#endif
-    }
+    rcb = _streamInUtf8_ICU_newb(streamInp);
 
     if (rcb == STREAMIN_BOOL_FALSE) {
       streamIn_destroyv(&streamInp);
@@ -351,7 +303,6 @@ streamIn_t *streamInUtf8_newp(streamInOption_t *streamInOptionp, streamInUtf8Opt
   return streamInp;
 }
 
-#ifdef HAVE_ICU
 /*********************************/
 /* _streamInUtf8_ICU_doneBufferb */
 /*********************************/
@@ -438,7 +389,6 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_doneBufferb(streamIn_t *streamI
 
   return rcb;
 }
-#endif
 
 /********************************************/
 /* _streamInUtf8_doneBufferb                */
@@ -447,18 +397,7 @@ static C_INLINE streamInBool_t _streamInUtf8_doneBufferb(streamIn_t *streamInp, 
   streamInBool_t  rcb = STREAMIN_BOOL_TRUE;
 
   if (streamInp->utf8b == STREAMIN_BOOL_TRUE) {
-    switch (streamInp->streamInUtf8Option.converteri) {
-#ifdef HAVE_ICU
-    case STREAMINUTF8OPTION_CONVERTER_ICU:
-      rcb = _streamInUtf8_ICU_doneBufferb(streamInp, bufIndexi);
-      break;
-#endif
-#ifdef HAVE_ICONV
-    case STREAMINUTF8OPTION_CONVERTER_ICONV:
-      rcb = _streamInUtf8_ICONV_doneBufferb(streamInp, bufIndexi);
-      break;
-#endif
-    }
+    rcb = _streamInUtf8_ICU_doneBufferb(streamInp, bufIndexi);
   }
 
   return rcb;
@@ -482,18 +421,7 @@ static C_INLINE streamInBool_t _streamInUtf8_readb(streamIn_t *streamInp, size_t
       }
     }
 
-    switch (streamInp->streamInUtf8Option.converteri) {
-#ifdef HAVE_ICU
-    case STREAMINUTF8OPTION_CONVERTER_ICU:
-      rcb = _streamInUtf8_ICU_readb(streamInp, bufIndexi);
-      break;
-#endif
-#ifdef HAVE_ICONV
-    case STREAMINUTF8OPTION_CONVERTER_ICONV:
-      rcb = _streamInUtf8_ICONV_readb(streamInp, bufIndexi);
-      break;
-#endif
-    }
+    rcb = _streamInUtf8_ICU_readb(streamInp, bufIndexi);
 
     if (rcb == STREAMIN_BOOL_TRUE) {
       rcb = _streamInUtf8_fromConvertb(streamInp, bufIndexi);
@@ -585,7 +513,6 @@ static C_INLINE streamInBool_t _streamIn_doneBufferb(streamIn_t *streamInp, size
   return rcb;
 }
 
-#ifdef HAVE_ICU
 /********************************************/
 /* _streamInUtf8_ICU_readb                  */
 /********************************************/
@@ -650,7 +577,6 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_readb(streamIn_t *streamInp, si
 
   return STREAMIN_BOOL_TRUE;
 }
-#endif
 
 /********************************************/
 /* _streamIn_readb                          */
@@ -1019,12 +945,7 @@ streamInBool_t streamIn_nextBufferb(streamIn_t *streamInp, size_t *indexBufferip
 /* _streamInUtf8_detectb */
 /*************************/
 static C_INLINE void _streamInUtf8_detectb(streamIn_t *streamInp) {
-  if (
-#ifdef HAVE_ICU
-      _streamInUtf8_ICU_detectb(streamInp) == STREAMIN_BOOL_TRUE ||
-#endif
-      _streamIn_charsetdetect_detectb(streamInp) == STREAMIN_BOOL_TRUE
-      ) {
+  if (_streamInUtf8_ICU_detectb(streamInp) == STREAMIN_BOOL_TRUE) {
     return;
   }
 
@@ -1032,7 +953,6 @@ static C_INLINE void _streamInUtf8_detectb(streamIn_t *streamInp) {
   streamInp->streamInUtf8Option.fromEncodings = (char *) _streamIn_defaultFromEncodings;
 }
 
-#ifdef HAVE_ICU
 /*****************************/
 /* _streamInUtf8_ICU_detectb */
 /*****************************/
@@ -1129,50 +1049,6 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_detectb(streamIn_t *streamInp) 
 
   return rcb;
 }
-#endif
-
-/***********************************/
-/* _streamIn_charsetdetect_detectb */
-/***********************************/
-static C_INLINE streamInBool_t _streamIn_charsetdetect_detectb(streamIn_t *streamInp) {
-  csd_t       csdp;
-  int         result;
-  const char *fromEncodings;
-  float       confidencef;
-
-  csdp = csd_open();
-  if (csdp == NULL) {
-    STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "csd_open(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
-    return STREAMIN_BOOL_FALSE;
-  } else {
-    result = csd_consider(csdp, streamInp->charBufpp[0], streamInp->realSizeCharBufip[0]);
-    /* We are not going to ask for more data: a reasonable application will at least */
-    /* use the default cache of 1M, that must be large enough in any case            */
-    if (result < 0) {
-      STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "csd_consider() failure at %s:%d", __FILE__, __LINE__);
-      csd_close(csdp);
-      return STREAMIN_BOOL_FALSE;
-    } else {
-      fromEncodings = csd_close2(csdp, &confidencef);
-      if (fromEncodings == NULL) {
-	STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "csd_close() returned NULL at %s:%d", __FILE__, __LINE__);
-	return STREAMIN_BOOL_FALSE;
-      } else {
-	STREAMIN_LOGX(STREAMIN_LOGLEVEL_INFO, "libcharsetdetect returned encoding \"%s\" with confidence %f", fromEncodings, (double) confidencef);
-	/* Save the result */
-	streamInp->streamInUtf8Option.fromEncodings = malloc(sizeof(char) * (strlen(fromEncodings) + 1));
-	if (streamInp->streamInUtf8Option.fromEncodings == NULL) {
-	  STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "malloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
-	  return STREAMIN_BOOL_FALSE;
-	} else {
-	  strcpy(streamInp->streamInUtf8Option.fromEncodings, fromEncodings);
-	}
-      }
-    }
-  }
-
-  return STREAMIN_BOOL_TRUE;
-}
 
 /******************************/
 /* streamInUtf8_fromEncodings */
@@ -1199,18 +1075,7 @@ signed int streamInUtf8_nexti(streamIn_t *streamInp) {
     return rci;
   }
 
-  switch (streamInp->streamInUtf8Option.converteri) {
-#ifdef HAVE_ICU
-  case STREAMINUTF8OPTION_CONVERTER_ICU:
-    rci = _streamInUtf8_ICU_nexti(streamInp);
-    break;
-#endif
-#ifdef HAVE_ICONV
-  case STREAMINUTF8OPTION_CONVERTER_ICONV:
-    rci = _streamInUtf8_ICONV_nexti(streamInp);
-    break;
-#endif
-  }
+  rci = _streamInUtf8_ICU_nexti(streamInp);
 
   if (rci == -1 && _streamIn_getBufferb(streamInp, streamInp->nCharBufi, NULL, NULL, NULL) == STREAMIN_BOOL_TRUE) {
     return streamInUtf8_nexti(streamInp);
@@ -1226,24 +1091,12 @@ static C_INLINE streamInBool_t _streamInUtf8_fromConvertb(streamIn_t *streamInp,
   streamInBool_t  rcb = STREAMIN_BOOL_TRUE;
 
   if (streamInp->utf8b == STREAMIN_BOOL_TRUE) {
-    switch (streamInp->streamInUtf8Option.converteri) {
-#ifdef HAVE_ICU
-    case STREAMINUTF8OPTION_CONVERTER_ICU:
-      rcb = _streamInUtf8_ICU_fromConvertb(streamInp, bufIndexi);
-      break;
-#endif
-#ifdef HAVE_ICONV
-    case STREAMINUTF8OPTION_CONVERTER_ICONV:
-      rcb = _streamInUtf8_ICONV_readb(streamInp, bufIndexi);
-      break;
-#endif
-    }
+    rcb = _streamInUtf8_ICU_fromConvertb(streamInp, bufIndexi);
   }
 
   return rcb;
 }
 
-#ifdef HAVE_ICU
 /**********************************/
 /* _streamInUtf8_ICU_fromConvertb */
 /**********************************/
@@ -1277,11 +1130,13 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_fromConvertb(streamIn_t *stream
       return STREAMIN_BOOL_FALSE;
     }
 
-    STREAMIN_TRACEX("ucnv_setFromUCallBack(%p, %p, %p, %p, %p, %p)", streamInp->streamIn_ICU.uConverterFrom, streamInp->streamIn_ICU.uConverterFromUCallback, streamInp->streamIn_ICU.uConverterFromUCallbackCtxp, NULL, NULL, &uErrorCode);
-    ucnv_setFromUCallBack(streamInp->streamIn_ICU.uConverterFrom, streamInp->streamIn_ICU.uConverterFromUCallback, streamInp->streamIn_ICU.uConverterFromUCallbackCtxp, NULL, NULL, &uErrorCode);
-    if (U_FAILURE(uErrorCode)) {
-      STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "ucnv_setFromUCallBack(): %s at %s:%d", u_errorName(uErrorCode), __FILE__, __LINE__);
-      return STREAMIN_BOOL_FALSE;
+    if (streamInp->streamInUtf8Option.ICUFromCallback != STREAMINUTF8OPTION_ICU_DEFAULT) {
+      STREAMIN_TRACEX("ucnv_setFromUCallBack(%p, %p, %p, %p, %p, %p)", streamInp->streamIn_ICU.uConverterFrom, streamInp->streamIn_ICU.uConverterFromUCallback, streamInp->streamIn_ICU.uConverterFromUCallbackCtxp, NULL, NULL, &uErrorCode);
+      ucnv_setFromUCallBack(streamInp->streamIn_ICU.uConverterFrom, streamInp->streamIn_ICU.uConverterFromUCallback, streamInp->streamIn_ICU.uConverterFromUCallbackCtxp, NULL, NULL, &uErrorCode);
+      if (U_FAILURE(uErrorCode)) {
+	STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "ucnv_setFromUCallBack(): %s at %s:%d", u_errorName(uErrorCode), __FILE__, __LINE__);
+	return STREAMIN_BOOL_FALSE;
+      }
     }
 
     STREAMIN_TRACEX("ucnv_setFallback(%p, %d)", streamInp->streamIn_ICU.uConverterFrom, fallback);
@@ -1371,7 +1226,6 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_fromConvertb(streamIn_t *stream
   }
   return rcb;
 }
-#endif
 
 /*******************************/
 /* streamInUtf8_optionDefaultb */
@@ -1382,22 +1236,15 @@ streamInBool_t streamInUtf8_optionDefaultb(streamInUtf8Option_t *streamInUtf8Opt
   }
 
   streamInUtf8Optionp->fromEncodings   = NULL;
-#ifdef HAVE_ICONV
-  streamInUtf8Optionp->converteri      = STREAMINUTF8OPTION_CONVERTER_ICONV;
-#endif
-#ifdef HAVE_ICU
-  streamInUtf8Optionp->converteri      = STREAMINUTF8OPTION_CONVERTER_ICU;
-  streamInUtf8Optionp->ICUFromCallback = STREAMINUTF8OPTION_ICUCALLBACK_STOP;
+  streamInUtf8Optionp->ICUFromCallback = STREAMINUTF8OPTION_ICU_STOP;
   streamInUtf8Optionp->ICUFromFallback = STREAMIN_BOOL_FALSE;
-  streamInUtf8Optionp->ICUToCallback   = STREAMINUTF8OPTION_ICUCALLBACK_STOP;
+  streamInUtf8Optionp->ICUToCallback   = STREAMINUTF8OPTION_ICU_STOP;
   streamInUtf8Optionp->ICUToFallback   = STREAMIN_BOOL_FALSE;
-#endif
 
   return STREAMIN_BOOL_TRUE;
 
 }
 
-#ifdef HAVE_ICU
 /*****************************/
 /* _streamInUtf8_ICU_optionb */
 /*****************************/
@@ -1406,17 +1253,17 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_optionb(streamIn_t *streamInp, 
 
   if (streamInUtf8Optionp != NULL) {
       switch (streamInUtf8Optionp->ICUFromCallback) {
-      case STREAMINUTF8OPTION_ICUCALLBACK_SUBSTITUTE:
-      case STREAMINUTF8OPTION_ICUCALLBACK_SKIP:
-      case STREAMINUTF8OPTION_ICUCALLBACK_STOP:
-      case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE:
-      case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_ICU:
-      case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_JAVA:
-      case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_C:
-      case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_XML:
-      case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_XML_HEX:
-      case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_XML_DEC:
-      case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_UNICODE:
+      case STREAMINUTF8OPTION_ICU_SUBSTITUTE:
+      case STREAMINUTF8OPTION_ICU_SKIP:
+      case STREAMINUTF8OPTION_ICU_STOP:
+      case STREAMINUTF8OPTION_ICU_ESCAPE:
+      case STREAMINUTF8OPTION_ICU_ESCAPE_ICU:
+      case STREAMINUTF8OPTION_ICU_ESCAPE_JAVA:
+      case STREAMINUTF8OPTION_ICU_ESCAPE_C:
+      case STREAMINUTF8OPTION_ICU_ESCAPE_XML:
+      case STREAMINUTF8OPTION_ICU_ESCAPE_XML_HEX:
+      case STREAMINUTF8OPTION_ICU_ESCAPE_XML_DEC:
+      case STREAMINUTF8OPTION_ICU_ESCAPE_UNICODE:
 	break;
       default:
         STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "Invalid ICUFromCallback %d at %s:%d", streamInUtf8Optionp->ICUFromCallback, __FILE__, __LINE__);
@@ -1424,17 +1271,17 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_optionb(streamIn_t *streamInp, 
       }
 
       switch (streamInUtf8Optionp->ICUToCallback) {
-      case STREAMINUTF8OPTION_ICUCALLBACK_SUBSTITUTE:
-      case STREAMINUTF8OPTION_ICUCALLBACK_SKIP:
-      case STREAMINUTF8OPTION_ICUCALLBACK_STOP:
-      case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE:
-      case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_ICU:
-      case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_JAVA:
-      case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_C:
-      case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_XML:
-      case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_XML_HEX:
-      case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_XML_DEC:
-      case STREAMINUTF8OPTION_ICUCALLBACK_ESCAPE_UNICODE:
+      case STREAMINUTF8OPTION_ICU_SUBSTITUTE:
+      case STREAMINUTF8OPTION_ICU_SKIP:
+      case STREAMINUTF8OPTION_ICU_STOP:
+      case STREAMINUTF8OPTION_ICU_ESCAPE:
+      case STREAMINUTF8OPTION_ICU_ESCAPE_ICU:
+      case STREAMINUTF8OPTION_ICU_ESCAPE_JAVA:
+      case STREAMINUTF8OPTION_ICU_ESCAPE_C:
+      case STREAMINUTF8OPTION_ICU_ESCAPE_XML:
+      case STREAMINUTF8OPTION_ICU_ESCAPE_XML_HEX:
+      case STREAMINUTF8OPTION_ICU_ESCAPE_XML_DEC:
+      case STREAMINUTF8OPTION_ICU_ESCAPE_UNICODE:
 	break;
       default:
         STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "Invalid ICUToCallback %d at %s:%d", streamInUtf8Optionp->ICUToCallback, __FILE__, __LINE__);
@@ -1444,7 +1291,6 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_optionb(streamIn_t *streamInp, 
 
   return rcb;
 }
-#endif
 
 /*************************/
 /* _streamInUtf8_optionb */
@@ -1456,38 +1302,11 @@ static C_INLINE streamInBool_t _streamInUtf8_optionb(streamIn_t *streamInp, stre
 
   if (streamInUtf8Optionp != NULL) {
 
-    if (
-#ifdef HAVE_ICU
-        streamInUtf8Optionp->converteri != STREAMINUTF8OPTION_CONVERTER_ICU
-#endif
-#if (defined(HAVE_ICU) && defined(HAVE_ICONV))
-        &&
-#endif
-#ifdef HAVE_ICONV
-        streamInUtf8Optionp->converteri != STREAMINUTF8OPTION_CONVERTER_ICONV
-#endif
-        ) {
-      STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "Invalid converter %d at %s:%d", streamInUtf8Optionp->converteri, __FILE__, __LINE__);
-      rcb = STREAMIN_BOOL_FALSE;
-    }
-
-    if (rcb == STREAMIN_BOOL_TRUE) {
-      switch (streamInUtf8Optionp->converteri) {
-#ifdef HAVE_ICU
-      case STREAMINUTF8OPTION_CONVERTER_ICU:
-        rcb = _streamInUtf8_ICU_optionb(streamInp, streamInUtf8Optionp);
-        break;
-#endif
-#ifdef HAVE_ICONV
-        rcb = _streamInUtf8_ICONV_optionb(streamInp, streamInUtf8Optionp);
-        break;
-#endif
-      }
-    }
-
     if (streamInUtf8Optionp->fromEncodings != NULL) {
         streamInp->fromEncodingsManagedb = STREAMIN_BOOL_TRUE;
     }
+
+    rcb = _streamInUtf8_ICU_optionb(streamInp, streamInUtf8Optionp);
 
     if (rcb == STREAMIN_BOOL_TRUE) {
       streamInp->streamInUtf8Option = *streamInUtf8Optionp;
@@ -1508,27 +1327,32 @@ static C_INLINE void _streamInUtf8_destroyv(streamIn_t *streamInp) {
         STREAMIN_FREE(streamInp->streamInUtf8Option.fromEncodings);
       }
     }
-#ifdef HAVE_ICU
-    if (streamInp->streamIn_ICU.charBuf2UCharByteLengthlp != NULL) {
-      free(streamInp->streamIn_ICU.charBuf2UCharByteLengthlp);
-    }
-    if (streamInp->streamIn_ICU.ucharBufp != NULL) {
-      free(streamInp->streamIn_ICU.ucharBufp);
-    }
-    if (streamInp->streamIn_ICU.utextp != NULL) {
-      STREAMIN_TRACEX("utext_close(%p)", streamInp->streamIn_ICU.utextp);
-      utext_close(streamInp->streamIn_ICU.utextp);
-    }
-    if (streamInp->streamIn_ICU.uConverterFrom != NULL) {
-      STREAMIN_TRACEX("ucnv_close(%p)", streamInp->streamIn_ICU.uConverterFrom);
-      ucnv_close(streamInp->streamIn_ICU.uConverterFrom);
-    }
-#ifdef STREAMIN_SINGLE_TEST_APPLICATION_ONLY
-    /* ICU recommendation is to NOT call this. This is done automatically at library unload */
-    u_cleanup();
-#endif
-#endif
+    _streamInUtf8_ICU_destroyv(streamInp);
   }
+}
+
+/******************************/
+/* _streamInUtf8_ICU_destroyv */
+/******************************/
+static C_INLINE void _streamInUtf8_ICU_destroyv(streamIn_t *streamInp) {
+  if (streamInp->streamIn_ICU.charBuf2UCharByteLengthlp != NULL) {
+    free(streamInp->streamIn_ICU.charBuf2UCharByteLengthlp);
+  }
+  if (streamInp->streamIn_ICU.ucharBufp != NULL) {
+    free(streamInp->streamIn_ICU.ucharBufp);
+  }
+  if (streamInp->streamIn_ICU.utextp != NULL) {
+    STREAMIN_TRACEX("utext_close(%p)", streamInp->streamIn_ICU.utextp);
+    utext_close(streamInp->streamIn_ICU.utextp);
+  }
+  if (streamInp->streamIn_ICU.uConverterFrom != NULL) {
+    STREAMIN_TRACEX("ucnv_close(%p)", streamInp->streamIn_ICU.uConverterFrom);
+    ucnv_close(streamInp->streamIn_ICU.uConverterFrom);
+  }
+#ifdef STREAMIN_SINGLE_TEST_APPLICATION_ONLY
+  /* ICU recommendation is to NOT call this. This is done automatically at library unload */
+  u_cleanup();
+#endif
 }
 
 /*********************************/
@@ -1552,18 +1376,7 @@ signed int streamInUtf8_currenti(streamIn_t *streamInp) {
     return rci;
   }
 
-  switch (streamInp->streamInUtf8Option.converteri) {
-#ifdef HAVE_ICU
-  case STREAMINUTF8OPTION_CONVERTER_ICU:
-    rci = _streamInUtf8_ICU_currenti(streamInp);
-    break;
-#endif
-#ifdef HAVE_ICONV
-  case STREAMINUTF8OPTION_CONVERTER_ICONV:
-    rci = _streamInUtf8_ICONV_currenti(streamInp);
-    break;
-#endif
-  }
+  rci = _streamInUtf8_ICU_currenti(streamInp);
 
   if (rci == -1 && _streamIn_getBufferb(streamInp, streamInp->nCharBufi, NULL, NULL, NULL) == STREAMIN_BOOL_TRUE) {
     return streamInUtf8_currenti(streamInp);
@@ -1572,7 +1385,6 @@ signed int streamInUtf8_currenti(streamIn_t *streamInp) {
   return rci;
 }
 
-#ifdef HAVE_ICU
 /******************************/
 /* _streamInUtf8_ICU_currenti */
 /******************************/
@@ -1587,9 +1399,7 @@ static C_INLINE signed int _streamInUtf8_ICU_currenti(streamIn_t *streamInp) {
     return UTEXT_CURRENT32(streamInp->streamIn_ICU.utextp);
   }
 }
-#endif
 
-#ifdef HAVE_ICU
 /***************************/
 /* _streamInUtf8_ICU_nexti */
 /***************************/
@@ -1604,7 +1414,6 @@ static C_INLINE signed int _streamInUtf8_ICU_nexti(streamIn_t *streamInp) {
     return UTEXT_NEXT32(streamInp->streamIn_ICU.utextp);
   }
 }
-#endif
 
 /***********************/
 /* _streamInUtf8_markb */
@@ -1616,23 +1425,11 @@ streamInBool_t streamInUtf8_markb(streamIn_t *streamInp) {
     return rcb;
   }
 
-  switch (streamInp->streamInUtf8Option.converteri) {
-#ifdef HAVE_ICU
-  case STREAMINUTF8OPTION_CONVERTER_ICU:
-    rcb = _streamInUtf8_ICU_markb(streamInp);
-    break;
-#endif
-#ifdef HAVE_ICONV
-  case STREAMINUTF8OPTION_CONVERTER_ICONV:
-    rcb = _streamInUtf8_ICONV_markb(streamInp);
-    break;
-#endif
-  }
+  rcb = _streamInUtf8_ICU_markb(streamInp);
 
   return rcb;
 }
 
-#ifdef HAVE_ICU
 /***************************/
 /* _streamInUtf8_ICU_markb */
 /***************************/
@@ -1650,7 +1447,6 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_markb(streamIn_t *streamInp) {
 
   return rcb;
 }
-#endif
 
 /*******************************/
 /* _streamInUtf8_markPreviousb */
@@ -1662,23 +1458,11 @@ streamInBool_t streamInUtf8_markPreviousb(streamIn_t *streamInp) {
     return rcb;
   }
 
-  switch (streamInp->streamInUtf8Option.converteri) {
-#ifdef HAVE_ICU
-  case STREAMINUTF8OPTION_CONVERTER_ICU:
-    rcb = _streamInUtf8_ICU_markPreviousb(streamInp);
-    break;
-#endif
-#ifdef HAVE_ICONV
-  case STREAMINUTF8OPTION_CONVERTER_ICONV:
-    rcb = _streamInUtf8_ICONV_markPreviousb(streamInp);
-    break;
-#endif
-  }
+  rcb = _streamInUtf8_ICU_markPreviousb(streamInp);
 
   return rcb;
 }
 
-#ifdef HAVE_ICU
 /***********************************/
 /* _streamInUtf8_ICU_markPreviousb */
 /***********************************/
@@ -1696,7 +1480,6 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_markPreviousb(streamIn_t *strea
 
   return rcb;
 }
-#endif
 
 /********************************/
 /* _streamInUtf8_currentFromMarkedb */
@@ -1708,23 +1491,11 @@ streamInBool_t streamInUtf8_currentFromMarkedb(streamIn_t *streamInp) {
     return rcb;
   }
 
-  switch (streamInp->streamInUtf8Option.converteri) {
-#ifdef HAVE_ICU
-  case STREAMINUTF8OPTION_CONVERTER_ICU:
-    rcb = _streamInUtf8_ICU_currentFromMarkedb(streamInp);
-    break;
-#endif
-#ifdef HAVE_ICONV
-  case STREAMINUTF8OPTION_CONVERTER_ICONV:
-    rcb = _streamInUtf8_ICONV_currentFromMarkedb(streamInp);
-    break;
-#endif
-  }
+  rcb = _streamInUtf8_ICU_currentFromMarkedb(streamInp);
 
   return rcb;
 }
 
-#ifdef HAVE_ICU
 /****************************************/
 /* _streamInUtf8_ICU_currentFromMarkedb */
 /****************************************/
@@ -1742,7 +1513,6 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_currentFromMarkedb(streamIn_t *
 
   return rcb;
 }
-#endif
 
 /***********************/
 /* _streamInUtf8_doneb */
@@ -1754,23 +1524,11 @@ streamInBool_t streamInUtf8_doneb(streamIn_t *streamInp) {
     return rcb;
   }
 
-  switch (streamInp->streamInUtf8Option.converteri) {
-#ifdef HAVE_ICU
-  case STREAMINUTF8OPTION_CONVERTER_ICU:
-    rcb = _streamInUtf8_ICU_doneb(streamInp);
-    break;
-#endif
-#ifdef HAVE_ICONV
-  case STREAMINUTF8OPTION_CONVERTER_ICONV:
-    rcb = _streamInUtf8_ICONV_doneb(streamInp);
-    break;
-#endif
-  }
+  rcb = _streamInUtf8_ICU_doneb(streamInp);
 
   return rcb;
 }
 
-#ifdef HAVE_ICU
 /***************************/
 /* _streamInUtf8_ICU_doneb */
 /***************************/
@@ -1796,4 +1554,3 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_doneb(streamIn_t *streamInp) {
 
   return rcb;
 }
-#endif

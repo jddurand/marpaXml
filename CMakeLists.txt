@@ -32,46 +32,14 @@ SET (CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
 # ICU dependency
 # --------------
 FIND_PACKAGE (ICU)
-SET (HAVE_ICU ${ICU_FOUND} CACHE STRING "HAVE_ICU")
-
-# ------------------------
-# Check some include files
-# ------------------------
-INCLUDE(CheckIncludeFile)
-CHECK_INCLUDE_FILE("inttypes.h" HAVE_INTTYPES_H)
-CHECK_INCLUDE_FILE("features.h" HAVE_FEATURES_H)
-
-# ----------------
-# ICONV dependency
-# ----------------
-FIND_PACKAGE (ICONV)
-SET (HAVE_ICONV ${ICONV_FOUND} CACHE STRING "HAVE_ICONV")
-
-# -----------------------------------------
-# At least one of ICU or ICONV must be true
-# -----------------------------------------
-IF (NOT ICU_FOUND AND NOT ICONV_FOUND)
-    MESSAGE (FATAL_ERROR "At least one of ICU or ICONV must be detected")
+IF (NOT ICU_FOUND)
+    MESSAGE (FATAL_ERROR "ICU must be detected")
 ENDIF ()
 
 # ----------------
 # Check for inline
 # ----------------
 FIND_PACKAGE (Inline)
-
-# ------------------------
-# libcharsetdetect library
-# ------------------------
-SET (LIBCHARSETDETECT_SRC ${PROJECT_SOURCE_DIR}/bundle/cChardet/src/ext/libcharsetdetect)
-FILE (GLOB charsetdetect_lib_src ${LIBCHARSETDETECT_SRC}/mozilla/extensions/universalchardet/src/base/*.cpp)
-SET (charsetdetect_lib_src ${charsetdetect_lib_src} ${LIBCHARSETDETECT_SRC}/charsetdetect.cpp)
-ADD_LIBRARY (libcharsetdetect ${charsetdetect_lib_src})
-SET_PROPERTY (TARGET libcharsetdetect
-  PROPERTY INCLUDE_DIRECTORIES
-    ${LIBCHARSETDETECT_SRC}
-    ${LIBCHARSETDETECT_SRC}/nspr-emu
-    ${LIBCHARSETDETECT_SRC}/mozilla/extensions/universalchardet/src/base)
-INCLUDE_DIRECTORIES (${LIBCHARSETDETECT_SRC})
 
 # ---------------------------
 # General overwrite of CFLAGS
@@ -215,12 +183,6 @@ CHECK_TYPE_SIZE("uint16_t" UINT16_T)
 CHECK_TYPE_SIZE("uint32_t" UINT32_T)
 CHECK_TYPE_SIZE("uint64_t" UINT64_T)
 
-# ----------------------------------------------
-# Generate marpaXmlInternal's config_and_types.h
-# ----------------------------------------------
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/include/internal/config_and_types.h.in
-               ${CMAKE_CURRENT_BINARY_DIR}/include/internal/config_and_types.h)
-
 # -----------
 # Executables
 # -----------
@@ -228,8 +190,7 @@ ADD_EXECUTABLE        (marpaWrapperTest ${PROJECT_SOURCE_DIR}/test/internal/marp
 TARGET_LINK_LIBRARIES (marpaWrapperTest marpaXmlInternal libmarpa)
 
 ADD_EXECUTABLE        (streamInTest ${PROJECT_SOURCE_DIR}/test/internal/streamInTest.c)
-SET_PROPERTY          (TARGET streamInTest APPEND PROPERTY INCLUDE_DIRECTORIES ${LIBCHARSETDETECT_SRC})
-TARGET_LINK_LIBRARIES (streamInTest marpaXmlInternal libcharsetdetect)
+TARGET_LINK_LIBRARIES (streamInTest marpaXmlInternal)
 
 ADD_EXECUTABLE        (ICU4CDetectEncoding ${PROJECT_SOURCE_DIR}/test/internal/ICU4CDetectEncoding.c)
 
