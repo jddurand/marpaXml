@@ -1268,7 +1268,7 @@ __HEX_END            ~ [0-9A-Fa-f]+
 __SPACE_ANY ~ [\s]+
 :discard ~ __SPACE_ANY
 __[ test01 ]__
-<?xml version="1.0" standalone="no" ?>
+<?xml version="1.1" standalone="no" ?>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
   "http://www.w3.org/TR/REC-html40/loose.dtd">
 <HTML>
