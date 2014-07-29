@@ -66,7 +66,7 @@ struct streamIn {
   /* UTF-8 section */
   streamInBool_t             utf8b;                    /* STREAMIN_BOOL_TRUE only if streamInUtf8_newp() is called */
   streamInBool_t             fromEncodingsManagedb;    /* STREAMIN_BOOL_TRUE only if fromEncodings is given */
-  streamInBool_t             nativeIsUtf8b;            /* STREAMIN_BOOL_TRUE only if original stream is already UTF-8 */
+  streamInBool_t             isNativeUtf8b;            /* STREAMIN_BOOL_TRUE only if original stream is already UTF-8 */
   streamInUtf8Option_t       streamInUtf8Option;       /* utf8 options */
 
   streamIn_ICU_t             streamIn_ICU;
@@ -415,9 +415,9 @@ static C_INLINE streamInBool_t _streamInUtf8_readb(streamIn_t *streamInp, size_t
       /* User did a streamInUtf8_newp. The very first time, we auto-detect encoding */
       _streamInUtf8_detectb(streamInp);
       if (strcmp(streamInp->streamInUtf8Option.fromEncodings, _streamIn_defaultFromEncodings) == 0) {
-        streamInp->nativeIsUtf8b = STREAMIN_BOOL_TRUE;
+        streamInp->isNativeUtf8b = STREAMIN_BOOL_TRUE;
       } else {
-        streamInp->nativeIsUtf8b = STREAMIN_BOOL_FALSE;
+        streamInp->isNativeUtf8b = STREAMIN_BOOL_FALSE;
       }
     }
 
