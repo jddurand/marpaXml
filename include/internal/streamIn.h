@@ -54,7 +54,7 @@ typedef streamInBool_t (*streamInBufFreeCallback_t)(void *datavp, char *charMana
 
 /* Read data */
 /* If user application is filling *charManagedArraypp then it is highly recommended to set bufFreeCallbackp if this is an allocated area */
-typedef streamInBool_t (*streamInReadCallback_t)  (void *datavp, size_t wantedBytesi, size_t *gotBytesip, char *charArrayp, char **charManagedArraypp);
+typedef streamInBool_t (*streamInReadCallback_t)  (void *datavp, size_t wantedBytesi, size_t *gotBytesip, char *byteArrayp, char **charManagedArraypp);
 
 /*************************
    Options
@@ -88,10 +88,10 @@ typedef enum streamInUtf8Option_ICU {
 typedef struct streamInUtf8Option {
   char                            *fromEncodings;     /* Input encoding.       Default: NULL */
   char                            *toEncodings;       /* Output encoding.      Default: NULL */
-  streamInUtf8Option_ICU_t         ICUFromCallback;   /* From-Callback method. Default: STREAMINUTF8OPTION_ICU_DEFAULT */
-  streamInBool_t                   ICUFromFallback;   /* From-fallback.        Default: STREAMIN_BOOL_FALSE */
-  streamInUtf8Option_ICU_t         ICUToCallback;     /* To-Callback method.   Default: STREAMINUTF8OPTION_ICU_DEFAULT */
-  streamInBool_t                   ICUToFallback;     /* To-fallback.          Default: STREAMIN_BOOL_FALSE */
+  streamInUtf8Option_ICU_t         ICUFromCallback;   /* Input -> Unicode.     Default: STREAMINUTF8OPTION_ICU_DEFAULT */
+  streamInBool_t                   ICUFromFallback;   /* Input fallback ?      Default: STREAMIN_BOOL_FALSE */
+  streamInUtf8Option_ICU_t         ICUToCallback;     /* Unicode -> Output.    Default: STREAMINUTF8OPTION_ICU_DEFAULT */
+  streamInBool_t                   ICUToFallback;     /* Output fallback ?     Default: STREAMIN_BOOL_FALSE */
 } streamInUtf8Option_t;
 
 /******************************************
@@ -106,10 +106,10 @@ void           streamIn_destroyv(streamIn_t **streamInpp);
  *************************/
 streamIn_t    *streamIn_newp          (streamInOption_t *streamInOptionp);
 /* streamIn_getBufferb: special case with negative values: -1 means last buffer, -2 means buffer before last buffer and so on */
-streamInBool_t streamIn_getBufferb(streamIn_t *streamInp, int indexBufferi, size_t *indexBufferip, char **charArraypp, size_t *bytesInBufferp);
+streamInBool_t streamIn_getBufferb(streamIn_t *streamInp, int indexBufferi, size_t *indexBufferip, char **byteArraypp, size_t *bytesInBufferp);
 /* streamIn_doneBufferb: special case with negative values: -1 means last buffer, -2 means buffer before last buffer and so on */
 streamInBool_t streamIn_doneBufferb(streamIn_t *streamInp, int indexBufferi);
-streamInBool_t streamIn_nextBufferb(streamIn_t *streamInp, size_t *indexBufferip, char **charArraypp, size_t *bytesInBufferp);
+streamInBool_t streamIn_nextBufferb(streamIn_t *streamInp, size_t *indexBufferip, char **byteArraypp, size_t *bytesInBufferp);
 
 
 /************************************************************************************************************************************
@@ -127,5 +127,7 @@ streamInBool_t streamInUtf8_markPreviousb     (streamIn_t *streamInp);          
 streamInBool_t streamInUtf8_doneb             (streamIn_t *streamInp);                                                  /* Say marked utf8 is done */
 /* Behaviour is undefined if you use streamInUtf8_doneb() between calls to mark and markToCurrent. Let's say it will very likely crash */
 streamInBool_t streamInUtf8_currentFromMarkedb(streamIn_t *streamInp);                                                  /* Set marked utf8 as current */
+/* These methods are the only way to get output using another encoding but the original. The caller WILL HAVE TO CALL free(byteArrayp) himself. */
+streamInBool_t streamInUtf8_getBufferb        (streamIn_t *streamInp, int indexBufferi, size_t *indexBufferip, char **byteArraypp, size_t *bytesInBufferp, size_t *lengthInBufferp);
 
 #endif /* MARPAXML_INTERNAL_STREAMIN_H */
