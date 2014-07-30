@@ -61,12 +61,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Exclusion004b(xml_1_0_t *xml_1_0p, 
       noMoreTestb = MARPAWRAPPER_BOOL_TRUE; /* No more test needed */
       break;
     }
-    currenti = streamInUtf8_nexti(streamInp);
-  } while (currenti >= 0);
+  } while (streamInUtf8_nexti(streamInp, &currenti) == STREAMIN_BOOL_TRUE);
 
   /* And stop the if when more */
   if (noMoreTestb == MARPAWRAPPER_BOOL_TRUE) {
-    while ((currenti = streamInUtf8_nexti(streamInp)) >= 0) {
+    while (streamInUtf8_nexti(streamInp, &currenti) == STREAMIN_BOOL_TRUE) {
       if (_xml_1_0_NameStartCharb(xml_1_0p, currenti, streamInp, &sizel) == MARPAWRAPPER_BOOL_FALSE) {
 	break;
       }

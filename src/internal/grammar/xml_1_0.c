@@ -7252,8 +7252,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0_CDStartb(xml_1_0_t *xml_1_0p, signed
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      got = streamInUtf8_nexti(streamInp);
-    } while (++i < 9);
+      if (++i < 9 && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } while (i < 9);
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }
@@ -7364,8 +7367,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0_StringTypeb(xml_1_0_t *xml_1_0p, sig
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      got = streamInUtf8_nexti(streamInp);
-    } while (++i < 5);
+      if (++i < 5 && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } while (i < 5);
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }
@@ -7442,7 +7448,9 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Exclusion002b(xml_1_0_t *xml_1_0p, 
       lastthreei[0] = currenti;
     }
     sizel++;
-    currenti = streamInUtf8_nexti(streamInp);
+    if (streamInUtf8_nexti(streamInp, &currenti) == STREAMIN_BOOL_FALSE) {
+      break;
+    }
   }
   if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
     return MARPAWRAPPER_BOOL_FALSE;
@@ -7498,7 +7506,9 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Exclusion003b(xml_1_0_t *xml_1_0p, 
       lasttwoi[0] = currenti;
     }
     sizel++;
-    currenti = streamInUtf8_nexti(streamInp);
+    if (streamInUtf8_nexti(streamInp, &currenti) == STREAMIN_BOOL_FALSE) {
+      break;
+    }
   }
   if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
     return MARPAWRAPPER_BOOL_FALSE;
@@ -7577,12 +7587,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Exclusion004b(xml_1_0_t *xml_1_0p, 
       noMoreTestb = MARPAWRAPPER_BOOL_TRUE; /* No more test needed */
       break;
     }
-    currenti = streamInUtf8_nexti(streamInp);
-  } while (currenti >= 0);
+  } while (streamInUtf8_nexti(streamInp, &currenti) == STREAMIN_BOOL_TRUE);
 
   /* And stop the if when more */
   if (noMoreTestb == MARPAWRAPPER_BOOL_TRUE) {
-    while ((currenti = streamInUtf8_nexti(streamInp)) >= 0) {
+    while (streamInUtf8_nexti(streamInp, &currenti) == STREAMIN_BOOL_TRUE) {
       if (_xml_1_0_NameStartCharb(xml_1_0p, currenti, streamInp, &sizel) == MARPAWRAPPER_BOOL_FALSE) {
 	break;
       }
@@ -7652,7 +7661,9 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Exclusion005b(xml_1_0_t *xml_1_0p, 
       lastthreei[0] = currenti;
     }
     sizel++;
-    currenti = streamInUtf8_nexti(streamInp);
+    if (streamInUtf8_nexti(streamInp, &currenti) == STREAMIN_BOOL_FALSE) {
+      break;
+    }
   }
   if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
     return MARPAWRAPPER_BOOL_FALSE;
@@ -7716,7 +7727,9 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Exclusion006b(xml_1_0_t *xml_1_0p, 
       lastthreei[0] = currenti;
     }
     sizel++;
-    currenti = streamInUtf8_nexti(streamInp);
+    if (streamInUtf8_nexti(streamInp, &currenti) == STREAMIN_BOOL_FALSE) {
+      break;
+    }
   }
   if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
     return MARPAWRAPPER_BOOL_FALSE;
@@ -7898,8 +7911,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex016b(xml_1_0_t *xml_1_0p, signed
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      got = streamInUtf8_nexti(streamInp);
-    } while (++i < 3);
+      if (++i < 3 && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } while (i < 3);
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }
@@ -7932,8 +7948,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex017b(xml_1_0_t *xml_1_0p, signed
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      got = streamInUtf8_nexti(streamInp);
-    } while (++i < 4);
+      if (++i < 4 && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } while (i < 4);
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }
@@ -7965,8 +7984,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex018b(xml_1_0_t *xml_1_0p, signed
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      got = streamInUtf8_nexti(streamInp);
-    } while (++i < 3);
+      if (++i < 3 && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } while (i < 3);
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }
@@ -7997,8 +8019,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex019b(xml_1_0_t *xml_1_0p, signed
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      got = streamInUtf8_nexti(streamInp);
-    } while (++i < 2);
+      if (++i < 2 && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } while (i < 2);
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }
@@ -8029,8 +8054,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex020b(xml_1_0_t *xml_1_0p, signed
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      got = streamInUtf8_nexti(streamInp);
-    } while (++i < 2);
+      if (++i < 2 && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } while (i < 2);
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }
@@ -8130,8 +8158,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex028b(xml_1_0_t *xml_1_0p, signed
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      got = streamInUtf8_nexti(streamInp);
-    } while (++i < 5);
+      if (++i < 5 && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } while (i < 5);
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }
@@ -8167,8 +8198,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex029b(xml_1_0_t *xml_1_0p, signed
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      got = streamInUtf8_nexti(streamInp);
-    } while (++i < 7);
+      if (++i < 7 && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } while (i < 7);
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }
@@ -8210,8 +8244,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex031b(xml_1_0_t *xml_1_0p, signed
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      got = streamInUtf8_nexti(streamInp);
-    } while (++i < 2);
+      if (++i < 2 && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } while (i < 2);
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }
@@ -8260,8 +8297,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex033b(xml_1_0_t *xml_1_0p, signed
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      got = streamInUtf8_nexti(streamInp);
-    } while (++i < 9);
+      if (++i < 9 && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } while (i < 9);
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }
@@ -8333,8 +8373,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex037b(xml_1_0_t *xml_1_0p, signed
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      got = streamInUtf8_nexti(streamInp);
-    } while (++i < 10);
+      if (++i < 10 && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } while (i < 10);
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }
@@ -8366,8 +8409,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex038b(xml_1_0_t *xml_1_0p, signed
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      got = streamInUtf8_nexti(streamInp);
-    } while (++i < 3);
+      if (++i < 3 && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } while (i < 3);
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }
@@ -8398,8 +8444,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex039b(xml_1_0_t *xml_1_0p, signed
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      got = streamInUtf8_nexti(streamInp);
-    } while (++i < 2);
+      if (++i < 2 && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } while (i < 2);
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }
@@ -8441,8 +8490,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex041b(xml_1_0_t *xml_1_0p, signed
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      got = streamInUtf8_nexti(streamInp);
-    } while (++i < 2);
+      if (++i < 2 && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } while (i < 2);
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }
@@ -8473,8 +8525,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex042b(xml_1_0_t *xml_1_0p, signed
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      got = streamInUtf8_nexti(streamInp);
-    } while (++i < 2);
+      if (++i < 2 && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } while (i < 2);
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }
@@ -8512,8 +8567,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex043b(xml_1_0_t *xml_1_0p, signed
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      got = streamInUtf8_nexti(streamInp);
-    } while (++i < 9);
+      if (++i < 9 && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } while (i < 9);
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }
@@ -8547,8 +8605,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex044b(xml_1_0_t *xml_1_0p, signed
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      got = streamInUtf8_nexti(streamInp);
-    } while (++i < 5);
+      if (++i < 5 && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } while (i < 5);
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }
@@ -8580,8 +8641,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex045b(xml_1_0_t *xml_1_0p, signed
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      got = streamInUtf8_nexti(streamInp);
-    } while (++i < 3);
+      if (++i < 3 && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } while (i < 3);
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }
@@ -8694,8 +8758,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex053b(xml_1_0_t *xml_1_0p, signed
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      got = streamInUtf8_nexti(streamInp);
-    } while (++i < 7);
+      if (++i < 7 && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } while (i < 7);
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }
@@ -8726,8 +8793,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex054b(xml_1_0_t *xml_1_0p, signed
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      got = streamInUtf8_nexti(streamInp);
-    } while (++i < 2);
+      if (++i < 2 && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } while (i < 2);
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }
@@ -8765,8 +8835,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex055b(xml_1_0_t *xml_1_0p, signed
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      got = streamInUtf8_nexti(streamInp);
-    } while (++i < 9);
+      if (++i < 9 && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } while (i < 9);
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }
@@ -8797,8 +8870,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex057b(xml_1_0_t *xml_1_0p, signed
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      got = streamInUtf8_nexti(streamInp);
-    } while (++i < 2);
+      if (++i < 2 && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } while (i < 2);
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }
@@ -8832,8 +8908,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex058b(xml_1_0_t *xml_1_0p, signed
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      got = streamInUtf8_nexti(streamInp);
-    } while (++i < 5);
+      if (++i < 5 && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } while (i < 5);
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }
@@ -8868,8 +8947,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex059b(xml_1_0_t *xml_1_0p, signed
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      got = streamInUtf8_nexti(streamInp);
-    } while (++i < 6);
+      if (++i < 6 && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } while (i < 6);
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }
@@ -8904,8 +8986,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex060b(xml_1_0_t *xml_1_0p, signed
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      got = streamInUtf8_nexti(streamInp);
-    } while (++i < 6);
+      if (++i < 6 && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } while (i < 6);
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }
@@ -8942,8 +9027,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex061b(xml_1_0_t *xml_1_0p, signed
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      got = streamInUtf8_nexti(streamInp);
-    } while (++i < 8);
+      if (++i < 8 && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } while (i < 8);
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }
@@ -8979,8 +9067,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex062b(xml_1_0_t *xml_1_0p, signed
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      got = streamInUtf8_nexti(streamInp);
-    } while (++i < 7);
+      if (++i < 7 && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } while (i < 7);
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }
@@ -9017,8 +9108,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex063b(xml_1_0_t *xml_1_0p, signed
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      got = streamInUtf8_nexti(streamInp);
-    } while (++i < 8);
+      if (++i < 8 && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } while (i < 8);
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }
@@ -9055,8 +9149,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex064b(xml_1_0_t *xml_1_0p, signed
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      got = streamInUtf8_nexti(streamInp);
-    } while (++i < 8);
+      if (++i < 8 && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } while (i < 8);
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }
@@ -9094,8 +9191,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex065b(xml_1_0_t *xml_1_0p, signed
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      got = streamInUtf8_nexti(streamInp);
-    } while (++i < 9);
+      if (++i < 9 && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } while (i < 9);
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }
@@ -9132,8 +9232,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex066b(xml_1_0_t *xml_1_0p, signed
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      got = streamInUtf8_nexti(streamInp);
-    } while (++i < 8);
+      if (++i < 8 && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } while (i < 8);
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }
@@ -9168,8 +9271,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex067b(xml_1_0_t *xml_1_0p, signed
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      got = streamInUtf8_nexti(streamInp);
-    } while (++i < 6);
+      if (++i < 6 && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } while (i < 6);
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }
@@ -9201,8 +9307,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex068b(xml_1_0_t *xml_1_0p, signed
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      got = streamInUtf8_nexti(streamInp);
-    } while (++i < 3);
+      if (++i < 3 && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } while (i < 3);
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }
@@ -9238,8 +9347,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex069b(xml_1_0_t *xml_1_0p, signed
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      got = streamInUtf8_nexti(streamInp);
-    } while (++i < 7);
+      if (++i < 7 && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } while (i < 7);
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }
@@ -9274,8 +9386,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex070b(xml_1_0_t *xml_1_0p, signed
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      got = streamInUtf8_nexti(streamInp);
-    } while (++i < 6);
+      if (++i < 6 && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } while (i < 6);
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }
@@ -9306,8 +9421,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex071b(xml_1_0_t *xml_1_0p, signed
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      got = streamInUtf8_nexti(streamInp);
-    } while (++i < 2);
+      if (++i < 2 && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } while (i < 2);
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }
@@ -9350,8 +9468,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex073b(xml_1_0_t *xml_1_0p, signed
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      got = streamInUtf8_nexti(streamInp);
-    } while (++i < 3);
+      if (++i < 3 && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } while (i < 3);
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }
@@ -9423,8 +9544,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex077b(xml_1_0_t *xml_1_0p, signed
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      got = streamInUtf8_nexti(streamInp);
-    } while (++i < 8);
+      if (++i < 8 && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } while (i < 8);
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }
@@ -9459,8 +9583,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex078b(xml_1_0_t *xml_1_0p, signed
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      got = streamInUtf8_nexti(streamInp);
-    } while (++i < 6);
+      if (++i < 6 && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } while (i < 6);
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }
@@ -9495,8 +9622,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex079b(xml_1_0_t *xml_1_0p, signed
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      got = streamInUtf8_nexti(streamInp);
-    } while (++i < 6);
+      if (++i < 6 && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } while (i < 6);
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }
@@ -9530,8 +9660,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex080b(xml_1_0_t *xml_1_0p, signed
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      got = streamInUtf8_nexti(streamInp);
-    } while (++i < 5);
+      if (++i < 5 && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } while (i < 5);
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }
@@ -9568,8 +9701,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex081b(xml_1_0_t *xml_1_0p, signed
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      got = streamInUtf8_nexti(streamInp);
-    } while (++i < 8);
+      if (++i < 8 && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } while (i < 8);
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }
@@ -9646,8 +9782,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Lex085b(xml_1_0_t *xml_1_0p, signed
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      got = streamInUtf8_nexti(streamInp);
-    } while (++i < 10);
+      if (++i < 10 && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } while (i < 10);
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }

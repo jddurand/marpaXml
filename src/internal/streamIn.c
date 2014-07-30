@@ -46,15 +46,15 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_readb(streamIn_t *streamInp, si
 static C_INLINE streamInBool_t _streamInUtf8_ICU_detectb(streamIn_t *streamInp);
 static C_INLINE streamInBool_t _streamInUtf8_ICU_fromConvertb(streamIn_t *streamInp, size_t bufIndexi);
 static C_INLINE streamInBool_t _streamInUtf8_ICU_toConvertb(streamIn_t *streamInp, size_t bufIndexi, char **byteArraypp, size_t *bytesInBufferp, size_t *lengthInBufferp);
-static C_INLINE unsigned char  _streaminUtf8_ICU_nibbleToHex(uint8_t n);
-static C_INLINE signed int     _streamInUtf8_ICU_currenti(streamIn_t *streamInp);
-static C_INLINE signed int     _streamInUtf8_ICU_nexti(streamIn_t *streamInp);
+static C_INLINE streamInBool_t _streamInUtf8_ICU_currenti(streamIn_t *streamInp, signed int *currentip);
+static C_INLINE streamInBool_t  _streamInUtf8_ICU_nexti(streamIn_t *streamInp, signed int *nextip);
 static C_INLINE streamInBool_t _streamInUtf8_ICU_markb(streamIn_t *streamInp);
 static C_INLINE streamInBool_t _streamInUtf8_ICU_markPreviousb(streamIn_t *streamInp);
 static C_INLINE streamInBool_t _streamInUtf8_ICU_currentFromMarkedb(streamIn_t *streamInp);
 static C_INLINE streamInBool_t _streamInUtf8_ICU_doneb(streamIn_t *streamInp);
 static C_INLINE void           _streamInUtf8_ICU_destroyv(streamIn_t *streamInp);
-static C_INLINE streamInBool_t _streamInUtf8_getBufferb(streamIn_t *streamInp, size_t wantedIndexi, size_t *indexBufferip, char **byteArraypp, size_t *bytesInBufferp, size_t *lengthInBufferp);
+static C_INLINE unsigned char  _streaminUtf8_ICU_nibbleToHex(uint8_t n);
+static C_INLINE streamInBool_t _streamInUnicode_getBufferb(streamIn_t *streamInp, size_t wantedIndexi, size_t *indexBufferip, char **byteArraypp, size_t *bytesInBufferp, size_t *lengthInBufferp);
 
 /*****************************************************************************/
 /* Generic class handling read-only streaming on buffers that can ONLY go on */
@@ -87,8 +87,25 @@ struct streamIn {
 #define STREAMIN_TRACEX(fmts, ...)
 #endif
 
-#define STREAMIN_FREE(x) { free(x); x = NULL; }
-#define STREAMIN_FREE_REPLACEMENT(x, replacement) { free(x); x = replacement; }
+#define STREAMIN_FREE(x) {			\
+    if ((x) != NULL) {				\
+      free(x);					\
+    } else {					\
+      STREAMIN_LOGX(STREAMIN_LOGLEVEL_CRITICAL, "Attempt to free a NULL pointer at %s:%d", __FILE__, __LINE__); \
+    }						\
+    (x) = NULL;					\
+  }
+#define STREAMIN_FREE_REPLACEMENT(x, replacement) { STREAMIN_FREE(x); (x) = (replacement); }
+
+#define STREAMIN_MANAGE_BUFFERI(streamInp, indexBufferi, wantedIndexi) { \
+    if (indexBufferi < 0) {						\
+      wantedIndexi = streamInp->nByteBufi;				\
+      wantedIndexi -= (size_t) -indexBufferi;				\
+    } else {								\
+      wantedIndexi = indexBufferi;					\
+    }									\
+  }
+
 
 static C_INLINE streamInBool_t _streamIn_getBufferb (streamIn_t *streamInp, size_t wantedIndexi, size_t *indexBufferip, char **byteArraypp, size_t *bytesInBufferp);
 static C_INLINE streamInBool_t _streamIn_doneBufferb(streamIn_t *streamInp, size_t bufIndexi);
@@ -107,6 +124,7 @@ streamInBool_t streamIn_optionDefaultb(streamInOption_t *streamInOptionp){
   }
 
   streamInOptionp->bufMaxSizei                  = STREAMIN_DEFAULT_BUFMAXSIZEI;
+  streamInOptionp->allBuffersAreManagedByUserb  = STREAMIN_BOOL_FALSE;
   streamInOptionp->logLevelWantedi              = STREAMIN_LOGLEVEL_WARNING;
   streamInOptionp->logCallbackp                 = NULL;
   streamInOptionp->logCallbackUserDatap         = NULL;
@@ -168,6 +186,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_newb(streamIn_t *streamInp) {
   streamInp->streamIn_ICU.ucharBufSizel            = 0;
   streamInp->streamIn_ICU.ucharByteLengthl         = 0;
   streamInp->streamIn_ICU.uConverterFrom           = NULL;
+  streamInp->streamIn_ICU.uConverterTo             = NULL;
   streamInp->streamIn_ICU.utextp                   = NULL;
 
   switch (streamInp->streamInUtf8Option.ICUFromCallback) {
@@ -429,6 +448,31 @@ static C_INLINE streamInBool_t _streamInUtf8_readb(streamIn_t *streamInp, size_t
 }
 
 /********************************************/
+/* streamInUnicode_doneBufferb              */
+/********************************************/
+streamInBool_t streamInUnicode_doneBufferb(streamIn_t *streamInp, int indexBufferi) {
+  streamInBool_t rcb = STREAMIN_BOOL_FALSE;
+  size_t wantedIndexi;
+
+  if (streamInp == NULL || streamInp->utf8b == STREAMIN_BOOL_FALSE) {
+    return rcb;
+  }
+
+  /* Nothing differentiate the doneBufferb method and the non unicode method */
+  /* except the test on the utf8b boolean -; */
+
+  STREAMIN_TRACEX("streamInUnicode_doneBufferb(%p, %d)", streamInp, indexBufferi);
+
+  STREAMIN_MANAGE_BUFFERI(streamInp, indexBufferi, wantedIndexi);
+
+  if (streamInp->nByteBufi > 0 && wantedIndexi < streamInp->nByteBufi) {
+    return _streamIn_doneBufferb(streamInp, wantedIndexi);
+  } else {
+    return STREAMIN_BOOL_FALSE;
+  }
+}
+
+/********************************************/
 /* _streamIn_doneBufferb                    */
 /********************************************/
 
@@ -648,12 +692,17 @@ static C_INLINE streamInBool_t _streamIn_readb(streamIn_t *streamInp) {
 
   }
 
-  streamInp->byteBufpp[bufIndexi]  = malloc(streamInp->streamInOption.bufMaxSizei);
-  if (streamInp->byteBufpp[bufIndexi] == NULL) {
-    STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "malloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
-    return STREAMIN_BOOL_FALSE;
+  if (streamInp->streamInOption.allBuffersAreManagedByUserb == STREAMIN_BOOL_TRUE) {
+    streamInp->byteBufpp[bufIndexi]  = NULL;
+    streamInp->managedbp[bufIndexi] = STREAMIN_BOOL_TRUE;
+  } else {
+    streamInp->byteBufpp[bufIndexi]  = malloc(streamInp->streamInOption.bufMaxSizei);
+    if (streamInp->byteBufpp[bufIndexi] == NULL) {
+      STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "malloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
+      return STREAMIN_BOOL_FALSE;
+    }
+    streamInp->managedbp[bufIndexi] = STREAMIN_BOOL_FALSE;
   }
-  streamInp->managedbp[bufIndexi] = STREAMIN_BOOL_FALSE;
   streamInp->realSizeByteBufip[bufIndexi] = 0;
 
   if (streamInp->streamInOption.readCallbackp != NULL) {
@@ -810,6 +859,8 @@ static C_INLINE streamInBool_t _streamIn_getBufferb(streamIn_t *streamInp, size_
   size_t         bytesInBuffer;
   streamInBool_t rcb = STREAMIN_BOOL_FALSE;
 
+  STREAMIN_TRACEX("_streamIn_getBufferb(%p, %d, %p, %p, %p)", streamInp, wantedIndexi, indexBufferip, byteArraypp, bytesInBufferp);
+
   if (wantedIndexi < streamInp->nByteBufi) {
     /* Available */
     byteArrayp = streamInp->byteBufpp[wantedIndexi];
@@ -846,16 +897,16 @@ static C_INLINE streamInBool_t _streamIn_getBufferb(streamIn_t *streamInp, size_
 }
 
 /****************************/
-/* _streamInUtf8_getBufferb */
+/* _streamInUnicode_getBufferb */
 /****************************/
-static C_INLINE streamInBool_t _streamInUtf8_getBufferb(streamIn_t *streamInp, size_t wantedIndexi, size_t *indexBufferip, char **byteArraypp, size_t *bytesInBufferp, size_t *lengthInBufferp) {
+static C_INLINE streamInBool_t _streamInUnicode_getBufferb(streamIn_t *streamInp, size_t wantedIndexi, size_t *indexBufferip, char **byteArraypp, size_t *bytesInBufferp, size_t *lengthInBufferp) {
   char          *byteArrayp;
   size_t         indexBufferi;
   size_t         bytesInBuffer;
   size_t         lengthInBuffer;
 
   /* First, make sure this buffer index is available */
-  if (streamIn_getBufferb(streamInp, wantedIndexi, &indexBufferi, &byteArrayp, &bytesInBuffer) == STREAMIN_BOOL_FALSE) {
+  if (_streamIn_getBufferb(streamInp, wantedIndexi, &indexBufferi, NULL, NULL) == STREAMIN_BOOL_FALSE) {
     return STREAMIN_BOOL_FALSE;
   }
 
@@ -892,36 +943,26 @@ streamInBool_t streamIn_getBufferb(streamIn_t *streamInp, int indexBufferi, size
 
   STREAMIN_TRACEX("streamIn_getBufferb(%p, %d, %p, %p, %p)", streamInp, indexBufferi, indexBufferip, byteArraypp, bytesInBufferp);
 
-  if (indexBufferi < 0) {
-    wantedIndexi = streamInp->nByteBufi;
-    wantedIndexi -= (size_t) -indexBufferi;
-  } else {
-    wantedIndexi = indexBufferi;
-  }
+  STREAMIN_MANAGE_BUFFERI(streamInp, indexBufferi, wantedIndexi);
 
   return _streamIn_getBufferb(streamInp, wantedIndexi, indexBufferip, byteArraypp, bytesInBufferp);
 }
 
 /***************************/
-/* streamInUtf8_getBufferb */
+/* streamInUnicode_getBufferb */
 /***************************/
-streamInBool_t streamInUtf8_getBufferb(streamIn_t *streamInp, int indexBufferi, size_t *indexBufferip, char **byteArraypp, size_t *bytesInBufferp, size_t *lengthInBufferp) {
+streamInBool_t streamInUnicode_getBufferb(streamIn_t *streamInp, int indexBufferi, size_t *indexBufferip, char **byteArraypp, size_t *bytesInBufferp, size_t *lengthInBufferp) {
   size_t wantedIndexi;
 
   if (streamInp == NULL || streamInp->utf8b == STREAMIN_BOOL_FALSE) {
     return STREAMIN_BOOL_FALSE;
   }
 
-  STREAMIN_TRACEX("streamInUtf8_getBufferb(%p, %d, %p, %p, %p, %p)", streamInp, indexBufferi, indexBufferip, byteArraypp, bytesInBufferp, lengthInBufferp);
+  STREAMIN_TRACEX("streamInUnicode_getBufferb(%p, %d, %p, %p, %p, %p)", streamInp, indexBufferi, indexBufferip, byteArraypp, bytesInBufferp, lengthInBufferp);
 
-  if (indexBufferi < 0) {
-    wantedIndexi = streamInp->nByteBufi;
-    wantedIndexi -= (size_t) -indexBufferi;
-  } else {
-    wantedIndexi = indexBufferi;
-  }
+  STREAMIN_MANAGE_BUFFERI(streamInp, indexBufferi, wantedIndexi);
 
-  return _streamInUtf8_getBufferb(streamInp, wantedIndexi, indexBufferip, byteArraypp, bytesInBufferp, lengthInBufferp);
+  return _streamInUnicode_getBufferb(streamInp, wantedIndexi, indexBufferip, byteArraypp, bytesInBufferp, lengthInBufferp);
 }
 
 /************************/
@@ -936,12 +977,7 @@ streamInBool_t streamIn_doneBufferb(streamIn_t *streamInp, int indexBufferi) {
 
   STREAMIN_TRACEX("streamIn_doneBufferb(%p, %d)", streamInp, indexBufferi);
 
-  if (indexBufferi < 0) {
-    wantedIndexi = streamInp->nByteBufi;
-    wantedIndexi -= (size_t) -indexBufferi;
-  } else {
-    wantedIndexi = indexBufferi;
-  }
+  STREAMIN_MANAGE_BUFFERI(streamInp, indexBufferi, wantedIndexi);
 
   if (streamInp->nByteBufi > 0 && wantedIndexi < streamInp->nByteBufi) {
     return _streamIn_doneBufferb(streamInp, wantedIndexi);
@@ -994,6 +1030,19 @@ streamInBool_t streamIn_nextBufferb(streamIn_t *streamInp, size_t *indexBufferip
   STREAMIN_TRACEX("streamIn_nextBufferb(%p, %p, %p, %p)", streamInp, indexBufferip, byteArraypp, bytesInBufferp);
 
   return _streamIn_getBufferb(streamInp, streamInp->nByteBufi, indexBufferip, byteArraypp, bytesInBufferp);
+}
+
+/****************************/
+/* streamInUnicode_nextBufferb */
+/****************************/
+streamInBool_t streamInUnicode_nextBufferb(streamIn_t *streamInp, size_t *indexBufferip, char **byteArraypp, size_t *bytesInBufferp, size_t *lengthInBufferp) {
+  if (streamInp == NULL || streamInp->utf8b == STREAMIN_BOOL_FALSE) {
+    return STREAMIN_BOOL_FALSE;
+  }
+
+  STREAMIN_TRACEX("streamInUnicode_nextBufferb(%p, %p, %p, %p %p)", streamInp, indexBufferip, byteArraypp, bytesInBufferp, lengthInBufferp);
+
+  return _streamInUnicode_getBufferb(streamInp, streamInp->nByteBufi, indexBufferip, byteArraypp, bytesInBufferp, lengthInBufferp);
 }
 
 /*************************/
@@ -1124,6 +1173,7 @@ streamInBool_t streamInUtf8_fromEncodings(streamIn_t *streamInp, char **fromEnco
 /* streamInUtf8_toEncodings */
 /****************************/
 streamInBool_t streamInUtf8_toEncodings(streamIn_t *streamInp, char **toEncodingsp) {
+
   if (streamInp == NULL || streamInp->utf8b == STREAMIN_BOOL_FALSE) {
     return STREAMIN_BOOL_FALSE;
   }
@@ -1138,20 +1188,29 @@ streamInBool_t streamInUtf8_toEncodings(streamIn_t *streamInp, char **toEncoding
 /*********************/
 /* streamInUtf8_next */
 /*********************/
-signed int streamInUtf8_nexti(streamIn_t *streamInp) {
-  signed int     rci = -1;
+streamInBool_t streamInUtf8_nexti(streamIn_t *streamInp, signed int *nextip) {
+  streamInBool_t rcb = STREAMIN_BOOL_FALSE;
+  signed int     nexti;
 
   if (streamInp == NULL || streamInp->utf8b == STREAMIN_BOOL_FALSE) {
-    return rci;
+    return rcb;
   }
 
-  rci = _streamInUtf8_ICU_nexti(streamInp);
+  rcb = _streamInUtf8_ICU_nexti(streamInp, &nexti);
 
-  if (rci == -1 && _streamIn_getBufferb(streamInp, streamInp->nByteBufi, NULL, NULL, NULL) == STREAMIN_BOOL_TRUE) {
-    return streamInUtf8_nexti(streamInp);
+  if (rcb == STREAMIN_BOOL_FALSE) {
+    if (_streamIn_getBufferb(streamInp, streamInp->nByteBufi, NULL, NULL, NULL) == STREAMIN_BOOL_TRUE) {
+      return streamInUtf8_nexti(streamInp, nextip);
+    }
   }
 
-  return rci;
+  if (rcb == STREAMIN_BOOL_TRUE) {
+    if (nextip != NULL) {
+      *nextip = nexti;
+    }
+  }
+
+  return rcb;
 }
 
 /******************************/
@@ -1304,13 +1363,12 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_fromConvertb(streamIn_t *stream
 static C_INLINE streamInBool_t _streamInUtf8_ICU_toConvertb(streamIn_t *streamInp, size_t bufIndexi, char **byteArraypp, size_t *bytesInBufferp, size_t *lengthInBufferp) {
   streamInBool_t rcb            = STREAMIN_BOOL_TRUE;
 
-  int64_t        ucharBufSizel  = streamInp->streamIn_ICU.ucharBufSizel;
   size_t         byteBufSizel;
   char          *target;
   char          *origTarget;
   const char    *targetLimit;
-  const UChar   *source         = streamInp->streamIn_ICU.ucharBufp;
-  const UChar   *sourceLimit    = (const UChar *) (((char *) streamInp->streamIn_ICU.ucharBufp) + ucharBufSizel);
+  const UChar   *source;
+  const UChar   *sourceLimit;
   UBool          flushb         = (streamInp->eofb == STREAMIN_BOOL_TRUE) ? TRUE : FALSE;
   streamInBool_t stopb          = STREAMIN_BOOL_FALSE;
   UErrorCode     uErrorCode     = U_ZERO_ERROR;
@@ -1319,6 +1377,14 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_toConvertb(streamIn_t *streamIn
   char          errorBytes[32];
   int8_t        errorLength;
   int           i;
+
+
+  if (bufIndexi > 0) {
+    source = (const UChar *) (((char *) streamInp->streamIn_ICU.ucharBufp) + streamInp->streamIn_ICU.byteBuf2UCharByteLengthlp[bufIndexi-1]);
+  } else {
+    source = streamInp->streamIn_ICU.ucharBufp;
+  }
+  sourceLimit = (const UChar *) (((char *) streamInp->streamIn_ICU.ucharBufp) + streamInp->streamIn_ICU.byteBuf2UCharByteLengthlp[bufIndexi]);
 
   if (streamInp->streamIn_ICU.uConverterTo == NULL) {
     UBool fallback = (streamInp->streamInUtf8Option.ICUToFallback == STREAMIN_BOOL_TRUE) ? TRUE : FALSE;
@@ -1343,7 +1409,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_toConvertb(streamIn_t *streamIn
     ucnv_setFallback(streamInp->streamIn_ICU.uConverterTo, fallback);
   }
 
-  byteBufSizel = UCNV_GET_MAX_BYTES_FOR_STRING(ucharBufSizel, ucnv_getMaxCharSize(streamInp->streamIn_ICU.uConverterTo));
+  byteBufSizel = UCNV_GET_MAX_BYTES_FOR_STRING(streamInp->streamIn_ICU.byteBuf2UCharByteLengthlp[bufIndexi], ucnv_getMaxCharSize(streamInp->streamIn_ICU.uConverterTo));
   target = malloc(byteBufSizel);
   if (target == NULL) {
     STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "malloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
@@ -1399,8 +1465,8 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_toConvertb(streamIn_t *streamIn
   } while (stopb == STREAMIN_BOOL_FALSE);
 
   if (rcb == STREAMIN_BOOL_TRUE) {
-    *byteArraypp = target;
-    *bytesInBufferp = byteBufSizel;
+    *byteArraypp = origTarget;
+    *bytesInBufferp = target - origTarget;
     /* Calculating the length can be expensive, so we do it only on-demand */
     if (lengthInBufferp != NULL) {
       *lengthInBufferp = utext_nativeLength(streamInp->streamIn_ICU.utextp);
@@ -1564,6 +1630,10 @@ static C_INLINE void _streamInUtf8_ICU_destroyv(streamIn_t *streamInp) {
     STREAMIN_TRACEX("ucnv_close(%p)", streamInp->streamIn_ICU.uConverterFrom);
     ucnv_close(streamInp->streamIn_ICU.uConverterFrom);
   }
+  if (streamInp->streamIn_ICU.uConverterTo != NULL) {
+    STREAMIN_TRACEX("ucnv_close(%p)", streamInp->streamIn_ICU.uConverterTo);
+    ucnv_close(streamInp->streamIn_ICU.uConverterTo);
+  }
 #ifdef STREAMIN_SINGLE_TEST_APPLICATION_ONLY
   /* ICU recommendation is to NOT call this. This is done automatically at library unload */
   STREAMIN_TRACE0("u_cleanup()");
@@ -1585,50 +1655,63 @@ static C_INLINE unsigned char _streaminUtf8_ICU_nibbleToHex(uint8_t n) {
 /************************/
 /* streamInUtf8_current */
 /************************/
-signed int streamInUtf8_currenti(streamIn_t *streamInp) {
-  signed int rci = -1;
+streamInBool_t streamInUtf8_currenti(streamIn_t *streamInp, signed int *currentip) {
+  streamInBool_t rcb = STREAMIN_BOOL_FALSE;
+  signed int     currenti;
 
   if (streamInp == NULL || streamInp->utf8b == STREAMIN_BOOL_FALSE) {
-    return rci;
+    return rcb;
   }
 
-  rci = _streamInUtf8_ICU_currenti(streamInp);
+  rcb = _streamInUtf8_ICU_currenti(streamInp, &currenti);
 
-  if (rci == -1 && _streamIn_getBufferb(streamInp, streamInp->nByteBufi, NULL, NULL, NULL) == STREAMIN_BOOL_TRUE) {
-    return streamInUtf8_currenti(streamInp);
+  if (rcb == STREAMIN_BOOL_FALSE) {
+    if (_streamIn_getBufferb(streamInp, streamInp->nByteBufi, NULL, NULL, NULL) == STREAMIN_BOOL_TRUE) {
+      return streamInUtf8_currenti(streamInp, currentip);
+    }
   }
 
-  return rci;
+  if (rcb == STREAMIN_BOOL_TRUE) {
+    if (currentip != NULL) {
+      *currentip = currenti;
+    }
+  }
+
+  return rcb;
 }
 
 /******************************/
 /* _streamInUtf8_ICU_currenti */
 /******************************/
-static C_INLINE signed int _streamInUtf8_ICU_currenti(streamIn_t *streamInp) {
-  signed int rci = -1;
+static C_INLINE streamInBool_t _streamInUtf8_ICU_currenti(streamIn_t *streamInp, signed int *currentip) {
+  streamInBool_t rcb = STREAMIN_BOOL_FALSE;
 
   if (streamInp->streamIn_ICU.utextp == NULL) {
-    return rci;
+    return rcb;
   } else {
     /* A trace here would hog the output */
     /* STREAMIN_TRACEX("UTEXT_CURRENT32(%p)", streamInp->streamIn_ICU.utextp); */
-    return UTEXT_CURRENT32(streamInp->streamIn_ICU.utextp);
+    *currentip = UTEXT_CURRENT32(streamInp->streamIn_ICU.utextp);
   }
+
+  return rcb;
 }
 
 /***************************/
 /* _streamInUtf8_ICU_nexti */
 /***************************/
-static C_INLINE signed int _streamInUtf8_ICU_nexti(streamIn_t *streamInp) {
-  signed int rci = -1;
+static C_INLINE streamInBool_t _streamInUtf8_ICU_nexti(streamIn_t *streamInp, signed int *nextip) {
+  streamInBool_t rcb = STREAMIN_BOOL_FALSE;
 
   if (streamInp->streamIn_ICU.utextp == NULL) {
-    return rci;
+    return rcb;
   } else {
     /* A trace here would hog the output */
     /* STREAMIN_TRACEX("UTEXT_NEXT32(%p)", streamInp->streamIn_ICU.utextp); */
-    return UTEXT_NEXT32(streamInp->streamIn_ICU.utextp);
+    *nextip = UTEXT_NEXT32(streamInp->streamIn_ICU.utextp);
   }
+
+  return rcb;
 }
 
 /***********************/

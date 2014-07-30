@@ -1044,8 +1044,11 @@ static C_INLINE marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespa
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      got = streamInUtf8_nexti(streamInp);
-    } while (++i < $length);
+      if (++i < $length && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
+    } while (i < $length);
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }

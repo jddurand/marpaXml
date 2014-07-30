@@ -53,14 +53,18 @@ typedef void           (*streamInLogCallback_t)(void *datavp, streamIn_t *stream
 typedef streamInBool_t (*streamInBufFreeCallback_t)(void *datavp, char *charManagedArrayp);
 
 /* Read data */
-/* If user application is filling *charManagedArraypp then it is highly recommended to set bufFreeCallbackp if this is an allocated area */
-typedef streamInBool_t (*streamInReadCallback_t)  (void *datavp, size_t wantedBytesi, size_t *gotBytesip, char *byteArrayp, char **charManagedArraypp);
+/* If user application is filling *charManagedArraypp then it is highly recommended to set bufFreeCallbackp if this is an allocated area: */
+/* This will be a buffer that the user declares that it can manage himself. In such a case streamIn will call bufFreeCallbackp */
+/* IF the streamInOption.allBuffersAreManagedByUserb is STREAMIN_BOOL_TRUE, then byteArrayp will be NULLP, leaving only the only to use a managed buffer */
+/* IF the streamInOption.allBuffersAreManagedByUserb is STREAMIN_BOOL_FALSE, this library will always pre-allocate size in byteArrayp */
+typedef streamInBool_t (*streamInReadCallback_t)  (void *datavp, size_t wantedBytesi, size_t *gotBytesip, char *byteArrayp, char **byteManagedArraypp);
 
 /*************************
    Options
  *************************/
 typedef struct streamInOption {
   size_t                       bufMaxSizei;                   /* Defaut:  1M. Optional.                       */
+  streamInBool_t               allBuffersAreManagedByUserb;   /* Default: STREAMIN_BOOL_FALSE                 */
   streamInLogLevel_t           logLevelWantedi;               /* Default: STREAMIN_LOGLEVEL_WARNING           */
   streamInLogCallback_t        logCallbackp;                  /* Default: Internal routine logging to STDERR. */
   void                        *logCallbackUserDatap;          /* Default: NULL. Optional.                     */
@@ -120,14 +124,20 @@ streamInBool_t streamInUtf8_optionDefaultb    (streamInUtf8Option_t *streamInUtf
 /* Options at the utf8 level cannot be changed after streamInUtf8_newp() */
 streamInBool_t streamInUtf8_fromEncodings     (streamIn_t *streamInp, char **fromEncodingsp);                           /* Get input encoding */
 streamInBool_t streamInUtf8_toEncodings       (streamIn_t *streamInp, char **toEncodingsp);                             /* Get output encoding */
-signed int     streamInUtf8_currenti          (streamIn_t *streamInp);                                                  /* Get current utf8. -1 means EOF.  */
-signed int     streamInUtf8_nexti             (streamIn_t *streamInp);                                                  /* Get next utf8. Moves current by one. -1 means EOF.  */
+streamInBool_t streamInUtf8_currenti          (streamIn_t *streamInp, signed int *currentip);                           /* Get current utf8 */
+streamInBool_t streamInUtf8_nexti             (streamIn_t *streamInp, signed int *nextip);                              /* Get next utf8. Moves current by one.  */
 streamInBool_t streamInUtf8_markb             (streamIn_t *streamInp);                                                  /* Mark current utf8 */
 streamInBool_t streamInUtf8_markPreviousb     (streamIn_t *streamInp);                                                  /* Mark previous utf8 */
 streamInBool_t streamInUtf8_doneb             (streamIn_t *streamInp);                                                  /* Say marked utf8 is done */
 /* Behaviour is undefined if you use streamInUtf8_doneb() between calls to mark and markToCurrent. Let's say it will very likely crash */
 streamInBool_t streamInUtf8_currentFromMarkedb(streamIn_t *streamInp);                                                  /* Set marked utf8 as current */
+
 /* These methods are the only way to get output using another encoding but the original. The caller WILL HAVE TO CALL free(byteArrayp) himself. */
-streamInBool_t streamInUtf8_getBufferb        (streamIn_t *streamInp, int indexBufferi, size_t *indexBufferip, char **byteArraypp, size_t *bytesInBufferp, size_t *lengthInBufferp);
+/* It is very important to remember that, here, buffer indexes in output map EXACTLY buffer indexes in input. */
+/* Therefore it can very well be a read buffer is not entirely encoded. */
+/* In the extreme case, it could be that a method like streamInUnicode_nextBufferb return STREAMIN_BOOL_TRUE but with ZERO in number of bytes of number of characters */
+streamInBool_t streamInUnicode_nextBufferb    (streamIn_t *streamInp, size_t *indexBufferip, char **byteArraypp, size_t *bytesInBufferp, size_t *lengthInBufferp);
+streamInBool_t streamInUnicode_getBufferb     (streamIn_t *streamInp, int indexBufferi, size_t *indexBufferip, char **byteArraypp, size_t *bytesInBufferp, size_t *lengthInBufferp);
+streamInBool_t streamInUnicode_doneBufferb       (streamIn_t *streamInp, int indexBufferi);
 
 #endif /* MARPAXML_INTERNAL_STREAMIN_H */
