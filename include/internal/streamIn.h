@@ -122,8 +122,6 @@ streamInBool_t streamIn_nextBufferb(streamIn_t *streamInp, size_t *indexBufferip
 streamIn_t    *streamInUtf8_newp              (streamInOption_t *streamInOptionp, streamInUtf8Option_t *streamInUtf8Optionp);
 streamInBool_t streamInUtf8_optionDefaultb    (streamInUtf8Option_t *streamInUtf8Optionp);
 /* Options at the utf8 level cannot be changed after streamInUtf8_newp() */
-streamInBool_t streamInUtf8_fromEncodings     (streamIn_t *streamInp, char **fromEncodingsp);                           /* Get input encoding */
-streamInBool_t streamInUtf8_toEncodings       (streamIn_t *streamInp, char **toEncodingsp);                             /* Get output encoding */
 streamInBool_t streamInUtf8_currenti          (streamIn_t *streamInp, signed int *currentip);                           /* Get current utf8 */
 streamInBool_t streamInUtf8_nexti             (streamIn_t *streamInp, signed int *nextip);                              /* Get next utf8. Moves current by one.  */
 streamInBool_t streamInUtf8_markb             (streamIn_t *streamInp);                                                  /* Mark current utf8 */
@@ -136,8 +134,10 @@ streamInBool_t streamInUtf8_currentFromMarkedb(streamIn_t *streamInp);          
 /* It is very important to remember that, here, buffer indexes in output map EXACTLY buffer indexes in input. */
 /* Therefore it can very well be a read buffer is not entirely encoded. */
 /* In the extreme case, it could be that a method like streamInUnicode_nextBufferb return STREAMIN_BOOL_TRUE but with ZERO in number of bytes of number of characters */
+streamInBool_t streamInUnicode_fromEncodings  (streamIn_t *streamInp, char **fromEncodingsp);                           /* Get input encoding */
+streamInBool_t streamInUnicode_toEncodings    (streamIn_t *streamInp, char **toEncodingsp);                             /* Get output encoding */
 streamInBool_t streamInUnicode_nextBufferb    (streamIn_t *streamInp, size_t *indexBufferip, char **byteArraypp, size_t *bytesInBufferp, size_t *lengthInBufferp);
 streamInBool_t streamInUnicode_getBufferb     (streamIn_t *streamInp, int indexBufferi, size_t *indexBufferip, char **byteArraypp, size_t *bytesInBufferp, size_t *lengthInBufferp);
-streamInBool_t streamInUnicode_doneBufferb       (streamIn_t *streamInp, int indexBufferi);
+streamInBool_t streamInUnicode_doneBufferb    (streamIn_t *streamInp, int indexBufferi);
 
 #endif /* MARPAXML_INTERNAL_STREAMIN_H */

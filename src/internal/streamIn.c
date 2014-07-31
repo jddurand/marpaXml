@@ -1154,10 +1154,10 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_detectb(streamIn_t *streamInp) 
   return rcb;
 }
 
-/******************************/
-/* streamInUtf8_fromEncodings */
-/******************************/
-streamInBool_t streamInUtf8_fromEncodings(streamIn_t *streamInp, char **fromEncodingsp) {
+/*********************************/
+/* streamInUnicode_fromEncodings */
+/*********************************/
+streamInBool_t streamInUnicode_fromEncodings(streamIn_t *streamInp, char **fromEncodingsp) {
   if (streamInp == NULL || streamInp->utf8b == STREAMIN_BOOL_FALSE) {
     return STREAMIN_BOOL_FALSE;
   }
@@ -1169,10 +1169,10 @@ streamInBool_t streamInUtf8_fromEncodings(streamIn_t *streamInp, char **fromEnco
   return STREAMIN_BOOL_TRUE;
 }
 
-/****************************/
-/* streamInUtf8_toEncodings */
-/****************************/
-streamInBool_t streamInUtf8_toEncodings(streamIn_t *streamInp, char **toEncodingsp) {
+/*******************************/
+/* streamInUnicode_toEncodings */
+/*******************************/
+streamInBool_t streamInUnicode_toEncodings(streamIn_t *streamInp, char **toEncodingsp) {
 
   if (streamInp == NULL || streamInp->utf8b == STREAMIN_BOOL_FALSE) {
     return STREAMIN_BOOL_FALSE;
