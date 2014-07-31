@@ -1178,6 +1178,12 @@ lexeme default = latm => 1
 # apply on all RHSs of a given LHS.
 # The exceptions are marked with [RWFC:] and [RCV:], i.e. when the contraint is on a
 # specific RHS member.
+#
+# We add lexeme actions as a WFC constraint, with the following naming convention:
+# - _completionEventXXX         for a completion event on XXX
+# - _nulledEventXXX             for a nulled     event on XXX
+# - _predictedEventXXX          for a predicted  event on XXX
+#
 rules          ::= rule+                                                action => _rules
 rule           ::= RULENUMBER SYMBOL RULESEP expressions LHSconstraints action => _rule
 expressions    ::= concatenation+ separator => PIPE                     action => [values]
