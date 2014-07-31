@@ -116,6 +116,20 @@ ADD_LIBRARY (marpa ${marpa_lib_src})
 # -----------
 SET (AVL_VERSION "2.0.3")
 SET (AVL_DIR "${PROJECT_SOURCE_DIR}/avl-${AVL_VERSION}")
+IF (NOT EXISTS "${AVL_DIR}" OR NOT IS_DIRECTORY "${AVL_DIR}")
+  MESSAGE (STATUS "Preparing ${AVL_DIR}")
+  EXECUTE_PROCESS (
+    #
+    # Take care:
+    # The following will build libmarpa in two ways:
+    # - one that is guaranteed to use OUR compiler in libmarpa_dist
+    # - one that is compiled with perl's configured compiler and that we will reuse when
+    #   generating src/internal/grammar/xml_1_0.c and src/internal/grammar/xml_1_1.c
+    #   Note that Marpa::R2 procedure uses libmarpa_build
+    #
+    COMMAND "${PERL}" tools/prepare_libavl.pl "${AVL_VERSION}"
+    )
+ENDIF ()
 FILE(GLOB avl_lib_src ${AVL_DIR}/*avl.c)
 ADD_LIBRARY (avl ${avl_lib_src})
 
