@@ -160,6 +160,7 @@ SET(DISTCLEANED
   Makefile
   cmake_install.cmake
   ${MARPA_DIR}
+  ${AVL_DIR}
   include/internal/config.h
   )
 ADD_CUSTOM_COMMAND (
