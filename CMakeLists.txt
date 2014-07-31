@@ -109,7 +109,15 @@ IF (NOT EXISTS "${MARPA_DIR}" OR NOT IS_DIRECTORY "${MARPA_DIR}")
     )
 ENDIF ()
 FILE(GLOB marpa_lib_src Marpa-R2-${MARPA_VERSION}/libmarpa_dist/*.c)
-ADD_LIBRARY (libmarpa ${marpa_lib_src})
+ADD_LIBRARY (marpa ${marpa_lib_src})
+
+# -----------
+# AVL library
+# -----------
+SET (AVL_VERSION "2.0.3")
+SET (AVL_DIR "${PROJECT_SOURCE_DIR}/avl-${AVL_VERSION}")
+FILE(GLOB avl_lib_src ${AVL_DIR}/*avl.c)
+ADD_LIBRARY (avl ${avl_lib_src})
 
 # ------------------------
 # marpaXmlInternal library
@@ -125,7 +133,7 @@ ADD_LIBRARY (marpaXmlInternal
   ${PROJECT_SOURCE_DIR}/src/internal/grammar/xml_1_1.c
   )
 SET_PROPERTY (TARGET marpaXmlInternal APPEND PROPERTY INCLUDE_DIRECTORIES ${MARPA_DIR}/libmarpa_dist)
-ADD_DEPENDENCIES (marpaXmlInternal libmarpa)
+ADD_DEPENDENCIES (marpaXmlInternal marpa)
 
 # -----------------------
 # distclean custom target
@@ -170,7 +178,7 @@ CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/include/internal/config.h.in
 # Executables
 # -----------
 ADD_EXECUTABLE        (marpaWrapperTest ${PROJECT_SOURCE_DIR}/test/internal/marpaWrapperTest.c)
-TARGET_LINK_LIBRARIES (marpaWrapperTest marpaXmlInternal libmarpa)
+TARGET_LINK_LIBRARIES (marpaWrapperTest marpaXmlInternal marpa)
 
 ADD_EXECUTABLE        (streamInTest ${PROJECT_SOURCE_DIR}/test/internal/streamInTest.c)
 TARGET_LINK_LIBRARIES (streamInTest marpaXmlInternal)
@@ -178,10 +186,10 @@ TARGET_LINK_LIBRARIES (streamInTest marpaXmlInternal)
 ADD_EXECUTABLE        (ICU4CDetectEncoding ${PROJECT_SOURCE_DIR}/test/internal/ICU4CDetectEncoding.c)
 
 ADD_EXECUTABLE        (xml_1_0 ${PROJECT_SOURCE_DIR}/test/internal/grammar/xml_1_0.c)
-TARGET_LINK_LIBRARIES (xml_1_0 marpaXmlInternal libmarpa)
+TARGET_LINK_LIBRARIES (xml_1_0 marpaXmlInternal marpa)
 
 ADD_EXECUTABLE        (xml_1_1 ${PROJECT_SOURCE_DIR}/test/internal/grammar/xml_1_1.c)
-TARGET_LINK_LIBRARIES (xml_1_1 marpaXmlInternal libmarpa)
+TARGET_LINK_LIBRARIES (xml_1_1 marpaXmlInternal marpa)
 
 #INSTALL (TARGETS marpaxml DESTINATION install/bin)
 #INSTALL (FILES marpaWrapper.h DESTINATION install/include)
