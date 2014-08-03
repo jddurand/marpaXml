@@ -6,8 +6,8 @@
 #include <stdarg.h>
 
 #include "internal/config.h"
-#include "internal/log.h"
 #include "internal/messageBuilder.h"
+#include "internal/dateBuilder.h"
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -15,6 +15,8 @@
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
 #endif
+
+#include "API/marpaXml/log.h"
 
 static const char *MARPAXML_LOG_NO_MESSAGE = "No message";
 
@@ -26,17 +28,39 @@ struct marpaXmlLog {
 
 void _marpaXmlLog_defaultCallback(void *userDatavp, marpaXmlLogLevel_t logLeveli, const char *msgs);
 
+/**********************************/
+/* marpaXmlLog_defaultLogCallback */
+/**********************************/
+marpaXmlLogCallback_t marpaXmlLog_defaultLogCallback(void) {
+  return &_marpaXmlLog_defaultCallback;
+}
+
 /********************************/
 /* _marpaXmlLog_defaultCallback */
 /********************************/
 void _marpaXmlLog_defaultCallback(void *userDatavp, marpaXmlLogLevel_t logLeveli, const char *msgs) {
+  /* We are NOT going to do a general log4c mechanism (this can come later), using marpaXml in fact */
+  /* I.e. we are fixing the default output to be: DD/MM/YYYY hh::mm::ss PREFIX MESSAGE */
+  const char   *prefix =
+    (logLeveli == MARPAXML_LOGLEVEL_TRACE    ) ? "TRACE"     :
+    (logLeveli == MARPAXML_LOGLEVEL_DEBUG    ) ? "DEBUG"     :
+    (logLeveli == MARPAXML_LOGLEVEL_INFO     ) ? "INFO"      :
+    (logLeveli == MARPAXML_LOGLEVEL_NOTICE   ) ? "NOTICE"    :
+    (logLeveli == MARPAXML_LOGLEVEL_WARNING  ) ? "WARNING"   :
+    (logLeveli == MARPAXML_LOGLEVEL_ERROR    ) ? "ERROR"     :
+    (logLeveli == MARPAXML_LOGLEVEL_CRITICAL ) ? "CRITICAL"  :
+    (logLeveli == MARPAXML_LOGLEVEL_ALERT    ) ? "ALERT"     :
+    (logLeveli == MARPAXML_LOGLEVEL_EMERGENCY) ? "EMERGENCY" :
+    "UNKOWN";
+  char   *dates = dateBuilder("%d/%m/%Y %H:%M:%S");
+  char   *localMsgs = messageBuilder("%s %9s %s", dates, prefix, (msgs != NULL) ? (char *) msgs : (char *) MARPAXML_LOG_NO_MESSAGE);
 #if (defined(WIN32) || (_POSIX_C_SOURCE >= 1 || _XOPEN_SOURCE || _POSIX_SOURCE))
 #ifdef WIN32
   int filenoStderr = _fileno(stderr);
 #else
   int filenoStderr = fileno(stderr);
 #endif
-  char *p = (msgs != NULL) ? (char *) msgs : (char *) MARPAXML_LOG_NO_MESSAGE;
+  char *p = localMsgs;
   ssize_t bytesWriten = 0;
   size_t  count = strlen(p) + sizeof(char);
 #endif
@@ -47,8 +71,15 @@ void _marpaXmlLog_defaultCallback(void *userDatavp, marpaXmlLogLevel_t logLeveli
   }
 #else
   /* Note: this is not asynchroneous safe */
-  fprintf(stderr, "%s", (msgs != NULL) ? msgs : "No message\n");
+  fprintf(stderr, "%s", p);
 #endif
+
+  if (dates != dateBuilder_internalErrors()) {
+    free(dates);
+  }
+  if (localMsgs != messageBuilder_internalErrors()) {
+    free(localMsgs);
+  }
 }
 
 /********************/
@@ -58,7 +89,8 @@ marpaXmlLog_t *marpaXmlLog_newp(marpaXmlLogCallback_t logCallbackp, void *userDa
   marpaXmlLog_t *marpaXmlLogp = malloc(sizeof(marpaXmlLog_t));
 
   if (marpaXmlLogp == NULL) {
-    marpaXml_log(NULL, MARPAXML_LOGLEVEL_ERROR, "malloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
+    /* Well, shall we log about this - a priori no: the caller wanted to set up a particular */
+    /* logging system, and not use our default */
     return NULL;
   }
 
@@ -73,12 +105,8 @@ marpaXmlLog_t *marpaXmlLog_newp(marpaXmlLogCallback_t logCallbackp, void *userDa
 /* marpaXmlLog_freev */
 /*********************/
 void marpaXmlLog_freev(marpaXmlLog_t **marpaXmlLogpp) {
-  if (marpaXmlLogpp == NULL) {
-    marpaXml_log(NULL, MARPAXML_LOGLEVEL_ERROR, "marpaXmlLogpp is NULL at %s:%d", __FILE__, __LINE__);
-  } else {
-    if (*marpaXmlLogpp == NULL) {
-      marpaXml_log(NULL, MARPAXML_LOGLEVEL_ERROR, "*marpaXmlLogpp is NULL at %s:%d", __FILE__, __LINE__);
-    } else {
+  if (marpaXmlLogpp != NULL) {
+    if (*marpaXmlLogpp != NULL) {
       free(*marpaXmlLogpp);
       *marpaXmlLogpp = NULL;
     }

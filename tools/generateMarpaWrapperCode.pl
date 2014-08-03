@@ -705,27 +705,12 @@ ${namespace}_t *${namespace}_newp(marpaWrapperOption_t *marpaWrapperOptionp, xml
 
   /* xml_common_optionp is internal and should always be setted */
   if (xml_common_optionp == NULL) {
-    marpaWrapper_logExt(marpaWrapperOption.logCallbackp,
-		        marpaWrapperOption.logCallbackDatavp,
-		        NULL,
-		        marpaWrapperOption.logLevelWantedi,
-		        MARPAWRAPPERERRORORIGIN_NA,
-		        errno,
-		        "Missing xml_common_optionp",
-		        MARPAWRAPPER_LOGLEVEL_ERROR);
+    errno = EINVAL;
     return NULL;
   }
 
   ${namespace}p = malloc(sizeof(${namespace}_t));
   if (${namespace}p == NULL) {
-    marpaWrapper_logExt(marpaWrapperOption.logCallbackp,
-		        marpaWrapperOption.logCallbackDatavp,
-		        NULL,
-		        marpaWrapperOption.logLevelWantedi,
-		        MARPAWRAPPERERRORORIGIN_SYSTEM,
-		        errno,
-		        "malloc()",
-		        MARPAWRAPPER_LOGLEVEL_ERROR);
     return NULL;
   }
 
@@ -869,14 +854,6 @@ static C_INLINE marpaWrapperBool_t _${namespace}_buildSymbolsb(${namespace}_t *$
         marpaWrapperSymbolOption.startb = (i == ${namespace}_extSubset) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
         break;
       default:
-        marpaWrapper_logExt(marpaWrapperOptionp->logCallbackp,
-                            marpaWrapperOptionp->logCallbackDatavp,
-                            ${namespace}p->marpaWrapperp,
-                            marpaWrapperOptionp->logLevelWantedi,
-                            MARPAWRAPPERERRORORIGIN_NA,
-                            EINVAL,
-                            "Bad top-level symbol()",
-                            MARPAWRAPPER_LOGLEVEL_ERROR);
         return MARPAWRAPPER_BOOL_FALSE;
         break;
       }

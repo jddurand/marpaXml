@@ -9,7 +9,7 @@ int main(int argc, char **argv) {
   xml_common_option_t        xml_common_option;
 
   marpaWrapper_optionDefaultb(&marpaWrapperOption);
-  marpaWrapperOption.logLevelWantedi     = MARPAWRAPPER_LOGLEVEL_WARNING;
+  marpaWrapperOption.logLevelWantedi     = MARPAXML_LOGLEVEL_TRACE;
 
   xml_common_optionDefaultb(&xml_common_option);
 

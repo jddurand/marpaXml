@@ -135,27 +135,21 @@ ADD_LIBRARY (avl ${avl_lib_src})
 # ------------------------
 # marpaXmlInternal library
 # ------------------------
-ADD_LIBRARY (marpaXmlInternal
+ADD_LIBRARY (marpaXml
   ${PROJECT_SOURCE_DIR}/src/internal/genericStack.c
   ${PROJECT_SOURCE_DIR}/src/internal/marpaWrapper.c
   ${PROJECT_SOURCE_DIR}/src/internal/bufManager.c
   ${PROJECT_SOURCE_DIR}/src/internal/messageBuilder.c
+  ${PROJECT_SOURCE_DIR}/src/internal/dateBuilder.c
   ${PROJECT_SOURCE_DIR}/src/internal/streamIn.c
-  ${PROJECT_SOURCE_DIR}/src/internal/log.c
   ${PROJECT_SOURCE_DIR}/src/internal/grammar/xml_common.c
   ${PROJECT_SOURCE_DIR}/src/internal/grammar/xml_1_0.c
   ${PROJECT_SOURCE_DIR}/src/internal/grammar/xml_1_1.c
-  )
-SET_PROPERTY (TARGET marpaXmlInternal APPEND PROPERTY INCLUDE_DIRECTORIES ${MARPA_DIR}/libmarpa_dist)
-ADD_DEPENDENCIES (marpaXmlInternal marpa)
-
-# -------------------
-# marpaXmlAPI library
-# -------------------
-ADD_LIBRARY (marpaXmlAPI
   ${PROJECT_SOURCE_DIR}/src/API/marpaXml/DOM.c
+  ${PROJECT_SOURCE_DIR}/src/API/marpaXml/log.c
   )
-ADD_DEPENDENCIES (marpaXmlAPI marpaXmlInternal)
+SET_PROPERTY (TARGET marpaXml APPEND PROPERTY INCLUDE_DIRECTORIES ${MARPA_DIR}/libmarpa_dist)
+ADD_DEPENDENCIES (marpaXml marpa)
 
 # -----------------------
 # distclean custom target
@@ -191,6 +185,12 @@ VA_COPY()
 INCLUDE(NULL_IS_ZEROES)
 NULL_IS_ZEROES()
 
+# -------------
+# lcoaltime_r ?
+# -------------
+INCLUDE(LOCALTIME_R)
+LOCALTIME_R()
+
 # -------------------------
 # Additional include checks
 # -------------------------
@@ -206,22 +206,22 @@ CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/include/internal/config.h.in
 # -----------
 # Executables
 # -----------
-ADD_EXECUTABLE        (marpaWrapperTest ${PROJECT_SOURCE_DIR}/test/internal/marpaWrapperTest.c)
-TARGET_LINK_LIBRARIES (marpaWrapperTest marpaXmlInternal marpa)
+ADD_EXECUTABLE        (marpaWrapper_test ${PROJECT_SOURCE_DIR}/test/internal/marpaWrapper_test.c)
+TARGET_LINK_LIBRARIES (marpaWrapper_test marpaXml marpa)
 
-ADD_EXECUTABLE        (streamInTest ${PROJECT_SOURCE_DIR}/test/internal/streamInTest.c)
-TARGET_LINK_LIBRARIES (streamInTest marpaXmlInternal)
+ADD_EXECUTABLE        (streamIn_test ${PROJECT_SOURCE_DIR}/test/internal/streamIn_test.c)
+TARGET_LINK_LIBRARIES (streamIn_test marpaXml)
 
-ADD_EXECUTABLE        (log ${PROJECT_SOURCE_DIR}/test/internal/log.c)
-TARGET_LINK_LIBRARIES (log marpaXmlInternal)
+ADD_EXECUTABLE        (log_test ${PROJECT_SOURCE_DIR}/test/API/log_test.c)
+TARGET_LINK_LIBRARIES (log_test marpaXml)
 
 ADD_EXECUTABLE        (ICU4CDetectEncoding ${PROJECT_SOURCE_DIR}/test/internal/ICU4CDetectEncoding.c)
 
-ADD_EXECUTABLE        (xml_1_0 ${PROJECT_SOURCE_DIR}/test/internal/grammar/xml_1_0.c)
-TARGET_LINK_LIBRARIES (xml_1_0 marpaXmlInternal marpa)
+ADD_EXECUTABLE        (xml_1_0_test ${PROJECT_SOURCE_DIR}/test/internal/grammar/xml_1_0_test.c)
+TARGET_LINK_LIBRARIES (xml_1_0_test marpaXml marpa)
 
-ADD_EXECUTABLE        (xml_1_1 ${PROJECT_SOURCE_DIR}/test/internal/grammar/xml_1_1.c)
-TARGET_LINK_LIBRARIES (xml_1_1 marpaXmlInternal marpa)
+ADD_EXECUTABLE        (xml_1_1_test ${PROJECT_SOURCE_DIR}/test/internal/grammar/xml_1_1_test.c)
+TARGET_LINK_LIBRARIES (xml_1_1_test marpaXml marpa)
 
 #INSTALL (TARGETS marpaxml DESTINATION install/bin)
 #INSTALL (FILES marpaWrapper.h DESTINATION install/include)

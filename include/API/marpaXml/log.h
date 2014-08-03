@@ -1,7 +1,5 @@
-#ifndef MARPAXML_INTERNAL_LOG_H
-#define MARPAXML_INTERNAL_LOG_H
-
-#include "config.h"
+#ifndef MARPAXML_API_LOG_H
+#define MARPAXML_API_LOG_H
 
 typedef enum marpaXmlLogLevel {
   MARPAXML_LOGLEVEL_TRACE = 0,
@@ -21,8 +19,9 @@ typedef enum marpaXmlLogLevel {
 typedef struct marpaXmlLog marpaXmlLog_t;
 typedef void (*marpaXmlLogCallback_t)(void *userDatavp, marpaXmlLogLevel_t logLeveli, const char *msgs);
 
-marpaXmlLog_t *marpaXmlLog_newp(marpaXmlLogCallback_t logCallbackp, void *userDatavp, marpaXmlLogLevel_t marpaXmlLogLeveli);
-void           marpaXmlLog_freev(marpaXmlLog_t **marpaXmlLogpp);
+marpaXmlLogCallback_t marpaXmlLog_defaultLogCallback(void);
+marpaXmlLog_t        *marpaXmlLog_newp(marpaXmlLogCallback_t logCallbackp, void *userDatavp, marpaXmlLogLevel_t marpaXmlLogLeveli);
+void                  marpaXmlLog_freev(marpaXmlLog_t **marpaXmlLogpp);
 
 
 /* C99 has problems with empty __VA_ARGS__ so we split macros in two categories: */
@@ -66,4 +65,4 @@ void marpaXml_log(marpaXmlLog_t *marpaXmlLogp, marpaXmlLogLevel_t marpaXmlLogLev
 #define MARPAXML_EMERGENCY0(fmts)           MARPAXML_LOG0(MARPAXML_LOGLEVEL_EMERGENCY, fmts)
 #define MARPAXML_EMERGENCYX(fmts, ...)      MARPAXML_LOGX(MARPAXML_LOGLEVEL_EMERGENCY, fmts, __VA_ARGS__)
 
-#endif /* MARPAXML_INTERNAL_LOG_H */
+#endif /* MARPAXML_API_LOG_H */

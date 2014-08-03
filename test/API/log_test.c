@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include "internal/log.h"
+#include "API/marpaXml/log.h"
 
 int main(int argc, char **argv) {
   marpaXmlLog_t *marpaXmlLogp = NULL;

@@ -130,7 +130,7 @@ static void _fileTest(streamIn_t *streamInp, streamInBool_t utf8b, streamInBool_
     fprintf(stderr, "streamIn_optionDefaultb failure\n");
     return;
   }
-  streamInOption.bufMaxSizei = 1;
+  /* streamInOption.bufMaxSizei = 1; */
   streamInOption.logLevelWantedi = STREAMIN_LOGLEVEL_TRACE;
   streamInOption.readCallbackp = &_readFileCallback;
   streamInOption.readCallbackUserDatap = &myReadData;
@@ -208,7 +208,7 @@ static void _bufferTest(streamIn_t *streamInp, streamInBool_t utf8b, char **argv
     fprintf(stderr, "streamIn_optionDefaultb failure\n");
     return;
   }
-  streamInOption.bufMaxSizei = 1002;
+  /* streamInOption.bufMaxSizei = 1002; */
   streamInOption.logLevelWantedi = STREAMIN_LOGLEVEL_TRACE;
   streamInOption.readCallbackp = &_readBufferCallback;
   streamInOption.readCallbackUserDatap = &myReadData;

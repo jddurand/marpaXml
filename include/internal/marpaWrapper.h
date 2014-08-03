@@ -12,6 +12,8 @@
    - all types    end with '_t'
 */
 
+#include "API/marpaXml/log.h"
+
 /***********************/
 /* Opaque object types */
 /***********************/
@@ -25,17 +27,6 @@ typedef struct marpaWrapperValue      marpaWrapperValue_t;
 /*******************/
 /* Published types */
 /*******************/
-typedef enum marpaWrapperLogLevel {
-  MARPAWRAPPER_LOGLEVEL_TRACE = 0,
-  MARPAWRAPPER_LOGLEVEL_DEBUG,
-  MARPAWRAPPER_LOGLEVEL_INFO,
-  MARPAWRAPPER_LOGLEVEL_NOTICE,
-  MARPAWRAPPER_LOGLEVEL_WARNING,
-  MARPAWRAPPER_LOGLEVEL_ERROR,
-  MARPAWRAPPER_LOGLEVEL_CRITICAL,
-  MARPAWRAPPER_LOGLEVEL_ALERT,
-  MARPAWRAPPER_LOGLEVEL_EMERGENCY
-} marpaWrapperLogLevel_t;
 
 /* Boolean */
 typedef enum marpaWrapperBool {
@@ -63,7 +54,6 @@ typedef struct marpaWrapperEvent {
 } marpaWrapperEvent_t;
 
 /* Callbacks */
-typedef void                    (*marpaWrapperLogCallback_t)             (void *datavp, marpaWrapper_t *marpaWrapperp, marpaWrapperLogLevel_t logLeveli, const char *msgs);
 typedef marpaWrapperBool_t      (*marpaWrapperEventCallback_t)           (void *datavp, marpaWrapper_t *marpaWrapperp, size_t nEventi, marpaWrapperEvent_t *marpaWrapperEventp);
 typedef marpaWrapperBool_t      (*marpaWrapperValueRuleCallback_t)       (void *datavp, marpaWrapper_t *marpaWrapperp, marpaWrapperRule_t *marpaWrapperRulep, size_t nValueInputi, void **valueInputArraypp, void **valueOutputpp);
 typedef marpaWrapperBool_t      (*marpaWrapperValueSymbolCallback_t)     (void *datavp, marpaWrapper_t *marpaWrapperp, marpaWrapperSymbol_t *marpaWrapperSymbolp, int value, void **valueOutputpp);
@@ -110,8 +100,8 @@ typedef struct marpaWrapperRuleOption {
 /**************************/
 typedef struct marpaWrapperOption {
   int                          (*versionip)[3];          /* Default: NULL                                                             */
-  marpaWrapperLogLevel_t         logLevelWantedi;        /* Default: MARPAWRAPPER_LOGLEVEL_WARNING                                    */
-  marpaWrapperLogCallback_t      logCallbackp;           /* Default: internal routine that logs to stderr                             */
+  marpaXmlLogLevel_t             logLevelWantedi;        /* Default: MARPAXML_LOGLEVEL_WARNING                                        */
+  marpaXmlLogCallback_t          logCallbackp;           /* Default: marpaXmlLog_defaultLogCallback()                                 */
   void                          *logCallbackDatavp;      /* Default: NULL                                                             */
   marpaWrapperEventCallback_t    eventCallbackp;         /* Default: NULL                                                             */
   void                          *eventCallbackDatavp;    /* Default: NULL                                                             */
@@ -127,10 +117,6 @@ typedef enum marpaWrapperErrorOrigin {
   MARPAWRAPPERERRORORIGIN_MARPA,
   MARPAWRAPPERERRORORIGIN_NA,
 } marpaWrapperErrorOrigin_t;
-void                     marpaWrapper_log(marpaWrapper_t *marpaWrapperp, marpaWrapperLogLevel_t marpaWrapperLogLeveli, marpaWrapperErrorOrigin_t marpaWrapperErrorOrigini, int errorCodei, const char *fmts, ...);
-/* If marpaWrapperp is not available, it is still possible to use this library's logging method via the following call                   */
-/* where marpaWrapperp may be used ONLY if logCallbackp() is a user's method. Give NULL to have a generic method not using marpaWrapperp */
-void                     marpaWrapper_logExt(marpaWrapperLogCallback_t logCallbackp, void *logCallbackDatavp, marpaWrapper_t *marpaWrapperp, marpaWrapperLogLevel_t logLevelWantedi, marpaWrapperErrorOrigin_t errorOrigini, int errorNumberi, const char *calls, marpaWrapperLogLevel_t logLeveli);
 
 /**************************************************/
 /* Phase 1: Grammar definition and precomputation */

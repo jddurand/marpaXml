@@ -7,6 +7,7 @@
 #include <stdarg.h>
 
 #include "internal/marpaWrapper.h"
+#include "API/marpaXml/log.h"
 
 enum { S = 0, E, op, number, MAX_SYMBOL };
 enum { START_RULE = 0, OP_RULE, NUMBER_RULE };
@@ -52,7 +53,7 @@ int main() {
 
   /* We want TRACE log level */
   marpaWrapper_optionDefaultb(&marpaWrapperOption);
-  marpaWrapperOption.logLevelWantedi     = MARPAWRAPPER_LOGLEVEL_WARNING;
+  marpaWrapperOption.logLevelWantedi     = MARPAXML_LOGLEVEL_TRACE;
 
   /* Grammar */
   marpaWrapperp = marpaWrapper_newp(&marpaWrapperOption);
