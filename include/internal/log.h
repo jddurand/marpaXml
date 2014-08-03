@@ -22,7 +22,7 @@ typedef struct marpaXmlLog marpaXmlLog_t;
 typedef void (*marpaXmlLogCallback_t)(void *userDatavp, marpaXmlLogLevel_t logLeveli, const char *msgs);
 
 marpaXmlLog_t *marpaXmlLog_newp(marpaXmlLogCallback_t logCallbackp, void *userDatavp, marpaXmlLogLevel_t marpaXmlLogLeveli);
-void           marpaXmlLog_freev(marpaXmlLog_t *marpaXmlLogp);
+void           marpaXmlLog_freev(marpaXmlLog_t **marpaXmlLogpp);
 
 
 /* C99 has problems with empty __VA_ARGS__ so we split macros in two categories: */

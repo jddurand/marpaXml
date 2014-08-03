@@ -191,6 +191,12 @@ VA_COPY()
 INCLUDE(NULL_IS_ZEROES)
 NULL_IS_ZEROES()
 
+# -------------------------
+# Additional include checks
+# -------------------------
+INCLUDE(CheckIncludeFile)
+CHECK_INCLUDE_FILE("unistd.h" HAVE_UNISTD_H)
+
 # ------------------------------------
 # Generate marpaXmlInternal's config.h
 # ------------------------------------
@@ -205,6 +211,9 @@ TARGET_LINK_LIBRARIES (marpaWrapperTest marpaXmlInternal marpa)
 
 ADD_EXECUTABLE        (streamInTest ${PROJECT_SOURCE_DIR}/test/internal/streamInTest.c)
 TARGET_LINK_LIBRARIES (streamInTest marpaXmlInternal)
+
+ADD_EXECUTABLE        (log ${PROJECT_SOURCE_DIR}/test/internal/log.c)
+TARGET_LINK_LIBRARIES (log marpaXmlInternal)
 
 ADD_EXECUTABLE        (ICU4CDetectEncoding ${PROJECT_SOURCE_DIR}/test/internal/ICU4CDetectEncoding.c)
 

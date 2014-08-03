@@ -11,6 +11,7 @@
 #cmakedefine HAVE_STDINT_H @HAVE_STDINT_H@
 #cmakedefine HAVE_STDDEF_H @HAVE_STDDEF_H@
 #cmakedefine HAVE_FEATURES_H @HAVE_FEATURES_H@
+#cmakedefine HAVE_UNISTD_H @HAVE_UNISTD_H@
 
 #endif /* MARPAXML_INTERNAL_CONFIG_H */
 

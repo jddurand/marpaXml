@@ -1,3 +1,4 @@
+#include <sys/types.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
@@ -8,6 +9,15 @@
 #include "internal/log.h"
 #include "internal/messageBuilder.h"
 
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+
+static const char *MARPAXML_LOG_NO_MESSAGE = "No message";
+
 struct marpaXmlLog {
   marpaXmlLogCallback_t  logCallbackp;
   void                  *userDatavp;
@@ -15,28 +25,30 @@ struct marpaXmlLog {
 };
 
 void _marpaXmlLog_defaultCallback(void *userDatavp, marpaXmlLogLevel_t logLeveli, const char *msgs);
-static C_INLINE void _marpaXml_log(marpaXmlLogCallback_t logCallbackp, void *userDatavp, marpaXmlLogLevel_t marpaXmlLogLeveli, const char *fmts, ...);
 
 /********************************/
 /* _marpaXmlLog_defaultCallback */
 /********************************/
 void _marpaXmlLog_defaultCallback(void *userDatavp, marpaXmlLogLevel_t logLeveli, const char *msgs) {
-  const char *prefix;
+#if (defined(WIN32) || (_POSIX_C_SOURCE >= 1 || _XOPEN_SOURCE || _POSIX_SOURCE))
+#ifdef WIN32
+  int filenoStderr = _fileno(stderr);
+#else
+  int filenoStderr = fileno(stderr);
+#endif
+  char *p = (msgs != NULL) ? (char *) msgs : (char *) MARPAXML_LOG_NO_MESSAGE;
+  ssize_t bytesWriten = 0;
+  size_t  count = strlen(p) + sizeof(char);
+#endif
 
-  switch (logLeveli) {
-  case MARPAXML_LOGLEVEL_TRACE:     prefix = "TRACE";     break;
-  case MARPAXML_LOGLEVEL_DEBUG:     prefix = "DEBUG";     break;
-  case MARPAXML_LOGLEVEL_INFO:      prefix = "INFO";      break;
-  case MARPAXML_LOGLEVEL_NOTICE:    prefix = "NOTICE";    break;
-  case MARPAXML_LOGLEVEL_WARNING:   prefix = "WARNING";   break;
-  case MARPAXML_LOGLEVEL_ERROR:     prefix = "ERROR";     break;
-  case MARPAXML_LOGLEVEL_CRITICAL:  prefix = "CRITICAL";  break;
-  case MARPAXML_LOGLEVEL_ALERT:     prefix = "ALERT";     break;
-  case MARPAXML_LOGLEVEL_EMERGENCY: prefix = "EMERGENCY"; break;
-  default:                          prefix = "UNKNOWN";   break;
+#if (defined(WIN32) || (_POSIX_C_SOURCE >= 1 || _XOPEN_SOURCE || _POSIX_SOURCE))
+  while (bytesWriten < count) {
+    bytesWriten += write(filenoStderr, p+bytesWriten, count-bytesWriten);
   }
-
-  fprintf(stderr, "[%9s] %s\n", prefix, (msgs != NULL) ? msgs : "No message");
+#else
+  /* Note: this is not asynchroneous safe */
+  fprintf(stderr, "%s", (msgs != NULL) ? msgs : "No message\n");
+#endif
 }
 
 /********************/
@@ -46,7 +58,7 @@ marpaXmlLog_t *marpaXmlLog_newp(marpaXmlLogCallback_t logCallbackp, void *userDa
   marpaXmlLog_t *marpaXmlLogp = malloc(sizeof(marpaXmlLog_t));
 
   if (marpaXmlLogp == NULL) {
-    _marpaXml_log(logCallbackp, userDatavp, MARPAXML_LOGLEVEL_ERROR, "malloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
+    marpaXml_log(NULL, MARPAXML_LOGLEVEL_ERROR, "malloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
     return NULL;
   }
 
@@ -60,52 +72,16 @@ marpaXmlLog_t *marpaXmlLog_newp(marpaXmlLogCallback_t logCallbackp, void *userDa
 /*********************/
 /* marpaXmlLog_freev */
 /*********************/
-void marpaXmlLog_freev(marpaXmlLog_t *marpaXmlLogp) {
-
-  if (marpaXmlLogp == NULL) {
-    _marpaXml_log(NULL, NULL, MARPAXML_LOGLEVEL_ERROR, "Invalid log pointer at %s:%d", __FILE__, __LINE__);
-    return;
-  }
-
-  free(marpaXmlLogp);
-  return;
-}
-
-/*****************/
-/* _marpaXml_log */
-/*****************/
-static C_INLINE void _marpaXml_log(marpaXmlLogCallback_t logCallbackp, void *userDatavp, marpaXmlLogLevel_t marpaXmlLogLeveli, const char *fmts, ...) {
-  va_list                ap;
-#ifdef VA_COPY
-  va_list                ap2;
-#endif
-  char                  *msgs;
-  static const char     *emptyMessages = "Empty message";
-
-  if (logCallbackp == NULL) {
-    logCallbackp = &_marpaXmlLog_defaultCallback;
-    userDatavp   = NULL;
-  }
-
-  va_start(ap, fmts);
-#ifdef VA_COPY
-  VA_COPY(ap2, ap);
-  msgs = (fmts != NULL) ? messageBuilder_ap(fmts, ap2) : (char *) emptyMessages;
-  va_end(ap2);
-#else
-  msgs = (fmts != NULL) ? messageBuilder_ap(fmts, ap) : (char *) emptyMessages;
-#endif
-  va_end(ap);
-
-  if (msgs != messageBuilder_internalErrors()) {
-    logCallbackp(userDatavp, marpaXmlLogLeveli, msgs);
+void marpaXmlLog_freev(marpaXmlLog_t **marpaXmlLogpp) {
+  if (marpaXmlLogpp == NULL) {
+    marpaXml_log(NULL, MARPAXML_LOGLEVEL_ERROR, "marpaXmlLogpp is NULL at %s:%d", __FILE__, __LINE__);
   } else {
-    logCallbackp(userDatavp, MARPAXML_LOGLEVEL_ERROR, msgs);
-  }
-
-  if (msgs != emptyMessages && msgs != messageBuilder_internalErrors()) {
-    /* No need to assign to NULL, this is a local variable and we will return just after */
-    free(msgs);
+    if (*marpaXmlLogpp == NULL) {
+      marpaXml_log(NULL, MARPAXML_LOGLEVEL_ERROR, "*marpaXmlLogpp is NULL at %s:%d", __FILE__, __LINE__);
+    } else {
+      free(*marpaXmlLogpp);
+      *marpaXmlLogpp = NULL;
+    }
   }
 }
 
@@ -113,22 +89,52 @@ static C_INLINE void _marpaXml_log(marpaXmlLogCallback_t logCallbackp, void *use
 /* marpaXml_log */
 /****************/
 void marpaXml_log(marpaXmlLog_t *marpaXmlLogp, marpaXmlLogLevel_t marpaXmlLogLeveli, const char *fmts, ...) {
-  va_list               ap;
+  va_list                ap;
 #ifdef VA_COPY
-  va_list               ap2;
+  va_list                ap2;
 #endif
+  char                  *msgs;
+  static const char     *emptyMessages = "Empty message";
+  marpaXmlLogCallback_t  logCallbackp;
+  void                  *userDatavp;
+  marpaXmlLogLevel_t     marpaXmlDefaultLogLeveli;
 
-  if (marpaXmlLogLeveli >= marpaXmlLogp->marpaXmlLogLeveli) {
+  if (marpaXmlLogp != NULL) {
+    if (marpaXmlLogp->logCallbackp != NULL) {
+      logCallbackp = marpaXmlLogp->logCallbackp;
+    } else {
+      logCallbackp = &_marpaXmlLog_defaultCallback;
+    }
+    userDatavp = marpaXmlLogp->userDatavp;
+    marpaXmlDefaultLogLeveli = marpaXmlLogp->marpaXmlLogLeveli;
+  } else {
+    userDatavp = NULL;
+    logCallbackp = &_marpaXmlLog_defaultCallback;
+    marpaXmlDefaultLogLeveli = MARPAXML_LOGLEVEL_TRACE;
+  }
+
+  if (marpaXmlLogLeveli >= marpaXmlDefaultLogLeveli) {
 
     va_start(ap, fmts);
 #ifdef VA_COPY
     VA_COPY(ap2, ap);
-    _marpaXml_log(marpaXmlLogp->logCallbackp, marpaXmlLogp->userDatavp, marpaXmlLogLeveli, fmts, ap2);
+    msgs = (fmts != NULL) ? messageBuilder_ap(fmts, ap2) : (char *) emptyMessages;
     va_end(ap2);
 #else
-    _marpaXml_log(marpaXmlLogp->logCallbackp, marpaXmlLogp->userDatavp, marpaXmlLogLeveli, fmts, ap);
+    msgs = (fmts != NULL) ? messageBuilder_ap(fmts, ap) : (char *) emptyMessages;
 #endif
     va_end(ap);
+
+    if (msgs != messageBuilder_internalErrors()) {
+      logCallbackp(userDatavp, marpaXmlLogLeveli, msgs);
+    } else {
+      logCallbackp(userDatavp, MARPAXML_LOGLEVEL_ERROR, msgs);
+    }
+
+    if (msgs != emptyMessages && msgs != messageBuilder_internalErrors()) {
+      /* No need to assign to NULL, this is a local variable and we will return just after */
+      free(msgs);
+    }
   }
 
 }
