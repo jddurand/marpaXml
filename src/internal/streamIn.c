@@ -4,14 +4,14 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#include "config.h"
-#include "streamIn.h"
-#include "messageBuilder.h"
+#include <unicode/ucsdet.h>
+#include <unicode/uclean.h>
+#include <unicode/ucnv.h>
+#include <unicode/utext.h>
 
-#include "unicode/ucsdet.h"
-#include "unicode/uclean.h"
-#include "unicode/ucnv.h"
-#include "unicode/utext.h"
+#include "internal/config.h"
+#include "internal/streamIn.h"
+#include "internal/messageBuilder.h"
 
 const static char *_streamIn_defaultEncodings = "UTF-8";
 

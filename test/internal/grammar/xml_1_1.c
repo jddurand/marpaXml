@@ -1,6 +1,7 @@
 #include <stdio.h>
-#include "grammar/xml_common.h"
-#include "grammar/xml_1_1.h"
+
+#include "internal/grammar/xml_common.h"
+#include "internal/grammar/xml_1_1.h"
 
 int main(int argc, char **argv) {
   xml_1_1_t *xml_1_1p;

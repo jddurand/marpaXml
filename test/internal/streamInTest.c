@@ -22,7 +22,7 @@
 #include <errno.h>
 #include <string.h>
 
-#include "streamIn.h"
+#include "internal/streamIn.h"
 
 typedef struct myReadData {
   int            fd;

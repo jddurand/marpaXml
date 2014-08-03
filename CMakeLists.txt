@@ -20,8 +20,7 @@ ENDIF ()
 PROJECT (marpaXml)
 
 # In any case we include our include directory for all targets
-INCLUDE_DIRECTORIES (${PROJECT_SOURCE_DIR}/include/internal)
-INCLUDE_DIRECTORIES (${PROJECT_SOURCE_DIR}/include/API)
+INCLUDE_DIRECTORIES (${PROJECT_SOURCE_DIR}/include)
 
 # ---------------------------------------
 # Add current path to modules search path
@@ -90,7 +89,7 @@ FIND_PROGRAM (PERL perl)
 # -------------
 # Marpa library
 # -------------
-SET (MARPA_VERSION "2.085_006")
+SET (MARPA_VERSION "2.088000")
 SET (MARPA_DIR "${PROJECT_SOURCE_DIR}/Marpa-R2-${MARPA_VERSION}")
 IF (NOT EXISTS "${MARPA_DIR}" OR NOT IS_DIRECTORY "${MARPA_DIR}")
   MESSAGE (STATUS "Preparing ${MARPA_DIR}")
@@ -108,7 +107,7 @@ IF (NOT EXISTS "${MARPA_DIR}" OR NOT IS_DIRECTORY "${MARPA_DIR}")
     COMMAND "${PERL}" tools/prepare_libmarpa.pl "${MARPA_VERSION}" "${CC_BASENAME}" "" "${CMAKE_C_OUTPUT_EXTENSION}"
     )
 ENDIF ()
-FILE(GLOB marpa_lib_src Marpa-R2-${MARPA_VERSION}/libmarpa_dist/*.c)
+FILE(GLOB marpa_lib_src Marpa-R2-${MARPA_VERSION}/core/read_only/*.c)
 ADD_LIBRARY (marpa ${marpa_lib_src})
 
 # -----------
@@ -142,12 +141,21 @@ ADD_LIBRARY (marpaXmlInternal
   ${PROJECT_SOURCE_DIR}/src/internal/bufManager.c
   ${PROJECT_SOURCE_DIR}/src/internal/messageBuilder.c
   ${PROJECT_SOURCE_DIR}/src/internal/streamIn.c
+  ${PROJECT_SOURCE_DIR}/src/internal/log.c
   ${PROJECT_SOURCE_DIR}/src/internal/grammar/xml_common.c
   ${PROJECT_SOURCE_DIR}/src/internal/grammar/xml_1_0.c
   ${PROJECT_SOURCE_DIR}/src/internal/grammar/xml_1_1.c
   )
 SET_PROPERTY (TARGET marpaXmlInternal APPEND PROPERTY INCLUDE_DIRECTORIES ${MARPA_DIR}/libmarpa_dist)
 ADD_DEPENDENCIES (marpaXmlInternal marpa)
+
+# -------------------
+# marpaXmlAPI library
+# -------------------
+ADD_LIBRARY (marpaXmlAPI
+  ${PROJECT_SOURCE_DIR}/src/API/marpaXml/DOM.c
+  )
+ADD_DEPENDENCIES (marpaXmlAPI marpaXmlInternal)
 
 # -----------------------
 # distclean custom target

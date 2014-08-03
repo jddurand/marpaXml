@@ -1,8 +1,9 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
-#include "config.h"
-#include "bufManager.h"
+
+#include "internal/config.h"
+#include "internal/bufManager.h"
 
 /*********************/
 /* manageBuf_createp */

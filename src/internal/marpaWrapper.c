@@ -5,11 +5,11 @@
 #include <errno.h>
 #include <stdarg.h>
 
-#include "config.h"
-#include "marpaWrapper.h"
-#include "genericStack.h"
-#include "messageBuilder.h"
-#include "bufManager.h"
+#include "internal/config.h"
+#include "internal/marpaWrapper.h"
+#include "internal/genericStack.h"
+#include "internal/messageBuilder.h"
+#include "internal/bufManager.h"
 #include "marpa.h"
 
 #define MARPAWRAPPER_GENERATE_GETTER_DEFINITION(prefix, externalType, externalName, ref, internalName) \
