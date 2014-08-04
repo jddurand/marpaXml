@@ -13,6 +13,8 @@
 #include "internal/streamIn.h"
 #include "internal/messageBuilder.h"
 
+#include "API/marpaXml/log.h"
+
 const static char *_streamIn_defaultEncodings = "UTF-8";
 
 static C_INLINE streamInBool_t _streamInUtf8_doneBufferb(streamIn_t *streamInp, size_t bufIndexi);
@@ -67,6 +69,8 @@ struct streamIn {
   streamInOption_t           streamInOption;           /* Byte options */
   streamInBool_t             eofb;                     /* EOF flag */
 
+  marpaXmlLog_t             *marpaXmlLogp;
+
   /* UTF-8 section */
   streamInBool_t             utf8b;                    /* STREAMIN_BOOL_TRUE only if streamInUtf8_newp() is called */
   streamInUtf8Option_t       streamInUtf8Option;       /* utf8 options */
@@ -76,12 +80,12 @@ struct streamIn {
 
 #define STREAMIN_DEFAULT_BUFMAXSIZEI (1024*1024)
 
-#define STREAMIN_LOG0(logLeveli, msgs)      _streamIn_log_any(streamInp, logLeveli, msgs)
-#define STREAMIN_LOGX(logLeveli, fmts, ...) _streamIn_log_any(streamInp, logLeveli, fmts, __VA_ARGS__)
+#define STREAMIN_LOG0(marpaXmlLogLeveli, msgs)      marpaXml_log(streamInp->marpaXmlLogp, marpaXmlLogLeveli, msgs "\n")
+#define STREAMIN_LOGX(marpaXmlLogLeveli, fmts, ...) marpaXml_log(streamInp->marpaXmlLogp, marpaXmlLogLeveli, fmts "\n", __VA_ARGS__)
 
 #ifndef STREAMIN_NTRACE
-#define STREAMIN_TRACE0(fmts)      STREAMIN_LOG0(STREAMIN_LOGLEVEL_TRACE, fmts)
-#define STREAMIN_TRACEX(fmts, ...) STREAMIN_LOGX(STREAMIN_LOGLEVEL_TRACE, fmts, __VA_ARGS__)
+#define STREAMIN_TRACE0(fmts)      STREAMIN_LOG0(MARPAXML_LOGLEVEL_TRACE, fmts)
+#define STREAMIN_TRACEX(fmts, ...) STREAMIN_LOGX(MARPAXML_LOGLEVEL_TRACE, fmts, __VA_ARGS__)
 #else
 #define STREAMIN_TRACE0(fmts)
 #define STREAMIN_TRACEX(fmts, ...)
@@ -91,7 +95,7 @@ struct streamIn {
     if ((x) != NULL) {				\
       free(x);					\
     } else {					\
-      STREAMIN_LOGX(STREAMIN_LOGLEVEL_CRITICAL, "Attempt to free a NULL pointer at %s:%d", __FILE__, __LINE__); \
+      STREAMIN_LOGX(MARPAXML_LOGLEVEL_CRITICAL, "Attempt to free a NULL pointer at %s:%d", __FILE__, __LINE__); \
     }						\
     (x) = NULL;					\
   }
@@ -110,8 +114,6 @@ struct streamIn {
 static C_INLINE streamInBool_t _streamIn_getBufferb (streamIn_t *streamInp, size_t wantedIndexi, size_t *indexBufferip, char **byteArraypp, size_t *bytesInBufferp);
 static C_INLINE streamInBool_t _streamIn_doneBufferb(streamIn_t *streamInp, size_t bufIndexi);
 static C_INLINE streamInBool_t _streamIn_readb      (streamIn_t *streamInp);
-static C_INLINE void           _streamIn_log_any    (streamIn_t *streamInp, streamInLogLevel_t streamInLogLeveli, const char *fmts, ...);
-static C_INLINE void           _streamIn_logCallback(void *logCallbackDatavp, streamIn_t *marpaWrapperp, streamInLogLevel_t logLeveli, const char *msgs);
 static C_INLINE streamInBool_t _streamIn_optionb    (streamIn_t *streamInp, streamInOption_t *streamInOptionp);
 static C_INLINE streamInBool_t _streamInUtf8_optionb(streamIn_t *streamInp, streamInUtf8Option_t *streamInUtf8Optionp);
 
@@ -125,13 +127,13 @@ streamInBool_t streamIn_optionDefaultb(streamInOption_t *streamInOptionp){
 
   streamInOptionp->bufMaxSizei                  = STREAMIN_DEFAULT_BUFMAXSIZEI;
   streamInOptionp->allBuffersAreManagedByUserb  = STREAMIN_BOOL_FALSE;
-  streamInOptionp->logLevelWantedi              = STREAMIN_LOGLEVEL_WARNING;
-  streamInOptionp->logCallbackp                 = NULL;
-  streamInOptionp->logCallbackUserDatap         = NULL;
+  streamInOptionp->logLevelWantedi              = MARPAXML_LOGLEVEL_WARNING;
+  streamInOptionp->logCallbackp                 = marpaXmlLog_defaultLogCallback();
+  streamInOptionp->logCallbackDatavp            = NULL;
   streamInOptionp->readCallbackp                = NULL;
-  streamInOptionp->readCallbackUserDatap        = NULL;
+  streamInOptionp->readCallbackDatavp           = NULL;
   streamInOptionp->bufFreeCallbackp             = NULL;
-  streamInOptionp->bufFreeCallbackUserDatap     = NULL;
+  streamInOptionp->bufFreeCallbackDatavp        = NULL;
 
   return STREAMIN_BOOL_TRUE;
 }
@@ -145,9 +147,9 @@ streamIn_t *streamIn_newp(streamInOption_t *streamInOptionp) {
 
   streamInp = malloc(sizeof(streamIn_t));
   if (streamInp == NULL) {
-    if (streamInOptionp->logCallbackp != NULL) {
+    if (streamInOptionp != NULL && streamInOptionp->logCallbackp != NULL) {
       errorMsgs = messageBuilder("malloc(): %s at %s:%d", errno, __FILE__, __LINE__);
-      (*streamInOptionp->logCallbackp)(streamInOptionp->logCallbackUserDatap, NULL, STREAMIN_LOGLEVEL_ERROR, errorMsgs);
+      (*streamInOptionp->logCallbackp)(streamInOptionp->logCallbackDatavp, MARPAXML_LOGLEVEL_ERROR, errorMsgs);
     }
     if (errorMsgs != messageBuilder_internalErrors()) {
       STREAMIN_FREE(errorMsgs);
@@ -169,6 +171,8 @@ streamIn_t *streamIn_newp(streamInOption_t *streamInOptionp) {
     streamIn_destroyv(&streamInp);
     return NULL;
   }
+
+  streamInp->marpaXmlLogp = marpaXmlLog_newp(streamInp->streamInOption.logCallbackp, streamInp->streamInOption.logCallbackDatavp, streamInp->streamInOption.logLevelWantedi);
 
   return streamInp;
 }
@@ -238,7 +242,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_newb(streamIn_t *streamInp) {
     break;
   default:
     /* Cannot happen in theory */
-    STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "Invalid ICUFromCallback %d at %s:%d", streamInp->streamInUtf8Option.ICUFromCallback, __FILE__, __LINE__);
+    STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "Invalid ICUFromCallback %d at %s:%d", streamInp->streamInUtf8Option.ICUFromCallback, __FILE__, __LINE__);
     rcb = STREAMIN_BOOL_FALSE;
   }
 
@@ -289,7 +293,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_newb(streamIn_t *streamInp) {
     break;
   default:
     /* Cannot happen in theory */
-    STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "Invalid ICUToCallback %d at %s:%d", streamInp->streamInUtf8Option.ICUToCallback, __FILE__, __LINE__);
+    STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "Invalid ICUToCallback %d at %s:%d", streamInp->streamInUtf8Option.ICUToCallback, __FILE__, __LINE__);
     rcb = STREAMIN_BOOL_FALSE;
   }
 
@@ -367,7 +371,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_doneBufferb(streamIn_t *streamI
         memmove(startp, startp + bytesToRemovel, sizel);
         ucharBufp = realloc(streamInp->streamIn_ICU.ucharBufp, sizel);
         if (ucharBufp == NULL) {
-          STREAMIN_LOGX(STREAMIN_LOGLEVEL_WARNING, "realloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
+          STREAMIN_LOGX(MARPAXML_LOGLEVEL_WARNING, "realloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
         } else {
           streamInp->streamIn_ICU.ucharBufp = ucharBufp;
           streamInp->streamIn_ICU.ucharBufSizel -= bytesToRemovel;
@@ -376,7 +380,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_doneBufferb(streamIn_t *streamI
           STREAMIN_TRACEX("utext_openUChars(%p, %p, %ld, %p)", streamInp->streamIn_ICU.utextp, streamInp->streamIn_ICU.ucharBufp, (unsigned long) ucharLengthl, &uErrorCode);
           streamInp->streamIn_ICU.utextp = utext_openUChars(streamInp->streamIn_ICU.utextp, streamInp->streamIn_ICU.ucharBufp, ucharLengthl, &uErrorCode);
           if (U_FAILURE(uErrorCode)) {
-            STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "utext_openUChars(): %s at %s:%d", u_errorName(uErrorCode), __FILE__, __LINE__);
+            STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "utext_openUChars(): %s at %s:%d", u_errorName(uErrorCode), __FILE__, __LINE__);
             rcb = STREAMIN_BOOL_FALSE;
           } else {
             nativeIndexl -= ucharsToRemovel;
@@ -391,7 +395,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_doneBufferb(streamIn_t *streamI
         /* Formally, on realloc error, we can continue */
         byteBuf2UCharByteLengthlp = realloc(streamInp->streamIn_ICU.byteBuf2UCharByteLengthlp, streamInp->nByteBufi * sizeof(int64_t));
         if (byteBuf2UCharByteLengthlp == NULL) {
-          STREAMIN_LOGX(STREAMIN_LOGLEVEL_WARNING, "realloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
+          STREAMIN_LOGX(MARPAXML_LOGLEVEL_WARNING, "realloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
         } else {
           streamInp->streamIn_ICU.byteBuf2UCharByteLengthlp = byteBuf2UCharByteLengthlp;
         }
@@ -497,7 +501,7 @@ static C_INLINE streamInBool_t _streamIn_doneBufferb(streamIn_t *streamInp, size
     if (streamInp->managedbp[i] == STREAMIN_BOOL_FALSE) {
       STREAMIN_FREE(streamInp->byteBufpp[i]);
     } else if (streamInp->streamInOption.bufFreeCallbackp != NULL) {
-      (*streamInp->streamInOption.bufFreeCallbackp)(streamInp->streamInOption.bufFreeCallbackUserDatap, streamInp->byteBufpp[i]);
+      (*streamInp->streamInOption.bufFreeCallbackp)(streamInp->streamInOption.bufFreeCallbackDatavp, streamInp->byteBufpp[i]);
       streamInp->byteBufpp[i] = NULL;
     }
   }
@@ -526,21 +530,21 @@ static C_INLINE streamInBool_t _streamIn_doneBufferb(streamIn_t *streamInp, size
     /* Formally, on realloc error, we can continue */
     byteBufpp = realloc(streamInp->byteBufpp, nByteBufi * sizeof(char *));
     if (byteBufpp == NULL) {
-      STREAMIN_LOGX(STREAMIN_LOGLEVEL_WARNING, "realloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
+      STREAMIN_LOGX(MARPAXML_LOGLEVEL_WARNING, "realloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
     } else {
       streamInp->byteBufpp = byteBufpp;
     }
 
     realSizeByteBufip = realloc(streamInp->realSizeByteBufip, nByteBufi * sizeof(void *));
     if (realSizeByteBufip == NULL) {
-      STREAMIN_LOGX(STREAMIN_LOGLEVEL_WARNING, "realloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
+      STREAMIN_LOGX(MARPAXML_LOGLEVEL_WARNING, "realloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
     } else {
       streamInp->realSizeByteBufip = realSizeByteBufip;
     }
 
     managedbp = realloc(streamInp->managedbp, nByteBufi * sizeof(streamInBool_t));
     if (managedbp == NULL) {
-      STREAMIN_LOGX(STREAMIN_LOGLEVEL_WARNING, "realloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
+      STREAMIN_LOGX(MARPAXML_LOGLEVEL_WARNING, "realloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
     } else {
       streamInp->managedbp = managedbp;
     }
@@ -568,7 +572,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_readb(streamIn_t *streamInp, si
 
     byteBuf2UCharByteLengthlp = malloc(sizeof(int64_t));
     if (byteBuf2UCharByteLengthlp == NULL) {
-      STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "malloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
+      STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "malloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
       return STREAMIN_BOOL_FALSE;
     }
 
@@ -576,7 +580,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_readb(streamIn_t *streamInp, si
     /* Cross the fingers this fits in a size_t */
     ucharBufp = malloc((size_t) ucharBufSizel);
     if (ucharBufp == NULL) {
-      STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "malloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
+      STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "malloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
       /* No need to assign to NULL, this is a local variable and we will return just after */
       free(byteBuf2UCharByteLengthlp);
       return STREAMIN_BOOL_FALSE;
@@ -586,7 +590,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_readb(streamIn_t *streamInp, si
 
     byteBuf2UCharByteLengthlp = realloc(streamInp->streamIn_ICU.byteBuf2UCharByteLengthlp, (bufIndexi + 1) * sizeof(int64_t));
     if (byteBuf2UCharByteLengthlp == NULL) {
-      STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "realloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
+      STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "realloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
       return STREAMIN_BOOL_FALSE;
     }
 
@@ -596,7 +600,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_readb(streamIn_t *streamInp, si
       /* Cross fingers this fits in a size_t - thread _streamInUtf8_ICU_fromConvertb() method will take care of reallocating if it is too short */
       ucharBufp = realloc(streamInp->streamIn_ICU.ucharBufp, (size_t) ucharBufSizel);
       if (ucharBufp == NULL) {
-	STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "realloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
+	STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "realloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
 	return STREAMIN_BOOL_FALSE;
       }
     } else {
@@ -606,7 +610,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_readb(streamIn_t *streamInp, si
       /* Cross fingers this fits in a size_t */
       ucharBufp = malloc((size_t) ucharBufSizel);
       if (ucharBufp == NULL) {
-	STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "malloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
+	STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "malloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
 	return STREAMIN_BOOL_FALSE;
       }
     }
@@ -646,19 +650,19 @@ static C_INLINE streamInBool_t _streamIn_readb(streamIn_t *streamInp) {
 
     streamInp->byteBufpp = malloc(sizeof(char *));
     if (streamInp->byteBufpp == NULL) {
-      STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "malloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
+      STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "malloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
       return STREAMIN_BOOL_FALSE;
     }
 
     streamInp->realSizeByteBufip = malloc(sizeof(size_t));
     if (streamInp->realSizeByteBufip == NULL) {
-      STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "malloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
+      STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "malloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
       return STREAMIN_BOOL_FALSE;
     }
 
     streamInp->managedbp = malloc(sizeof(streamInBool_t));
     if (streamInp->managedbp == NULL) {
-      STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "malloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
+      STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "malloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
       return STREAMIN_BOOL_FALSE;
     }
 
@@ -668,7 +672,7 @@ static C_INLINE streamInBool_t _streamIn_readb(streamIn_t *streamInp) {
 
     byteBufpp = realloc(streamInp->byteBufpp, nByteBufi * sizeof(char *));
     if (byteBufpp == NULL) {
-      STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "realloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
+      STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "realloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
       return STREAMIN_BOOL_FALSE;
     } else {
       streamInp->byteBufpp = byteBufpp;
@@ -676,7 +680,7 @@ static C_INLINE streamInBool_t _streamIn_readb(streamIn_t *streamInp) {
 
     realSizeByteBufip = realloc(streamInp->realSizeByteBufip, nByteBufi * sizeof(size_t));
     if (streamInp->realSizeByteBufip == NULL) {
-      STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "realloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
+      STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "realloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
       return STREAMIN_BOOL_FALSE;
     } else {
       streamInp->realSizeByteBufip = realSizeByteBufip;
@@ -684,7 +688,7 @@ static C_INLINE streamInBool_t _streamIn_readb(streamIn_t *streamInp) {
 
     managedbp = realloc(streamInp->managedbp, nByteBufi * sizeof(size_t));
     if (streamInp->managedbp == NULL) {
-      STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "realloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
+      STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "realloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
       return STREAMIN_BOOL_FALSE;
     } else {
       streamInp->managedbp = managedbp;
@@ -698,7 +702,7 @@ static C_INLINE streamInBool_t _streamIn_readb(streamIn_t *streamInp) {
   } else {
     streamInp->byteBufpp[bufIndexi]  = malloc(streamInp->streamInOption.bufMaxSizei);
     if (streamInp->byteBufpp[bufIndexi] == NULL) {
-      STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "malloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
+      STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "malloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
       return STREAMIN_BOOL_FALSE;
     }
     streamInp->managedbp[bufIndexi] = STREAMIN_BOOL_FALSE;
@@ -706,7 +710,7 @@ static C_INLINE streamInBool_t _streamIn_readb(streamIn_t *streamInp) {
   streamInp->realSizeByteBufip[bufIndexi] = 0;
 
   if (streamInp->streamInOption.readCallbackp != NULL) {
-    if ((*streamInp->streamInOption.readCallbackp)(streamInp->streamInOption.readCallbackUserDatap, streamInp->streamInOption.bufMaxSizei, &(streamInp->realSizeByteBufip[bufIndexi]), streamInp->byteBufpp[bufIndexi], &byteManagedArrayp) == STREAMIN_BOOL_FALSE) {
+    if ((*streamInp->streamInOption.readCallbackp)(streamInp->streamInOption.readCallbackDatavp, streamInp->streamInOption.bufMaxSizei, &(streamInp->realSizeByteBufip[bufIndexi]), streamInp->byteBufpp[bufIndexi], &byteManagedArrayp) == STREAMIN_BOOL_FALSE) {
       return STREAMIN_BOOL_FALSE;
     }
   }
@@ -743,7 +747,7 @@ static C_INLINE streamInBool_t _streamIn_readb(streamIn_t *streamInp) {
       byteBufpp = realloc(streamInp->byteBufpp, streamInp->nByteBufi * sizeof(char *));
       /* We are reducing the array, so formally even in case of error we can continue */
       if (byteBufpp == NULL) {
-        STREAMIN_LOGX(STREAMIN_LOGLEVEL_WARNING, "realloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
+        STREAMIN_LOGX(MARPAXML_LOGLEVEL_WARNING, "realloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
       } else {
         streamInp->byteBufpp = byteBufpp;
       }
@@ -753,74 +757,6 @@ static C_INLINE streamInBool_t _streamIn_readb(streamIn_t *streamInp) {
 
 
   return _streamInUtf8_readb(streamInp, bufIndexi);
-}
-
-/*********************/
-/* _streamIn_log_any */
-/*********************/
-static C_INLINE void _streamIn_log_any(streamIn_t *streamInp, streamInLogLevel_t streamInLogLeveli, const char *fmts, ...) {
-  va_list               ap;
-#ifdef VA_COPY
-  va_list               ap2;
-#endif
-  char                 *msgs;
-  streamInLogCallback_t logCallbackp;
-  void                 *logCallbackDatavp;
-  static const char    *emptyMessages = "Empty message";
-
-  if (streamInLogLeveli >= streamInp->streamInOption.logLevelWantedi) {
-
-    if (streamInp->streamInOption.logCallbackp == NULL) {
-      logCallbackp = &_streamIn_logCallback;
-      logCallbackDatavp = NULL;
-    } else {
-      logCallbackp = streamInp->streamInOption.logCallbackp;
-      logCallbackDatavp = streamInp->streamInOption.logCallbackUserDatap;
-    }
-
-    va_start(ap, fmts);
-#ifdef VA_COPY
-    VA_COPY(ap2, ap);
-    msgs = (fmts != NULL) ? messageBuilder_ap(fmts, ap2) : (char *) emptyMessages;
-    va_end(ap2);
-#else
-    msgs = (fmts != NULL) ? messageBuilder_ap(fmts, ap) : (char *) emptyMessages;
-#endif
-    va_end(ap);
-
-    if (msgs != messageBuilder_internalErrors()) {
-      logCallbackp(logCallbackDatavp, streamInp, streamInLogLeveli, msgs);
-    } else {
-      logCallbackp(logCallbackDatavp, streamInp, STREAMIN_LOGLEVEL_ERROR, msgs);
-    }
-
-    if (msgs != emptyMessages && msgs != messageBuilder_internalErrors()) {
-      /* No need to assign to NULL, this is a local variable and we will return just after */
-      free(msgs);
-    }
-  }
-}
-
-/*************************/
-/* _streamIn_logCallback */
-/*************************/
-static C_INLINE void _streamIn_logCallback(void *logCallbackDatavp, streamIn_t *streaminp, streamInLogLevel_t logLeveli, const char *msgs) {
-  const char *prefix;
-
-  switch (logLeveli) {
-  case STREAMIN_LOGLEVEL_TRACE:     prefix = "TRACE";     break;
-  case STREAMIN_LOGLEVEL_DEBUG:     prefix = "DEBUG";     break;
-  case STREAMIN_LOGLEVEL_INFO:      prefix = "INFO";      break;
-  case STREAMIN_LOGLEVEL_NOTICE:    prefix = "NOTICE";    break;
-  case STREAMIN_LOGLEVEL_WARNING:   prefix = "WARNING";   break;
-  case STREAMIN_LOGLEVEL_ERROR:     prefix = "ERROR";     break;
-  case STREAMIN_LOGLEVEL_CRITICAL:  prefix = "CRITICAL";  break;
-  case STREAMIN_LOGLEVEL_ALERT:     prefix = "ALERT";     break;
-  case STREAMIN_LOGLEVEL_EMERGENCY: prefix = "EMERGENCY"; break;
-  default:                          prefix = "UNKNOWN";   break;
-  }
-
-  fprintf(stderr, "[%9s] %s\n", prefix, (msgs != NULL) ? msgs : "No message");
 }
 
 /*********************/
@@ -845,6 +781,8 @@ void streamIn_destroyv(streamIn_t **streamInpp) {
   }
 
   _streamInUtf8_destroyv(streamInp);
+
+  marpaXmlLog_freev(&(streamInp->marpaXmlLogp));
 
   /* No need to assign to NULL, we know what we are doing here */
   free(streamInp);
@@ -1007,12 +945,13 @@ static C_INLINE streamInBool_t _streamIn_optionb(streamIn_t *streamInp, streamIn
 
   if (streamInOptionp != NULL) {
     if (streamInOptionp->bufMaxSizei <= 0) {
-      STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "Invalid bufMaxSizei at %s:%d", __FILE__, __LINE__);
+      STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "Invalid bufMaxSizei at %s:%d", __FILE__, __LINE__);
       rcb = STREAMIN_BOOL_FALSE;
     }
 
     if (rcb == STREAMIN_BOOL_TRUE) {
       streamInp->streamInOption = *streamInOptionp;
+      marpaXmlLog_logLevel_seti(streamInp->marpaXmlLogp, streamInOptionp->logLevelWantedi);
     }
   }
 
@@ -1053,7 +992,7 @@ static C_INLINE void _streamInUtf8_detectb(streamIn_t *streamInp) {
     return;
   }
 
-  STREAMIN_LOG0(STREAMIN_LOGLEVEL_INFO, "Charset detection failure, assuming UTF-8");
+  STREAMIN_LOG0(MARPAXML_LOGLEVEL_INFO, "Charset detection failure, assuming UTF-8");
   streamInp->streamInUtf8Option.fromEncodings = (char *) _streamIn_defaultEncodings;
 }
 
@@ -1073,7 +1012,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_detectb(streamIn_t *streamInp) 
   STREAMIN_TRACEX("ucsdet_open(%p)", &uErrorCode);
   uCharsetDetector = ucsdet_open(&uErrorCode);
   if (U_FAILURE(uErrorCode)) {
-    STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "ucsdet_open(): %s at %s:%d", u_errorName(uErrorCode), __FILE__, __LINE__);
+    STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "ucsdet_open(): %s at %s:%d", u_errorName(uErrorCode), __FILE__, __LINE__);
     rcb = STREAMIN_BOOL_FALSE;
     goto ICU_end;
   }
@@ -1081,7 +1020,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_detectb(streamIn_t *streamInp) 
   STREAMIN_TRACEX("ucsdet_setText(%p, %p, %ld, %p)", uCharsetDetector, streamInp->byteBufpp[0], (unsigned long) streamInp->realSizeByteBufip[0], &uErrorCode);
   ucsdet_setText(uCharsetDetector, streamInp->byteBufpp[0], streamInp->realSizeByteBufip[0], &uErrorCode);
   if (U_FAILURE(uErrorCode)) {
-    STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "ucsdet_setText(): %s at %s:%d", u_errorName(uErrorCode), __FILE__, __LINE__);
+    STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "ucsdet_setText(): %s at %s:%d", u_errorName(uErrorCode), __FILE__, __LINE__);
     rcb = STREAMIN_BOOL_FALSE;
     goto ICU_end;
   }
@@ -1089,12 +1028,12 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_detectb(streamIn_t *streamInp) 
   STREAMIN_TRACEX("ucsdet_detect(%p, %p)", uCharsetDetector, &uErrorCode);
   uCharsetMatch = ucsdet_detect(uCharsetDetector, &uErrorCode);
   if (U_FAILURE(uErrorCode)) {
-    STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "ucsdet_detect(): %s at %s:%d", u_errorName(uErrorCode), __FILE__, __LINE__);
+    STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "ucsdet_detect(): %s at %s:%d", u_errorName(uErrorCode), __FILE__, __LINE__);
     rcb = STREAMIN_BOOL_FALSE;
     goto ICU_end;
   }
   if (uCharsetMatch == NULL) {
-    STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "ucsdet_detect() returned NULL at %s:%d", __FILE__, __LINE__);
+    STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "ucsdet_detect() returned NULL at %s:%d", __FILE__, __LINE__);
     rcb = STREAMIN_BOOL_FALSE;
     goto ICU_end;
   }
@@ -1102,17 +1041,17 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_detectb(streamIn_t *streamInp) 
   STREAMIN_TRACEX("ucsdet_getName(%p, %p)", uCharsetMatch, &uErrorCode);
   fromEncodings = ucsdet_getName(uCharsetMatch, &uErrorCode);
   if (U_FAILURE(uErrorCode)) {
-    STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "ucsdet_getName(): %s at %s:%d", u_errorName(uErrorCode), __FILE__, __LINE__);
+    STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "ucsdet_getName(): %s at %s:%d", u_errorName(uErrorCode), __FILE__, __LINE__);
     rcb = STREAMIN_BOOL_FALSE;
     goto ICU_end;
   }
   if (fromEncodings == NULL) {
-    STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "ucsdet_getName() returned NULL at %s:%d", __FILE__, __LINE__);
+    STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "ucsdet_getName() returned NULL at %s:%d", __FILE__, __LINE__);
     rcb = STREAMIN_BOOL_FALSE;
     goto ICU_end;
   }
   if (strlen(fromEncodings) <= 0) {
-    STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "ucsdet_getName() returned empty string at %s:%d", __FILE__, __LINE__);
+    STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "ucsdet_getName() returned empty string at %s:%d", __FILE__, __LINE__);
     rcb = STREAMIN_BOOL_FALSE;
     goto ICU_end;
   }
@@ -1120,18 +1059,18 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_detectb(streamIn_t *streamInp) 
   STREAMIN_TRACEX("ucsdet_getConfidence(%p, %p)", uCharsetMatch, &uErrorCode);
   confidence = ucsdet_getConfidence(uCharsetMatch, &uErrorCode);
   if (U_FAILURE(uErrorCode)) {
-    STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "ucsdet_getConfidence(): %s at %s:%d", u_errorName(uErrorCode), __FILE__, __LINE__);
+    STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "ucsdet_getConfidence(): %s at %s:%d", u_errorName(uErrorCode), __FILE__, __LINE__);
     rcb = STREAMIN_BOOL_FALSE;
     goto ICU_end;
   }
 
   if (confidence < 10) {
-    STREAMIN_LOGX(STREAMIN_LOGLEVEL_INFO, "ucsdet_getConfidence() returned encoding \"%s\" with too low confidence %d < 10 - rejected", fromEncodings, confidence);
+    STREAMIN_LOGX(MARPAXML_LOGLEVEL_INFO, "ucsdet_getConfidence() returned encoding \"%s\" with too low confidence %d < 10 - rejected", fromEncodings, confidence);
     rcb = STREAMIN_BOOL_FALSE;
     goto ICU_end;
   }
 
-  STREAMIN_LOGX(STREAMIN_LOGLEVEL_INFO, "ICU returned encoding \"%s\" with confidence %d", fromEncodings, confidence);
+  STREAMIN_LOGX(MARPAXML_LOGLEVEL_INFO, "ICU returned encoding \"%s\" with confidence %d", fromEncodings, confidence);
 
  ICU_end:
 
@@ -1139,7 +1078,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_detectb(streamIn_t *streamInp) 
     /* Save the result */
     streamInp->streamInUtf8Option.fromEncodings = malloc(sizeof(char) * (strlen(fromEncodings) + 1));
     if (streamInp->streamInUtf8Option.fromEncodings == NULL) {
-      STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "malloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
+      STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "malloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
       rcb = STREAMIN_BOOL_FALSE;
     } else {
       strcpy(streamInp->streamInUtf8Option.fromEncodings, fromEncodings);
@@ -1256,7 +1195,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_fromConvertb(streamIn_t *stream
     STREAMIN_TRACEX("ucnv_open(\"%s\", %p)", streamInp->streamInUtf8Option.fromEncodings, &uErrorCode);
     streamInp->streamIn_ICU.uConverterFrom = ucnv_open(streamInp->streamInUtf8Option.fromEncodings, &uErrorCode);
     if (U_FAILURE(uErrorCode)) {
-      STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "ucnv_open(): %s at %s:%d", u_errorName(uErrorCode), __FILE__, __LINE__);
+      STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "ucnv_open(): %s at %s:%d", u_errorName(uErrorCode), __FILE__, __LINE__);
       return STREAMIN_BOOL_FALSE;
     }
 
@@ -1264,7 +1203,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_fromConvertb(streamIn_t *stream
       STREAMIN_TRACEX("ucnv_setFromUCallBack(%p, %p, %p, %p, %p, %p)", streamInp->streamIn_ICU.uConverterFrom, streamInp->streamIn_ICU.uConverterFromUCallback, streamInp->streamIn_ICU.uConverterFromUCallbackCtxp, NULL, NULL, &uErrorCode);
       ucnv_setFromUCallBack(streamInp->streamIn_ICU.uConverterFrom, streamInp->streamIn_ICU.uConverterFromUCallback, streamInp->streamIn_ICU.uConverterFromUCallbackCtxp, NULL, NULL, &uErrorCode);
       if (U_FAILURE(uErrorCode)) {
-	STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "ucnv_setFromUCallBack(): %s at %s:%d", u_errorName(uErrorCode), __FILE__, __LINE__);
+	STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "ucnv_setFromUCallBack(): %s at %s:%d", u_errorName(uErrorCode), __FILE__, __LINE__);
 	return STREAMIN_BOOL_FALSE;
       }
     }
@@ -1287,7 +1226,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_fromConvertb(streamIn_t *stream
       /* Cross fingers this fits in a size_t */
       ucharBufp = realloc(streamInp->streamIn_ICU.ucharBufp, (size_t) ucharBufSizel);
       if (ucharBufp == NULL) {
-        STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "realloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
+        STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "realloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
         rcb = STREAMIN_BOOL_FALSE;
 	break;
       }
@@ -1309,7 +1248,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_fromConvertb(streamIn_t *stream
       }
 
       for (i = 0; i < errorLength; i++) {
-        STREAMIN_LOGX(STREAMIN_LOGLEVEL_INFO, "ucnv_toUnicode(): %s: %02x%02x", u_errorName(uErrorCode), _streaminUtf8_ICU_nibbleToHex((uint8_t)errorBytes[i] >> 4), _streaminUtf8_ICU_nibbleToHex((uint8_t)errorBytes[i]));
+        STREAMIN_LOGX(MARPAXML_LOGLEVEL_INFO, "ucnv_toUnicode(): %s: %02x%02x", u_errorName(uErrorCode), _streaminUtf8_ICU_nibbleToHex((uint8_t)errorBytes[i] >> 4), _streaminUtf8_ICU_nibbleToHex((uint8_t)errorBytes[i]));
       }
 
       rcb = STREAMIN_BOOL_FALSE;
@@ -1339,7 +1278,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_fromConvertb(streamIn_t *stream
       STREAMIN_TRACEX("utext_openUChars(%p, %p, %ld, %p)", streamInp->streamIn_ICU.utextp, streamInp->streamIn_ICU.ucharBufp, (unsigned long) ucharLengthl, &uErrorCode);
       streamInp->streamIn_ICU.utextp = utext_openUChars(streamInp->streamIn_ICU.utextp, streamInp->streamIn_ICU.ucharBufp, ucharLengthl, &uErrorCode);
       if (U_FAILURE(uErrorCode)) {
-	STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "utext_openUChars(): %s at %s:%d", u_errorName(uErrorCode), __FILE__, __LINE__);
+	STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "utext_openUChars(): %s at %s:%d", u_errorName(uErrorCode), __FILE__, __LINE__);
 	rcb = STREAMIN_BOOL_FALSE;
       } else {
 	UTEXT_SETNATIVEINDEX(streamInp->streamIn_ICU.utextp, nativeIndexl);
@@ -1349,7 +1288,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_fromConvertb(streamIn_t *stream
       STREAMIN_TRACEX("utext_openUChars(%p, %p, %ld, %p)", streamInp->streamIn_ICU.utextp, streamInp->streamIn_ICU.ucharBufp, (unsigned long) ucharLengthl, &uErrorCode);
       streamInp->streamIn_ICU.utextp = utext_openUChars(streamInp->streamIn_ICU.utextp, streamInp->streamIn_ICU.ucharBufp, ucharLengthl, &uErrorCode);
       if (U_FAILURE(uErrorCode)) {
-	STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "utext_openUChars(): %s at %s:%d", u_errorName(uErrorCode), __FILE__, __LINE__);
+	STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "utext_openUChars(): %s at %s:%d", u_errorName(uErrorCode), __FILE__, __LINE__);
 	rcb = STREAMIN_BOOL_FALSE;
       }
     }
@@ -1392,7 +1331,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_toConvertb(streamIn_t *streamIn
     STREAMIN_TRACEX("ucnv_open(\"%s\", %p)", streamInp->streamInUtf8Option.toEncodings, &uErrorCode);
     streamInp->streamIn_ICU.uConverterTo = ucnv_open(streamInp->streamInUtf8Option.toEncodings, &uErrorCode);
     if (U_FAILURE(uErrorCode)) {
-      STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "ucnv_open(): %s at %s:%d", u_errorName(uErrorCode), __FILE__, __LINE__);
+      STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "ucnv_open(): %s at %s:%d", u_errorName(uErrorCode), __FILE__, __LINE__);
       return STREAMIN_BOOL_FALSE;
     }
 
@@ -1400,7 +1339,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_toConvertb(streamIn_t *streamIn
       STREAMIN_TRACEX("ucnv_setToUCallBack(%p, %p, %p, %p, %p, %p)", streamInp->streamIn_ICU.uConverterTo, streamInp->streamIn_ICU.uConverterToUCallback, streamInp->streamIn_ICU.uConverterToUCallbackCtxp, NULL, NULL, &uErrorCode);
       ucnv_setToUCallBack(streamInp->streamIn_ICU.uConverterTo, streamInp->streamIn_ICU.uConverterToUCallback, streamInp->streamIn_ICU.uConverterToUCallbackCtxp, NULL, NULL, &uErrorCode);
       if (U_FAILURE(uErrorCode)) {
-	STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "ucnv_setToUCallBack(): %s at %s:%d", u_errorName(uErrorCode), __FILE__, __LINE__);
+	STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "ucnv_setToUCallBack(): %s at %s:%d", u_errorName(uErrorCode), __FILE__, __LINE__);
 	return STREAMIN_BOOL_FALSE;
       }
     }
@@ -1412,7 +1351,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_toConvertb(streamIn_t *streamIn
   byteBufSizel = UCNV_GET_MAX_BYTES_FOR_STRING(streamInp->streamIn_ICU.byteBuf2UCharByteLengthlp[bufIndexi], ucnv_getMaxCharSize(streamInp->streamIn_ICU.uConverterTo));
   target = malloc(byteBufSizel);
   if (target == NULL) {
-    STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "malloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
+    STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "malloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
     return STREAMIN_BOOL_FALSE;
   }
   origTarget = target;
@@ -1430,7 +1369,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_toConvertb(streamIn_t *streamIn
       byteBufSizel *= 2;
       target = realloc(target, byteBufSizel);
       if (target == NULL) {
-        STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "realloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
+        STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "realloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
         rcb = STREAMIN_BOOL_FALSE;
 	/* Restore target for the free() */
 	target = origTarget;
@@ -1451,7 +1390,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_toConvertb(streamIn_t *streamIn
       }
 
       for (i = 0; i < errorLength; i++) {
-        STREAMIN_LOGX(STREAMIN_LOGLEVEL_INFO, "ucnv_fromUnicode(): %s: %02x%02x", u_errorName(uErrorCode), _streaminUtf8_ICU_nibbleToHex((uint8_t)errorBytes[i] >> 4), _streaminUtf8_ICU_nibbleToHex((uint8_t)errorBytes[i]));
+        STREAMIN_LOGX(MARPAXML_LOGLEVEL_INFO, "ucnv_fromUnicode(): %s: %02x%02x", u_errorName(uErrorCode), _streaminUtf8_ICU_nibbleToHex((uint8_t)errorBytes[i] >> 4), _streaminUtf8_ICU_nibbleToHex((uint8_t)errorBytes[i]));
       }
 
       rcb = STREAMIN_BOOL_FALSE;
@@ -1521,7 +1460,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_optionb(streamIn_t *streamInp, 
       case STREAMINUTF8OPTION_ICU_ESCAPE_UNICODE:
 	break;
       default:
-        STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "Invalid ICUFromCallback %d at %s:%d", streamInUtf8Optionp->ICUFromCallback, __FILE__, __LINE__);
+        STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "Invalid ICUFromCallback %d at %s:%d", streamInUtf8Optionp->ICUFromCallback, __FILE__, __LINE__);
         rcb = STREAMIN_BOOL_FALSE;
       }
 
@@ -1539,7 +1478,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_optionb(streamIn_t *streamInp, 
       case STREAMINUTF8OPTION_ICU_ESCAPE_UNICODE:
 	break;
       default:
-        STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "Invalid ICUToCallback %d at %s:%d", streamInUtf8Optionp->ICUToCallback, __FILE__, __LINE__);
+        STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "Invalid ICUToCallback %d at %s:%d", streamInUtf8Optionp->ICUToCallback, __FILE__, __LINE__);
         rcb = STREAMIN_BOOL_FALSE;
       }
   }
@@ -1567,7 +1506,7 @@ static C_INLINE streamInBool_t _streamInUtf8_optionb(streamIn_t *streamInp, stre
 	/* Keep a copy of declared input encoding */
 	streamInp->streamInUtf8Option.fromEncodings = malloc(sizeof(char) * (strlen(streamInUtf8Optionp->fromEncodings) + 1));
 	if (streamInp->streamInUtf8Option.fromEncodings == NULL) {
-	  STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "malloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
+	  STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "malloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
 	  rcb = STREAMIN_BOOL_FALSE;
 	} else {
 	  strcpy(streamInp->streamInUtf8Option.fromEncodings, streamInUtf8Optionp->fromEncodings);
@@ -1578,7 +1517,7 @@ static C_INLINE streamInBool_t _streamInUtf8_optionb(streamIn_t *streamInp, stre
       if (toEncodings != _streamIn_defaultEncodings) {
 	streamInp->streamInUtf8Option.toEncodings = malloc(sizeof(char) * (strlen(toEncodings) + 1));
 	if (streamInp->streamInUtf8Option.toEncodings == NULL) {
-	  STREAMIN_LOGX(STREAMIN_LOGLEVEL_ERROR, "malloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
+	  STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "malloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
 	  rcb = STREAMIN_BOOL_FALSE;
 	} else {
 	  strcpy(streamInp->streamInUtf8Option.toEncodings, toEncodings);
@@ -1740,7 +1679,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_markb(streamIn_t *streamInp) {
   } else {
     /* This give the index in the native format of the text below - we know this is UChar */
     streamInp->streamIn_ICU.ucharMarkedOffsetl = UTEXT_GETNATIVEINDEX(streamInp->streamIn_ICU.utextp) * sizeof(UChar);
-    /* STREAMIN_LOGX(STREAMIN_LOGLEVEL_TRACE, "Marking offset %ld", streamInp->streamIn_ICU.ucharMarkedOffsetl); */
+    /* STREAMIN_LOGX(MARPAXML_LOGLEVEL_TRACE, "Marking offset %ld", streamInp->streamIn_ICU.ucharMarkedOffsetl); */
     rcb = STREAMIN_BOOL_TRUE;
   }
 
@@ -1773,7 +1712,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_markPreviousb(streamIn_t *strea
   } else {
     /* This give the index in the native format of the text below - we know this is UChar */
     streamInp->streamIn_ICU.ucharMarkedOffsetl = utext_getPreviousNativeIndex(streamInp->streamIn_ICU.utextp) * sizeof(UChar);
-    /* STREAMIN_LOGX(STREAMIN_LOGLEVEL_TRACE, "Marking offset %ld", streamInp->streamIn_ICU.ucharMarkedOffsetl); */
+    /* STREAMIN_LOGX(MARPAXML_LOGLEVEL_TRACE, "Marking offset %ld", streamInp->streamIn_ICU.ucharMarkedOffsetl); */
     rcb = STREAMIN_BOOL_TRUE;
   }
 
@@ -1806,7 +1745,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_currentFromMarkedb(streamIn_t *
   } else {
     /* This makes the marked character the current character */
     UTEXT_SETNATIVEINDEX(streamInp->streamIn_ICU.utextp, streamInp->streamIn_ICU.ucharMarkedOffsetl);
-    /* STREAMIN_LOGX(STREAMIN_LOGLEVEL_TRACE, "Making offset %ld as current", streamInp->streamIn_ICU.ucharMarkedOffsetl); */
+    /* STREAMIN_LOGX(MARPAXML_LOGLEVEL_TRACE, "Making offset %ld as current", streamInp->streamIn_ICU.ucharMarkedOffsetl); */
     rcb = STREAMIN_BOOL_TRUE;
   }
 
@@ -1839,7 +1778,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_doneb(streamIn_t *streamInp) {
     return rcb;
   } else {
     /* We search for a byte buffer that maps exactly to ucharMarkedOffsetl */
-    /* STREAMIN_LOGX(STREAMIN_LOGLEVEL_TRACE, "Searching for marked offset %ld", streamInp->streamIn_ICU.ucharMarkedOffsetl); */
+    /* STREAMIN_LOGX(MARPAXML_LOGLEVEL_TRACE, "Searching for marked offset %ld", streamInp->streamIn_ICU.ucharMarkedOffsetl); */
     for (i = 0; i < streamInp->nByteBufi; i++) {
       if (streamInp->streamIn_ICU.byteBuf2UCharByteLengthlp[i] == streamInp->streamIn_ICU.ucharMarkedOffsetl) {
 	break;

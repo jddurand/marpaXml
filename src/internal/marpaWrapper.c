@@ -40,8 +40,10 @@
 #endif
 #define MARPAWRAPPER_LOG_WARNING0(callerfmts)      MARPAWRAPPER_LOG_0(MARPAXML_LOGLEVEL_WARNING, MARPAWRAPPERERRORORIGIN_NA, 0, callerfmts)
 #define MARPAWRAPPER_LOG_WARNINGX(callerfmts, ...) MARPAWRAPPER_LOG_X(MARPAXML_LOGLEVEL_WARNING, MARPAWRAPPERERRORORIGIN_NA, 0, callerfmts, __VA_ARGS__)
-#define MARPAWRAPPER_LOG_ERROR0(callerfmts)      MARPAWRAPPER_LOG_0(MARPAXML_LOGLEVEL_ERROR, MARPAWRAPPERERRORORIGIN_NA, 0, callerfmts)
-#define MARPAWRAPPER_LOG_ERRORX(callerfmts, ...) MARPAWRAPPER_LOG_X(MARPAXML_LOGLEVEL_ERROR, MARPAWRAPPERERRORORIGIN_NA, 0, callerfmts, __VA_ARGS__)
+#define MARPAWRAPPER_LOG_ERROR0(callerfmts)        MARPAWRAPPER_LOG_0(MARPAXML_LOGLEVEL_ERROR, MARPAWRAPPERERRORORIGIN_NA, 0, callerfmts)
+#define MARPAWRAPPER_LOG_ERRORX(callerfmts, ...)   MARPAWRAPPER_LOG_X(MARPAXML_LOGLEVEL_ERROR, MARPAWRAPPERERRORORIGIN_NA, 0, callerfmts, __VA_ARGS__)
+#define MARPAWRAPPER_LOG_NOTICE0(callerfmts)       MARPAWRAPPER_LOG_0(MARPAXML_LOGLEVEL_NOTICE, MARPAWRAPPERERRORORIGIN_NA, 0, callerfmts)
+#define MARPAWRAPPER_LOG_NOTICEX(callerfmts, ...)  MARPAWRAPPER_LOG_X(MARPAXML_LOGLEVEL_NOTICE, MARPAWRAPPERERRORORIGIN_NA, 0, callerfmts, __VA_ARGS__)
 
 /* Dedicated Marpa log macros */
 #define MARPAWRAPPER_LOG_MARPA_ERROR(errorCode) MARPAWRAPPER_LOG_0(MARPAXML_LOGLEVEL_ERROR, MARPAWRAPPERERRORORIGIN_MARPA, errorCode, NULL);
@@ -79,6 +81,12 @@ struct marpaWrapper {
   marpaWrapperOption_t     marpaWrapperOption;
 };
 
+typedef enum marpaWrapperErrorOrigin {
+  MARPAWRAPPERERRORORIGIN_SYSTEM = 0,
+  MARPAWRAPPERERRORORIGIN_MARPA,
+  MARPAWRAPPERERRORORIGIN_NA,
+} marpaWrapperErrorOrigin_t;
+
 MARPAWRAPPER_GENERATE_GETTER_DEFINITION(marpaWrapper,                  size_t, sizeMarpaWrapperSymboli, , sizeMarpaWrapperSymboli)
 MARPAWRAPPER_GENERATE_GETTER_DEFINITION(marpaWrapper, marpaWrapperSymbol_t **, marpaWrapperSymbolpp, , marpaWrapperSymbolpp)
 MARPAWRAPPER_GENERATE_GETTER_DEFINITION(marpaWrapper,                  size_t, sizeMarpaWrapperRulei, , sizeMarpaWrapperRulei)
@@ -112,10 +120,10 @@ static C_INLINE int _marpaWrapper_event_weight(Marpa_Event_Type eventType);
 /* Internal methods */
 /********************/
 /* Logging stuff */
-static C_INLINE void                   _marpaWrapper_logWrapper(marpaWrapper_t *marpaWrapperp, marpaWrapperErrorOrigin_t errorOrigini, int errorNumberi, const char *calls, marpaXmlLogLevel_t logLeveli);
+static C_INLINE void                   _marpaWrapper_logWrapper(marpaWrapper_t *marpaWrapperp, marpaWrapperErrorOrigin_t errorOrigini, int errorNumberi, const char *calls, marpaXmlLogLevel_t marpaXmlLogLeveli);
 static C_INLINE const char            *_marpaWrapper_strerror   (marpaWrapperErrorOrigin_t errorOrigini, int errorNumberi);
 static C_INLINE void                   _marpaWrapper_log(marpaWrapper_t *marpaWrapperp, marpaXmlLogLevel_t marpaXmlLogLeveli, marpaWrapperErrorOrigin_t marpaWrapperErrorOrigini, int errorCodei, const char *fmts, ...);
-static C_INLINE void                   _marpaWrapper_logExt(marpaXmlLogCallback_t logCallbackp, void *logCallbackDatavp, marpaWrapper_t *marpaWrapperp, marpaXmlLogLevel_t logLevelWantedi, marpaWrapperErrorOrigin_t errorOrigini, int errorNumberi, const char *calls, marpaXmlLogLevel_t logLeveli);
+static C_INLINE void                   _marpaWrapper_logExt(marpaXmlLogCallback_t logCallbackp, void *logCallbackDatavp, marpaWrapper_t *marpaWrapperp, marpaXmlLogLevel_t logLevelWantedi, marpaWrapperErrorOrigin_t errorOrigini, int errorNumberi, const char *calls, marpaXmlLogLevel_t marpaXmlLogLeveli);
 
 /* API helpers */
 static C_INLINE marpaWrapperBool_t    _marpaWrapper_event       (marpaWrapper_t *marpaWrapperp);
@@ -1136,7 +1144,7 @@ static C_INLINE void _marpaWrapper_logWrapper(marpaWrapper_t           *marpaWra
 					      marpaWrapperErrorOrigin_t errorOrigini,
 					      int                       errorNumberi,
 					      const char               *calls,
-					      marpaXmlLogLevel_t    logLeveli) {
+					      marpaXmlLogLevel_t    marpaXmlLogLeveli) {
   if (marpaWrapperp != NULL) {
     _marpaWrapper_logExt(marpaWrapperp->marpaWrapperOption.logCallbackp,
 			 marpaWrapperp->marpaWrapperOption.logCallbackDatavp,
@@ -1145,21 +1153,21 @@ static C_INLINE void _marpaWrapper_logWrapper(marpaWrapper_t           *marpaWra
 			 errorOrigini,
 			 errorNumberi,
 			 calls,
-			 logLeveli);
+			 marpaXmlLogLeveli);
   }
 }
 
 /************************/
 /* _marpaWrapper_logExt */
 /************************/
-static C_INLINE void _marpaWrapper_logExt(marpaXmlLogCallback_t logCallbackp,
+static C_INLINE void _marpaWrapper_logExt(marpaXmlLogCallback_t     logCallbackp,
 					  void                     *logCallbackDatavp,
 					  marpaWrapper_t           *marpaWrapperp,
-					  marpaXmlLogLevel_t    logLevelWantedi,
+					  marpaXmlLogLevel_t        logLevelWantedi,
 					  marpaWrapperErrorOrigin_t errorOrigini,
 					  int                       errorNumberi,
 					  const char               *calls,
-					  marpaXmlLogLevel_t    logLeveli) {
+					  marpaXmlLogLevel_t        marpaXmlLogLeveli) {
   char *msgs;
   const char *strerrors;
 
@@ -1177,7 +1185,7 @@ static C_INLINE void _marpaWrapper_logExt(marpaXmlLogCallback_t logCallbackp,
     }
 
     if (msgs != messageBuilder_internalErrors()) {
-      marpaXml_log(marpaWrapperp->marpaXmlLogp, logLeveli, "%s\n", msgs);
+      marpaXml_log(marpaWrapperp->marpaXmlLogp, marpaXmlLogLeveli, "%s\n", msgs);
       free(msgs);
     } else {
       marpaXml_log(marpaWrapperp->marpaXmlLogp, MARPAXML_LOGLEVEL_ERROR, "%s\n", msgs);
@@ -1430,14 +1438,7 @@ static C_INLINE marpaWrapperBool_t _marpaWrapper_event(marpaWrapper_t *marpaWrap
       MARPAWRAPPER_LOG_TRACEX("\tSymbol %d was predicted", eventValuei);
       break;
     default:
-      /* shall we log that ? */
-      /*
-      _marpaWrapper_logWrapper(marpaWrapperp,
-			       MARPAWRAPPERERRORORIGIN_NA,
-			       0,
-			       "Unknown event type",
-			       MARPAXML_LOGLEVEL_INFO);
-      */
+      MARPAWRAPPER_LOG_NOTICEX("marpa_g_event_value(%p) returns unsupported event type %d", &event, (int) eventType);
       break;
     }
     if (warningMsgs != NULL) {

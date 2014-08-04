@@ -20,6 +20,9 @@ typedef struct marpaXmlLog marpaXmlLog_t;
 typedef void (*marpaXmlLogCallback_t)(void *userDatavp, marpaXmlLogLevel_t logLeveli, const char *msgs);
 
 marpaXmlLogCallback_t marpaXmlLog_defaultLogCallback(void);
+marpaXmlLogLevel_t    marpaXmlLog_logLevel_seti(marpaXmlLog_t *marpaXmlLogp, marpaXmlLogLevel_t logLeveli);
+marpaXmlLogLevel_t    marpaXmlLog_logLevel_geti(marpaXmlLog_t *marpaXmlLogp);
+
 marpaXmlLog_t        *marpaXmlLog_newp(marpaXmlLogCallback_t logCallbackp, void *userDatavp, marpaXmlLogLevel_t marpaXmlLogLeveli);
 void                  marpaXmlLog_freev(marpaXmlLog_t **marpaXmlLogpp);
 

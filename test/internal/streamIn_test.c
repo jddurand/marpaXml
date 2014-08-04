@@ -131,9 +131,9 @@ static void _fileTest(streamIn_t *streamInp, streamInBool_t utf8b, streamInBool_
     return;
   }
   /* streamInOption.bufMaxSizei = 1; */
-  streamInOption.logLevelWantedi = STREAMIN_LOGLEVEL_TRACE;
+  streamInOption.logLevelWantedi = MARPAXML_LOGLEVEL_TRACE;
   streamInOption.readCallbackp = &_readFileCallback;
-  streamInOption.readCallbackUserDatap = &myReadData;
+  streamInOption.readCallbackDatavp = &myReadData;
   if (streamIn_optionb(streamInp, &streamInOption) == STREAMIN_BOOL_FALSE) {
     fprintf(stderr, "streamIn_optionb failure\n");
     return;
@@ -209,9 +209,9 @@ static void _bufferTest(streamIn_t *streamInp, streamInBool_t utf8b, char **argv
     return;
   }
   /* streamInOption.bufMaxSizei = 1002; */
-  streamInOption.logLevelWantedi = STREAMIN_LOGLEVEL_TRACE;
+  streamInOption.logLevelWantedi = MARPAXML_LOGLEVEL_TRACE;
   streamInOption.readCallbackp = &_readBufferCallback;
-  streamInOption.readCallbackUserDatap = &myReadData;
+  streamInOption.readCallbackDatavp = &myReadData;
   if (streamIn_optionb(streamInp, &streamInOption) == STREAMIN_BOOL_FALSE) {
     fprintf(stderr, "streamIn_optionb failure\n");
     return;

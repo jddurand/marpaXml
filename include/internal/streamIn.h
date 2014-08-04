@@ -16,8 +16,9 @@
 /* It is assumed that an int is at least 32bits                                         */
 /****************************************************************************************/
 
-#include "config.h"
 #include <stddef.h>               /*  size_t definition */
+#include "config.h"
+#include "API/marpaXml/log.h"
 
 /*************************
    Opaque object pointer
@@ -32,23 +33,9 @@ typedef enum streamInBool {
   STREAMIN_BOOL_TRUE  =  1
 } streamInBool_t;
 
-typedef enum streamInLogLevel {
-  STREAMIN_LOGLEVEL_TRACE = 0,
-  STREAMIN_LOGLEVEL_DEBUG,
-  STREAMIN_LOGLEVEL_INFO,
-  STREAMIN_LOGLEVEL_NOTICE,
-  STREAMIN_LOGLEVEL_WARNING,
-  STREAMIN_LOGLEVEL_ERROR,
-  STREAMIN_LOGLEVEL_CRITICAL,
-  STREAMIN_LOGLEVEL_ALERT,
-  STREAMIN_LOGLEVEL_EMERGENCY
-} streamInLogLevel_t;
-
 /*************************
    Callback types
  *************************/
-typedef void           (*streamInLogCallback_t)(void *datavp, streamIn_t *streamInp, streamInLogLevel_t logLeveli, const char *msgs);
-
 /* Free the content of a managed buffer */
 typedef streamInBool_t (*streamInBufFreeCallback_t)(void *datavp, char *charManagedArrayp);
 
@@ -65,13 +52,13 @@ typedef streamInBool_t (*streamInReadCallback_t)  (void *datavp, size_t wantedBy
 typedef struct streamInOption {
   size_t                       bufMaxSizei;                   /* Defaut:  1M. Optional.                       */
   streamInBool_t               allBuffersAreManagedByUserb;   /* Default: STREAMIN_BOOL_FALSE                 */
-  streamInLogLevel_t           logLevelWantedi;               /* Default: STREAMIN_LOGLEVEL_WARNING           */
-  streamInLogCallback_t        logCallbackp;                  /* Default: Internal routine logging to STDERR. */
-  void                        *logCallbackUserDatap;          /* Default: NULL. Optional.                     */
+  marpaXmlLogLevel_t           logLevelWantedi;               /* Default: MARPAXML_LOGLEVEL_WARNING           */
+  marpaXmlLogCallback_t        logCallbackp;                  /* Default: marpaXmlLog_defaultLogCallback()    */
+  void                        *logCallbackDatavp;             /* Default: NULL                                */
   streamInReadCallback_t       readCallbackp;                 /* Default: NULL. Can Must be non-NULL.         */
-  void                        *readCallbackUserDatap;         /* Default: NULL.                               */
+  void                        *readCallbackDatavp;            /* Default: NULL.                               */
   streamInBufFreeCallback_t    bufFreeCallbackp;              /* Default: NULL.                               */
-  void                        *bufFreeCallbackUserDatap;      /* Default: NULL.                               */
+  void                        *bufFreeCallbackDatavp;         /* Default: NULL.                               */
 } streamInOption_t;
 
 typedef enum streamInUtf8Option_ICU {

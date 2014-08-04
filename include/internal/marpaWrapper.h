@@ -112,12 +112,6 @@ typedef struct marpaWrapperOption {
 marpaWrapper_t           *marpaWrapper_newp(marpaWrapperOption_t *marpaWrapperOptionp);
 void                      marpaWrapper_destroyv(marpaWrapper_t **marpaWrapperpp);
 
-typedef enum marpaWrapperErrorOrigin {
-  MARPAWRAPPERERRORORIGIN_SYSTEM = 0,
-  MARPAWRAPPERERRORORIGIN_MARPA,
-  MARPAWRAPPERERRORORIGIN_NA,
-} marpaWrapperErrorOrigin_t;
-
 /**************************************************/
 /* Phase 1: Grammar definition and precomputation */
 /**************************************************/

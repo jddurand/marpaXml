@@ -28,6 +28,21 @@ struct marpaXmlLog {
 
 void _marpaXmlLog_defaultCallback(void *userDatavp, marpaXmlLogLevel_t logLeveli, const char *msgs);
 
+/*****************************/
+/* marpaXmlLog_logLevel_seti */
+/*****************************/
+marpaXmlLogLevel_t marpaXmlLog_logLevel_seti(marpaXmlLog_t *marpaXmlLogp, marpaXmlLogLevel_t logLeveli) {
+  marpaXmlLogp->marpaXmlLogLeveli = logLeveli;
+  return marpaXmlLogp->marpaXmlLogLeveli;
+}
+
+/*****************************/
+/* marpaXmlLog_logLevel_geti */
+/*****************************/
+marpaXmlLogLevel_t marpaXmlLog_logLevel_geti(marpaXmlLog_t *marpaXmlLogp) {
+  return marpaXmlLogp->marpaXmlLogLeveli;
+}
+
 /**********************************/
 /* marpaXmlLog_defaultLogCallback */
 /**********************************/
