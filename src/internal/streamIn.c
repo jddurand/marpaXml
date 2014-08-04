@@ -181,7 +181,14 @@ streamIn_t *streamIn_newp(streamInOption_t *streamInOptionp) {
 /* _streamInUtf8_ICU_newb */
 /**************************/
 static C_INLINE streamInBool_t _streamInUtf8_ICU_newb(streamIn_t *streamInp) {
-  streamInBool_t  rcb           = STREAMIN_BOOL_TRUE;
+  streamInBool_t  rcb        = STREAMIN_BOOL_TRUE;
+  UErrorCode      uErrorCode = U_ZERO_ERROR;
+
+  /* Formally not needed, but done explicitely to make sure that ICU is initialized */
+  u_init(&uErrorCode);
+  if (U_FAILURE(uErrorCode)) {
+    return STREAMIN_BOOL_FALSE;
+  }
 
   streamInp->streamIn_ICU.byteBuf2UCharByteLengthlp = NULL;
   streamInp->streamIn_ICU.ucharMarkedOffsetl       = 0;
