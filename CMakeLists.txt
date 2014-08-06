@@ -145,6 +145,7 @@ ADD_LIBRARY (marpaXml
   ${PROJECT_SOURCE_DIR}/src/internal/grammar/xml_common.c
   ${PROJECT_SOURCE_DIR}/src/internal/grammar/xml_1_0.c
   ${PROJECT_SOURCE_DIR}/src/internal/grammar/xml_1_1.c
+  ${PROJECT_SOURCE_DIR}/src/internal/DOMStringLiterals.cpp
   ${PROJECT_SOURCE_DIR}/src/API/marpaXml/DOM.c
   ${PROJECT_SOURCE_DIR}/src/API/marpaXml/log.c
   )
@@ -212,8 +213,11 @@ TARGET_LINK_LIBRARIES (marpaWrapper_test marpaXml marpa)
 ADD_EXECUTABLE        (streamIn_test ${PROJECT_SOURCE_DIR}/test/internal/streamIn_test.c)
 TARGET_LINK_LIBRARIES (streamIn_test marpaXml)
 
-ADD_EXECUTABLE        (log_test ${PROJECT_SOURCE_DIR}/test/API/log_test.c)
+ADD_EXECUTABLE        (log_test ${PROJECT_SOURCE_DIR}/test/API/log.c)
 TARGET_LINK_LIBRARIES (log_test marpaXml)
+
+ADD_EXECUTABLE        (DOM_test ${PROJECT_SOURCE_DIR}/test/API/DOM.c)
+TARGET_LINK_LIBRARIES (DOM_test marpaXml)
 
 ADD_EXECUTABLE        (ICU4CDetectEncoding ${PROJECT_SOURCE_DIR}/test/internal/ICU4CDetectEncoding.c)
 
