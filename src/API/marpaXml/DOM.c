@@ -29,6 +29,8 @@ static C_INLINE MARPAXML_DOM_TYPE(boolean) _DOMImplementation_hasFeature(MARPAXM
 #define _MARPAXML_DOM_FUNC_INIT(typeName)     _marpaXml_DOM_##typeName##_init
 #define _MARPAXML_DOM_FUNC_DESTROY(typeName)  _marpaXml_DOM_##typeName##_destroy
 
+#define _MARPAXML_U_STRCASECOMPARE(s1, s2) u_strCaseCompare((UChar *) (s1)->s, (s1)->length,(UChar *) (s2)->s, (s2)->length, U_FOLD_CASE_DEFAULT, &uErrorCode) == 0 && U_SUCCESS(uErrorCode)
+
 MARPAXML_DOM_OBJECT_CONSTRUCTOR_AND_DESTRUCTOR(DOMImplementation)
 /*
 MARPAXML_DOM_OBJECT_CONSTRUCTOR_AND_DESTRUCTOR(DocumentType)
@@ -89,8 +91,11 @@ static C_INLINE void _MARPAXML_DOM_FUNC_DESTROY(DOMImplementation)(MARPAXML_DOM_
 }
 
 static C_INLINE MARPAXML_DOM_TYPE(boolean) _DOMImplementation_hasFeature(MARPAXML_DOM_TYPE(DOMString) feature, MARPAXML_DOM_TYPE(DOMString) version) {
-  UErrorCode uErrorCode = U_ZERO_ERROR;
-  int i;
+  UErrorCode                     uErrorCode = U_ZERO_ERROR;
+  int                            i;
+  MARPAXML_DOM_STRUCT(DOMString) DOMString;
+  MARPAXML_DOM_TYPE(boolean)     versionOk = MARPAXML_DOM_TRUE;
+  MARPAXML_DOM_TYPE(boolean)     featureOk = MARPAXML_DOM_FALSE;
 
   if (feature == NULL) {
     return MARPAXML_DOM_FALSE;
@@ -98,27 +103,29 @@ static C_INLINE MARPAXML_DOM_TYPE(boolean) _DOMImplementation_hasFeature(MARPAXM
 
   /* version can be NULL or one of those known */
   if (version != NULL) {
+    versionOk = MARPAXML_DOM_FALSE;
     for (i = 0; i < _MARPAXML_DOM_DOMIMPLEMENTATION_VERSION_MAX; i++) {
-      if (u_strCaseCompare((UChar *) version->s,
-			   version->length,
-			   marpaXml_DOMStringLiteral_buffer(i), marpaXml_DOMStringLiteral_length(i),
-			   U_FOLD_CASE_DEFAULT,
-			   &uErrorCode) != 0 || U_FAILURE(uErrorCode)) {
-	return MARPAXML_DOM_FALSE;
+      DOMString.s      = (unsigned short *) marpaXml_DOMStringLiteral_buffer(i);
+      DOMString.length = marpaXml_DOMStringLiteral_length(i);
+      if (_MARPAXML_U_STRCASECOMPARE(version, &DOMString)) {
+	versionOk = MARPAXML_DOM_TRUE;
+	break;
       }
+    }
+    if (versionOk != MARPAXML_DOM_TRUE) {
+      return MARPAXML_DOM_FALSE;
     }
   }
 
   for (i = 0; i < _MARPAXML_DOM_DOMIMPLEMENTATION_HASFEATURE_MAX; i++) {
-    if (u_strCaseCompare((UChar *) feature->s,
-			 feature->length,
-			 marpaXml_DOMStringLiteral_buffer(i), marpaXml_DOMStringLiteral_length(i),
-			 U_FOLD_CASE_DEFAULT,
-			 &uErrorCode) == 0 && U_SUCCESS(uErrorCode)) {
-      return MARPAXML_DOM_TRUE;
+    DOMString.s      = (unsigned short *) marpaXml_DOMStringLiteral_buffer(i);
+    DOMString.length = marpaXml_DOMStringLiteral_length(i);
+    if (_MARPAXML_U_STRCASECOMPARE(feature, &DOMString)) {
+      featureOk = MARPAXML_DOM_TRUE;
+      break;
     }
   }
 
-  return MARPAXML_DOM_FALSE;
+  return featureOk;
 }
 
