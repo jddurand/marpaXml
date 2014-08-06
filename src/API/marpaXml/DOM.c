@@ -118,7 +118,7 @@ static C_INLINE void _MARPAXML_DOM_FUNC_DESTROY(DOMImplementation)(MARPAXML_DOM_
 }
 
 static C_INLINE MARPAXML_DOM_TYPE(boolean) _DOMImplementation_hasFeature(MARPAXML_DOM_TYPE(DOMString) feature, MARPAXML_DOM_TYPE(DOMString) version) {
-  UErrorCode                      uErrorCode = U_ZERO_ERROR;
+  UErrorCode                     uErrorCode = U_ZERO_ERROR;
   MARPAXML_DOM_STRUCT(DOMString) versions[3] = {
     { (unsigned short *) MARPAXML_DOM_STRINGLITERAL_1_0, MARPAXML_DOM_STRINGLITERAL_1_0_LENGTH },
     { (unsigned short *) MARPAXML_DOM_STRINGLITERAL_2_0, MARPAXML_DOM_STRINGLITERAL_2_0_LENGTH },
@@ -128,9 +128,9 @@ static C_INLINE MARPAXML_DOM_TYPE(boolean) _DOMImplementation_hasFeature(MARPAXM
     { (unsigned short *) MARPAXML_DOM_STRINGLITERAL_CORE, MARPAXML_DOM_STRINGLITERAL_CORE_LENGTH },
     { (unsigned short *) MARPAXML_DOM_STRINGLITERAL_XML, MARPAXML_DOM_STRINGLITERAL_XML_LENGTH },
   };
-  MARPAXML_DOM_TYPE(boolean)      versionOk = MARPAXML_DOM_FALSE;
-  MARPAXML_DOM_TYPE(boolean)      featureOk = MARPAXML_DOM_FALSE;
-  int                             i;
+  MARPAXML_DOM_TYPE(boolean)     versionOk = MARPAXML_DOM_FALSE;
+  MARPAXML_DOM_TYPE(boolean)     featureOk = MARPAXML_DOM_FALSE;
+  int                            i;
 
   if (feature == NULL) {
     return MARPAXML_DOM_FALSE;
