@@ -106,7 +106,7 @@ MARPAXML_DOM_STRUCT(DOMString) {
 };
 typedef MARPAXML_DOM_STRUCT(DOMString) *MARPAXML_DOM_TYPE(DOMString);
 
-/* Probably not neede but recommended -; */
+/* Can be called several times, but one is enough */
 MARPAXML_DOM_TYPE(boolean) marpaXml_DOM_init(void);
 
 /* DOMTimeStamp is defined but not used */

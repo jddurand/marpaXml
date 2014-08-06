@@ -12,6 +12,8 @@ int main(int argc, char **argv) {
   U_STRING_INIT(                 DOMStringUnknown, "Unknown", 7);
   MARPAXML_DOM_STRUCT(DOMString) DOMString;
 
+  marpaXml_DOM_init();
+
   MARPAXML_DOM_TYPE(DOMImplementation) DOMImplementationp = MARPAXML_DOM_NEW(DOMImplementation)();
 
   DOMString.s = (unsigned short *) MARPAXML_DOM_STRINGLITERAL_CORE;
