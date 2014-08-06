@@ -107,6 +107,7 @@ static C_INLINE MARPAXML_DOM_TYPE(boolean) _DOMImplementation_hasFeature(MARPAXM
     for (i = 0; i < _MARPAXML_DOM_DOMIMPLEMENTATION_VERSION_MAX; i++) {
       DOMString.s      = (unsigned short *) marpaXml_DOMStringLiteral_buffer(i);
       DOMString.length = marpaXml_DOMStringLiteral_length(i);
+      uErrorCode = U_ZERO_ERROR;
       if (_MARPAXML_U_STRCASECOMPARE(version, &DOMString)) {
 	versionOk = MARPAXML_DOM_TRUE;
 	break;
@@ -120,6 +121,7 @@ static C_INLINE MARPAXML_DOM_TYPE(boolean) _DOMImplementation_hasFeature(MARPAXM
   for (i = 0; i < _MARPAXML_DOM_DOMIMPLEMENTATION_HASFEATURE_MAX; i++) {
     DOMString.s      = (unsigned short *) marpaXml_DOMStringLiteral_buffer(i);
     DOMString.length = marpaXml_DOMStringLiteral_length(i);
+    uErrorCode = U_ZERO_ERROR;
     if (_MARPAXML_U_STRCASECOMPARE(feature, &DOMString)) {
       featureOk = MARPAXML_DOM_TRUE;
       break;
