@@ -103,9 +103,11 @@ typedef void                           *MARPAXML_DOM_TYPE(DOMObject);
 MARPAXML_DOM_STRUCT(DOMString) {
   unsigned short *s;
   size_t          length;
-  short           _internal;   /* Never use this variable, never */
 };
 typedef MARPAXML_DOM_STRUCT(DOMString) *MARPAXML_DOM_TYPE(DOMString);
+
+/* Probably not neede but recommended -; */
+MARPAXML_DOM_TYPE(boolean) marpaXml_DOM_init(void);
 
 /* DOMTimeStamp is defined but not used */
 /* MARPAXML_DOM_OBJECT_DECLARATION(DOMTimeStamp); */

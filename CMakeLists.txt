@@ -145,7 +145,6 @@ ADD_LIBRARY (marpaXml
   ${PROJECT_SOURCE_DIR}/src/internal/grammar/xml_common.c
   ${PROJECT_SOURCE_DIR}/src/internal/grammar/xml_1_0.c
   ${PROJECT_SOURCE_DIR}/src/internal/grammar/xml_1_1.c
-  ${PROJECT_SOURCE_DIR}/src/internal/DOMStringLiterals.cpp
   ${PROJECT_SOURCE_DIR}/src/API/marpaXml/DOM.c
   ${PROJECT_SOURCE_DIR}/src/API/marpaXml/log.c
   )

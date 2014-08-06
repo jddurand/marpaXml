@@ -2,8 +2,8 @@
 
 #include <unicode/ustring.h>
 #include <unicode/uchar.h>
+#include <unicode/uclean.h>
 
-#include "internal/DOMStringLiterals.hpp"
 #include "API/marpaXml/DOM.h"
 #include "internal/config.h"
 
@@ -29,7 +29,9 @@ static C_INLINE MARPAXML_DOM_TYPE(boolean) _DOMImplementation_hasFeature(MARPAXM
 #define _MARPAXML_DOM_FUNC_INIT(typeName)     _marpaXml_DOM_##typeName##_init
 #define _MARPAXML_DOM_FUNC_DESTROY(typeName)  _marpaXml_DOM_##typeName##_destroy
 
-#define _MARPAXML_U_STRCASECOMPARE(s1, s2) u_strCaseCompare((UChar *) (s1)->s, (s1)->length,(UChar *) (s2)->s, (s2)->length, U_FOLD_CASE_DEFAULT, &uErrorCode) == 0 && U_SUCCESS(uErrorCode)
+#define MARPAXML_DOM_U_STRCASECOMPARE(s1, s2) u_strCaseCompare((UChar *) (s1)->s, (s1)->length,(UChar *) (s2)->s, (s2)->length, U_FOLD_CASE_DEFAULT, &uErrorCode) == 0 && U_SUCCESS(uErrorCode)
+
+#define MARPAXML_DOM_N_ELEMENTS(array) (sizeof(array)/sizeof((array)[0])) 
 
 MARPAXML_DOM_OBJECT_CONSTRUCTOR_AND_DESTRUCTOR(DOMImplementation)
 /*
@@ -63,21 +65,35 @@ MARPAXML_DOM_OBJECT_CONSTRUCTOR_AND_DESTRUCTOR(DocumentFragment)
 
 /*******************************************************************/
 /*                                                                 */
+/*                            init                                 */
+/*                                                                 */
+/*******************************************************************/
+MARPAXML_DOM_TYPE(boolean) marpaXml_DOM_init(void) {
+  UErrorCode uErrorCode = U_ZERO_ERROR;
+
+  u_init(&uErrorCode);
+  if (U_FAILURE(uErrorCode)) {
+    return MARPAXML_DOM_FALSE;
+  }
+
+  return MARPAXML_DOM_TRUE;
+}
+
+/*******************************************************************/
+/*                                                                 */
 /*                      DOMImplementation                          */
 /*                                                                 */
 /*******************************************************************/
-typedef enum {
-  MARPAXML_DOM_DOMIMPLEMENTATION_HASFEATURE_CORE = MARPAXML_DOM_STRINGLITERAL_CORE,
-  MARPAXML_DOM_DOMIMPLEMENTATION_HASFEATURE_XML = MARPAXML_DOM_STRINGLITERAL_XML,
-  _MARPAXML_DOM_DOMIMPLEMENTATION_HASFEATURE_MAX
-} marpaXml_DOM_DOMImplementation_feature_t;
-
-typedef enum {
-  MARPAXML_DOM_DOMIMPLEMENTATION_VERSION_1_0 = MARPAXML_DOM_STRINGLITERAL_1_0,
-  MARPAXML_DOM_DOMIMPLEMENTATION_VERSION_2_0 = MARPAXML_DOM_STRINGLITERAL_2_0,
-  MARPAXML_DOM_DOMIMPLEMENTATION_VERSION_3_0 = MARPAXML_DOM_STRINGLITERAL_3_0,
-  _MARPAXML_DOM_DOMIMPLEMENTATION_VERSION_MAX
-} marpaXml_DOM_DOMImplementation_version_t;
+#define MARPAXML_DOM_STRINGLITERAL_CORE_LENGTH 4
+U_STRING_DECL(MARPAXML_DOM_STRINGLITERAL_CORE, "Core", MARPAXML_DOM_STRINGLITERAL_CORE_LENGTH);
+#define MARPAXML_DOM_STRINGLITERAL_XML_LENGTH 3
+U_STRING_DECL(MARPAXML_DOM_STRINGLITERAL_XML, "XML", MARPAXML_DOM_STRINGLITERAL_XML_LENGTH);
+#define MARPAXML_DOM_STRINGLITERAL_1_0_LENGTH 3
+U_STRING_DECL(MARPAXML_DOM_STRINGLITERAL_1_0, "1.0", MARPAXML_DOM_STRINGLITERAL_1_0_LENGTH);
+#define MARPAXML_DOM_STRINGLITERAL_2_0_LENGTH 3
+U_STRING_DECL(MARPAXML_DOM_STRINGLITERAL_2_0, "2.0", MARPAXML_DOM_STRINGLITERAL_2_0_LENGTH);
+#define MARPAXML_DOM_STRINGLITERAL_3_0_LENGTH 3
+U_STRING_DECL(MARPAXML_DOM_STRINGLITERAL_3_0, "3.0", MARPAXML_DOM_STRINGLITERAL_3_0_LENGTH);
 
 static C_INLINE MARPAXML_DOM_TYPE(boolean) _MARPAXML_DOM_FUNC_INIT(DOMImplementation)(MARPAXML_DOM_TYPE(DOMImplementation) thisp) {
   thisp->hasFeature = &_DOMImplementation_hasFeature;
@@ -91,11 +107,24 @@ static C_INLINE void _MARPAXML_DOM_FUNC_DESTROY(DOMImplementation)(MARPAXML_DOM_
 }
 
 static C_INLINE MARPAXML_DOM_TYPE(boolean) _DOMImplementation_hasFeature(MARPAXML_DOM_TYPE(DOMString) feature, MARPAXML_DOM_TYPE(DOMString) version) {
-  UErrorCode                     uErrorCode = U_ZERO_ERROR;
-  int                            i;
-  MARPAXML_DOM_STRUCT(DOMString) DOMString;
-  MARPAXML_DOM_TYPE(boolean)     versionOk = MARPAXML_DOM_TRUE;
-  MARPAXML_DOM_TYPE(boolean)     featureOk = MARPAXML_DOM_FALSE;
+  UErrorCode                      uErrorCode = U_ZERO_ERROR;
+  U_STRING_INIT(                  MARPAXML_DOM_STRINGLITERAL_CORE, "Core", MARPAXML_DOM_STRINGLITERAL_CORE_LENGTH);
+  U_STRING_INIT(                  MARPAXML_DOM_STRINGLITERAL_XML, "XML", MARPAXML_DOM_STRINGLITERAL_XML_LENGTH);
+  U_STRING_INIT(                  MARPAXML_DOM_STRINGLITERAL_1_0, "1.0", MARPAXML_DOM_STRINGLITERAL_1_0_LENGTH);
+  U_STRING_INIT(                  MARPAXML_DOM_STRINGLITERAL_2_0, "2.0", MARPAXML_DOM_STRINGLITERAL_2_0_LENGTH);
+  U_STRING_INIT(                  MARPAXML_DOM_STRINGLITERAL_3_0, "3.0", MARPAXML_DOM_STRINGLITERAL_3_0_LENGTH);
+  MARPAXML_DOM_STRUCT(DOMString) versions[3] = {
+    { (unsigned short *) MARPAXML_DOM_STRINGLITERAL_1_0, MARPAXML_DOM_STRINGLITERAL_1_0_LENGTH },
+    { (unsigned short *) MARPAXML_DOM_STRINGLITERAL_2_0, MARPAXML_DOM_STRINGLITERAL_2_0_LENGTH },
+    { (unsigned short *) MARPAXML_DOM_STRINGLITERAL_3_0, MARPAXML_DOM_STRINGLITERAL_3_0_LENGTH }
+  };
+  MARPAXML_DOM_STRUCT(DOMString) features[3] = {
+    { (unsigned short *) MARPAXML_DOM_STRINGLITERAL_CORE, MARPAXML_DOM_STRINGLITERAL_CORE_LENGTH },
+    { (unsigned short *) MARPAXML_DOM_STRINGLITERAL_XML, MARPAXML_DOM_STRINGLITERAL_XML_LENGTH },
+  };
+  MARPAXML_DOM_TYPE(boolean)      versionOk = MARPAXML_DOM_FALSE;
+  MARPAXML_DOM_TYPE(boolean)      featureOk = MARPAXML_DOM_FALSE;
+  int                             i;
 
   if (feature == NULL) {
     return MARPAXML_DOM_FALSE;
@@ -103,26 +132,24 @@ static C_INLINE MARPAXML_DOM_TYPE(boolean) _DOMImplementation_hasFeature(MARPAXM
 
   /* version can be NULL or one of those known */
   if (version != NULL) {
-    versionOk = MARPAXML_DOM_FALSE;
-    for (i = 0; i < _MARPAXML_DOM_DOMIMPLEMENTATION_VERSION_MAX; i++) {
-      DOMString.s      = (unsigned short *) marpaXml_DOMStringLiteral_buffer(i);
-      DOMString.length = marpaXml_DOMStringLiteral_length(i);
+    for (i = 0; i < MARPAXML_DOM_N_ELEMENTS(versions); i++) {
       uErrorCode = U_ZERO_ERROR;
-      if (_MARPAXML_U_STRCASECOMPARE(version, &DOMString)) {
+      if (MARPAXML_DOM_U_STRCASECOMPARE(version, &(versions[i]))) {
 	versionOk = MARPAXML_DOM_TRUE;
 	break;
       }
     }
-    if (versionOk != MARPAXML_DOM_TRUE) {
-      return MARPAXML_DOM_FALSE;
-    }
+  } else {
+    versionOk = MARPAXML_DOM_TRUE;
   }
 
-  for (i = 0; i < _MARPAXML_DOM_DOMIMPLEMENTATION_HASFEATURE_MAX; i++) {
-    DOMString.s      = (unsigned short *) marpaXml_DOMStringLiteral_buffer(i);
-    DOMString.length = marpaXml_DOMStringLiteral_length(i);
+  if (versionOk == MARPAXML_DOM_FALSE) {
+    return MARPAXML_DOM_FALSE;
+  }
+
+  for (i = 0; i < MARPAXML_DOM_N_ELEMENTS(features); i++) {
     uErrorCode = U_ZERO_ERROR;
-    if (_MARPAXML_U_STRCASECOMPARE(feature, &DOMString)) {
+    if (MARPAXML_DOM_U_STRCASECOMPARE(feature, &(features[i]))) {
       featureOk = MARPAXML_DOM_TRUE;
       break;
     }
