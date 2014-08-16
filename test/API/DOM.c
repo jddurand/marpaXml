@@ -19,6 +19,18 @@ int main(int argc, char **argv) {
     fprintf(stderr, "marpaXml_DOMImplementation_hasFeature(\"%s\", NULL): KO\n", "CoRe");
     return 1;
   }
+  if (marpaXml_DOMImplementation_hasFeature((char *) "CoRe2", NULL) == MARPAXML_DOMBOOLEAN_FALSE) {
+    fprintf(stdout, "marpaXml_DOMImplementation_hasFeature(\"%s\", NULL): OK\n", "CoRe2");
+  } else {
+    fprintf(stderr, "marpaXml_DOMImplementation_hasFeature(\"%s\", NULL): KO\n", "CoRe2");
+    return 1;
+  }
+  if (marpaXml_DOMImplementation_hasFeature((char *) "CoRe", NULL) == MARPAXML_DOMBOOLEAN_TRUE) {
+    fprintf(stdout, "marpaXml_DOMImplementation_hasFeature(\"%s\", NULL): OK\n", "CoRe");
+  } else {
+    fprintf(stderr, "marpaXml_DOMImplementation_hasFeature(\"%s\", NULL): KO\n", "CoRe");
+    return 1;
+  }
 
   return 0;
 }
