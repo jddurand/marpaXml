@@ -54,12 +54,12 @@ typedef struct marpaXml_DOM_data {
   const char   *sql;
 } marpaXml_DOM_data_t;
 static marpaXml_DOM_data_t marpaXml_DOM_data[] = {
-  { "DOMImplementation.{CORE, '1.0'}", "INSERT INTO DOMImplementation (feature, version) SELECT 'CORE', '1.0' WHERE NOT EXISTS (SELECT 1 FROM DOMImplementation WHERE (feature like 'CORE' AND version like '1.0'))" },
-  { "DOMImplementation.{CORE, '2.0'}", "INSERT INTO DOMImplementation (feature, version) SELECT 'CORE', '2.0' WHERE NOT EXISTS (SELECT 1 FROM DOMImplementation WHERE (feature like 'CORE' AND version like '2.0'))" },
-  { "DOMImplementation.{CORE, '3.0'}", "INSERT INTO DOMImplementation (feature, version) SELECT 'CORE', '3.0' WHERE NOT EXISTS (SELECT 1 FROM DOMImplementation WHERE (feature like 'CORE' AND version like '3.0'))" },
-  { "DOMImplementation.{XML, '1.0'}", "INSERT INTO DOMImplementation (feature, version) SELECT 'XML', '1.0' WHERE NOT EXISTS (SELECT 1 FROM DOMImplementation WHERE (feature like 'XML' AND version like '1.0'))" },
-  { "DOMImplementation.{XML, '2.0'}", "INSERT INTO DOMImplementation (feature, version) SELECT 'XML', '2.0' WHERE NOT EXISTS (SELECT 1 FROM DOMImplementation WHERE (feature like 'XML' AND version like '2.0'))" },
-  { "DOMImplementation.{XML, '3.0'}", "INSERT INTO DOMImplementation (feature, version) SELECT 'XML', '3.0' WHERE NOT EXISTS (SELECT 1 FROM DOMImplementation WHERE (feature like 'XML' AND version like '3.0'))" },
+  { "DOMImplementation.{CORE, '1.0'}", "INSERT INTO DOMImplementation (feature, version) SELECT 'CORE', '1.0' WHERE NOT EXISTS (SELECT 1 FROM DOMImplementation WHERE ((feature LIKE 'CORE') AND (version LIKE '1.0')))" },
+  { "DOMImplementation.{CORE, '2.0'}", "INSERT INTO DOMImplementation (feature, version) SELECT 'CORE', '2.0' WHERE NOT EXISTS (SELECT 1 FROM DOMImplementation WHERE ((feature LIKE 'CORE') AND (version LIKE '2.0')))" },
+  { "DOMImplementation.{CORE, '3.0'}", "INSERT INTO DOMImplementation (feature, version) SELECT 'CORE', '3.0' WHERE NOT EXISTS (SELECT 1 FROM DOMImplementation WHERE ((feature LIKE 'CORE') AND (version LIKE '3.0')))" },
+  { "DOMImplementation.{XML, '1.0'}", "INSERT INTO DOMImplementation (feature, version) SELECT 'XML', '1.0' WHERE NOT EXISTS (SELECT 1 FROM DOMImplementation WHERE ((feature LIKE 'XML') AND (version LIKE '1.0')))" },
+  { "DOMImplementation.{XML, '2.0'}", "INSERT INTO DOMImplementation (feature, version) SELECT 'XML', '2.0' WHERE NOT EXISTS (SELECT 1 FROM DOMImplementation WHERE ((feature LIKE 'XML') AND (version LIKE '2.0')))" },
+  { "DOMImplementation.{XML, '3.0'}", "INSERT INTO DOMImplementation (feature, version) SELECT 'XML', '3.0' WHERE NOT EXISTS (SELECT 1 FROM DOMImplementation WHERE ((feature LIKE 'XML') AND (version LIKE '3.0')))" },
   { NULL, NULL }
 };
 
@@ -72,7 +72,7 @@ enum {
   marpaXml_DOMImplementation_hasFeature_e = 0,
 };
 static marpaXml_DOM_stmt_t marpaXml_DOM_stmt[] = {
-  { "marpaXml_DOMImplementation_hasFeature", "SELECT 1 FROM DOMImplementation WHERE (feature LIKE ?1 and ((?2 IS NULL) OR (version like ?2)))", NULL },
+  { "marpaXml_DOMImplementation_hasFeature", "SELECT 1 FROM DOMImplementation WHERE ((feature LIKE ?1) and ((?2 IS NULL) OR (version LIKE ?2)))", NULL },
   { NULL, NULL, NULL }
 };
 
