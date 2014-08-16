@@ -20,6 +20,9 @@ typedef struct marpaXmlLog marpaXmlLog_t;
 typedef void (*marpaXmlLogCallback_t)(void *userDatavp, marpaXmlLogLevel_t logLeveli, const char *msgs);
 
 marpaXmlLogCallback_t marpaXmlLog_defaultLogCallback(void);
+/* For applications that want to initialize a structure outside of executable blocks: */
+extern void _marpaXmlLog_defaultCallback(void *userDatavp, marpaXmlLogLevel_t logLeveli, const char *msgs);
+
 marpaXmlLogLevel_t    marpaXmlLog_logLevel_seti(marpaXmlLog_t *marpaXmlLogp, marpaXmlLogLevel_t logLeveli);
 marpaXmlLogLevel_t    marpaXmlLog_logLevel_geti(marpaXmlLog_t *marpaXmlLogp);
 

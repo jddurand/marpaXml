@@ -148,7 +148,7 @@ streamIn_t *streamIn_newp(streamInOption_t *streamInOptionp) {
   streamInp = malloc(sizeof(streamIn_t));
   if (streamInp == NULL) {
     if (streamInOptionp != NULL && streamInOptionp->logCallbackp != NULL) {
-      errorMsgs = messageBuilder("malloc(): %s at %s:%d", errno, __FILE__, __LINE__);
+      errorMsgs = messageBuilder("malloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
       (*streamInOptionp->logCallbackp)(streamInOptionp->logCallbackDatavp, MARPAXML_LOGLEVEL_ERROR, errorMsgs);
     }
     if (errorMsgs != messageBuilder_internalErrors()) {

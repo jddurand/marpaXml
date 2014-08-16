@@ -1,6 +1,9 @@
 #ifndef MARPAXML_API_DOM_H
 #define MARPAXML_API_DOM_H
 
+#include <sys/types.h>
+#include "API/marpaXml/log.h"
+
 /*
  * Copyright (c) 2004 World Wide Web Consortium,
  *
@@ -15,570 +18,601 @@
 
 /* File: http://www.w3.org/TR/2004/REC-DOM-Level-3-Core-20040407/dom.idl */
 
-/* We are NOT going to build a generic object-oriented system in C using
-   a vtable, derived and parent pointers and so on. The DOM structure is
-   fixed,  and we know in advance who derive from what. For instance:
-
-   Parent           Child
-   ------           -----
-   Node          -> CharacterData 
-   Node          -> Attr
-   Node          -> Element
-   CharacterData -> Text
-   CharacterData -> Comment
-   Text          -> CDATASection
-   Node          -> DocumentType
-   Node          -> Notation
-   Node          -> Entity
-   Node          -> EntityReference
-   Node          -> ProcessingInstruction
-   Node          -> DocumentFragment
-   Node          -> Document
-   
-   I.e. we see that there is NO recursion in the model, that we rewrite like this:
-
-   Parent           Child                     Child2           Child3
-   ------           -----                     ------           ------
-   Node          -> CharacterData          -> Text          -> CDATASection
-   Node          -> CharacterData          -> Comment
-   Node          -> Attr
-   Node          -> Element
-   Node          -> DocumentType
-   Node          -> Notation
-   Node          -> Entity
-   Node          -> EntityReference
-   Node          -> ProcessingInstruction
-   Node          -> DocumentFragment
-   Node          -> Document
-
-   Just a remark, the "parent" of everything is Node (it returns other types like
-   DOMImplementation).
-
-   This mean that we can duplicate the methods/accessors prototypes of Node, CharacterData and Text
-   to provide direct methods within every structures of CharacterData, Attr, Element, DocumentType,
-   Notation, Entity, EntityReference, ProcessingInstruction, DocumentFragement, Document, Text,
-   Comment and CDATASection.
-
-   The implementation will of course have a hiden pointer to the parent.
-
-   We are NOT going to play with setjmp/longjmp, win32 TLS, etc... EVERY function that can raise
-   an exception will fill the exception code if needed. This mean that the application on top
-   on this API will always have to: reset explicitely the exception code before calling
-   an API that can set it; and check the exception code at return.
-
-   If the exception code is setted, meaning of the return value is undefined, although it will
-   be usually meaningful WHEN POSSIBLE.
-
-   If exception code is == 0, no error.
-   If exception code is  > 0, this is a DOM error code.
-   If exception code is  < 0, this is a -errno error code.
-
-   About DOMString, this API is explicitely using UTF-16, as required by DOM spec.
-   Dom spec ASSUMES that a short is 2 bytes. So do we.
-   In the (impossible ?) case where this would not be the case, DOM.c would
-   automatically use an internal array on the heap to typecast to UChar (ICU's notation).
-*/
-
-
-#include <sys/types.h>
-
-#define MARPAXML_DOM_TYPE(typeName)           marpaXml_DOM_##typeName##_t
-#define MARPAXML_DOM_STRUCT(typeName)         struct marpaXml_DOM_##typeName
-#define MARPAXML_DOM_ENUM(enumName)           marpaXml_DOM_##enumName
-#define MARPAXML_DOM_NEW(typeName)            marpaXml_DOM_##typeName##_new
-#define MARPAXML_DOM_FREE(typeName)           marpaXml_DOM_##typeName##_free
-
-#define MARPAXML_DOM_OBJECT_DECLARATION(typeName)			\
-  typedef struct marpaXml_DOM_##typeName *marpaXml_DOM_##typeName##_t;	\
-  marpaXml_DOM_##typeName##_t marpaXml_DOM_##typeName##_new(void);		\
-  void marpaXml_DOM_##typeName##_free(marpaXml_DOM_##typeName##_t this);
-
-typedef enum {
-  MARPAXML_DOM_FALSE = 0,
-  MARPAXML_DOM_TRUE = 1
-} MARPAXML_DOM_TYPE(boolean);
-
-typedef void                           *MARPAXML_DOM_TYPE(DOMUserData);
-typedef void                           *MARPAXML_DOM_TYPE(DOMObject);
-MARPAXML_DOM_STRUCT(DOMString) {
-  unsigned short *s;
-  size_t          length;
-};
-typedef MARPAXML_DOM_STRUCT(DOMString) *MARPAXML_DOM_TYPE(DOMString);
-
-/* Can be called several times, but one is enough */
-MARPAXML_DOM_TYPE(boolean) marpaXml_DOM_init(void);
-
-/* DOMTimeStamp is defined but not used */
-/* MARPAXML_DOM_OBJECT_DECLARATION(DOMTimeStamp); */
-
-MARPAXML_DOM_OBJECT_DECLARATION(DOMImplementation)
-MARPAXML_DOM_OBJECT_DECLARATION(DocumentType)
-MARPAXML_DOM_OBJECT_DECLARATION(Document)
-MARPAXML_DOM_OBJECT_DECLARATION(NodeList)
-MARPAXML_DOM_OBJECT_DECLARATION(NamedNodeMap)
-MARPAXML_DOM_OBJECT_DECLARATION(UserDataHandler)
-MARPAXML_DOM_OBJECT_DECLARATION(Element)
-MARPAXML_DOM_OBJECT_DECLARATION(TypeInfo)
-MARPAXML_DOM_OBJECT_DECLARATION(DOMLocator)
-MARPAXML_DOM_OBJECT_DECLARATION(DOMException)
-MARPAXML_DOM_OBJECT_DECLARATION(DOMStringList)
-MARPAXML_DOM_OBJECT_DECLARATION(NameList)
-MARPAXML_DOM_OBJECT_DECLARATION(DOMImplementationList)
-MARPAXML_DOM_OBJECT_DECLARATION(DOMImplementationSource)
-MARPAXML_DOM_OBJECT_DECLARATION(Node)
-MARPAXML_DOM_OBJECT_DECLARATION(Attr)
-MARPAXML_DOM_OBJECT_DECLARATION(Text)
-MARPAXML_DOM_OBJECT_DECLARATION(Comment)
-MARPAXML_DOM_OBJECT_DECLARATION(DOMError)
-MARPAXML_DOM_OBJECT_DECLARATION(DOMErrorHandler)
-MARPAXML_DOM_OBJECT_DECLARATION(DOMConfiguration)
-MARPAXML_DOM_OBJECT_DECLARATION(CDATASection)
-MARPAXML_DOM_OBJECT_DECLARATION(Notation)
-MARPAXML_DOM_OBJECT_DECLARATION(Entity)
-MARPAXML_DOM_OBJECT_DECLARATION(EntityReference)
-MARPAXML_DOM_OBJECT_DECLARATION(ProcessingInstruction)
-MARPAXML_DOM_OBJECT_DECLARATION(DocumentFragment)
-
-MARPAXML_DOM_STRUCT(DOMException) {
-  unsigned short  code;
-};
-
-enum {
-  /* No error */
-  DOM_NO_ERR                     =  0,
-
-  /* ExceptionCode */
-  INDEX_SIZE_ERR                 =  1,
-  DOMSTRING_SIZE_ERR             =  2,
-  HIERARCHY_REQUEST_ERR          =  3,
-  WRONG_DOCUMENT_ERR             =  4,
-  INVALID_CHARACTER_ERR          =  5,
-  NO_DATA_ALLOWED_ERR            =  6,
-  NO_MODIFICATION_ALLOWED_ERR    =  7,
-  NOT_FOUND_ERR                  =  8,
-  NOT_SUPPORTED_ERR              =  9,
-  INUSE_ATTRIBUTE_ERR            = 10,
-  INVALID_STATE_ERR              = 11, /* Introduced in DOM Level 2: */
-  SYNTAX_ERR                     = 12, /* Introduced in DOM Level 2: */
-  INVALID_MODIFICATION_ERR       = 13, /* Introduced in DOM Level 2: */
-  NAMESPACE_ERR                  = 14, /* Introduced in DOM Level 2: */
-  INVALID_ACCESS_ERR             = 15, /* Introduced in DOM Level 2: */
-  VALIDATION_ERR                 = 16, /* Introduced in DOM Level 3: */
-  TYPE_MISMATCH_ERR              = 17, /* Introduced in DOM Level 3: */
-};
-
-enum {
-  /* NodeType */
-  ELEMENT_NODE                   =  1,
-  ATTRIBUTE_NODE                 =  2,
-  TEXT_NODE                      =  3,
-  CDATA_SECTION_NODE             =  4,
-  ENTITY_REFERENCE_NODE          =  5,
-  ENTITY_NODE                    =  6,
-  PROCESSING_INSTRUCTION_NODE    =  7,
-  COMMENT_NODE                   =  8,
-  DOCUMENT_NODE                  =  9,
-  DOCUMENT_TYPE_NODE             = 10,
-  DOCUMENT_FRAGMENT_NODE         = 11,
-  NOTATION_NODE                  = 12,
-};
-
-enum {
-  /* DocumentPosition */
-  DOCUMENT_POSITION_DISCONNECTED = 0x01,
-  DOCUMENT_POSITION_PRECEDING    = 0x02,
-  DOCUMENT_POSITION_FOLLOWING    = 0x04,
-  DOCUMENT_POSITION_CONTAINS     = 0x08,
-  DOCUMENT_POSITION_CONTAINED_BY = 0x10,
-  DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC = 0x20,
-};
-
-enum {
-  /* DerivationMethods */
-  DERIVATION_RESTRICTION         = 0x00000001,
-  DERIVATION_EXTENSION           = 0x00000002,
-  DERIVATION_UNION               = 0x00000004,
-  DERIVATION_LIST                = 0x00000008,
-};
-
-enum {
-  /* OperationType */
-  NODE_CLONED                    = 1,
-  NODE_IMPORTED                  = 2,
-  NODE_DELETED                   = 3,
-  NODE_RENAMED                   = 4,
-  NODE_ADOPTED                   = 5,
-};
-
-enum {
-  /* ErrorSeverity */
-  SEVERITY_WARNING               = 1,
-  SEVERITY_ERROR                 = 2,
-  SEVERITY_FATAL_ERROR           = 3
-};
-
-
-/* Introduced in DOM Level 3: */
-MARPAXML_DOM_STRUCT(DOMStringList) {
-  MARPAXML_DOM_TYPE(DOMString)            (*item)(unsigned long index);
-  unsigned long                           (*length_get)();
-  MARPAXML_DOM_TYPE(boolean)              (*contains)(MARPAXML_DOM_TYPE(DOMString) str);
-};
-
-/* Introduced in DOM Level 3: */
-MARPAXML_DOM_STRUCT(NameList) {
-  MARPAXML_DOM_TYPE(DOMString)            (*getName)(unsigned long index);
-  MARPAXML_DOM_TYPE(DOMString)            (*getNamespaceURI)(unsigned long index);
-  unsigned long                           (*length_get)();
-  MARPAXML_DOM_TYPE(boolean)              (*contains)(MARPAXML_DOM_TYPE(DOMString) str);
-  MARPAXML_DOM_TYPE(boolean)              (*containsNS)(MARPAXML_DOM_TYPE(DOMString) namespaceURI, MARPAXML_DOM_TYPE(DOMString) name);
-};
-
-/* Introduced in DOM Level 3: */
-MARPAXML_DOM_STRUCT(DOMImplementationList) {
-  MARPAXML_DOM_TYPE(DOMImplementation)    (*item)(unsigned long index);
-  unsigned long                             length;
-};
-
-/* Introduced in DOM Level 3: */
-MARPAXML_DOM_STRUCT(DOMImplementationSource) {
-  MARPAXML_DOM_TYPE(DOMImplementation)     (*getDOMImplementation)(MARPAXML_DOM_TYPE(DOMString) features);
-  MARPAXML_DOM_TYPE(DOMImplementationList) (*getDOMImplementationList)(MARPAXML_DOM_TYPE(DOMString) features);
-};
-
-MARPAXML_DOM_STRUCT(DOMImplementation) {
-  MARPAXML_DOM_TYPE(boolean)               (*hasFeature)(MARPAXML_DOM_TYPE(DOMString) feature, MARPAXML_DOM_TYPE(DOMString) version);
-  /* Introduced in DOM Level 2: */
-  MARPAXML_DOM_TYPE(DocumentType)          (*createDocumentType)(MARPAXML_DOM_TYPE(DOMString) qualifiedName, MARPAXML_DOM_TYPE(DOMString) publicId, MARPAXML_DOM_TYPE(DOMString) systemId); /* raises(DOMException):  INVALID_CHARACTER_ERR, NAMESPACE_ERR, NOT_SUPPORTED_ERR */
-  /* Introduced in DOM Level 2: */
-  MARPAXML_DOM_TYPE(Document)              (*createDocument)(MARPAXML_DOM_TYPE(DOMString) namespaceURI, MARPAXML_DOM_TYPE(DOMString) qualifiedName, MARPAXML_DOM_TYPE(DocumentType) doctype); /* raises(DOMException): INVALID_CHARACTER_ERR, NAMESPACE_ERR, WRONG_DOCUMENT_ERR, NOT_SUPPORTED_ERR */
-  /* Introduced in DOM Level 3: */
-  MARPAXML_DOM_TYPE(DOMObject)             (*getFeature)(MARPAXML_DOM_TYPE(DOMString) feature, MARPAXML_DOM_TYPE(DOMString) version);
-};
-
-#define MARPAXML_NODE_DECLARATIONS 					\
-  MARPAXML_DOM_TYPE(DOMString)             (*nodeName_get)();					\
-  MARPAXML_DOM_TYPE(DOMString)             (*nodeValue_get)();  /* raises(DOMException): DOMSTRING_SIZE_ERR */	\
-  MARPAXML_DOM_TYPE(DOMString)             (*nodeValue_set)(MARPAXML_DOM_TYPE(DOMString) nodeName);  /* raises(DOMException): NO_MODIFICATION_ALLOWED_ERR: */ \
-  unsigned short                           (*nodeType_get)();					\
-  MARPAXML_DOM_TYPE(Node)                  (*parentNode_get)();					\
-  MARPAXML_DOM_TYPE(NodeList)              (*childNodes_get)();					\
-  MARPAXML_DOM_TYPE(Node)                  (*firstChild_get)();					\
-  MARPAXML_DOM_TYPE(Node)                  (*lastChild_get)();					\
-  MARPAXML_DOM_TYPE(Node)                  (*previousSibling_get)();				\
-  MARPAXML_DOM_TYPE(Node)                  (*nextSibling_get)();					\
-  MARPAXML_DOM_TYPE(NamedNodeMap)          (*attributes_get)();					\
-  /* Modified in DOM Level 2: */					\
-  MARPAXML_DOM_TYPE(Document)              (*ownerDocument_get)();				\
-  /* Modified in DOM Level 3: */					\
-  MARPAXML_DOM_TYPE(Node)                  (*insertBefore)(MARPAXML_DOM_TYPE(Node) newChild, MARPAXML_DOM_TYPE(Node) refChild);  /* raises(DOMException): HIERARCHY_REQUEST_ERR, WRONG_DOCUMENT_ERR, NO_MODIFICATION_ALLOWED_ERR, NOT_FOUND_ERR, NOT_SUPPORTED_ERR */ \
-  /* Modified in DOM Level 3: */					\
-  MARPAXML_DOM_TYPE(Node)                  (*replaceChild)(MARPAXML_DOM_TYPE(Node) newChild, MARPAXML_DOM_TYPE(Node) oldChild);  /* raises(DOMException): HIERARCHY_REQUEST_ERR, WRONG_DOCUMENT_ERR, NO_MODIFICATION_ALLOWED_ERR, NOT_FOUND_ERR, NOT_SUPPORTED_ERR */ \
-  /* Modified in DOM Level 3: */					\
-  MARPAXML_DOM_TYPE(Node)                  (*removeChild)(MARPAXML_DOM_TYPE(Node) oldChild);  /* raises(DOMException): NO_MODIFICATION_ALLOWED_ERR, NOT_FOUND_ERR, NOT_SUPPORTED_ERR */	\
-  /* Modified in DOM Level 3: */					\
-  MARPAXML_DOM_TYPE(Node)                  (*appendChild)(MARPAXML_DOM_TYPE(Node) newChild);  /* raises(DOMException): HIERARCHY_REQUEST_ERR, WRONG_DOCUMENT_ERR, NO_MODIFICATION_ALLOWED_ERR, NOT_SUPPORTED_ERR */	\
-  MARPAXML_DOM_TYPE(boolean)               (*hasChildNodes)();					\
-  MARPAXML_DOM_TYPE(Node)                  (*cloneNode)(MARPAXML_DOM_TYPE(boolean) deep);			\
-  /* Modified in DOM Level 3: */					\
-  void                                     (*normalize)();					\
-  /* Introduced in DOM Level 2: */					\
-  MARPAXML_DOM_TYPE(boolean)               (*isSupported)(MARPAXML_DOM_TYPE(DOMString) feature, MARPAXML_DOM_TYPE(DOMString) version); \
-  /* Introduced in DOM Level 2: */					\
-  MARPAXML_DOM_TYPE(DOMString)             (*namespaceURI_get)();				\
-  /* Introduced in DOM Level 2: */					\
-  MARPAXML_DOM_TYPE(DOMString)             (*prefix_get)();					\
-  MARPAXML_DOM_TYPE(DOMString)             (*prefix_set)(MARPAXML_DOM_TYPE(DOMString) prefix);  /* raises(DOMException): INVALID_CHARACTER_ERR, NO_MODIFICATION_ALLOWED_ERR, NAMESPACE_ERR */ \
-  /* Introduced in DOM Level 2: */					\
-  MARPAXML_DOM_TYPE(DOMString)             (*localName_get)();					\
-  /* Introduced in DOM Level 2: */					\
-  MARPAXML_DOM_TYPE(boolean)               (*hasAttributes)();					\
-  /* Introduced in DOM Level 3: */					\
-  MARPAXML_DOM_TYPE(DOMString)             (*baseURI_get)();					\
-  /* Introduced in DOM Level 3: */					\
-  unsigned short                           (*compareDocumentPosition)(MARPAXML_DOM_TYPE(Node) other);  /* raises(DOMException): NOT_SUPPORTED_ERR */ \
-  /* Introduced in DOM Level 3: */					\
-  MARPAXML_DOM_TYPE(DOMString)             (*textContent_get)();  /* raises(DOMException): DOMSTRING_SIZE_ERR */	\
-  MARPAXML_DOM_TYPE(DOMString)             (*textContent_set)(MARPAXML_DOM_TYPE(DOMString) textContent);  /* raises(DOMException): NO_MODIFICATION_ALLOWED_ERR */ \
-  /* Introduced in DOM Level 3: */					\
-  MARPAXML_DOM_TYPE(boolean)               (*isSameNode)(MARPAXML_DOM_TYPE(Node) other);			\
-  /* Introduced in DOM Level 3: */					\
-  MARPAXML_DOM_TYPE(DOMString)             (*lookupPrefix)(MARPAXML_DOM_TYPE(DOMString) namespaceURI);		\
-  /* Introduced in DOM Level 3: */					\
-  MARPAXML_DOM_TYPE(boolean)               (*isDefaultNamespace)(MARPAXML_DOM_TYPE(DOMString) namespaceURI);	\
-  /* Introduced in DOM Level 3: */					\
-  MARPAXML_DOM_TYPE(DOMString)             (*lookupNamespaceURI)(MARPAXML_DOM_TYPE(DOMString) prefix);		\
-  /* Introduced in DOM Level 3: */					\
-  MARPAXML_DOM_TYPE(boolean)               (*isEqualNode)(MARPAXML_DOM_TYPE(Node) arg);			\
-  /* Introduced in DOM Level 3: */					\
-  MARPAXML_DOM_TYPE(DOMObject)             (*getFeature)(MARPAXML_DOM_TYPE(DOMString) feature, MARPAXML_DOM_TYPE(DOMString) version); \
-  /* Introduced in DOM Level 3: */					\
-  MARPAXML_DOM_TYPE(DOMUserData)           (*setUserData)(MARPAXML_DOM_TYPE(DOMString) key, MARPAXML_DOM_TYPE(DOMUserData) data, MARPAXML_DOM_TYPE(UserDataHandler) handler); \
-  /* Introduced in DOM Level 3: */					\
-  MARPAXML_DOM_TYPE(DOMUserData)           (*getUserData)(MARPAXML_DOM_TYPE(DOMString) key);
-
-MARPAXML_DOM_STRUCT(Node) {
-  MARPAXML_NODE_DECLARATIONS
-};
-
-MARPAXML_DOM_STRUCT(NodeList) {
-  MARPAXML_DOM_TYPE(Node)                  (*item)(unsigned long index);
-  unsigned long                            (*length_get)();
-};
-
-MARPAXML_DOM_STRUCT(NamedNodeMap) {
-  MARPAXML_DOM_TYPE(Node)                  (*getNamedItem)(MARPAXML_DOM_TYPE(DOMString) name);
-  MARPAXML_DOM_TYPE(Node)                  (*setNamedItem)(MARPAXML_DOM_TYPE(Node) arg); /* raises(DOMException): WRONG_DOCUMENT_ERR, NO_MODIFICATION_ALLOWED_ERR, INUSE_ATTRIBUTE_ERR, HIERARCHY_REQUEST_ERR */
-  MARPAXML_DOM_TYPE(Node)                  (*removeNamedItem)(MARPAXML_DOM_TYPE(DOMString) name); /* raises(DOMException): NOT_FOUND_ERR, NO_MODIFICATION_ALLOWED_ERR */
-  MARPAXML_DOM_TYPE(Node)                  (*item)(unsigned long index);
-  unsigned long                            (*length)();
-  /* Introduced in DOM Level 2: */
-  MARPAXML_DOM_TYPE(Node)                  (*getNamedItemNS)(MARPAXML_DOM_TYPE(DOMString) namespaceURI, MARPAXML_DOM_TYPE(DOMString) localName); /* raises(DOMException): NOT_SUPPORTED_ERR */
-  /* Introduced in DOM Level 2: */
-  MARPAXML_DOM_TYPE(Node)                  (*setNamedItemNS)(MARPAXML_DOM_TYPE(Node) arg); /* raises(DOMException): WRONG_DOCUMENT_ERR, NO_MODIFICATION_ALLOWED_ERR, INUSE_ATTRIBUTE_ERR, HIERARCHY_REQUEST_ERR, NOT_SUPPORTED_ERR */
-    /* Introduced in DOM Level 2: */
-  MARPAXML_DOM_TYPE(Node)                  (*removeNamedItemNS)(MARPAXML_DOM_TYPE(DOMString) namespaceURI, MARPAXML_DOM_TYPE(DOMString) localName); /* raises(DOMException): NOT_FOUND_ERR, NO_MODIFICATION_ALLOWED_ERR, NOT_SUPPORTED_ERR */
-};
-
-#define MARPAXML_CHARACTERDATA_DECLARATIONS \
-  MARPAXML_NODE_DECLARATIONS	 /* derived from Node */		\
-  MARPAXML_DOM_TYPE(DOMString)             (*data_get)(); /* raises(DOMException): DOMSTRING_SIZE_ERR */		\
-  MARPAXML_DOM_TYPE(DOMString)             (*data_set)(MARPAXML_DOM_TYPE(DOMString) data); /* raises(DOMException): NO_MODIFICATION_ALLOWED_ERR */ \
-  unsigned long                            (*length_get)();					\
-  MARPAXML_DOM_TYPE(DOMString)             (*substringData)(unsigned long offset, unsigned long count); /* raises(DOMException): INDEX_SIZE_ERR, DOMSTRING_SIZE_ERR */ \
-  void                                     (*appendData)(MARPAXML_DOM_TYPE(DOMString) arg); /* raises(DOMException): NO_MODIFICATION_ALLOWED_ERR */	\
-  void                                     (*insertData)(unsigned long offset, MARPAXML_DOM_TYPE(DOMString) arg); /* raises(DOMException): INDEX_SIZE_ERR, NO_MODIFICATION_ALLOWED_ERR */ \
-  void                                     (*deleteData)(unsigned long offset, unsigned long count); /* raises(DOMException): INDEX_SIZE_ERR, NO_MODIFICATION_ALLOWED_ERR */ \
-  void                                     (*replaceData)(unsigned long offset, unsigned long count, MARPAXML_DOM_TYPE(DOMString) arg); /* raises(DOMException): INDEX_SIZE_ERR, NO_MODIFICATION_ALLOWED_ERR */ \
-
-MARPAXML_DOM_STRUCT(CharacterData) {
-  MARPAXML_CHARACTERDATA_DECLARATIONS
-};
-
-MARPAXML_DOM_STRUCT(Attr) {
-  MARPAXML_NODE_DECLARATIONS	 /* derived from Node */
-  MARPAXML_DOM_TYPE(DOMString)             (*name_get)();
-  MARPAXML_DOM_TYPE(boolean)               (*specified_get)();
-  MARPAXML_DOM_TYPE(DOMString)             (*value_get)();
-  MARPAXML_DOM_TYPE(DOMString)             (*value_set)(MARPAXML_DOM_TYPE(DOMString) value); /* raises(DOMException): NO_MODIFICATION_ALLOWED_ERR */
-  /* Introduced in DOM Level 2: */
-  MARPAXML_DOM_TYPE(Element)               (*ownerElement_get)();
-  /* Introduced in DOM Level 3: */
-  MARPAXML_DOM_TYPE(TypeInfo)              (*schemaTypeInfo_get)();
-    /* Introduced in DOM Level 3: */
-  MARPAXML_DOM_TYPE(boolean)               (*isId_get)();
-};
-
-MARPAXML_DOM_STRUCT(Element) {
-  MARPAXML_NODE_DECLARATIONS	 /* derived from Node */
-  MARPAXML_DOM_TYPE(DOMString)             (*tagName_get)();
-  MARPAXML_DOM_TYPE(DOMString)             (*getAttribute)(MARPAXML_DOM_TYPE(DOMString) name);
-  void                                     (*setAttribute)(MARPAXML_DOM_TYPE(DOMString) name, MARPAXML_DOM_TYPE(DOMString) value); /* raises(DOMException): INVALID_CHARACTER_ERR, NO_MODIFICATION_ALLOWED_ERR */
-  void                                     (*removeAttribute)(MARPAXML_DOM_TYPE(DOMString) name); /* raises(DOMException): NO_MODIFICATION_ALLOWED_ERR */
-  MARPAXML_DOM_TYPE(Attr)                  (*getAttributeNode)(MARPAXML_DOM_TYPE(DOMString) name);
-  MARPAXML_DOM_TYPE(Attr)                  (*setAttributeNode)(MARPAXML_DOM_TYPE(Attr) newAttr); /* raises(DOMException): WRONG_DOCUMENT_ERR, NO_MODIFICATION_ALLOWED_ERR, INUSE_ATTRIBUTE_ERR */
-  MARPAXML_DOM_TYPE(Attr)                  (*removeAttributeNode)(MARPAXML_DOM_TYPE(Attr) oldAttr); /* raises(DOMException): NO_MODIFICATION_ALLOWED_ERR, NOT_FOUND_ERR */
-  MARPAXML_DOM_TYPE(NodeList)              (*getElementsByTagName)(MARPAXML_DOM_TYPE(DOMString) name);
-  /* Introduced in DOM Level 2: */
-  MARPAXML_DOM_TYPE(DOMString)             (*getAttributeNS)(MARPAXML_DOM_TYPE(DOMString) namespaceURI, MARPAXML_DOM_TYPE(DOMString) localName); /* raises(DOMException): NOT_SUPPORTED_ERR */
-  /* Introduced in DOM Level 2: */
-  void                                     (*setAttributeNS)(MARPAXML_DOM_TYPE(DOMString) namespaceURI, MARPAXML_DOM_TYPE(DOMString) qualifiedName, MARPAXML_DOM_TYPE(DOMString) value); /* raises(DOMException): INVALID_CHARACTER_ERR, NO_MODIFICATION_ALLOWED_ERR, NAMESPACE_ERR, NOT_SUPPORTED_ERR */
-  /* Introduced in DOM Level 2: */
-  void                                     (*removeAttributeNS)(MARPAXML_DOM_TYPE(DOMString) namespaceURI, MARPAXML_DOM_TYPE(DOMString) localName); /* raises(DOMException): NO_MODIFICATION_ALLOWED_ERR, NOT_SUPPORTED_ERR */
-  /* Introduced in DOM Level 2: */
-  MARPAXML_DOM_TYPE(Attr)                  (*getAttributeNodeNS)(MARPAXML_DOM_TYPE(DOMString) namespaceURI, MARPAXML_DOM_TYPE(DOMString) localName); /* raises(DOMException): NOT_SUPPORTED_ERR */
-  /* Introduced in DOM Level 2: */
-  MARPAXML_DOM_TYPE(Attr)                  (*setAttributeNodeNS)(MARPAXML_DOM_TYPE(Attr) newAttr); /* raises(DOMException): WRONG_DOCUMENT_ERR, NO_MODIFICATION_ALLOWED_ERR, INUSE_ATTRIBUTE_ERR, NOT_SUPPORTED_ERR */
-  /* Introduced in DOM Level 2: */
-  MARPAXML_DOM_TYPE(NodeList)              (*getElementsByTagNameNS)(MARPAXML_DOM_TYPE(DOMString) namespaceURI, MARPAXML_DOM_TYPE(DOMString) localName); /* raises(DOMException): NOT_SUPPORTED_ERR */
-  /* Introduced in DOM Level 2: */
-  MARPAXML_DOM_TYPE(boolean)               (*hasAttribute)(MARPAXML_DOM_TYPE(DOMString) name);
-  /* Introduced in DOM Level 2: */
-  MARPAXML_DOM_TYPE(boolean)               (*hasAttributeNS)(MARPAXML_DOM_TYPE(DOMString) namespaceURI, MARPAXML_DOM_TYPE(DOMString) localName); /* raises(DOMException): NOT_SUPPORTED_ERR */
-  /* Introduced in DOM Level 3: */
-  MARPAXML_DOM_TYPE(TypeInfo)              (*schemaTypeInfo_get)();
-  /* Introduced in DOM Level 3: */
-  void                                     (*setIdAttribute)(MARPAXML_DOM_TYPE(DOMString) name, MARPAXML_DOM_TYPE(boolean) isId); /* raises(DOMException): NO_MODIFICATION_ALLOWED_ERR, NOT_FOUND_ERR */
-  /* Introduced in DOM Level 3: */
-  void                                     (*setIdAttributeNS)(MARPAXML_DOM_TYPE(DOMString) namespaceURI, MARPAXML_DOM_TYPE(DOMString) localName, MARPAXML_DOM_TYPE(boolean) isId); /* raises(DOMException): NO_MODIFICATION_ALLOWED_ERR, NOT_FOUND_ERR */
-  /* Introduced in DOM Level 3: */
-  void                                     (*setIdAttributeNode)(MARPAXML_DOM_TYPE(Attr) idAttr, MARPAXML_DOM_TYPE(boolean) isId); /* raises(DOMException): NO_MODIFICATION_ALLOWED_ERR, NOT_FOUND_ERR */
-};
-
-#define MARPAXML_TEXT_DECLARATIONS \
-  MARPAXML_CHARACTERDATA_DECLARATIONS	 /* derived from CharacterData */ \
-  MARPAXML_DOM_TYPE(Text)                  (*splitText)(unsigned long offset); /* raises(DOMException): INDEX_SIZE_ERR, NO_MODIFICATION_ALLOWED_ERR */ \
-  /* Introduced in DOM Level 3: */					\
-  MARPAXML_DOM_TYPE(boolean)               (*isElementContentWhitespace_get)();		\
-  /* Introduced in DOM Level 3: */					\
-  MARPAXML_DOM_TYPE(DOMString)             (*wholeText_get)();					\
-  /* Introduced in DOM Level 3: */					\
-  MARPAXML_DOM_TYPE(Text)                  (*replaceWholeText)(MARPAXML_DOM_TYPE(DOMString) content); /* raises(DOMException): NO_MODIFICATION_ALLOWED_ERR */ \
-
-MARPAXML_DOM_STRUCT(Text) {
-  MARPAXML_TEXT_DECLARATIONS
-};
-
-MARPAXML_DOM_STRUCT(Comment) {
-  MARPAXML_CHARACTERDATA_DECLARATIONS	 /* derived from CharacterData */
-};
-
-/* Introduced in DOM Level 3: */
-MARPAXML_DOM_STRUCT(TypeInfo) {
-  MARPAXML_DOM_TYPE(DOMString)             (*typeName_get)();
-  MARPAXML_DOM_TYPE(DOMString)             (*typeNamespace_get)();
-  MARPAXML_DOM_TYPE(boolean)               (*isDerivedFrom)(MARPAXML_DOM_TYPE(DOMString) typeNamespaceArg, MARPAXML_DOM_TYPE(DOMString) typeNameArg, unsigned long derivationMethod);
-};
-
-/* Introduced in DOM Level 3: */
-MARPAXML_DOM_STRUCT(UserDataHandler) {
-  void                                     (*handle)(unsigned short operation, MARPAXML_DOM_TYPE(DOMString) key, MARPAXML_DOM_TYPE(DOMUserData) data, MARPAXML_DOM_TYPE(Node) src, MARPAXML_DOM_TYPE(Node) dst);
-};
-
-/* Introduced in DOM Level 3: */
-MARPAXML_DOM_STRUCT(DOMError) {
-  unsigned short                           (*severity_get)();
-  MARPAXML_DOM_TYPE(DOMString)             (*message_get)();
-  MARPAXML_DOM_TYPE(DOMString)             (*type_get)();
-  MARPAXML_DOM_TYPE(DOMObject)             (*relatedException_get)();
-  MARPAXML_DOM_TYPE(DOMObject)             (*relatedData_get)();
-  MARPAXML_DOM_TYPE(DOMLocator)            (*location_get)();
-};
-
-/* Introduced in DOM Level 3: */
-MARPAXML_DOM_STRUCT(DOMErrorHandler) {
-  MARPAXML_DOM_TYPE(boolean)               (*handleError)(MARPAXML_DOM_TYPE(DOMError) error);
-};
-
-/* Introduced in DOM Level 3: */
-MARPAXML_DOM_STRUCT(DOMLocator) {
-  long                                     (*lineNumber_get)();
-  long                                     (*columnNumber_get)();
-  long                                     (*byteOffset_get)();
-  long                                     (*utf16Offset_get)();
-  MARPAXML_DOM_TYPE(Node)                  (*relatedNode_get)();
-  MARPAXML_DOM_TYPE(DOMString)             (*uri_get)();
-};
-
-/* Introduced in DOM Level 3: */
-MARPAXML_DOM_STRUCT(DOMConfiguration) {
-  void                                     (*setParameter)(MARPAXML_DOM_TYPE(DOMString) name, MARPAXML_DOM_TYPE(DOMUserData) value); /* raises(DOMException): NOT_FOUND_ERR, NOT_SUPPORTED_ERR, TYPE_MISMATCH_ERR */
-  MARPAXML_DOM_TYPE(DOMUserData)           (*getParameter)(MARPAXML_DOM_TYPE(DOMString) name); /* raises(DOMException): NOT_FOUND_ERR */
-  MARPAXML_DOM_TYPE(boolean)               (*canSetParameter)(MARPAXML_DOM_TYPE(DOMString) name, MARPAXML_DOM_TYPE(DOMUserData) value);
-  MARPAXML_DOM_TYPE(DOMStringList)         (*parameterNames_get)();
-};
-
-MARPAXML_DOM_STRUCT(CDATASection) {
-  MARPAXML_TEXT_DECLARATIONS	 /* derived from Text */
-};
-
-MARPAXML_DOM_STRUCT(DocumentType) {
-  MARPAXML_NODE_DECLARATIONS 	 /* derived from Node */
-  MARPAXML_DOM_TYPE(DOMString)             (*name_get)();
-  MARPAXML_DOM_TYPE(NamedNodeMap)          (*entities_get)();
-  MARPAXML_DOM_TYPE(NamedNodeMap)          (*notations_get)();
-  /* Introduced in DOM Level 2: */
-  MARPAXML_DOM_TYPE(DOMString)             (*publicId_get)();
-  /* Introduced in DOM Level 2: */
-  MARPAXML_DOM_TYPE(DOMString)             (*systemId_get)();
-  /* Introduced in DOM Level 2: */
-  MARPAXML_DOM_TYPE(DOMString)             (*internalSubset_get)();
-};
-
-MARPAXML_DOM_STRUCT(Notation) {
-  MARPAXML_NODE_DECLARATIONS 	 /* derived from Node */
-  MARPAXML_DOM_TYPE(DOMString)             (*publicId_get)();
-  MARPAXML_DOM_TYPE(DOMString)             (*systemId_get)();
-};
-
-MARPAXML_DOM_STRUCT(Entity) {
-  MARPAXML_NODE_DECLARATIONS 	 /* derived from Node */
-  MARPAXML_DOM_TYPE(DOMString)             (*publicId_get)();
-  MARPAXML_DOM_TYPE(DOMString)             (*systemId_get)();
-  MARPAXML_DOM_TYPE(DOMString)             (*notationName_get)();
-  /* Introduced in DOM Level 3: */
-  MARPAXML_DOM_TYPE(DOMString)             (*inputEncoding_get)();
-  /* Introduced in DOM Level 3: */
-  MARPAXML_DOM_TYPE(DOMString)             (*xmlEncoding_get)();
-  /* Introduced in DOM Level 3: */
-  MARPAXML_DOM_TYPE(DOMString)             (*xmlVersion_get)();
-};
-
-MARPAXML_DOM_STRUCT(EntityReference) {
-  MARPAXML_NODE_DECLARATIONS 	 /* derived from Node */
-};
-
-MARPAXML_DOM_STRUCT(ProcessingInstruction) {
-  MARPAXML_NODE_DECLARATIONS 	 /* derived from Node */
-  MARPAXML_DOM_TYPE(DOMString)             (*target_get)();
-  MARPAXML_DOM_TYPE(DOMString)             (*data_get)();
-  MARPAXML_DOM_TYPE(DOMString)             (*data_set)(MARPAXML_DOM_TYPE(DOMString) data); /* raises(DOMException): NO_MODIFICATION_ALLOWED_ERR */
-};
-
-MARPAXML_DOM_STRUCT(DocumentFragment) {
-  MARPAXML_NODE_DECLARATIONS 	 /* derived from Node */
-};
-
-MARPAXML_DOM_STRUCT(Document) {
-  MARPAXML_NODE_DECLARATIONS 	 /* derived from Node */
-  /* Modified in DOM Level 3: */
-  MARPAXML_DOM_TYPE(DocumentType)          (*doctype_get)();
-  MARPAXML_DOM_TYPE(DOMImplementation)     (*implementation_get)();
-  MARPAXML_DOM_TYPE(Element)               (*documentElement_get)();
-  MARPAXML_DOM_TYPE(Element)               (*createElement)(MARPAXML_DOM_TYPE(DOMString) tagName); /* raises(DOMException): INVALID_CHARACTER_ERR */
-  MARPAXML_DOM_TYPE(DocumentFragment)      (*createDocumentFragment)();
-  MARPAXML_DOM_TYPE(Text)                  (*createTextNode)(MARPAXML_DOM_TYPE(DOMString) data);
-  MARPAXML_DOM_TYPE(Comment)               (*createComment)(MARPAXML_DOM_TYPE(DOMString) data);
-  MARPAXML_DOM_TYPE(CDATASection)          (*createCDATASection)(MARPAXML_DOM_TYPE(DOMString) data); /* raises(DOMException): NOT_SUPPORTED_ERR */
-  MARPAXML_DOM_TYPE(ProcessingInstruction) (*createProcessingInstruction)(MARPAXML_DOM_TYPE(DOMString) target, MARPAXML_DOM_TYPE(DOMString) data); /* raises(DOMException): INVALID_CHARACTER_ERR, NOT_SUPPORTED_ERR */
-  MARPAXML_DOM_TYPE(Attr)                  (*createAttribute)(MARPAXML_DOM_TYPE(DOMString) name); /* raises(DOMException): INVALID_CHARACTER_ERR */
-  MARPAXML_DOM_TYPE(EntityReference)       (*createEntityReference)(MARPAXML_DOM_TYPE(DOMString) name); /* raises(DOMException): INVALID_CHARACTER_ERR, NOT_SUPPORTED_ERR */
-  MARPAXML_DOM_TYPE(NodeList)              (*getElementsByTagName)(MARPAXML_DOM_TYPE(DOMString) tagname);
-  /* Introduced in DOM Level 2: */
-  MARPAXML_DOM_TYPE(Node)                  (*importNode)(MARPAXML_DOM_TYPE(Node) importedNode, MARPAXML_DOM_TYPE(boolean) deep); /* raises(DOMException): NOT_SUPPORTED_ERR, INVALID_CHARACTER_ERR */
-  /* Introduced in DOM Level 2: */
-  MARPAXML_DOM_TYPE(Element)               (*createElementNS)(MARPAXML_DOM_TYPE(DOMString) namespaceURI, MARPAXML_DOM_TYPE(DOMString) qualifiedName); /* raises(DOMException): INVALID_CHARACTER_ERR, NAMESPACE_ERR, NOT_SUPPORTED_ER */
-  /* Introduced in DOM Level 2: */
-  MARPAXML_DOM_TYPE(Attr)                  (*createAttributeNS)(MARPAXML_DOM_TYPE(DOMString) namespaceURI, MARPAXML_DOM_TYPE(DOMString) qualifiedName); /* raises(DOMException): INVALID_CHARACTER_ERR, NAMESPACE_ERR, NOT_SUPPORTED_ERR */
-  /* Introduced in DOM Level 2: */
-  MARPAXML_DOM_TYPE(NodeList)              (*getElementsByTagNameNS)(MARPAXML_DOM_TYPE(DOMString) namespaceURI, MARPAXML_DOM_TYPE(DOMString) localName);
-  /* Introduced in DOM Level 2: */
-  MARPAXML_DOM_TYPE(Element)               (*getElementById)(MARPAXML_DOM_TYPE(DOMString) elementId);
-  /* Introduced in DOM Level 3: */
-  MARPAXML_DOM_TYPE(DOMString)             (*inputEncoding_get)();
-  /* Introduced in DOM Level 3: */
-  MARPAXML_DOM_TYPE(DOMString)             (*xmlEncoding_get)();
-  /* Introduced in DOM Level 3: */
-  MARPAXML_DOM_TYPE(boolean)               (*xmlStandalone_get)();
-  MARPAXML_DOM_TYPE(boolean)               (*xmlStandalone_set)(MARPAXML_DOM_TYPE(boolean) xmlStandalone); /* raises(DOMException): NOT_SUPPORTED_ERR */
-  /* Introduced in DOM Level 3: */
-  MARPAXML_DOM_TYPE(DOMString)             (*xmlVersion_get)();
-  MARPAXML_DOM_TYPE(DOMString)             (*xmlVersion_set)(MARPAXML_DOM_TYPE(DOMString) xmlVersion); /* raises(DOMException): NOT_SUPPORTED_ERR */
-  /* Introduced in DOM Level 3: */
-  MARPAXML_DOM_TYPE(boolean)               (*strictErrorChecking_get)();
-  MARPAXML_DOM_TYPE(boolean)               (*strictErrorChecking_set)(MARPAXML_DOM_TYPE(boolean) strictErrorChecking);
-  /* Introduced in DOM Level 3: */
-  MARPAXML_DOM_TYPE(DOMString)             (*documentURI_get)();
-  MARPAXML_DOM_TYPE(DOMString)             (*documentURI_set)(MARPAXML_DOM_TYPE(DOMString) documentURI);
-  /* Introduced in DOM Level 3: */
-  MARPAXML_DOM_TYPE(Node)                  (*adoptNode)(MARPAXML_DOM_TYPE(Node) source); /* raises(DOMException): NOT_SUPPORTED_ERR, NO_MODIFICATION_ALLOWED_ERR */
-  /* Introduced in DOM Level 3: */
-  MARPAXML_DOM_TYPE(DOMConfiguration)      (*domConfig_get)();
-  /* Introduced in DOM Level 3: */
-  void                                     (*normalizeDocument)();
-  /* Introduced in DOM Level 3: */
-  MARPAXML_DOM_TYPE(Node)                  (*renameNode)(MARPAXML_DOM_TYPE(Node) n, MARPAXML_DOM_TYPE(DOMString) namespaceURI, MARPAXML_DOM_TYPE(DOMString) qualifiedName); /* raises(DOMException): NOT_SUPPORTED_ERR, INVALID_CHARACTER_ERR, WRONG_DOCUMENT_ERR, NAMESPACE_ERR */
-};
-
-/* Our implementation of DOMTimeStamp */
 /*
-MARPAXML_DOM_STRUCT(DOMTimeStamp) {
-  time_t                      time;
-  unsigned short              millitm;
-  short                       timezone;
-  MARPAXML_DOM_TYPE(boolean)  dstflag;
-};
+  Notes:
+  - Our model is 100% live
+    => Modifying a DOM object from one thread will be visible from another thread, whatever
+       the type of the object
+
+  - Our API is expecting null terminated UTF-8 strings. NOTHING ELSE.
+    => Your application will have to know how to translate to/from UTF-8 to your preferred encoding.
+       Please note that this is UTF8 as per ICU, not Java's modified UTF8.
+
+  - SQLite is compiled with explicit ICU support here, which means:
+    => REGEXP operator is using ICU
+    => upper() and lower() are using ICU
+    => collation is using ICU
+    => LIKE operator becomes CASE-INDEPENDANT matching (but won't use any index)
+
+  Since collation requires a locale, this is why marpaXml_DOM_init() has a locale parameter: char *locale.
+  In addition to collation, there is collation "strength". So marpaXml_DOM_init() also has another
+  parameter: int collStrength (inspired by https://gist.github.com/mytskine/5028755). Our collstrength
+  parameter should be exactly one of ICU's ucol_setStrength()'s strength argument, i.e.:
+   1     for primary
+   2     for secondary
+   3     for tertiary
+   4     for quaternary
+  15     for identical
+  -1     for default
+
+  In contrary to SQLite's default ICU load collation implementation, it is legal to give NULL for the locale:
+  ICU's ucol_open() behaviour applies, i.e. 'if NULL is passed for the locale, the default locale collation
+  rules will be used. If empty string ("") or "root" are passed, the root collator will be returned'.
+
+  - We follow Java convention for the attributes getter and setters method names.
+
+  - We are NOT gonna play with C object-oriented hacks: the DOM model inheritance is simple, we
+    can duplicate the prototypes with carefully writen macros (which means internally a delegation),
+    and every method that can return an  exception will have an explicit DOMException parameter and will return a false value (0)
+    and/or a NOEXCEPTION in the DOMException parameter, provided it is not NULL in the stack.
+    This choice is because, yes I know that we can do 80% of objects in pure ANSI-C. This is ok for
+    a general framework. Here we have a concrete and fixed framework, as we as a fixed implementation: this is
+    why we can use unsigned long long for object references instead of a malloc, which means the super
+    ability of this library to NOT care about object destructions: there is no notion of new()/destroy(), and this
+    sounds very much more like C++ and Java rather than having to play with OO simulation, with which the
+    programmer will HAVE to take care of free() all over the place.
+
+  - We unsigned long long int instead of unsigned long
 */
+
+/**************************************************************************/
+/*                              Constants                                 */
+/**************************************************************************/
+
+typedef enum marpaXml_DOMBoolean {
+  MARPAXML_DOMBOOLEAN_FALSE = 0,
+  MARPAXML_DOMBOOLEAN_TRUE = 1
+} marpaXml_DOMBoolean_t;
+
+/*************************
+   Options
+ *************************/
+typedef struct marpaXml_DOM_Option {
+  marpaXmlLogLevel_t           logLevelWantedi;               /* Default: MARPAXML_LOGLEVEL_WARNING           */
+  marpaXmlLogCallback_t        logCallbackp;                  /* Default: marpaXmlLog_defaultLogCallback()    */
+  void                        *logCallbackDatavp;             /* Default: NULL                                */
+  const char                  *dbFilename;                    /* Default: ":memory:"                          */
+  const char                  *locale;                        /* Default: NULL                                */
+  int                          collStrength;                  /* Default: -1                                  */
+} marpaXml_DOM_Option_t;
+/*
+  Can be called several times, but one is enough. Defaults will apply ONLY if parameter is NULL */
+marpaXml_DOMBoolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Optionp);
+
+/* Some applications will say (char*), others (unsigned char*). This is not
+   important because we know we talk about UTF-8 strings. */
+typedef char                   *marpaXml_DOMString_t;
+typedef void                   *marpaXml_DOMUserData_t;
+typedef unsigned long long int  marpaXml_DOMImplementation_t;
+typedef unsigned long long int  marpaXml_DocumentType_t;
+typedef unsigned long long int  marpaXml_Document_t;
+typedef unsigned long long int  marpaXml_NodeList_t;
+typedef unsigned long long int  marpaXml_NamedNodeMap_t;
+typedef unsigned long long int  marpaXml_UserDataHandler_t;
+typedef unsigned long long int  marpaXml_Element_t;
+typedef unsigned long long int  marpaXml_TypeInfo_t;
+typedef unsigned long long int  marpaXml_DOMLocator_t;
+typedef unsigned long long int  marpaXml_DOMException_t;
+typedef unsigned long long int  marpaXml_DOMStringList_t;
+typedef unsigned long long int  marpaXml_NameList_t;
+typedef unsigned long long int  marpaXml_DOMImplementationList_t;
+typedef unsigned long long int  marpaXml_DOMImplementationSource_t;
+typedef unsigned long long int  marpaXml_Node_t;
+typedef unsigned long long int  marpaXml_Attr_t;
+typedef unsigned long long int  marpaXml_Text_t;
+typedef unsigned long long int  marpaXml_Comment_t;
+typedef unsigned long long int  marpaXml_DOMConfiguration_t;
+typedef unsigned long long int  marpaXml_CDATASection_t;
+typedef unsigned long long int  marpaXml_Notation_t;
+typedef unsigned long long int  marpaXml_Entity_t;
+typedef unsigned long long int  marpaXml_EntityReference_t;
+typedef unsigned long long int  marpaXml_ProcessingInstruction_t;
+typedef unsigned long long int  marpaXml_DocumentFragment_t;
+
+typedef enum marpaXml_DOM_ObjectType {
+  MARPAXML_DOM_OBJECTTYPE_NONE = 0,
+  MARPAXML_DOM_OBJECTTYPE_DOMIMPLEMENTATION,
+  MARPAXML_DOM_OBJECTTYPE_DOCUMENTTYPE,
+  MARPAXML_DOM_OBJECTTYPE_DOCUMENT,
+  MARPAXML_DOM_OBJECTTYPE_NODELIST,
+  MARPAXML_DOM_OBJECTTYPE_NAMEDNODEMAP,
+  MARPAXML_DOM_OBJECTTYPE_USERDATAHANDLER,
+  MARPAXML_DOM_OBJECTTYPE_ELEMENT,
+  MARPAXML_DOM_OBJECTTYPE_TYPEINFO,
+  MARPAXML_DOM_OBJECTTYPE_DOMLOCATOR,
+  MARPAXML_DOM_OBJECTTYPE_DOMEXCEPTION,
+  MARPAXML_DOM_OBJECTTYPE_DOMSTRINGLIST,
+  MARPAXML_DOM_OBJECTTYPE_NAMELIST,
+  MARPAXML_DOM_OBJECTTYPE_DOMIMPLEMENTATIONLIST,
+  MARPAXML_DOM_OBJECTTYPE_DOMIMPLEMENTATIONSOURCE,
+  MARPAXML_DOM_OBJECTTYPE_NODE,
+  MARPAXML_DOM_OBJECTTYPE_ATTR,
+  MARPAXML_DOM_OBJECTTYPE_TEXT,
+  MARPAXML_DOM_OBJECTTYPE_COMMENT,
+  MARPAXML_DOM_OBJECTTYPE_DOMCONFIGURATION,
+  MARPAXML_DOM_OBJECTTYPE_CDATASECTION,
+  MARPAXML_DOM_OBJECTTYPE_NOTATION,
+  MARPAXML_DOM_OBJECTTYPE_ENTITY,
+  MARPAXML_DOM_OBJECTTYPE_ENTITYREFERENCE,
+  MARPAXML_DOM_OBJECTTYPE_PROCESSINGINSTRUCTION,
+  MARPAXML_DOM_OBJECTTYPE_DOCUMENTFRAGMENT,
+} marpaXml_DOM_ObjectType_t;
+
+typedef struct marpaXml_DOMObject {
+  unsigned long long int    reference;
+  marpaXml_DOM_ObjectType_t type;
+} marpaXml_DOMObject_t;
+
+typedef enum marpaXml_DOM_ExceptionCode {
+  MARPAXML_DOM_EXCEPTION_NONE              =  0,
+  /* ExceptionCode */
+  MARPAXML_DOM_INDEX_SIZE_ERR              =  1,
+  MARPAXML_DOM_DOMSTRING_SIZE_ERR          =  2,
+  MARPAXML_DOM_HIERARCHY_REQUEST_ERR       =  3,
+  MARPAXML_DOM_WRONG_DOCUMENT_ERR          =  4,
+  MARPAXML_DOM_INVALID_CHARACTER_ERR       =  5,
+  MARPAXML_DOM_NO_DATA_ALLOWED_ERR         =  6,
+  MARPAXML_DOM_NO_MODIFICATION_ALLOWED_ERR =  7,
+  MARPAXML_DOM_NOT_FOUND_ERR               =  8,
+  MARPAXML_DOM_NOT_SUPPORTED_ERR           =  9,
+  MARPAXML_DOM_INUSE_ATTRIBUTE_ERR         = 10,
+  MARPAXML_DOM_INVALID_STATE_ERR           = 11, /* Introduced in DOM Level 2: */
+  MARPAXML_DOM_SYNTAX_ERR                  = 12, /* Introduced in DOM Level 2: */
+  MARPAXML_DOM_INVALID_MODIFICATION_ERR    = 13, /* Introduced in DOM Level 2: */
+  MARPAXML_DOM_NAMESPACE_ERR               = 14, /* Introduced in DOM Level 2: */
+  MARPAXML_DOM_INVALID_ACCESS_ERR          = 15, /* Introduced in DOM Level 2: */
+  MARPAXML_DOM_VALIDATION_ERR              = 16, /* Introduced in DOM Level 3: */
+  MARPAXML_DOM_TYPE_MISMATCH_ERR           = 17, /* Introduced in DOM Level 3: */
+} marpaXml_DOM_ExceptionCode_t;
+
+typedef enum marpaXml_DOM_NodeType {
+  /* NodeType */
+  MARPAXML_DOM_ELEMENT_NODE                =  1,
+  MARPAXML_DOM_ATTRIBUTE_NODE              =  2,
+  MARPAXML_DOM_TEXT_NODE                   =  3,
+  MARPAXML_DOM_CDATA_SECTION_NODE          =  4,
+  MARPAXML_DOM_ENTITY_REFERENCE_NODE       =  5,
+  MARPAXML_DOM_ENTITY_NODE                 =  6,
+  MARPAXML_DOM_PROCESSING_INSTRUCTION_NODE =  7,
+  MARPAXML_DOM_COMMENT_NODE                =  8,
+  MARPAXML_DOM_DOCUMENT_NODE               =  9,
+  MARPAXML_DOM_DOCUMENT_TYPE_NODE          = 10,
+  MARPAXML_DOM_DOCUMENT_FRAGMENT_NODE      = 11,
+  MARPAXML_DOM_NOTATION_NODE               = 12,
+} marpaXml_DOM_NodeType_t;
+
+typedef enum marpaXml_DOM_DocumentPosition {
+  /* DocumentPosition */
+  MARPAXML_DOM_DOCUMENT_POSITION_DISCONNECTED = 0x01,
+  MARPAXML_DOM_DOCUMENT_POSITION_PRECEDING    = 0x02,
+  MARPAXML_DOM_DOCUMENT_POSITION_FOLLOWING    = 0x04,
+  MARPAXML_DOM_DOCUMENT_POSITION_CONTAINS     = 0x08,
+  MARPAXML_DOM_DOCUMENT_POSITION_CONTAINED_BY = 0x10,
+  MARPAXML_DOM_DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC = 0x20,
+} marpaXml_DOM_DocumentPosition_t;
+
+typedef enum marpaXml_DOM_DerivationMethods {
+  /* DerivationMethods */
+  MARPAXML_DOM_DERIVATION_RESTRICTION  = 0x00000001,
+  MARPAXML_DOM_DERIVATION_EXTENSION    = 0x00000002,
+  MARPAXML_DOM_DERIVATION_UNION        = 0x00000004,
+  MARPAXML_DOM_DERIVATION_LIST         = 0x00000008,
+} marpaXml_DOM_DerivationMethods_t;
+
+typedef enum marpaXml_DOM_OperationType {
+  /* OperationType */
+  MARPAXML_DOM_NODE_CLONED   = 1,
+  MARPAXML_DOM_NODE_IMPORTED = 2,
+  MARPAXML_DOM_NODE_DELETED  = 3,
+  MARPAXML_DOM_NODE_RENAMED  = 4,
+  MARPAXML_DOM_NODE_ADOPTED  = 5,
+} marpaXml_DOM_OperationType_t;
+
+typedef enum marpaXml_DOM_ErrorSeverity {
+  MARPAXML_DOM_SEVERITY_NONE        = 0,
+  /* ErrorSeverity */
+  MARPAXML_DOM_SEVERITY_WARNING     = 1,
+  MARPAXML_DOM_SEVERITY_ERROR       = 2,
+  MARPAXML_DOM_SEVERITY_FATAL_ERROR = 3
+} marpaXml_DOM_ErrorSeverity_t;
+
+typedef struct marpaXml_DOMError {
+  marpaXml_DOM_ErrorSeverity_t severity;
+  marpaXml_DOMString_t         message;
+  marpaXml_DOMString_t         type;
+  marpaXml_DOMObject_t         relatedException;
+  marpaXml_DOMObject_t         relatedData;
+  marpaXml_DOMLocator_t        location;
+} marpaXml_DOMError_t;
+extern marpaXml_DOMError_t marpaXml_DOMError;
+
+/*************************************/
+/*        DOMStringList              */
+/*************************************/
+/* Introduced in DOM Level 3: */
+marpaXml_DOMString_t   marpaXml_DOMStringList_item(unsigned long long int index);
+unsigned long long int marpaXml_DOMStringList_getLength(void);
+marpaXml_DOMBoolean_t  marpaXml_DOMStringList_contains(marpaXml_DOMString_t str);
+
+/*************************************/
+/*           NameList                */
+/*************************************/
+/* Introduced in DOM Level 3: */
+marpaXml_DOMString_t   marpaXml_NameList_getName(unsigned long long int index);
+marpaXml_DOMString_t   marpaXml_NameList_getNamespaceURI(unsigned long long int index);
+unsigned long long int marpaXml_NameList_getLength(void);
+marpaXml_DOMBoolean_t  marpaXml_NameList_contains(marpaXml_DOMString_t str);
+marpaXml_DOMBoolean_t  marpaXml_NameList_containsNS(marpaXml_DOMString_t namespaceURI, marpaXml_DOMString_t name);
+
+/*************************************/
+/*     DOMImplementationList         */
+/*************************************/
+/* Introduced in DOM Level 3: */
+marpaXml_DOMImplementation_t marpaXml_DOMImplementationList_item(unsigned long long int index);
+unsigned long long int       marpaXml_DOMImplementationList_getLength(void);
+
+/*************************************/
+/*    DOMImplementationSource        */
+/*************************************/
+/* Introduced in DOM Level 3: */
+marpaXml_DOMImplementation_t     marpaXml_DOMImplementationSource_getDOMImplementation(marpaXml_DOMString_t features);
+marpaXml_DOMImplementationList_t marpaXml_DOMImplementationSource_getDOMImplementationList(marpaXml_DOMString_t features);
+
+/*************************************/
+/*       DOMImplementation           */
+/*************************************/
+marpaXml_DOMBoolean_t   marpaXml_DOMImplementation_hasFeature(marpaXml_DOMString_t feature, marpaXml_DOMString_t version);
+/* Introduced in DOM Level 2: */
+marpaXml_DocumentType_t marpaXml_DOMImplementation_createDocumentType(marpaXml_DOMString_t qualifiedName, marpaXml_DOMString_t publicId, marpaXml_DOMString_t systemId, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException):  INVALID_CHARACTER_ERR, NAMESPACE_ERR, NOT_SUPPORTED_ERR */
+/* Introduced in DOM Level 2: */
+marpaXml_Document_t     marpaXml_DOMImplementation_createDocument(marpaXml_DOMString_t namespaceURI, marpaXml_DOMString_t qualifiedName, marpaXml_DocumentType_t doctype, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): INVALID_CHARACTER_ERR, NAMESPACE_ERR, WRONG_DOCUMENT_ERR, NOT_SUPPORTED_ERR */
+/* Introduced in DOM Level 3: */
+marpaXml_DOMObject_t    marpaXml_DOMImplementation_getFeature(marpaXml_DOMString_t feature, marpaXml_DOMString_t version);
+
+/*************************************/
+/*                Node               */
+/*************************************/
+#define MARPAXML_NODE_DECLARATIONS(objectType)			    \
+  marpaXml_DOMString_t    marpaXml_ ## objectType ## _getNodeName(void);	\
+  marpaXml_DOMString_t    marpaXml_ ## objectType ## _getNodeValue(marpaXml_DOMException_t *DOMExceptionp);  /* raises(DOMException): DOMSTRING_SIZE_ERR */ \
+  marpaXml_DOMString_t    marpaXml_ ## objectType ## _setNodeValue(marpaXml_DOMString_t nodeName, marpaXml_DOMException_t *DOMExceptionp);  /* raises(DOMException): NO_MODIFICATION_ALLOWED_ERR: */ \
+  unsigned short          marpaXml_ ## objectType ## _getNodeType(void);	\
+  marpaXml_Node_t         marpaXml_ ## objectType ## _getParentNode(void);	\
+  marpaXml_NodeList_t     marpaXml_ ## objectType ## _getChildNodes(void);	\
+  marpaXml_Node_t         marpaXml_ ## objectType ## _getFirstChild(void);	\
+  marpaXml_Node_t         marpaXml_ ## objectType ## _getLastChild(void);	\
+  marpaXml_Node_t         marpaXml_ ## objectType ## _getPreviousSibling(void); \
+  marpaXml_Node_t         marpaXml_ ## objectType ## _getNextSibling(void);	\
+  marpaXml_NamedNodeMap_t marpaXml_ ## objectType ## _getAttributes(void);	\
+  /* Modified in DOM Level 2: */					\
+  marpaXml_Document_t     marpaXml_ ## objectType ## _getOwnerDocument(void); \
+  /* Modified in DOM Level 3: */					\
+  marpaXml_Node_t         marpaXml_ ## objectType ## _insertBefore(marpaXml_Node_t newChild, marpaXml_Node_t refChild, marpaXml_DOMException_t *DOMExceptionp);  /* raises(DOMException): HIERARCHY_REQUEST_ERR, WRONG_DOCUMENT_ERR, NO_MODIFICATION_ALLOWED_ERR, NOT_FOUND_ERR, NOT_SUPPORTED_ERR */ \
+  /* Modified in DOM Level 3: */					\
+  marpaXml_Node_t         marpaXml_ ## objectType ## _replaceChild(marpaXml_Node_t newChild, marpaXml_Node_t oldChild, marpaXml_DOMException_t *DOMExceptionp);  /* raises(DOMException): HIERARCHY_REQUEST_ERR, WRONG_DOCUMENT_ERR, NO_MODIFICATION_ALLOWED_ERR, NOT_FOUND_ERR, NOT_SUPPORTED_ERR */ \
+  /* Modified in DOM Level 3: */					\
+  marpaXml_Node_t         marpaXml_ ## objectType ## _removeChild(marpaXml_Node_t oldChild, marpaXml_DOMException_t *DOMExceptionp);  /* raises(DOMException): NO_MODIFICATION_ALLOWED_ERR, NOT_FOUND_ERR, NOT_SUPPORTED_ERR */ \
+  /* Modified in DOM Level 3: */					\
+  marpaXml_Node_t         marpaXml_ ## objectType ## _appendChild(marpaXml_Node_t newChild, marpaXml_DOMException_t *DOMExceptionp);  /* raises(DOMException): HIERARCHY_REQUEST_ERR, WRONG_DOCUMENT_ERR, NO_MODIFICATION_ALLOWED_ERR, NOT_SUPPORTED_ERR */ \
+  marpaXml_DOMBoolean_t   marpaXml_ ## objectType ## _hasChildNodes(void);	\
+  marpaXml_Node_t         marpaXml_ ## objectType ## _cloneNode(marpaXml_DOMBoolean_t deep); \
+  /* Modified in DOM Level 3: */					\
+  void                    marpaXml_ ## objectType ## _normalize(void);	\
+  /* Introduced in DOM Level 2: */					\
+  marpaXml_DOMBoolean_t   marpaXml_ ## objectType ## _isSupported(marpaXml_DOMString_t feature, marpaXml_DOMString_t version); \
+  /* Introduced in DOM Level 2: */					\
+  marpaXml_DOMString_t    marpaXml_ ## objectType ## _getNamespaceURI(void); \
+  /* Introduced in DOM Level 2: */					\
+  marpaXml_DOMString_t    marpaXml_ ## objectType ## _getPrefix(void);	\
+  marpaXml_DOMString_t    marpaXml_ ## objectType ## _setPrefix(marpaXml_DOMString_t prefix, marpaXml_DOMException_t *DOMExceptionp);  /* raises(DOMException): INVALID_CHARACTER_ERR, NO_MODIFICATION_ALLOWED_ERR, NAMESPACE_ERR */ \
+  /* Introduced in DOM Level 2: */					\
+  marpaXml_DOMString_t    marpaXml_ ## objectType ## _getLocalName(void);	\
+  /* Introduced in DOM Level 2: */					\
+  marpaXml_DOMBoolean_t   marpaXml_ ## objectType ## _hasAttributes(void);	\
+  /* Introduced in DOM Level 3: */					\
+  marpaXml_DOMString_t    marpaXml_ ## objectType ## _getBaseURI(void);	\
+  /* Introduced in DOM Level 3: */					\
+  unsigned short          marpaXml_ ## objectType ## _compareDocumentPosition(marpaXml_Node_t other, marpaXml_DOMException_t *DOMExceptionp);  /* raises(DOMException): NOT_SUPPORTED_ERR */ \
+  /* Introduced in DOM Level 3: */					\
+  marpaXml_DOMString_t    marpaXml_ ## objectType ## _getTextContent(marpaXml_DOMException_t *DOMExceptionp);  /* raises(DOMException): DOMSTRING_SIZE_ERR */ \
+  marpaXml_DOMString_t    marpaXml_ ## objectType ## _setTextContent(marpaXml_DOMString_t textContent, marpaXml_DOMException_t *DOMExceptionp);  /* raises(DOMException): NO_MODIFICATION_ALLOWED_ERR */ \
+  /* Introduced in DOM Level 3: */					\
+  marpaXml_DOMBoolean_t   marpaXml_ ## objectType ## _isSameNode(marpaXml_Node_t other); \
+  /* Introduced in DOM Level 3: */					\
+  marpaXml_DOMString_t    marpaXml_ ## objectType ## _lookupPrefix(marpaXml_DOMString_t namespaceURI); \
+  /* Introduced in DOM Level 3: */					\
+  marpaXml_DOMBoolean_t   marpaXml_ ## objectType ## _isDefaultNamespace(marpaXml_DOMString_t namespaceURI); \
+  /* Introduced in DOM Level 3: */					\
+  marpaXml_DOMString_t    marpaXml_ ## objectType ## _lookupNamespaceURI(marpaXml_DOMString_t prefix); \
+  /* Introduced in DOM Level 3: */					\
+  marpaXml_DOMBoolean_t   marpaXml_ ## objectType ## _isEqualNode(marpaXml_Node_t arg); \
+  /* Introduced in DOM Level 3: */					\
+  marpaXml_DOMObject_t    marpaXml_ ## objectType ## _getFeature(marpaXml_DOMString_t feature, marpaXml_DOMString_t version); \
+  /* Introduced in DOM Level 3: */					\
+  marpaXml_DOMUserData_t  marpaXml_ ## objectType ## _setUserData(marpaXml_DOMString_t key, marpaXml_DOMUserData_t data, marpaXml_UserDataHandler_t handler); \
+  /* Introduced in DOM Level 3: */					\
+  marpaXml_DOMUserData_t  marpaXml_ ## objectType ## _getUserData(marpaXml_DOMString_t key);
+
+MARPAXML_NODE_DECLARATIONS(Node)
+
+/*************************************/
+/*             NodeList              */
+/*************************************/
+marpaXml_Node_t        marpaXml_NodeList_item(unsigned long long int index);
+unsigned long long int marpaXml_NodeList_getLength(void);
+
+/*************************************/
+/*           NamedNodeMap            */
+/*************************************/
+marpaXml_Node_t        marpaXml_NamedNodeMap_getNamedItem(marpaXml_DOMString_t name);
+marpaXml_Node_t        marpaXml_NamedNodeMap_setNamedItem(marpaXml_Node_t arg, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): WRONG_DOCUMENT_ERR, NO_MODIFICATION_ALLOWED_ERR, INUSE_ATTRIBUTE_ERR, HIERARCHY_REQUEST_ERR */
+marpaXml_Node_t        marpaXml_NamedNodeMap_removeNamedItem(marpaXml_DOMString_t name, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): NOT_FOUND_ERR, NO_MODIFICATION_ALLOWED_ERR */
+marpaXml_Node_t        marpaXml_NamedNodeMap_item(unsigned long long int index);
+unsigned long long int marpaXml_NamedNodeMap_length(void);
+/* Introduced in DOM Level 2: */
+marpaXml_Node_t        marpaXml_NamedNodeMap_getNamedItemNS(marpaXml_DOMString_t namespaceURI, marpaXml_DOMString_t localName, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): NOT_SUPPORTED_ERR */
+/* Introduced in DOM Level 2: */
+marpaXml_Node_t        marpaXml_NamedNodeMap_setNamedItemNS(marpaXml_Node_t arg, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): WRONG_DOCUMENT_ERR, NO_MODIFICATION_ALLOWED_ERR, INUSE_ATTRIBUTE_ERR, HIERARCHY_REQUEST_ERR, NOT_SUPPORTED_ERR */
+/* Introduced in DOM Level 2: */
+marpaXml_Node_t        marpaXml_NamedNodeMap_removeNamedItemNS(marpaXml_DOMString_t namespaceURI, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): NOT_FOUND_ERR, NO_MODIFICATION_ALLOWED_ERR, NOT_SUPPORTED_ERR */
+
+/*************************************/
+/*          CharacterData            */
+/*************************************/
+#define MARPAXML_CHARACTERDATA_DECLARATIONS(objectType)				\
+  MARPAXML_NODE_DECLARATIONS(objectType)				\
+  marpaXml_DOMString_t   marpaXml_ ## objectType ## _getData(marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): DOMSTRING_SIZE_ERR */ \
+  marpaXml_DOMString_t   marpaXml_ ## objectType ## _setData(marpaXml_DOMString_t data, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): NO_MODIFICATION_ALLOWED_ERR */ \
+  unsigned long long int marpaXml_ ## objectType ## _getLength(void);	\
+  marpaXml_DOMString_t   marpaXml_ ## objectType ## _substringData(unsigned long offset, unsigned long count, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): INDEX_SIZE_ERR, DOMSTRING_SIZE_ERR */ \
+  void                   marpaXml_ ## objectType ## _appendData(marpaXml_DOMString_t arg, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): NO_MODIFICATION_ALLOWED_ERR */ \
+  void                   marpaXml_ ## objectType ## _insertData(unsigned long offset, marpaXml_DOMString_t arg, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): INDEX_SIZE_ERR, NO_MODIFICATION_ALLOWED_ERR */ \
+  void                   marpaXml_ ## objectType ## _deleteData(unsigned long offset, unsigned long count, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): INDEX_SIZE_ERR, NO_MODIFICATION_ALLOWED_ERR */ \
+  void                   marpaXml_ ## objectType ## _replaceData(unsigned long offset, unsigned long count, marpaXml_DOMString_t arg, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): INDEX_SIZE_ERR, NO_MODIFICATION_ALLOWED_ERR */ \
+
+MARPAXML_CHARACTERDATA_DECLARATIONS(CharacterData)
+
+/*************************************/
+/*               Attr                */
+/*************************************/
+MARPAXML_NODE_DECLARATIONS(Attr)
+marpaXml_DOMString_t  marpaXml_Attr_getName(void);
+marpaXml_DOMBoolean_t marpaXml_Attr_getSpecified(void);
+marpaXml_DOMString_t  marpaXml_Attr_getValue(void);
+marpaXml_DOMString_t  marpaXml_Attr_setValue(marpaXml_DOMString_t value, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): NO_MODIFICATION_ALLOWED_ERR */
+/* Introduced in DOM Level 2: */
+marpaXml_Element_t    marpaXml_Attr_getOwnerElement(void);
+/* Introduced in DOM Level 3: */
+marpaXml_TypeInfo_t   marpaXml_Attr_getSchemaTypeInfo(void);
+/* Introduced in DOM Level 3: */
+marpaXml_DOMBoolean_t marpaXml_Attr_isId(void);
+
+/*************************************/
+/*             Element               */
+/*************************************/
+MARPAXML_NODE_DECLARATIONS(Element)
+marpaXml_DOMString_t  marpaXml_Element_getTagName(void);
+marpaXml_DOMString_t  marpaXml_Element_getAttribute(marpaXml_DOMString_t name);
+void                  marpaXml_Element_setAttribute(marpaXml_DOMString_t name, marpaXml_DOMString_t value, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): INVALID_CHARACTER_ERR, NO_MODIFICATION_ALLOWED_ERR */
+void                  marpaXml_Element_removeAttribute(marpaXml_DOMString_t name, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): NO_MODIFICATION_ALLOWED_ERR */
+marpaXml_Attr_t       marpaXml_Element_getAttributeNode(marpaXml_DOMString_t name);
+marpaXml_Attr_t       marpaXml_Element_setAttributeNode(marpaXml_Attr_t newAttr, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): WRONG_DOCUMENT_ERR, NO_MODIFICATION_ALLOWED_ERR, INUSE_ATTRIBUTE_ERR */
+marpaXml_Attr_t       marpaXml_Element_removeAttributeNode(marpaXml_Attr_t oldAttr, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): NO_MODIFICATION_ALLOWED_ERR, NOT_FOUND_ERR */
+marpaXml_NodeList_t   marpaXml_Element_getElementsByTagName(marpaXml_DOMString_t name);
+/* Introduced in DOM Level 2: */
+marpaXml_DOMString_t  marpaXml_Element_getAttributeNS(marpaXml_DOMString_t namespaceURI, marpaXml_DOMString_t localName, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): NOT_SUPPORTED_ERR */
+/* Introduced in DOM Level 2: */
+void                  marpaXml_Element_setAttributeNS(marpaXml_DOMString_t namespaceURI, marpaXml_DOMString_t qualifiedName, marpaXml_DOMString_t value, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): INVALID_CHARACTER_ERR, NO_MODIFICATION_ALLOWED_ERR, NAMESPACE_ERR, NOT_SUPPORTED_ERR */
+/* Introduced in DOM Level 2: */
+void                  marpaXml_Element_removeAttributeNS(marpaXml_DOMString_t namespaceURI, marpaXml_DOMString_t localName, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): NO_MODIFICATION_ALLOWED_ERR, NOT_SUPPORTED_ERR */
+/* Introduced in DOM Level 2: */
+marpaXml_Attr_t       marpaXml_Element_getAttributeNodeNS(marpaXml_DOMString_t namespaceURI, marpaXml_DOMString_t localName, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): NOT_SUPPORTED_ERR */
+/* Introduced in DOM Level 2: */
+marpaXml_Attr_t       marpaXml_Element_setAttributeNodeNS(marpaXml_Attr_t newAttr, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): WRONG_DOCUMENT_ERR, NO_MODIFICATION_ALLOWED_ERR, INUSE_ATTRIBUTE_ERR, NOT_SUPPORTED_ERR */
+/* Introduced in DOM Level 2: */
+marpaXml_NodeList_t   marpaXml_Element_getElementsByTagNameNS(marpaXml_DOMString_t namespaceURI, marpaXml_DOMString_t localName, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): NOT_SUPPORTED_ERR */
+/* Introduced in DOM Level 2: */
+marpaXml_DOMBoolean_t marpaXml_Element_hasAttribute(marpaXml_DOMString_t name);
+/* Introduced in DOM Level 2: */
+marpaXml_DOMBoolean_t marpaXml_Element_hasAttributeNS(marpaXml_DOMString_t namespaceURI, marpaXml_DOMString_t localName, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): NOT_SUPPORTED_ERR */
+/* Introduced in DOM Level 3: */
+marpaXml_TypeInfo_t   marpaXml_Element_getSchemaTypeInfo(void);
+/* Introduced in DOM Level 3: */
+void                  marpaXml_Element_setIdAttribute(marpaXml_DOMString_t name, marpaXml_DOMBoolean_t isId, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): NO_MODIFICATION_ALLOWED_ERR, NOT_FOUND_ERR */
+/* Introduced in DOM Level 3: */
+void                  marpaXml_Element_setIdAttributeNS(marpaXml_DOMString_t namespaceURI, marpaXml_DOMString_t localName, marpaXml_DOMBoolean_t isId, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): NO_MODIFICATION_ALLOWED_ERR, NOT_FOUND_ERR */
+/* Introduced in DOM Level 3: */
+void                  marpaXml_Element_setIdAttributeNode(marpaXml_Attr_t idAttr, marpaXml_DOMBoolean_t isId, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): NO_MODIFICATION_ALLOWED_ERR, NOT_FOUND_ERR */
+
+/*************************************/
+/*              Text                 */
+/*************************************/
+#define MARPAXML_TEXT_DECLARATIONS(objectType)				\
+  MARPAXML_CHARACTERDATA_DECLARATIONS(objectType) 			\
+  marpaXml_Text_t      marpaXml_Text_splitText(unsigned long long int offset, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): INDEX_SIZE_ERR, NO_MODIFICATION_ALLOWED_ERR */ \
+  /* Introduced in DOM Level 3: */					\
+  marpaXml_DOMBoolean_t marpaXml_Text_isElementContentWhitespace_get(void); \
+  /* Introduced in DOM Level 3: */					\
+  marpaXml_DOMString_t  marpaXml_Text_getWoleText(void);		\
+  /* Introduced in DOM Level 3: */					\
+  marpaXml_Text_t       marpaXml_Text_replaceWholeText(marpaXml_DOMString_t content, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): NO_MODIFICATION_ALLOWED_ERR */
+
+MARPAXML_TEXT_DECLARATIONS(Text)
+
+/*************************************/
+/*            Comment                */
+/*************************************/
+MARPAXML_CHARACTERDATA_DECLARATIONS(Comment)
+
+/* Introduced in DOM Level 3: */
+/*************************************/
+/*            TypeInfo               */
+/*************************************/
+marpaXml_DOMString_t  marpaXml_TypeInfo_getTypeName(void);
+marpaXml_DOMString_t  marpaXml_TypeInfo_getTypeNamespace(void);
+marpaXml_DOMBoolean_t marpaXml_TypeInfo_isDerivedFrom(marpaXml_DOMString_t typeNamespaceArg, marpaXml_DOMString_t typeNameArg, unsigned long derivationMethod);
+
+/* Introduced in DOM Level 3: */
+/*************************************/
+/*         UserDataHandler           */
+/*************************************/
+void marpaXml_UserDataHandler_handle(unsigned short operation, marpaXml_DOMString_t key, marpaXml_DOMUserData_t data, marpaXml_Node_t src, marpaXml_Node_t dst);
+
+/* Introduced in DOM Level 3: */
+/*************************************/
+/*             DOMError              */
+/*************************************/
+unsigned short        marpaXml_DOMError_getSeverity(void);
+marpaXml_DOMString_t  marpaXml_DOMError_getMessage(void);
+marpaXml_DOMString_t  marpaXml_DOMError_getType(void);
+marpaXml_DOMObject_t  marpaXml_DOMError_getRelatedException(void);
+marpaXml_DOMObject_t  marpaXml_DOMError_getRelatedData(void);
+marpaXml_DOMLocator_t marpaXml_DOMError_getLocation(void);
+
+/* Introduced in DOM Level 3: */
+/*************************************/
+/*         DOMErrorHandler           */
+/*************************************/
+marpaXml_DOMBoolean_t marpaXml_DOMErrorHandler_handleError(marpaXml_DOMError_t error);
+
+/* Introduced in DOM Level 3: */
+/*************************************/
+/*            DOMLocator             */
+/*************************************/
+signed long long int marpaXml_DOMLocator_getLineNumber(void);
+signed long long int marpaXml_DOMLocator_getColumnNumber(void);
+signed long long int marpaXml_DOMLocator_getByteOffset(void);
+signed long long int marpaXml_DOMLocator_getUtf16Offset(void);
+marpaXml_Node_t      marpaXml_DOMLocator_getRelatedNode(void);
+marpaXml_DOMString_t marpaXml_DOMLocator_getUri(void);
+
+/* Introduced in DOM Level 3: */
+/*************************************/
+/*         DOMConfiguration          */
+/*************************************/
+void                     marpaXml_DOMConfiguration_setParameter(marpaXml_DOMString_t name, marpaXml_DOMUserData_t value, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): NOT_FOUND_ERR, NOT_SUPPORTED_ERR, TYPE_MISMATCH_ERR */
+marpaXml_DOMUserData_t   marpaXml_DOMConfiguration_getParameter(marpaXml_DOMString_t name, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): NOT_FOUND_ERR */
+marpaXml_DOMBoolean_t    marpaXml_DOMConfiguration_canSetParameter(marpaXml_DOMString_t name, marpaXml_DOMUserData_t value);
+marpaXml_DOMStringList_t marpaXml_DOMConfiguration_getParameterNames(void);
+
+/*************************************/
+/*           CDATASection            */
+/*************************************/
+MARPAXML_TEXT_DECLARATIONS(CDATASection)
+
+/*************************************/
+/*           DocumentType            */
+/*************************************/
+MARPAXML_NODE_DECLARATIONS(DocumentType)
+marpaXml_DOMString_t    marpaXml_DocumentType_getName(void);
+marpaXml_NamedNodeMap_t marpaXml_DocumentType_getEntities(void);
+marpaXml_NamedNodeMap_t marpaXml_DocumentType_getNotations(void);
+/* Introduced in DOM Level 2: */
+marpaXml_DOMString_t    marpaXml_DocumentType_getPublicId(void);
+/* Introduced in DOM Level 2: */
+marpaXml_DOMString_t    marpaXml_DocumentType_getSystemId(void);
+/* Introduced in DOM Level 2: */
+marpaXml_DOMString_t    marpaXml_DocumentType_getInternalSubset(void);
+
+/*************************************/
+/*             Notation              */
+/*************************************/
+MARPAXML_NODE_DECLARATIONS(Notation)
+marpaXml_DOMString_t marpaXml_Notation_getPublicId(void);
+marpaXml_DOMString_t marpaXml_Notation_getSystemId(void);
+
+/*************************************/
+/*              Entity               */
+/*************************************/
+MARPAXML_NODE_DECLARATIONS(Entity)
+marpaXml_DOMString_t marpaXml_Entity_getPublicId(void);
+marpaXml_DOMString_t marpaXml_Entity_getSystemId(void);
+marpaXml_DOMString_t marpaXml_Entity_getNotationName(void);
+/* Introduced in DOM Level 3: */
+marpaXml_DOMString_t marpaXml_Entity_getInputEncoding(void);
+/* Introduced in DOM Level 3: */
+marpaXml_DOMString_t marpaXml_Entity_getXmlEncoding(void);
+/* Introduced in DOM Level 3: */
+marpaXml_DOMString_t marpaXml_Entity_getXmlVersion(void);
+
+/*************************************/
+/*          EntityReference          */
+/*************************************/
+MARPAXML_NODE_DECLARATIONS(EntityReference)
+
+/*************************************/
+/*       ProcessingInstruction       */
+/*************************************/
+MARPAXML_NODE_DECLARATIONS(ProcessingInstruction)
+marpaXml_DOMString_t marpaXml_ProcessingInstruction_getTarget(void);
+marpaXml_DOMString_t marpaXml_ProcessingInstruction_getData(void);
+marpaXml_DOMString_t marpaXml_ProcessingInstruction_setData(marpaXml_DOMString_t data, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): NO_MODIFICATION_ALLOWED_ERR */
+
+/*************************************/
+/*         DocumentFragment          */
+/*************************************/
+MARPAXML_NODE_DECLARATIONS(DocumentFragment)
+
+/*************************************/
+/*            Document               */
+/*************************************/
+MARPAXML_NODE_DECLARATIONS(Document)
+/* Modified in DOM Level 3: */
+marpaXml_DocumentType_t          marpaXml_Document_getDoctype(void);
+marpaXml_DOMImplementation_t     marpaXml_Document_getImplementation(void);
+marpaXml_Element_t               marpaXml_Document_getDocumentElement(void);
+marpaXml_Element_t               marpaXml_Document_createElement(marpaXml_DOMString_t tagName, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): INVALID_CHARACTER_ERR */
+marpaXml_DocumentFragment_t      marpaXml_Document_createDocumentFragment(void);
+marpaXml_Text_t                  marpaXml_Document_createTextNode(marpaXml_DOMString_t data);
+marpaXml_Comment_t               marpaXml_Document_createComment(marpaXml_DOMString_t data);
+marpaXml_CDATASection_t          marpaXml_Document_createCDATASection(marpaXml_DOMString_t data, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): NOT_SUPPORTED_ERR */
+marpaXml_ProcessingInstruction_t marpaXml_Document_createProcessingInstruction(marpaXml_DOMString_t target, marpaXml_DOMString_t data, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): INVALID_CHARACTER_ERR, NOT_SUPPORTED_ERR */
+marpaXml_Attr_t                  marpaXml_Document_createAttribute(marpaXml_DOMString_t name, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): INVALID_CHARACTER_ERR */
+marpaXml_EntityReference_t       marpaXml_Document_createEntityReference(marpaXml_DOMString_t name, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): INVALID_CHARACTER_ERR, NOT_SUPPORTED_ERR */
+marpaXml_NodeList_t              marpaXml_Document_getElementsByTagName(marpaXml_DOMString_t tagname);
+/* Introduced in DOM Level 2: */
+marpaXml_Node_t                  marpaXml_Document_importNode(marpaXml_Node_t importedNode, marpaXml_DOMBoolean_t deep, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): NOT_SUPPORTED_ERR, INVALID_CHARACTER_ERR */
+/* Introduced in DOM Level 2: */
+marpaXml_Element_t               marpaXml_Document_createElementNS(marpaXml_DOMString_t namespaceURI, marpaXml_DOMString_t qualifiedName, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): INVALID_CHARACTER_ERR, NAMESPACE_ERR, NOT_SUPPORTED_ER */
+/* Introduced in DOM Level 2: */
+marpaXml_Attr_t                  marpaXml_Document_createAttributeNS(marpaXml_DOMString_t namespaceURI, marpaXml_DOMString_t qualifiedName, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): INVALID_CHARACTER_ERR, NAMESPACE_ERR, NOT_SUPPORTED_ERR */
+/* Introduced in DOM Level 2: */
+marpaXml_NodeList_t              marpaXml_Document_getElementsByTagNameNS(marpaXml_DOMString_t namespaceURI, marpaXml_DOMString_t localName);
+/* Introduced in DOM Level 2: */
+marpaXml_Element_t               marpaXml_Document_getElementById(marpaXml_DOMString_t elementId);
+/* Introduced in DOM Level 3: */
+marpaXml_DOMString_t             marpaXml_Document_getInputEncoding(void);
+/* Introduced in DOM Level 3: */
+marpaXml_DOMString_t             marpaXml_Document_getXmlEncoding(void);
+/* Introduced in DOM Level 3: */
+marpaXml_DOMBoolean_t            marpaXml_Document_getXmlStandalone(void);
+marpaXml_DOMBoolean_t            marpaXml_Document_setXmlStandalone(marpaXml_DOMBoolean_t xmlStandalone, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): NOT_SUPPORTED_ERR */
+/* Introduced in DOM Level 3: */
+marpaXml_DOMString_t             marpaXml_Document_getXmlVersion(void);
+marpaXml_DOMString_t             marpaXml_Document_setXmlVersion(marpaXml_DOMString_t xmlVersion, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): NOT_SUPPORTED_ERR */
+/* Introduced in DOM Level 3: */
+marpaXml_DOMBoolean_t            marpaXml_Document_getStrictErrorChecking(void);
+marpaXml_DOMBoolean_t            marpaXml_Document_setStrictErrorChecking(marpaXml_DOMBoolean_t strictErrorChecking);
+/* Introduced in DOM Level 3: */
+marpaXml_DOMString_t             marpaXml_Document_getDocumentURI(void);
+marpaXml_DOMString_t             marpaXml_Document_setDocumentURI(marpaXml_DOMString_t documentURI);
+/* Introduced in DOM Level 3: */
+marpaXml_Node_t                  marpaXml_Document_adoptNode(marpaXml_Node_t source, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): NOT_SUPPORTED_ERR, NO_MODIFICATION_ALLOWED_ERR */
+/* Introduced in DOM Level 3: */
+marpaXml_DOMConfiguration_t      marpaXml_Document_getDomConfig(void);
+/* Introduced in DOM Level 3: */
+void                             marpaXml_Document_normalizeDocument(void);
+/* Introduced in DOM Level 3: */
+marpaXml_Node_t                  marpaXml_Document_renameNode(marpaXml_Node_t n, marpaXml_DOMString_t namespaceURI, marpaXml_DOMString_t qualifiedName, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): NOT_SUPPORTED_ERR, INVALID_CHARACTER_ERR, WRONG_DOCUMENT_ERR, NAMESPACE_ERR */
 
 #endif /* MARPAXML_API_DOM_H_ */

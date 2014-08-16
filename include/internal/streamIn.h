@@ -55,7 +55,7 @@ typedef struct streamInOption {
   marpaXmlLogLevel_t           logLevelWantedi;               /* Default: MARPAXML_LOGLEVEL_WARNING           */
   marpaXmlLogCallback_t        logCallbackp;                  /* Default: marpaXmlLog_defaultLogCallback()    */
   void                        *logCallbackDatavp;             /* Default: NULL                                */
-  streamInReadCallback_t       readCallbackp;                 /* Default: NULL. Can Must be non-NULL.         */
+  streamInReadCallback_t       readCallbackp;                 /* Default: NULL.                               */
   void                        *readCallbackDatavp;            /* Default: NULL.                               */
   streamInBufFreeCallback_t    bufFreeCallbackp;              /* Default: NULL.                               */
   void                        *bufFreeCallbackDatavp;         /* Default: NULL.                               */

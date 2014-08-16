@@ -86,6 +86,19 @@ SET (EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/build)
 # ----------------------------
 FIND_PROGRAM (PERL perl)
 
+# -----------------------------------------
+# Transliterate DOM Level 3 Core.sql into C
+# -----------------------------------------
+SET (DOM3SQL "${PROJECT_SOURCE_DIR}/db/Dom Level 3 Core.sql")
+SET (DOM3H "${PROJECT_SOURCE_DIR}/db/Dom Level 3 Core.h")
+IF (NOT EXISTS "${DOM3H}")
+  MESSAGE (STATUS "Preparing ${DOM3H}")
+  EXECUTE_PROCESS (
+    COMMAND "${PERL}" tools/prepare_dom3.pl "${DOM3SQL}" "${DOM3H}"
+    )
+ENDIF ()
+
+
 # -------------
 # Marpa library
 # -------------
@@ -118,20 +131,53 @@ SET (AVL_DIR "${PROJECT_SOURCE_DIR}/avl-${AVL_VERSION}")
 IF (NOT EXISTS "${AVL_DIR}" OR NOT IS_DIRECTORY "${AVL_DIR}")
   MESSAGE (STATUS "Preparing ${AVL_DIR}")
   EXECUTE_PROCESS (
-    #
-    # Take care:
-    # The following will build libmarpa in two ways:
-    # - one that is guaranteed to use OUR compiler in libmarpa_dist
-    # - one that is compiled with perl's configured compiler and that we will reuse when
-    #   generating src/internal/grammar/xml_1_0.c and src/internal/grammar/xml_1_1.c
-    #   Note that Marpa::R2 procedure uses libmarpa_build
-    #
     COMMAND "${PERL}" tools/prepare_libavl.pl "${AVL_VERSION}"
     )
 ENDIF ()
 FILE(GLOB avl_lib_src ${AVL_DIR}/*avl.c)
 ADD_LIBRARY (avl ${avl_lib_src})
 
+# --------------
+# SQLITE library
+# --------------
+SET (SQLITE_VERSION "3080500")
+SET (SQLITE_DIR "${PROJECT_SOURCE_DIR}/sqlite-amalgamation-${SQLITE_VERSION}")
+IF (NOT EXISTS "${SQLITE_DIR}" OR NOT IS_DIRECTORY "${SQLITE_DIR}")
+  MESSAGE (STATUS "Preparing ${SQLITE_DIR}")
+  EXECUTE_PROCESS (
+    COMMAND "${PERL}" tools/prepare_sqlite_amalgamation.pl "${SQLITE_VERSION}"
+    )
+ENDIF ()
+FILE(GLOB sqlite_lib_src ${SQLITE_DIR}/sqlite3.c)
+ADD_LIBRARY (sqlite ${sqlite_lib_src})
+SET_PROPERTY (TARGET sqlite APPEND_STRING PROPERTY COMPILE_FLAGS " -DSQLITE_DISABLE_LFS")
+IF (MINGW)
+  CHECK_INCLUDE_FILE("mingw.h" _HAVE_MINGW_H)
+  CHECK_INCLUDE_FILE("_mingw.h" _HAVE__MINGW_H)
+  IF (_HAVE_MINGW_H)
+    SET_PROPERTY (TARGET sqlite APPEND_STRING PROPERTY COMPILE_FLAGS " -D_HAVE_MINGW_H")
+  ENDIF()
+  IF (_HAVE__MINGW_H)
+    SET_PROPERTY (TARGET sqlite APPEND_STRING PROPERTY COMPILE_FLAGS " -D_HAVE__MINGW_H")
+  ENDIF()
+ENDIF ()
+#
+# This will affect upper(), lower(), LIKE, and REGEXP, c.f. http://www.sqlite.org/src/finfo?name=ext/icu/README.txt
+#
+SET_PROPERTY (TARGET sqlite APPEND_STRING PROPERTY COMPILE_FLAGS " -DSQLITE_ENABLE_ICU")
+#
+# We know what we are doing: disable processing of foreign keys
+#
+# SET_PROPERTY (TARGET sqlite APPEND_STRING PROPERTY COMPILE_FLAGS " -DSQLITE_OMIT_FOREIGN_KEY")
+#
+# Make sure db connection is serialized for multithread concurrent access
+#
+SET_PROPERTY (TARGET sqlite APPEND_STRING PROPERTY COMPILE_FLAGS " -DSQLITE_THREADSAFE=1")
+#
+# No need for extension, trace, etc... in SQLite
+#
+# SET_PROPERTY (TARGET sqlite APPEND_STRING PROPERTY COMPILE_FLAGS " -DSQLITE_OMIT_LOAD_EXTENSION -DSQLITE_OMIT_TRACE")
+#
 # ------------------------
 # marpaXmlInternal library
 # ------------------------
@@ -148,7 +194,7 @@ ADD_LIBRARY (marpaXml
   ${PROJECT_SOURCE_DIR}/src/API/marpaXml/DOM.c
   ${PROJECT_SOURCE_DIR}/src/API/marpaXml/log.c
   )
-SET_PROPERTY (TARGET marpaXml APPEND PROPERTY INCLUDE_DIRECTORIES ${MARPA_DIR}/libmarpa_dist)
+SET_PROPERTY (TARGET marpaXml APPEND PROPERTY INCLUDE_DIRECTORIES ${MARPA_DIR}/core/read_only ${SQLITE_DIR})
 ADD_DEPENDENCIES (marpaXml marpa)
 
 # -----------------------
@@ -163,6 +209,7 @@ SET(DISTCLEANED
   cmake_install.cmake
   ${MARPA_DIR}
   ${AVL_DIR}
+  ${SQLITE_DIR}
   include/internal/config.h
   )
 ADD_CUSTOM_COMMAND (
@@ -186,10 +233,15 @@ INCLUDE(NULL_IS_ZEROES)
 NULL_IS_ZEROES()
 
 # -------------
-# lcoaltime_r ?
+# localtime_r ?
 # -------------
 INCLUDE(LOCALTIME_R)
 LOCALTIME_R()
+
+# -------
+# Threads
+# -------
+FIND_PACKAGE(Threads REQUIRED)
 
 # -------------------------
 # Additional include checks
@@ -216,7 +268,7 @@ ADD_EXECUTABLE        (log_test ${PROJECT_SOURCE_DIR}/test/API/log.c)
 TARGET_LINK_LIBRARIES (log_test marpaXml)
 
 ADD_EXECUTABLE        (DOM_test ${PROJECT_SOURCE_DIR}/test/API/DOM.c)
-TARGET_LINK_LIBRARIES (DOM_test marpaXml)
+TARGET_LINK_LIBRARIES (DOM_test marpaXml sqlite ${CMAKE_THREAD_LIBS_INIT})
 
 ADD_EXECUTABLE        (ICU4CDetectEncoding ${PROJECT_SOURCE_DIR}/test/internal/ICU4CDetectEncoding.c)
 
