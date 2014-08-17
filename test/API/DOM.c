@@ -4,7 +4,7 @@
 #include <unicode/ustring.h>
 
 int main(int argc, char **argv) {
-  marpaXml_DOM_Option_t marpaXml_DOM_Option = {MARPAXML_LOGLEVEL_TRACE, marpaXmlLog_defaultLogCallback(), NULL, "/tmp/test.db" /* ":memory:" */, NULL, -1};
+  marpaXml_DOM_Option_t marpaXml_DOM_Option = {MARPAXML_LOGLEVEL_TRACE, marpaXmlLog_defaultLogCallback(), NULL, ":memory:", NULL, -1};
 
   if (marpaXml_DOM_init(&marpaXml_DOM_Option) == MARPAXML_DOMBOOLEAN_FALSE) {
     fprintf(stderr, "marpaXml_DOM_init() failure, %s\n", (char *) marpaXml_DOMError_getMessage());
