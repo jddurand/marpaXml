@@ -148,11 +148,6 @@ typedef enum marpaXml_DOM_ObjectType {
   MARPAXML_DOM_OBJECTTYPE_DOCUMENTFRAGMENT,
 } marpaXml_DOM_ObjectType_t;
 
-typedef struct marpaXml_DOMObject {
-  unsigned long long int    reference;
-  marpaXml_DOM_ObjectType_t type;
-} marpaXml_DOMObject_t;
-
 typedef enum marpaXml_DOM_ExceptionCode {
   MARPAXML_DOM_EXCEPTION_NONE              =  0,
   /* ExceptionCode */
@@ -230,8 +225,8 @@ typedef struct marpaXml_DOMError {
   marpaXml_DOM_ErrorSeverity_t severity;
   marpaXml_DOMString_t         message;
   marpaXml_DOMString_t         type;
-  marpaXml_DOMObject_t         relatedException;
-  marpaXml_DOMObject_t         relatedData;
+  /* marpaXml_DOMObject_t         relatedException; */ /* NOT IMPLEMENTED */
+  /* marpaXml_DOMObject_t         relatedData; */ /* NOT IMPLEMENTED */
   marpaXml_DOMLocator_t        location;
 } marpaXml_DOMError_t;
 extern marpaXml_DOMError_t marpaXml_DOMError;
@@ -276,8 +271,8 @@ marpaXml_DOMBoolean_t   marpaXml_DOMImplementation_hasFeature(marpaXml_DOMString
 marpaXml_DocumentType_t marpaXml_DOMImplementation_createDocumentType(marpaXml_DOMString_t qualifiedName, marpaXml_DOMString_t publicId, marpaXml_DOMString_t systemId, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException):  INVALID_CHARACTER_ERR, NAMESPACE_ERR, NOT_SUPPORTED_ERR */
 /* Introduced in DOM Level 2: */
 marpaXml_Document_t     marpaXml_DOMImplementation_createDocument(marpaXml_DOMString_t namespaceURI, marpaXml_DOMString_t qualifiedName, marpaXml_DocumentType_t doctype, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): INVALID_CHARACTER_ERR, NAMESPACE_ERR, WRONG_DOCUMENT_ERR, NOT_SUPPORTED_ERR */
-/* Introduced in DOM Level 3: */
-marpaXml_DOMObject_t    marpaXml_DOMImplementation_getFeature(marpaXml_DOMString_t feature, marpaXml_DOMString_t version);
+/* Introduced in DOM Level 3: NOT IMPLEMENTED */
+/* marpaXml_DOMObject_t    marpaXml_DOMImplementation_getFeature(marpaXml_DOMString_t feature, marpaXml_DOMString_t version); */
 
 /*************************************/
 /*                Node               */
@@ -337,7 +332,7 @@ marpaXml_DOMObject_t    marpaXml_DOMImplementation_getFeature(marpaXml_DOMString
   /* Introduced in DOM Level 3: */					\
   marpaXml_DOMBoolean_t   marpaXml_ ## objectType ## _isEqualNode(marpaXml_Node_t arg); \
   /* Introduced in DOM Level 3: */					\
-  marpaXml_DOMObject_t    marpaXml_ ## objectType ## _getFeature(marpaXml_DOMString_t feature, marpaXml_DOMString_t version); \
+  /* marpaXml_DOMObject_t    marpaXml_ ## objectType ## _getFeature(marpaXml_DOMString_t feature, marpaXml_DOMString_t version); */ /* NOT IMPLEMENTED */ \
   /* Introduced in DOM Level 3: */					\
   marpaXml_DOMUserData_t  marpaXml_ ## objectType ## _setUserData(marpaXml_DOMString_t key, marpaXml_DOMUserData_t data, marpaXml_UserDataHandler_t handler); \
   /* Introduced in DOM Level 3: */					\
@@ -475,8 +470,8 @@ void marpaXml_UserDataHandler_handle(unsigned short operation, marpaXml_DOMStrin
 unsigned short        marpaXml_DOMError_getSeverity(void);
 marpaXml_DOMString_t  marpaXml_DOMError_getMessage(void);
 marpaXml_DOMString_t  marpaXml_DOMError_getType(void);
-marpaXml_DOMObject_t  marpaXml_DOMError_getRelatedException(void);
-marpaXml_DOMObject_t  marpaXml_DOMError_getRelatedData(void);
+/* marpaXml_DOMObject_t  marpaXml_DOMError_getRelatedException(void); */ /* NOT IMPLEMENTED */
+/* marpaXml_DOMObject_t  marpaXml_DOMError_getRelatedData(void); */ /* NOT IMPLEMENTED */
 marpaXml_DOMLocator_t marpaXml_DOMError_getLocation(void);
 
 /* Introduced in DOM Level 3: */

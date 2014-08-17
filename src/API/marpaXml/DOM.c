@@ -37,15 +37,12 @@ static sqlite3_stmt         *_db_loadcollation_stmt = NULL;
 static sqlite3              *_dbp;
 static sqlite3_mutex        *_mutexp;
 static marpaXml_DOMBoolean_t _initialized = MARPAXML_DOMBOOLEAN_FALSE;
-static marpaXml_DOMObject_t marpaXml_DOMObject_None = {0, MARPAXML_DOM_OBJECTTYPE_NONE};
 static struct s_DOMError_ {
   unsigned short        severity;
   marpaXml_DOMString_t  message;
   marpaXml_DOMString_t  type;
-  marpaXml_DOMObject_t  relatedException;
-  marpaXml_DOMObject_t  relatedData;
   marpaXml_DOMLocator_t location;
-} s_DOMError = {MARPAXML_DOM_SEVERITY_NONE, 0, 0, {0, MARPAXML_DOM_OBJECTTYPE_NONE}, {0, MARPAXML_DOM_OBJECTTYPE_NONE}, 0 };
+} s_DOMError = {MARPAXML_DOM_SEVERITY_NONE, 0, 0 };
 static marpaXml_DOM_Option_t marpaXml_DOM_Option = {MARPAXML_LOGLEVEL_WARNING, &_marpaXmlLog_defaultCallback, NULL, ":memory", NULL, -1};
 static marpaXmlLog_t *marpaXmlLogp = NULL;
 
@@ -88,8 +85,6 @@ static C_INLINE marpaXml_DOMBoolean_t _marpaXml_bind_int(sqlite3_stmt* pStmt, in
 static C_INLINE void _marpaXml_DOMError_set(marpaXml_DOM_ErrorSeverity_t severity,
 					    marpaXml_DOMString_t         message,
 					    marpaXml_DOMString_t         type,
-					    marpaXml_DOMObject_t         relatedException,
-					    marpaXml_DOMObject_t         relatedData,
 					    marpaXml_DOMLocator_t        location);
 /**********/
 /* Macros */
@@ -116,8 +111,6 @@ static C_INLINE marpaXml_DOMBoolean_t _marpaXml_exec(const char *sql) {
     _marpaXml_DOMError_set(MARPAXML_DOM_SEVERITY_FATAL_ERROR,
 			   messageBuilder("%s", errmsg != NULL ? errmsg : "(null)"),
 			   NULL,
-			   marpaXml_DOMObject_None,
-			   marpaXml_DOMObject_None,
 			   0
 			   );
     if (errmsg != NULL) {
@@ -141,8 +134,6 @@ static C_INLINE marpaXml_DOMBoolean_t _marpaXml_prepare(sqlite3 *db, const char 
     _marpaXml_DOMError_set(MARPAXML_DOM_SEVERITY_FATAL_ERROR,
 			   messageBuilder("%s", sqlite3_errstr(sqliteRc)),
 			   NULL,
-			   marpaXml_DOMObject_None,
-			   marpaXml_DOMObject_None,
 			   0
 			   );
     return MARPAXML_DOMBOOLEAN_FALSE;
@@ -162,8 +153,6 @@ static C_INLINE marpaXml_DOMBoolean_t _marpaXml_finalize(sqlite3_stmt **ppStmt) 
     _marpaXml_DOMError_set(MARPAXML_DOM_SEVERITY_FATAL_ERROR,
 			   messageBuilder("%s", sqlite3_errstr(sqliteRc)),
 			   NULL,
-			   marpaXml_DOMObject_None,
-			   marpaXml_DOMObject_None,
 			   0
 			   );
     return MARPAXML_DOMBOOLEAN_FALSE;
@@ -185,8 +174,6 @@ static C_INLINE marpaXml_DOMBoolean_t _marpaXml_reset(sqlite3_stmt *pStmt) {
     _marpaXml_DOMError_set(MARPAXML_DOM_SEVERITY_FATAL_ERROR,
 			   messageBuilder("%s", sqlite3_errstr(sqliteRc)),
 			   NULL,
-			   marpaXml_DOMObject_None,
-			   marpaXml_DOMObject_None,
 			   0
 			   );
     return MARPAXML_DOMBOOLEAN_FALSE;
@@ -208,8 +195,6 @@ static C_INLINE marpaXml_DOMBoolean_t _marpaXml_bind_text(sqlite3_stmt* pStmt, i
     _marpaXml_DOMError_set(MARPAXML_DOM_SEVERITY_FATAL_ERROR,
 			   messageBuilder("%s", sqlite3_errstr(sqliteRc)),
 			   NULL,
-			   marpaXml_DOMObject_None,
-			   marpaXml_DOMObject_None,
 			   0
 			   );
     return MARPAXML_DOMBOOLEAN_FALSE;
@@ -231,8 +216,6 @@ static C_INLINE marpaXml_DOMBoolean_t _marpaXml_bind_int(sqlite3_stmt* pStmt, in
     _marpaXml_DOMError_set(MARPAXML_DOM_SEVERITY_FATAL_ERROR,
 			   messageBuilder("%s", sqlite3_errstr(sqliteRc)),
 			   NULL,
-			   marpaXml_DOMObject_None,
-			   marpaXml_DOMObject_None,
 			   0
 			   );
     return MARPAXML_DOMBOOLEAN_FALSE;
@@ -260,8 +243,6 @@ marpaXml_DOMBoolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Opti
     _marpaXml_DOMError_set(MARPAXML_DOM_SEVERITY_FATAL_ERROR,
 			   messageBuilder("sqlite3_initialize(): %s", sqlite3_errstr(sqliteRc)),
 			   NULL,
-			   marpaXml_DOMObject_None,
-			   marpaXml_DOMObject_None,
 			   0
 			   );
     return MARPAXML_DOMBOOLEAN_FALSE;
@@ -276,8 +257,6 @@ marpaXml_DOMBoolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Opti
     _marpaXml_DOMError_set(MARPAXML_DOM_SEVERITY_FATAL_ERROR,
 			   messageBuilder("%s", strerror(errno)),
 			   NULL,
-			   marpaXml_DOMObject_None,
-			   marpaXml_DOMObject_None,
 			   0
 			   );
     return MARPAXML_DOMBOOLEAN_FALSE;
@@ -300,8 +279,6 @@ marpaXml_DOMBoolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Opti
     _marpaXml_DOMError_set(MARPAXML_DOM_SEVERITY_FATAL_ERROR,
 			   messageBuilder("%s", strerror(errno)),
 			   NULL,
-			   marpaXml_DOMObject_None,
-			   marpaXml_DOMObject_None,
 			   0
 			   );
     sqlite3_mutex_leave(masterMutexp);
@@ -323,8 +300,6 @@ marpaXml_DOMBoolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Opti
       _marpaXml_DOMError_set(MARPAXML_DOM_SEVERITY_FATAL_ERROR,
 			     messageBuilder("%s", u_errorName(uErrorCode)),
 			     NULL,
-			     marpaXml_DOMObject_None,
-			     marpaXml_DOMObject_None,
 			     0
 			     );
     sqlite3_mutex_leave(_mutexp);
@@ -339,8 +314,6 @@ marpaXml_DOMBoolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Opti
     _marpaXml_DOMError_set(MARPAXML_DOM_SEVERITY_FATAL_ERROR,
 			   messageBuilder("%s", sqlite3_errstr(sqliteRc)),
 			   NULL,
-			   marpaXml_DOMObject_None,
-			   marpaXml_DOMObject_None,
 			   0
 			   );
     return MARPAXML_DOMBOOLEAN_FALSE;
@@ -371,8 +344,6 @@ marpaXml_DOMBoolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Opti
     _marpaXml_DOMError_set(MARPAXML_DOM_SEVERITY_FATAL_ERROR,
 			   messageBuilder("%s", sqlite3_errstr(sqliteRc)),
 			   NULL,
-			   marpaXml_DOMObject_None,
-			   marpaXml_DOMObject_None,
 			   0
 			   );
     _dbp = NULL;
@@ -473,26 +444,6 @@ marpaXml_DOMString_t  marpaXml_DOMError_getType(void) {
   return type;
 }
 
-marpaXml_DOMObject_t  marpaXml_DOMError_getRelatedException(void) {
-  marpaXml_DOMObject_t  relatedException;
-
-  MARPAXML_DOM_MUTEX_ENTER;
-  relatedException = s_DOMError.relatedException;
-  MARPAXML_DOM_MUTEX_LEAVE;
-
-  return relatedException;
-}
-
-marpaXml_DOMObject_t  marpaXml_DOMError_getRelatedData(void) {
-  marpaXml_DOMObject_t  relatedData;
-
-  MARPAXML_DOM_MUTEX_ENTER;
-  relatedData = s_DOMError.relatedData;
-  MARPAXML_DOM_MUTEX_LEAVE;
-
-  return relatedData;
-}
-
 marpaXml_DOMLocator_t marpaXml_DOMError_getLocation(void) {
   marpaXml_DOMLocator_t location;
 
@@ -507,8 +458,6 @@ marpaXml_DOMLocator_t marpaXml_DOMError_getLocation(void) {
 static C_INLINE void _marpaXml_DOMError_set(marpaXml_DOM_ErrorSeverity_t severity,
 					    marpaXml_DOMString_t         message,
 					    marpaXml_DOMString_t         type,
-					    marpaXml_DOMObject_t         relatedException,
-					    marpaXml_DOMObject_t         relatedData,
 					    marpaXml_DOMLocator_t        location) {
   MARPAXML_DOM_MUTEX_ENTER;
 
@@ -522,8 +471,6 @@ static C_INLINE void _marpaXml_DOMError_set(marpaXml_DOM_ErrorSeverity_t severit
   s_DOMError.severity = severity;
   s_DOMError.message = (message != NULL) ? strdup(message) : NULL;
   s_DOMError.type = (type != NULL) ? strdup(type) : NULL;
-  s_DOMError.relatedException = relatedException;
-  s_DOMError.relatedData = relatedData;
   s_DOMError.location = location;
 
   MARPAXML_DOM_MUTEX_LEAVE;

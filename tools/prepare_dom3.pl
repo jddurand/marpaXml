@@ -30,7 +30,6 @@ while ($sql =~ m/\bCREATE\s+TABLE\s+(\[(\w+)\]\s*\([^;]+\)\s*;)/sxmg) {
 }
 my $h = "#define STRINGLITERAL_DDL_NBTABLES " . scalar(@c) . "\n";
 $h .= "static const char *STRINGLITERAL_DDL[STRINGLITERAL_DDL_NBTABLES] = {\n" . join(",\n", @c) . "};\n";
-$h .= "static const char *STRINGLITERAL_DDL_NAME[STRINGLITERAL_DDL_NBTABLES] = {\n\"" . join("\", \"", @name) . "\"};\n";
 
 open(H, '>', $dom3h) || die "Cannot open $dom3h, $!";
 print H $h;
