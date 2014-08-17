@@ -261,6 +261,8 @@ marpaXml_DOMBoolean_t  marpaXml_NameList_containsNS(marpaXml_DOMString_t namespa
 /* Introduced in DOM Level 3: */
 marpaXml_DOMImplementation_t marpaXml_DOMImplementationList_item(unsigned long long int index);
 unsigned long long int       marpaXml_DOMImplementationList_getLength(void);
+/* Not in DOM Level 3: */
+marpaXml_DOMImplementation_t marpaXml_DOMImplementation_insert(marpaXml_DOMString_t feature, marpaXml_DOMString_t version);
 
 /*************************************/
 /*    DOMImplementationSource        */
