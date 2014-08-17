@@ -715,12 +715,15 @@ marpaXml_DOMString_t marpaXml_DOMStringList_item(unsigned long long int index) {
 /*******************************************************************/
 static C_INLINE marpaXml_DOMBoolean_t _marpaXml_DOMImplementation_count(sqlite_int64 *countp) {
   int                   sqliteRc;
+  marpaXml_DOMBoolean_t domRc = MARPAXML_DOMBOOLEAN_FALSE;
 
   MARPAXML_TRACEX("%s\n", marpaXml_DOM_stmt[_marpaXml_DOMImplementation_count_e].sql);
 
   while (1) {
     if ((sqliteRc = sqlite3_step(marpaXml_DOM_stmt[_marpaXml_DOMImplementation_count_e].stmt)) == SQLITE_ROW) {
+      /* We expect (at least) one row */
       *countp = sqlite3_column_int64(marpaXml_DOM_stmt[_marpaXml_DOMImplementation_count_e].stmt, 0);
+      domRc = MARPAXML_DOMBOOLEAN_TRUE;
     } else {
       break;
     }
@@ -731,7 +734,7 @@ static C_INLINE marpaXml_DOMBoolean_t _marpaXml_DOMImplementation_count(sqlite_i
     return MARPAXML_DOMBOOLEAN_FALSE;
   }
   
-  return MARPAXML_DOMBOOLEAN_TRUE;
+  return domRc;
 }
 
 /* --------------------------------------------------------------- */
