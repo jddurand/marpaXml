@@ -170,13 +170,21 @@ SET_PROPERTY (TARGET sqlite APPEND_STRING PROPERTY COMPILE_FLAGS " -DSQLITE_ENAB
 #
 # SET_PROPERTY (TARGET sqlite APPEND_STRING PROPERTY COMPILE_FLAGS " -DSQLITE_OMIT_FOREIGN_KEY")
 #
+# Our implementation cannot go beyond SQLITE_MAX_LENGTH for length of TEXT
+#
+SET_PROPERTY (TARGET sqlite APPEND_STRING PROPERTY COMPILE_FLAGS " -DSQLITE_MAX_LENGTH=2147483647")
+#
+# Likely to never happen but how knows
+#
+SET_PROPERTY (TARGET sqlite APPEND_STRING PROPERTY COMPILE_FLAGS " -DSQLITE_64BIT_STATS")
+#
 # Make sure db connection is serialized for multithread concurrent access
 #
 SET_PROPERTY (TARGET sqlite APPEND_STRING PROPERTY COMPILE_FLAGS " -DSQLITE_THREADSAFE=1")
 #
 # No need for extension, triggers, trace, etc... in SQLite
 #
-SET_PROPERTY (TARGET sqlite APPEND_STRING PROPERTY COMPILE_FLAGS " -DSQLITE_OMIT_LOAD_EXTENSION -DSQLITE_OMIT_TRACE -DSQLITE_OMIT_AUTHORIZATION -DSQLITE_OMIT_PROGRESS_CALLBACK -DSQLITE_OMIT_CHECK -DSQLITE_OMIT_EXPLAIN")
+# SET_PROPERTY (TARGET sqlite APPEND_STRING PROPERTY COMPILE_FLAGS " -DSQLITE_OMIT_LOAD_EXTENSION -DSQLITE_OMIT_TRACE -DSQLITE_OMIT_AUTHORIZATION -DSQLITE_OMIT_PROGRESS_CALLBACK -DSQLITE_OMIT_CHECK -DSQLITE_OMIT_EXPLAIN")
 #
 # ------------------------
 # marpaXmlInternal library
@@ -188,13 +196,15 @@ ADD_LIBRARY (marpaXml
   ${PROJECT_SOURCE_DIR}/src/internal/messageBuilder.c
   ${PROJECT_SOURCE_DIR}/src/internal/dateBuilder.c
   ${PROJECT_SOURCE_DIR}/src/internal/streamIn.c
+  ${PROJECT_SOURCE_DIR}/src/internal/hash.c
   ${PROJECT_SOURCE_DIR}/src/internal/grammar/xml_common.c
   ${PROJECT_SOURCE_DIR}/src/internal/grammar/xml_1_0.c
   ${PROJECT_SOURCE_DIR}/src/internal/grammar/xml_1_1.c
   ${PROJECT_SOURCE_DIR}/src/API/marpaXml/DOM.c
   ${PROJECT_SOURCE_DIR}/src/API/marpaXml/log.c
+  ${PROJECT_SOURCE_DIR}/xxhash-read-only/xxhash.c
   )
-SET_PROPERTY (TARGET marpaXml APPEND PROPERTY INCLUDE_DIRECTORIES ${MARPA_DIR}/core/read_only ${SQLITE_DIR})
+SET_PROPERTY (TARGET marpaXml APPEND PROPERTY INCLUDE_DIRECTORIES ${MARPA_DIR}/core/read_only ${SQLITE_DIR} ${PROJECT_SOURCE_DIR})
 ADD_DEPENDENCIES (marpaXml marpa)
 
 # -----------------------
@@ -247,7 +257,19 @@ FIND_PACKAGE(Threads REQUIRED)
 # Additional include checks
 # -------------------------
 INCLUDE(CheckIncludeFile)
+CHECK_INCLUDE_FILE("inttypes.h" HAVE_INTTYPES_H)
+CHECK_INCLUDE_FILE("sys/types.h" HAVE_SYS_TYPES_H)
+CHECK_INCLUDE_FILE("stdint.h" HAVE_STDINT_H)
+CHECK_INCLUDE_FILE("features.h" HAVE_FEATURES_H)
 CHECK_INCLUDE_FILE("unistd.h" HAVE_UNISTD_H)
+
+# -------------
+# 32bits/64bits
+# -------------
+INCLUDE(CheckTypeSize)
+CHECK_TYPE_SIZE ("void*" SIZEOF_VOID_P BUILTIN_TYPES_ONLY)
+CHECK_TYPE_SIZE ("unsigned int" SIZEOF_UINT BUILTIN_TYPES_ONLY)
+CHECK_TYPE_SIZE ("unsigned long long int" SIZEOF_ULONGLONGINT BUILTIN_TYPES_ONLY)
 
 # ------------------------------------
 # Generate marpaXmlInternal's config.h

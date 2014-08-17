@@ -4,7 +4,7 @@
 #include <unicode/ustring.h>
 
 int main(int argc, char **argv) {
-  marpaXml_DOM_Option_t marpaXml_DOM_Option = {MARPAXML_LOGLEVEL_TRACE, marpaXmlLog_defaultLogCallback(), NULL, ":memory:", NULL, -1};
+  marpaXml_DOM_Option_t marpaXml_DOM_Option = {MARPAXML_LOGLEVEL_TRACE, marpaXmlLog_defaultLogCallback(), NULL, "/tmp/test.db" /* ":memory:" */, NULL, -1};
 
   if (marpaXml_DOM_init(&marpaXml_DOM_Option) == MARPAXML_DOMBOOLEAN_FALSE) {
     fprintf(stderr, "marpaXml_DOM_init() failure, %s\n", (char *) marpaXml_DOMError_getMessage());
@@ -25,10 +25,10 @@ int main(int argc, char **argv) {
     fprintf(stderr, "marpaXml_DOMImplementation_hasFeature(\"%s\", NULL): KO\n", "CoRe2");
     return 1;
   }
-  if (marpaXml_DOMImplementation_hasFeature((char *) "CoRe", NULL) == MARPAXML_DOMBOOLEAN_TRUE) {
-    fprintf(stdout, "marpaXml_DOMImplementation_hasFeature(\"%s\", NULL): OK\n", "CoRe");
+  if (marpaXml_DOMImplementation_hasFeature((char *) "CoRe", (char *) "2.0") == MARPAXML_DOMBOOLEAN_TRUE) {
+    fprintf(stdout, "marpaXml_DOMImplementation_hasFeature(\"%s\", \"%s\"): OK\n", "CoRe", "2.0");
   } else {
-    fprintf(stderr, "marpaXml_DOMImplementation_hasFeature(\"%s\", NULL): KO\n", "CoRe");
+    fprintf(stderr, "marpaXml_DOMImplementation_hasFeature(\"%s\", \"%s\"): KO\n", "CoRe", "2.0");
     return 1;
   }
 

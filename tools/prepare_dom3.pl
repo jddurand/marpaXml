@@ -16,6 +16,11 @@ $sql =~ s/$RE{comment}{'C++'}//g;
 
 my @c = ();
 my @name = ();
+my @index = ();
+#
+# First the tables
+#
+pos($sql) = undef;
 while ($sql =~ m/\bCREATE\s+TABLE\s+(\[(\w+)\]\s*\([^;]+\)\s*;)/sxmg) {
     push(@name, $2);
     my $match = "CREATE TABLE IF NOT EXISTS $1";
@@ -28,8 +33,18 @@ while ($sql =~ m/\bCREATE\s+TABLE\s+(\[(\w+)\]\s*\([^;]+\)\s*;)/sxmg) {
     $match =~ s/$/\\n"/sxmg;
     push(@c, $match);
 }
-my $h = "#define STRINGLITERAL_DDL_NBTABLES " . scalar(@c) . "\n";
-$h .= "static const char *STRINGLITERAL_DDL[STRINGLITERAL_DDL_NBTABLES] = {\n" . join(",\n", @c) . "};\n";
+#
+# Then the indexes
+#
+pos($sql) = undef;
+while ($sql =~ m/\b(CREATE\s+(?:UNIQUE\s+)?INDEX)\s+([^;]+;)/sxmg) {
+    my $match = "$1 IF NOT EXISTS $2";
+    $match =~ s/^/"/sxmg;
+    $match =~ s/$/\\n"/sxmg;
+    push(@c, $match);
+}
+my $h = "#define STRINGLITERAL_DDL_NBSTATEMENT " . scalar(@c) . "\n";
+$h .= "static const char *STRINGLITERAL_DDL[STRINGLITERAL_DDL_NBSTATEMENT] = {\n" . join(",\n", @c) . "};\n";
 
 open(H, '>', $dom3h) || die "Cannot open $dom3h, $!";
 print H $h;
