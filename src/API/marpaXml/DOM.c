@@ -30,15 +30,15 @@ static const char *STRINGLITERAL_DB_LOADCOLLATION = "SELECT icu_load_collationWi
 /* Static variables */
 /********************/
 static sqlite3_stmt         *_db_loadcollation_stmt = NULL;
-static sqlite3              *_dbp;
-static sqlite3_mutex        *_mutexp;
+static sqlite3              *_dbp = NULL;
+static sqlite3_mutex        *_mutexp = NULL;
 static marpaXml_DOMBoolean_t _initialized = MARPAXML_DOMBOOLEAN_FALSE;
 static struct s_DOMError_ {
   unsigned short        severity;
   marpaXml_DOMString_t  message;
   marpaXml_DOMString_t  type;
   marpaXml_DOMLocator_t location;
-} s_DOMError = {MARPAXML_DOM_SEVERITY_NONE, 0, 0 };
+} s_DOMError = {MARPAXML_DOM_SEVERITY_NONE, NULL, NULL, 0};
 static marpaXml_DOM_Option_t marpaXml_DOM_Option = {MARPAXML_LOGLEVEL_WARNING, &_marpaXmlLog_defaultCallback, NULL, ":memory", NULL, -1};
 static marpaXmlLog_t *marpaXmlLogp = NULL;
 
@@ -342,6 +342,42 @@ static C_INLINE marpaXml_DOMBoolean_t _marpaXml_bind_int(sqlite3_stmt* pStmt, in
   }
 
   return MARPAXML_DOMBOOLEAN_TRUE;
+}
+
+/*******************************************************************/
+/* marpaXml_DOM_release                                            */
+/*******************************************************************/
+marpaXml_DOMBoolean_t marpaXml_DOM_release(void) {
+  int                   i;
+  int                   sqliteRc;
+  marpaXml_DOMBoolean_t rc = MARPAXML_DOMBOOLEAN_TRUE;
+
+  /* Not thread-safe */
+  if (_initialized == MARPAXML_DOMBOOLEAN_FALSE || _dbp == NULL) {
+    return MARPAXML_DOMBOOLEAN_FALSE;
+  }
+
+  /* Free the statements */
+  i = -1;
+  while (marpaXml_DOM_stmt[++i].stmt != NULL) {
+    if (_marpaXml_finalize(&marpaXml_DOM_stmt[i].stmt) == MARPAXML_DOMBOOLEAN_FALSE) {
+      rc = MARPAXML_DOMBOOLEAN_FALSE;
+    }
+  }
+
+  /* Close connection to the DB */
+  if ((sqliteRc = sqlite3_close_v2(_dbp)) != SQLITE_OK) {
+    MARPAXML_ERRORX("sqlite3_close_v2(): %s at %s:%d\n", sqlite3_errstr(sqliteRc), __FILE__, __LINE__);
+    rc = MARPAXML_DOMBOOLEAN_FALSE;
+  }
+
+  /* Free static DOMError content */
+  _marpaXml_DOMError_set(MARPAXML_DOM_SEVERITY_NONE, NULL, NULL, 0);
+
+  /* Pretend we were not initialized */
+  _initialized = MARPAXML_DOMBOOLEAN_FALSE;
+
+  return rc;
 }
 
 /*******************************************************************/

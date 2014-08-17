@@ -86,8 +86,14 @@ typedef struct marpaXml_DOM_Option {
   int                          collStrength;                  /* Default: -1                                  */
 } marpaXml_DOM_Option_t;
 /*
-  Can be called several times, but one is enough. Defaults will apply ONLY if parameter is NULL */
+  Can be called several times, but one is enough. Defaults will apply ONLY if parameter is NULL
+*/
 marpaXml_DOMBoolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Optionp);
+/*
+  Must be called once only, typically at program exit or library unload, one call at at time: this routine is not thread-safe.
+  All in all, simply do not call it - the memory leaks are small.
+*/
+marpaXml_DOMBoolean_t marpaXml_DOM_release(void);
 
 /* Some applications will say (char*), others (unsigned char*). This is not
    important because we know we talk about UTF-8 strings. */
