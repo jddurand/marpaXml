@@ -752,7 +752,7 @@ marpaXml_DOMBoolean_t marpaXml_DOMImplementation_insert(marpaXml_DOMString_t fea
   domRc = (_marpaXml_DOMImplementation_count(&nbRowBefore)      == MARPAXML_DOMBOOLEAN_TRUE &&
 	   _marpaXml_DOMImplementation_insert(feature, version) == MARPAXML_DOMBOOLEAN_TRUE &&
 	   _marpaXml_DOMImplementation_count(&nbRowAfter)       == MARPAXML_DOMBOOLEAN_TRUE) ? MARPAXML_DOMBOOLEAN_TRUE : MARPAXML_DOMBOOLEAN_FALSE;
-  if (domRc == MARPAXML_DOMBOOLEAN_TRUE && nbRowAfter != ++nbRowBefore) {
+  if (domRc == MARPAXML_DOMBOOLEAN_TRUE && --nbRowAfter != nbRowBefore) {
     MARPAXML_TRACEX("nbRow has stalled to %lld\n", nbRowBefore);
     domRc = MARPAXML_DOMBOOLEAN_FALSE;
   } else {
