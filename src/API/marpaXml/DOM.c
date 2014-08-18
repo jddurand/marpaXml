@@ -406,6 +406,10 @@ marpaXml_DOMBoolean_t marpaXml_DOM_release(void) {
   }
 
 #ifdef MARPAXML_DOM_TEST_APPLICATION_ONLY
+  sqlite3_shutdown();
+#endif
+
+#ifdef MARPAXML_DOM_TEST_APPLICATION_ONLY
   /* ICU recommendation is to NOT call this. This is done automatically at library unload */
   u_cleanup();
 #endif
