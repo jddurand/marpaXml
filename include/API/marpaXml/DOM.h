@@ -91,7 +91,7 @@ typedef struct marpaXml_DOM_Option {
 marpaXml_DOMBoolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Optionp);
 /*
   Must be called once only, typically at program exit or library unload, one call at at time: this routine is not thread-safe.
-  All in all, simply do not call it - the memory leaks are small.
+  All in all, simply do not call it - the memory leaks are small. On failure, using DOMError is not supported.
 */
 marpaXml_DOMBoolean_t marpaXml_DOM_release(void);
 

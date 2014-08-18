@@ -385,6 +385,12 @@ marpaXml_DOMBoolean_t marpaXml_DOM_release(void) {
     }
   }
 
+  /* Free internal mutex */
+  if (_mutexp != NULL) {
+    sqlite3_mutex_free(_mutexp);
+    _mutexp = NULL;
+  }
+
   /* Close connection to the DB */
   if ((sqliteRc = sqlite3_close_v2(_dbp)) != SQLITE_OK) {
     MARPAXML_ERRORX("sqlite3_close_v2(): %s at %s:%d\n", sqlite3_errstr(sqliteRc), __FILE__, __LINE__);
@@ -393,6 +399,16 @@ marpaXml_DOMBoolean_t marpaXml_DOM_release(void) {
 
   /* Free static DOMError content */
   _marpaXml_DOMError_set(MARPAXML_DOM_SEVERITY_NONE, NULL, NULL, 0);
+
+  /* Free logging */
+  if (marpaXmlLogp != NULL) {
+    marpaXmlLog_freev(&marpaXmlLogp);
+  }
+
+#ifdef MARPAXML_DOM_TEST_APPLICATION_ONLY
+  /* ICU recommendation is to NOT call this. This is done automatically at library unload */
+  u_cleanup();
+#endif
 
   /* Pretend we were not initialized */
   _initialized = MARPAXML_DOMBOOLEAN_FALSE;

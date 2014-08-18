@@ -32,5 +32,10 @@ int main(int argc, char **argv) {
     return 1;
   }
 
+  if (marpaXml_DOM_release() == MARPAXML_DOMBOOLEAN_FALSE) {
+    fprintf(stderr, "marpaXml_DOM_release() failure, %s\n", (char *) marpaXml_DOMError_getMessage());
+    return 1;
+  }
+
   return 0;
 }
