@@ -328,7 +328,7 @@ static C_INLINE marpaXml_DOMBoolean_t _marpaXml_reset(sqlite3_stmt *pStmt) {
 static C_INLINE marpaXml_DOMBoolean_t _marpaXml_bind_text(sqlite3_stmt* pStmt, int pos, const char *txt) {
   int sqliteRc;
 
-  MARPAXML_TRACEX("sqlite3_bind_text(%p, %d, %s%s%s)\n", pStmt, pos, txt != NULL ? "\"" : "", txt != NULL ? txt : "(null)", txt != NULL ? "\"" : "");
+  MARPAXML_TRACEX("sqlite3_bind_text(%p, %d, %p %s%s%s)\n", pStmt, pos, txt, txt != NULL ? "\"" : "", txt != NULL ? txt : "", txt != NULL ? "\"" : "");
 
   if ((sqliteRc = sqlite3_bind_text(pStmt, pos, txt, -1, SQLITE_STATIC)) != SQLITE_OK) {
     MARPAXML_ERRORX("sqlite3_bind_text(): %s at %s:%d\n", sqlite3_errstr(sqliteRc), __FILE__, __LINE__);
@@ -741,23 +741,9 @@ static C_INLINE marpaXml_DOMBoolean_t _marpaXml_DOMImplementation_count(sqlite_i
 
 marpaXml_DOMBoolean_t marpaXml_DOMImplementation_insert(marpaXml_DOMString_t feature, marpaXml_DOMString_t version) {
   marpaXml_DOMBoolean_t domRc;
-  sqlite_int64          nbRowBefore = 0;
-  sqlite_int64          nbRowAfter = 0;
 
   MARPAXML_DOM_DB_API_HEADER
-
-  /* The only safe way to make sure this is OK is to count the number of records using id */
-  /* last_rowid() is not explicitely bound to a table */
-
-  domRc = (_marpaXml_DOMImplementation_count(&nbRowBefore)      == MARPAXML_DOMBOOLEAN_TRUE &&
-	   _marpaXml_DOMImplementation_insert(feature, version) == MARPAXML_DOMBOOLEAN_TRUE &&
-	   _marpaXml_DOMImplementation_count(&nbRowAfter)       == MARPAXML_DOMBOOLEAN_TRUE) ? MARPAXML_DOMBOOLEAN_TRUE : MARPAXML_DOMBOOLEAN_FALSE;
-  if (domRc == MARPAXML_DOMBOOLEAN_TRUE && --nbRowAfter != nbRowBefore) {
-    MARPAXML_TRACEX("nbRow has stalled to %lld\n", nbRowBefore);
-    domRc = MARPAXML_DOMBOOLEAN_FALSE;
-  } else {
-    MARPAXML_TRACEX("nbRow is now %lld\n", nbRowAfter);
-  }
+  domRc = _marpaXml_DOMImplementation_insert(feature, version);
   MARPAXML_DOM_DB_API_TRAILER(domRc);
 
   return domRc;
@@ -803,9 +789,7 @@ marpaXml_DOMBoolean_t marpaXml_DOMImplementation_hasFeature(marpaXml_DOMString_t
   marpaXml_DOMBoolean_t domRc;
 
   MARPAXML_DOM_DB_API_HEADER
-  
   domRc = _marpaXml_DOMImplementation_hasFeature(feature, version);
-
   MARPAXML_DOM_DB_API_TRAILER(MARPAXML_DOMBOOLEAN_TRUE)
 
   return domRc;
