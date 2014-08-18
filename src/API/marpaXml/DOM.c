@@ -127,6 +127,7 @@ static marpaXml_DOM_stmt_t marpaXml_DOM_stmt[] = {
 /*********************/
 /* Static prototypes */
 /*********************/
+static C_INLINE void _marpaXml_DOMErrorLogCallback(void *pArg, int iErrCode, const char *zMsg);
 static C_INLINE marpaXml_DOMBoolean_t _marpaXml_exec(sqlite3 *db, const char *sql);
 static C_INLINE marpaXml_DOMBoolean_t _marpaXml_prepare(sqlite3 *db, const char *zSql, sqlite3_stmt **ppStmt);
 static C_INLINE marpaXml_DOMBoolean_t _marpaXml_create_function(sqlite3 *db,
@@ -179,6 +180,13 @@ static C_INLINE marpaXml_DOMBoolean_t _marpaXml_DOMImplementation_hasFeature(mar
     return MARPAXML_DOMBOOLEAN_FALSE;					\
   }									\
   MARPAXML_DOM_DB_MUTEX_LEAVE;
+
+/*******************************************************************/
+/* _marpaXml_DOMErrorLogCallback                                          */
+/*******************************************************************/
+static C_INLINE void _marpaXml_DOMErrorLogCallback(void *pArg, int iErrCode, const char *zMsg) {
+  MARPAXML_ERRORX("SQLite error code %d: %s\n", iErrCode, zMsg != NULL ? zMsg : "(null)");
+}
 
 /*******************************************************************/
 /* _marpaXml_xxhash_xFunc                                          */
@@ -435,13 +443,11 @@ marpaXml_DOMBoolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Opti
     return MARPAXML_DOMBOOLEAN_TRUE;
   }
 
+  /* This is painful, it seems that sqlite3_config() can only be called before sqlite3_initialize */
+  sqlite3_config(SQLITE_CONFIG_LOG, &_marpaXml_DOMErrorLogCallback, NULL);
+
   /* Note: sqlite3_initialize() is thread-safe and only the first one is effective */
   if ((sqliteRc = sqlite3_initialize()) != SQLITE_OK) {
-    _marpaXml_DOMError_set(MARPAXML_DOM_SEVERITY_FATAL_ERROR,
-			   messageBuilder("sqlite3_initialize(): %s", sqlite3_errstr(sqliteRc)),
-			   NULL,
-			   0
-			   );
     return MARPAXML_DOMBOOLEAN_FALSE;
   }
 
@@ -451,11 +457,6 @@ marpaXml_DOMBoolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Opti
   /* SQLite already has global mutexes, we use its master mutex to completely block any DOM access */
   masterMutexp = sqlite3_mutex_alloc(SQLITE_MUTEX_STATIC_MASTER);
   if (masterMutexp == NULL) {
-    _marpaXml_DOMError_set(MARPAXML_DOM_SEVERITY_FATAL_ERROR,
-			   messageBuilder("%s", strerror(errno)),
-			   NULL,
-			   0
-			   );
     return MARPAXML_DOMBOOLEAN_FALSE;
   }
 
