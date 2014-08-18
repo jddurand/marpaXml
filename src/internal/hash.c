@@ -8,7 +8,7 @@
 #define XXH_digest(state)                XXH64_digest(state)
 #define XXH_intermediateDigest(state)    XXH64_intermediateDigest(state)
 #else                  /* At maximum 32bits target: XXH32 */
-#define XXH_update(state, input, length) XXH32_update(state, input, length)
+#define XXH_update(state, input, length) XXH32_update(state, input, (unsigned int) length)
 #define XXH_digest(state)                XXH32_digest(state)
 #define XXH_intermediateDigest(state)    XXH32_intermediateDigest(state)
 #endif

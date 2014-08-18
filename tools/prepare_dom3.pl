@@ -31,6 +31,10 @@ while ($sql =~ m/\bCREATE\s+TABLE\s+(\[(\w+)\]\s*\([^;]+\)\s*;)/sxmg) {
     $match =~ s/,\s*\bPRIMARY\s+KEY\s*\(\s*\[\s*id\s*\]\s*\)//;
     $match =~ s/^/"/sxmg;
     $match =~ s/$/\\n"/sxmg;
+    #
+    ## Well, except the very last one
+    #
+    $match =~ s/\\n"$/"/;
     push(@c, $match);
 }
 #
@@ -41,6 +45,10 @@ while ($sql =~ m/\b(CREATE\s+(?:UNIQUE\s+)?INDEX)\s+([^;]+;)/sxmg) {
     my $match = "$1 IF NOT EXISTS $2";
     $match =~ s/^/"/sxmg;
     $match =~ s/$/\\n"/sxmg;
+    #
+    ## Ditto
+    #
+    $match =~ s/\\n"$/"/;
     push(@c, $match);
 }
 my $h = "#define STRINGLITERAL_DDL_NBSTATEMENT " . scalar(@c) . "\n";

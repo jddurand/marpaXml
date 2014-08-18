@@ -40,12 +40,12 @@ static streamInBool_t _readBufferCallback(void *datavp, size_t wantedBytesi, siz
 static void           _fileTest(streamIn_t *streamInp, streamInBool_t utf8b, streamInBool_t utf8bufb, char **argv);
 static void           _bufferTest(streamIn_t *streamInp, streamInBool_t utf8b, char **argv);
 
-#define STREAMIN_NEW(utf8b) {						\
+#define STREAMIN_NEW() {						\
   streamInUtf8Option_t streamInOptionUtf8;				\
   streamInUtf8_optionDefaultb(&streamInOptionUtf8);			\
   /* streamInOptionUtf8.fromEncodings = NULL; */                        \
   /* streamInOptionUtf8.fromEncodings = KOI8_R; */			\
-  streamInOptionUtf8.toEncodings = UCS_2;				\
+  streamInOptionUtf8.toEncodings = (char *) UCS_2;			\
     streamInp = (utf8b == STREAMIN_BOOL_TRUE) ? streamInUtf8_newp(NULL, &streamInOptionUtf8) : streamIn_newp(NULL); \
     if (streamInp == NULL) {						\
       fprintf(stderr, ((utf8b == STREAMIN_BOOL_TRUE) ? "streamInUtf8_newp failure\n" : "streamIn_newp failure\n")); \
@@ -73,25 +73,30 @@ int main(int argc, char **argv) {
 #endif
 
   /* UTF 8 - character mode */
-  STREAMIN_NEW(utf8b = STREAMIN_BOOL_TRUE);
+  utf8b = STREAMIN_BOOL_TRUE;
+  STREAMIN_NEW();
   _fileTest(streamInp, utf8b, utf8bufb = STREAMIN_BOOL_TRUE, argv);
   streamIn_destroyv(&streamInp);
 
   /* UTF 8 - buffer mode */
-  STREAMIN_NEW(utf8b = STREAMIN_BOOL_TRUE);
+  utf8b = STREAMIN_BOOL_TRUE;
+  STREAMIN_NEW();
   _fileTest(streamInp, utf8b, utf8bufb = STREAMIN_BOOL_FALSE, argv);
   streamIn_destroyv(&streamInp);
 
   /* Byte mode - only buffer mode is available */
-  STREAMIN_NEW(utf8b = STREAMIN_BOOL_FALSE);
+  utf8b = STREAMIN_BOOL_FALSE;
+  STREAMIN_NEW();
   _fileTest(streamInp, utf8b, utf8bufb = STREAMIN_BOOL_FALSE, argv);
   streamIn_destroyv(&streamInp);
 
-  STREAMIN_NEW(utf8b = STREAMIN_BOOL_TRUE);
+  utf8b = STREAMIN_BOOL_TRUE;
+  STREAMIN_NEW();
   _bufferTest(streamInp, utf8b, argv);
   streamIn_destroyv(&streamInp);
 
-  STREAMIN_NEW(utf8b = STREAMIN_BOOL_FALSE);
+  utf8b = STREAMIN_BOOL_FALSE;
+  STREAMIN_NEW();
   _bufferTest(streamInp, utf8b, argv);
   streamIn_destroyv(&streamInp);
 
@@ -145,7 +150,7 @@ static void _fileTest(streamIn_t *streamInp, streamInBool_t utf8b, streamInBool_
     if (utf8bufb == STREAMIN_BOOL_TRUE) {
       fprintf(stderr, "Filename test (utf8 mode: %s): buffer-per-buffer test\n", (utf8b == STREAMIN_BOOL_TRUE) ? "on" : "off");
       while (streamInUnicode_nextBufferb(streamInp, &indexBufferi, &byteArrayp, &bytesInBuffer, &lengthInBuffer) == STREAMIN_BOOL_TRUE) {
-	int i;
+	size_t i;
 	fprintf(stderr, "Buffer No %d gives encoded content of %d bytes, %d characters\n", indexBufferi, bytesInBuffer, lengthInBuffer);
 	for (i = 0; i < bytesInBuffer; i++) {
 	  fprintf(stderr, "0x%x\n", (unsigned char) byteArrayp[i]);

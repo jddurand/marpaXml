@@ -1415,7 +1415,9 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_toConvertb(streamIn_t *streamIn
     *bytesInBufferp = target - origTarget;
     /* Calculating the length can be expensive, so we do it only on-demand */
     if (lengthInBufferp != NULL) {
-      *lengthInBufferp = utext_nativeLength(streamInp->streamIn_ICU.utextp);
+      /* Per def the length cannot exceed the size in bytes, that is limited to a size_t */
+      /* so it is ok to typecast to size_t */
+      *lengthInBufferp = (size_t) utext_nativeLength(streamInp->streamIn_ICU.utextp);
     }
   } else {
     if (target != NULL) {

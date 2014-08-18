@@ -1,21 +1,23 @@
+#include "internal/config.h"
+
+#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdarg.h>
-
-#include "internal/config.h"
-#include "internal/messageBuilder.h"
-#include "internal/dateBuilder.h"
-
+#include <stddef.h>               /*  size_t definition */
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#ifdef HAVE_SYS_TYPES_H
-#include <sys/types.h>
+#ifdef HAVE_IO_H
+#include <io.h>
 #endif
 
+#include "internal/messageBuilder.h"
+#include "internal/dateBuilder.h"
 #include "API/marpaXml/log.h"
 
 static const char *MARPAXML_LOG_NO_MESSAGE = "No message";
@@ -56,7 +58,7 @@ marpaXmlLogCallback_t marpaXmlLog_defaultLogCallback(void) {
 void _marpaXmlLog_defaultCallback(void *userDatavp, marpaXmlLogLevel_t logLeveli, const char *msgs) {
   /* We are NOT going to do a general log4c mechanism (this can come later), using marpaXml in fact */
   /* I.e. we are fixing the default output to be: DD/MM/YYYY hh::mm::ss PREFIX MESSAGE */
-  const char   *prefix =
+  const char   *prefixs =
     (logLeveli == MARPAXML_LOGLEVEL_TRACE    ) ? "TRACE"     :
     (logLeveli == MARPAXML_LOGLEVEL_DEBUG    ) ? "DEBUG"     :
     (logLeveli == MARPAXML_LOGLEVEL_INFO     ) ? "INFO"      :
@@ -68,21 +70,27 @@ void _marpaXmlLog_defaultCallback(void *userDatavp, marpaXmlLogLevel_t logLeveli
     (logLeveli == MARPAXML_LOGLEVEL_EMERGENCY) ? "EMERGENCY" :
     "UNKOWN";
   char   *dates = dateBuilder("%d/%m/%Y %H:%M:%S");
-  char   *localMsgs = messageBuilder("%s %9s %s", dates, prefix, (msgs != NULL) ? (char *) msgs : (char *) MARPAXML_LOG_NO_MESSAGE);
-#if (defined(WIN32) || (_POSIX_C_SOURCE >= 1 || _XOPEN_SOURCE || _POSIX_SOURCE))
-#ifdef WIN32
+  char   *localMsgs = messageBuilder("%s %9s %s", dates, prefixs, (msgs != NULL) ? (char *) msgs : (char *) MARPAXML_LOG_NO_MESSAGE);
+#if (defined(_WIN32) || (_POSIX_C_SOURCE >= 1 || _XOPEN_SOURCE || _POSIX_SOURCE))
+#ifdef _WIN32
   int filenoStderr = _fileno(stderr);
+  size_t bytesWriten = 0;
 #else
   int filenoStderr = fileno(stderr);
+  ssize_t bytesWriten = 0;
 #endif
   char *p = localMsgs;
-  ssize_t bytesWriten = 0;
-  size_t  count = strlen(p) + sizeof(char);
+  size_t  count;
 #endif
 
-#if (defined(WIN32) || (_POSIX_C_SOURCE >= 1 || _XOPEN_SOURCE || _POSIX_SOURCE))
+#if (defined(_WIN32) || (_POSIX_C_SOURCE >= 1 || _XOPEN_SOURCE || _POSIX_SOURCE))
+  count = strlen(p);
   while (bytesWriten < count) {
+#if defined(_WIN32)
+    bytesWriten += _write(filenoStderr, p+bytesWriten, count-bytesWriten);
+#else
     bytesWriten += write(filenoStderr, p+bytesWriten, count-bytesWriten);
+#endif
   }
 #else
   /* Note: this is not asynchroneous safe */

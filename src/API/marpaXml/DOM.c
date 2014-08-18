@@ -185,7 +185,7 @@ static C_INLINE marpaXml_DOMBoolean_t _marpaXml_DOMImplementation_hasFeature(mar
 /* _marpaXml_DOMErrorLogCallback                                          */
 /*******************************************************************/
 static C_INLINE void _marpaXml_DOMErrorLogCallback(void *pArg, int iErrCode, const char *zMsg) {
-  MARPAXML_ERRORX("SQLite error code %d: %s\n", iErrCode, zMsg != NULL ? zMsg : "(null)");
+  MARPAXML_ERRORX("SQLite error code %d: %s\n", iErrCode, (zMsg != NULL) ? zMsg : "(null)");
 }
 
 /*******************************************************************/
@@ -508,7 +508,11 @@ marpaXml_DOMBoolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Opti
   MARPAXML_INFOX("Opening database \"%s\"\n", marpaXml_DOM_Option.dbFilename);
   if ((sqliteRc = sqlite3_open_v2(marpaXml_DOM_Option.dbFilename, &_dbp, SQLITE_OPEN_READWRITE|SQLITE_OPEN_CREATE|SQLITE_OPEN_FULLMUTEX|SQLITE_OPEN_SHAREDCACHE|SQLITE_OPEN_URI, NULL)) != SQLITE_OK) {
     sqlite3_mutex_leave(_mutexp);
-    MARPAXML_ERRORX("sqlite3_open_v2(%s, ...): %s at %s:%d\n", marpaXml_DOM_Option.dbFilename, sqlite3_errstr(sqliteRc), __FILE__, __LINE__);
+    MARPAXML_ERRORX("sqlite3_open_v2(%s%s%s, ...): %s at %s:%d\n",
+        marpaXml_DOM_Option.dbFilename != NULL ? "\"" : "",
+        marpaXml_DOM_Option.dbFilename != NULL ? marpaXml_DOM_Option.dbFilename : "",
+        marpaXml_DOM_Option.dbFilename != NULL ? "\"" : "",
+        sqlite3_errstr(sqliteRc), __FILE__, __LINE__);
     _marpaXml_DOMError_set(MARPAXML_DOM_SEVERITY_FATAL_ERROR,
 			   messageBuilder("%s", sqlite3_errstr(sqliteRc)),
 			   NULL,

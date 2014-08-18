@@ -6,6 +6,12 @@
 
 static const char *_messageBuilder_internalErrors = "Internal error";
 
+#ifdef VA_COPY
+#define REAL_AP ap2
+#else
+#define REAL_AP ap
+#endif
+
 /*********************************/
 /* messageBuilder_internalErrors */
 /*********************************/
@@ -26,10 +32,10 @@ char *messageBuilder(const char *fmts, ...) {
   va_start(ap, fmts);
 #ifdef VA_COPY
   VA_COPY(ap2, ap);
-  msgs = messageBuilder_ap(fmts, ap2);
+#endif
+  msgs = messageBuilder_ap(fmts,  REAL_AP);
+#ifdef VA_COPY
   va_end(ap2);
-#else
-  msgs = messageBuilder_ap(fmts, ap);
 #endif
   va_end(ap);
 
@@ -41,22 +47,22 @@ char *messageBuilder(const char *fmts, ...) {
 /*********************/
 char *messageBuilder_ap(const char *fmts, va_list ap) {
   int     n;
-  int     size = 100;     /* Guess we need no more than 100 bytes */
+  size_t  size = 100;     /* Guess we need no more than 100 bytes */
   char   *p, *np;
 #ifdef VA_COPY
   va_list ap2;
 #endif
 
   /* ----------------------------------------------------------------------------------------------------------------------- */
-  /* Take care: Windows's vsnpritnf is not like UNIX's, i.e:                                                                 */
+  /* Take care: Windows's vsnprintf is not like UNIX's, i.e:                                                                 */
   /*                                                                                                                         */
   /* Output:                                                                                                                 */
-  /* [Windows] -1 if the number of chars to write if > size-1, or number of characters. Always minus trailing null character */
-  /* [ UNIX  ] number of chars that would have been writen, including trailing null character                                */
+  /* [Windows] -1 if the number of characters if > count. Minus trailing null character                                      */
+  /* [ UNIX  ] number of chars that would have been writen. Minus trailing null character                                    */
   /*                                                                                                                         */
   /* Argument:                                                                                                               */
-  /* [Windows] does not include the trailing null character                                                                  */
-  /* [ UNIX  ] include the trailing null character                                                                           */
+  /* [Windows] number of characters wanted, does not include the trailing null character                                     */
+  /* [ UNIX  ] number of characters wanted + the trailing null character                                                     */
   /* ----------------------------------------------------------------------------------------------------------------------- */
 
   p = malloc(size);
@@ -70,21 +76,26 @@ char *messageBuilder_ap(const char *fmts, va_list ap) {
 
 #ifdef VA_COPY
     VA_COPY(ap2, ap);
-    n = vsnprintf(p, size, fmts, ap2);
-    va_end(ap2);
+#endif
+#ifdef _WIN32
+    n = _vsnprintf(p, size, fmts, REAL_AP);   /* On Windows, argument does not include space for the NULL */
 #else
-    n = vsnprintf(p, size - 1, fmts, ap);
+    n = vsnprintf(p, size, fmts, REAL_AP);        /* On not-windows, argument include space for the NULL */
+#endif
+#ifdef VA_COPY
+    va_end(ap2);
 #endif
 
     /* Check error code */
 #ifndef _WIN32
+    /* On not-windows, if output is negative an output error is encountered */
     if (n < 0) {
       free(p);
       return messageBuilder_internalErrors();
     }
 #endif
 
-    /* If that worked, return the string */
+    /* If that worked, return the string, unless not enough space - in which case we retry -; */
 
     if
 #ifdef _WIN32
