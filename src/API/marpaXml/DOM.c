@@ -757,7 +757,7 @@ static C_INLINE marpaXml_DOMBoolean_t _marpaXml_DOMImplementation_count(sqlite_i
   return domRc;
 }
 
-/* --------------------------------------------------------------- */
+/* =============================================================== */
 
 marpaXml_DOMBoolean_t marpaXml_DOMImplementation_insert(marpaXml_DOMString_t feature, marpaXml_DOMString_t version) {
   marpaXml_DOMBoolean_t domRc;
@@ -803,7 +803,7 @@ static C_INLINE marpaXml_DOMBoolean_t _marpaXml_DOMImplementation_insert(marpaXm
   return MARPAXML_DOMBOOLEAN_TRUE;
 }
 
-/* --------------------------------------------------------------- */
+/* =============================================================== */
 
 marpaXml_DOMBoolean_t marpaXml_DOMImplementation_hasFeature(marpaXml_DOMString_t feature, marpaXml_DOMString_t version) {
   marpaXml_DOMBoolean_t domRc;
@@ -817,7 +817,7 @@ marpaXml_DOMBoolean_t marpaXml_DOMImplementation_hasFeature(marpaXml_DOMString_t
 
 /* --------------------------------------------------------------- */
 
-marpaXml_DOMBoolean_t _marpaXml_DOMImplementation_hasFeature(marpaXml_DOMString_t feature, marpaXml_DOMString_t version) {
+static C_INLINE marpaXml_DOMBoolean_t _marpaXml_DOMImplementation_hasFeature(marpaXml_DOMString_t feature, marpaXml_DOMString_t version) {
   marpaXml_DOMBoolean_t domRc = MARPAXML_DOMBOOLEAN_FALSE;
 
   MARPAXML_TRACEX("%s\n", marpaXml_DOM_stmt[marpaXml_DOMImplementation_hasFeature_e].sql);
