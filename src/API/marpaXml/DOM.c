@@ -595,6 +595,17 @@ marpaXml_DOMBoolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Opti
     }
   }
 
+  /* Prepare the statements */
+  i = -1;
+  while (marpaXml_DOM_stmt[++i].name != NULL && marpaXml_DOM_stmt[i].sql != NULL) {
+    if (_marpaXml_prepare(_dbp, marpaXml_DOM_stmt[i].sql, &marpaXml_DOM_stmt[i].stmt) == MARPAXML_DOMBOOLEAN_FALSE) {
+      sqlite3_mutex_leave(_mutexp);
+      sqlite3_close_v2(_dbp);
+      _dbp = NULL;
+      return MARPAXML_DOMBOOLEAN_FALSE;
+    }
+  }
+
   /* Insert datas */
   if (MARPAXML_DOM_DB_BEGTRANS == MARPAXML_DOMBOOLEAN_FALSE) {
       sqlite3_mutex_leave(_mutexp);
@@ -613,6 +624,19 @@ marpaXml_DOMBoolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Opti
     }
   }
 
+  /* Fill other data using standard methods */
+  if ((_marpaXml_DOMImplementation_hasFeature((char*) "CORE", (char *) "1.0") ==  MARPAXML_DOMBOOLEAN_FALSE && _marpaXml_DOMImplementation_insert((char*) "CORE", (char*) "1.0") == MARPAXML_DOMBOOLEAN_FALSE) ||
+      (_marpaXml_DOMImplementation_hasFeature((char*) "CORE", (char *) "2.0") ==  MARPAXML_DOMBOOLEAN_FALSE && _marpaXml_DOMImplementation_insert((char*) "CORE", (char*) "2.0") == MARPAXML_DOMBOOLEAN_FALSE) ||
+      (_marpaXml_DOMImplementation_hasFeature((char*) "CORE", (char *) "3.0") ==  MARPAXML_DOMBOOLEAN_FALSE && _marpaXml_DOMImplementation_insert((char*) "CORE", (char*) "3.0") == MARPAXML_DOMBOOLEAN_FALSE) ||
+      (_marpaXml_DOMImplementation_hasFeature((char*) "XML",  (char *) "1.0") ==  MARPAXML_DOMBOOLEAN_FALSE && _marpaXml_DOMImplementation_insert((char*) "XML",  (char*) "1.0") == MARPAXML_DOMBOOLEAN_FALSE) ||
+      (_marpaXml_DOMImplementation_hasFeature((char*) "XML",  (char *) "2.0") ==  MARPAXML_DOMBOOLEAN_FALSE && _marpaXml_DOMImplementation_insert((char*) "XML",  (char*) "2.0") == MARPAXML_DOMBOOLEAN_FALSE) ||
+      (_marpaXml_DOMImplementation_hasFeature((char*) "XML",  (char *) "3.0") ==  MARPAXML_DOMBOOLEAN_FALSE && _marpaXml_DOMImplementation_insert((char*) "XML",  (char*) "3.0") == MARPAXML_DOMBOOLEAN_FALSE)) {
+      sqlite3_mutex_leave(_mutexp);
+      sqlite3_close_v2(_dbp);
+      _dbp = NULL;
+      return MARPAXML_DOMBOOLEAN_FALSE;
+  }
+
   if (MARPAXML_DOM_DB_ENDTRANS == MARPAXML_DOMBOOLEAN_FALSE) {
       sqlite3_mutex_leave(_mutexp);
       sqlite3_close_v2(_dbp);
@@ -620,32 +644,8 @@ marpaXml_DOMBoolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Opti
       return MARPAXML_DOMBOOLEAN_FALSE;
   }
 
-  /* Prepare the statements */
-  i = -1;
-  while (marpaXml_DOM_stmt[++i].name != NULL && marpaXml_DOM_stmt[i].sql != NULL) {
-    if (_marpaXml_prepare(_dbp, marpaXml_DOM_stmt[i].sql, &marpaXml_DOM_stmt[i].stmt) == MARPAXML_DOMBOOLEAN_FALSE) {
-      sqlite3_mutex_leave(_mutexp);
-      sqlite3_close_v2(_dbp);
-      _dbp = NULL;
-      return MARPAXML_DOMBOOLEAN_FALSE;
-    }
-  }
-
   /* Done */
   _initialized = MARPAXML_DOMBOOLEAN_TRUE;
-
-  /* Fill other data using standard methods */
-  if (marpaXml_DOMImplementation_insert((char*) "CORE", (char*) "1.0") == MARPAXML_DOMBOOLEAN_FALSE ||
-      marpaXml_DOMImplementation_insert((char*) "CORE", (char*) "2.0") == MARPAXML_DOMBOOLEAN_FALSE ||
-      marpaXml_DOMImplementation_insert((char*) "CORE", (char*) "3.0") == MARPAXML_DOMBOOLEAN_FALSE ||
-      marpaXml_DOMImplementation_insert((char*) "XML",  (char*) "1.0") == MARPAXML_DOMBOOLEAN_FALSE ||
-      marpaXml_DOMImplementation_insert((char*) "XML",  (char*) "2.0") == MARPAXML_DOMBOOLEAN_FALSE ||
-      marpaXml_DOMImplementation_insert((char*) "XML",  (char*) "3.0") == MARPAXML_DOMBOOLEAN_FALSE) {
-      sqlite3_mutex_leave(_mutexp);
-      sqlite3_close_v2(_dbp);
-      _dbp = NULL;
-      return MARPAXML_DOMBOOLEAN_FALSE;
-  }
 
   sqlite3_mutex_leave(_mutexp);
 
