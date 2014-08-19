@@ -1,19 +1,27 @@
+#include "internal/config.h"
+
 #include <stddef.h>
 #include "internal/hash.h"
 #include "xxhash-read-only/xxhash.h"
 
 #define DEFAULT_XXH_SEED 0
 #if SIZEOF_VOID_P >= 8 /* At least a 64bits target: XXH64 */
+#define XXH_init()                       XXH64_init(DEFAULT_XXH_SEED)
 #define XXH_update(state, input, length) XXH64_update(state, input, length)
 #define XXH_digest(state)                XXH64_digest(state)
 #define XXH_intermediateDigest(state)    XXH64_intermediateDigest(state)
 #else                  /* At maximum 32bits target: XXH32 */
+#define XXH_init()                       XXH32_init(DEFAULT_XXH_SEED)
 #define XXH_update(state, input, length) XXH32_update(state, input, (unsigned int) length)
 #define XXH_digest(state)                XXH32_digest(state)
 #define XXH_intermediateDigest(state)    XXH32_intermediateDigest(state)
 #endif
 
 static unsigned int unsignedintMax = -1;
+
+void *marpaXml_HashInit(void) {
+  return XXH_init();
+}
 
 unsigned long long int marpaXml_HashLongLong(const void *state, const void* input, unsigned long long int len) {
   void                  *ctx = (void *) state;

@@ -569,9 +569,9 @@ marpaXml_DOMBoolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Opti
   }
 
   /* Create the xxhash function */
-  xxhp = XXH_init();
+  xxhp = marpaXml_HashInit();
   if (xxhp == NULL) {
-    MARPAXML_ERRORX("XXH_init(): %s\n", strerror(errno));
+    MARPAXML_ERRORX("marpaXml_HashInit(): %s\n", strerror(errno));
     _marpaXml_DOMError_set(MARPAXML_DOM_SEVERITY_FATAL_ERROR,
 			   messageBuilder("%s", strerror(errno)),
 			   NULL,
