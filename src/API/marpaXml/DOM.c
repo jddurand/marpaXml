@@ -3,6 +3,8 @@
  * All string are internally UTF16 with native host byte endiannes
  */
 
+#include "internal/config.h"
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -15,7 +17,6 @@
 #include "sqlite3.h"
 
 #include "API/marpaXml/DOM.h"
-#include "internal/config.h"
 #include "internal/messageBuilder.h"
 #include "internal/hash.h"
 #include "xxhash-read-only/xxhash.h"
@@ -25,6 +26,21 @@
 /* Constants */
 /*************/
 static const char *STRINGLITERAL_DB_LOADCOLLATION = "SELECT icu_load_collationWithStrength(:locale, 'LOCALIZED', :collStrength)"; /* UTF-8 compatible */
+static const char *STRINGLITERAL_DB_EXEC         = "   EXEC";
+static const char *STRINGLITERAL_DB_PREPARE      = "PREPARE";
+static const char *STRINGLITERAL_DB_NEWFUNC      = "NEWFUNC";
+static const char *STRINGLITERAL_DB_BINDING      = "    SQL";
+static const char *STRINGLITERAL_DB_BINDTEXT     = "   BIND";
+static const char *STRINGLITERAL_DB_BINDINT      = "   BIND";
+static const char *STRINGLITERAL_DB_STEP         = "   STEP";
+static const char *STRINGLITERAL_DB_APICALL      = ">>> API";
+static const char *STRINGLITERAL_DB_INTERNALCALL = "       ";
+
+static const char *STRINGLITERAL_DB_SQLITE_BUSY     = "SQLITE_BUSY";
+static const char *STRINGLITERAL_DB_SQLITE_DONE     = "SQLITE_DONE";
+static const char *STRINGLITERAL_DB_SQLITE_ROW      = "SQLITE_ROW";
+static const char *STRINGLITERAL_DB_SQLITE_ERROR    = "SQLITE_ERROR";
+static const char *STRINGLITERAL_DB_SQLITE_MISUSE   = "SQLITE_MISUSE";
 
 /********************/
 /* Static variables */
@@ -53,80 +69,87 @@ static marpaXml_DOM_data_t marpaXml_DOM_data[] = {
 };
 
 typedef struct marpaXml_DOM_trigger {
-  const char   *name;
   const char   *sql;
 } marpaXml_DOM_trigger_t;
 static marpaXml_DOM_trigger_t marpaXml_DOM_trigger[] = {
   /* ------------- */
   /* DOMStringList */
   /* ------------- */
-  { "DOMStringList_insert_trigger", "CREATE TRIGGER IF NOT EXISTS DOMStringList_insert_trigger INSERT ON DOMStringList FOR EACH ROW BEGIN UPDATE DOMStringList_counter SET nbrows = nbrows + 1; END " },
-  { "DOMStringList_delete_trigger", "CREATE TRIGGER IF NOT EXISTS DOMStringList_delete_trigger DELETE ON DOMStringList FOR EACH ROW BEGIN UPDATE DOMStringList_counter SET nbrows = nbrows - 1; UPDATE DOMStringList SET _ordering = _ordering - 1 where (_ordering > OLD._ordering); END " },
+  { "CREATE TRIGGER IF NOT EXISTS DOMStringList_insert_trigger INSERT ON DOMStringList FOR EACH ROW BEGIN UPDATE DOMStringList_counter SET nbrows = nbrows + 1; END " },
+  { "CREATE TRIGGER IF NOT EXISTS DOMStringList_delete_trigger DELETE ON DOMStringList FOR EACH ROW BEGIN UPDATE DOMStringList_counter SET nbrows = nbrows - 1; UPDATE DOMStringList SET _ordering = _ordering - 1 where (_ordering > OLD._ordering); END " },
 
   /* ----------------- */
   /* DOMImplementation */
   /* ----------------- */
-  { "DOMImplementation_insert_trigger", "CREATE TRIGGER IF NOT EXISTS DOMImplementation_insert_trigger INSERT ON DOMImplementation FOR EACH ROW BEGIN UPDATE DOMImplementation_counter SET nbrows = nbrows + 1; END " },
-  { "DOMImplementation_delete_trigger", "CREATE TRIGGER IF NOT EXISTS DOMImplementation_delete_trigger DELETE ON DOMImplementation FOR EACH ROW BEGIN UPDATE DOMImplementation_counter SET nbrows = nbrows - 1; UPDATE DOMImplementation SET _ordering = _ordering - 1 where (_ordering > OLD._ordering); END " },
+  { "CREATE TRIGGER IF NOT EXISTS DOMImplementation_insert_trigger INSERT ON DOMImplementation FOR EACH ROW BEGIN UPDATE DOMImplementation_counter SET nbrows = nbrows + 1; END " },
+  { "CREATE TRIGGER IF NOT EXISTS DOMImplementation_delete_trigger DELETE ON DOMImplementation FOR EACH ROW BEGIN UPDATE DOMImplementation_counter SET nbrows = nbrows - 1; UPDATE DOMImplementation SET _ordering = _ordering - 1 where (_ordering > OLD._ordering); END " },
 
-  { NULL, NULL }
+  { NULL }
 };
 
 typedef struct marpaXml_DOM_stmt {
-  const char   *name;
   const char   *sql;
   sqlite3_stmt *stmt;
 } marpaXml_DOM_stmt_t;
 enum {
+  /* ---------------------- */
+  /* Transaction management */
+  /* ---------------------- */
+  _marpaXml_BeginImmediateTransaction_e,
+  _marpaXml_EndTransaction_e,
+  _marpaXml_RollbackTransaction_e,
+
   /* ------------- */
   /* DOMStringList */
   /* ------------- */
-  _marpaXml_DOMStringList_insert_e = 0,
+  _marpaXml_DOMStringList_insert_e,
   _marpaXml_DOMStringList_delete_e,
-  marpaXml_DOMStringList_item_e,
-  marpaXml_DOMStringList_getLength_e,
-  marpaXml_DOMStringList_contains_e,
+  _marpaXml_DOMStringList_item_e,
+  _marpaXml_DOMStringList_getLength_e,
+  _marpaXml_DOMStringList_contains_e,
 
   /* ----------------- */
   /* DOMImplementation */
   /* ----------------- */
-  marpaXml_DOMImplementation_insert_e,
+  _marpaXml_DOMImplementation_insert_e,
   _marpaXml_DOMImplementation_delete_e,
-  marpaXml_DOMImplementation_hasFeature_e,
+  _marpaXml_DOMImplementation_hasFeature_e,
   _marpaXml_DOMImplementation_count_e,
 };
 static marpaXml_DOM_stmt_t marpaXml_DOM_stmt[] = {
+  /* ---------------------- */
+  /* Transaction management */
+  /* ---------------------- */
+  { "BEGIN IMMEDIATE TRANSACTION" },
+  { "END TRANSACTION" },
+  { "ROLLBACK TRANSACTION" },
+
   /* ------------- */
   /* DOMStringList */
   /* ------------- */
-  { "_marpaXml_DOMStringList_insert",
-    "INSERT INTO DOMStringList (item, _itemHash, _ordering) SELECT ?1, xxhash(?1), nbrows FROM DOMStringList_counter", NULL }, /* Will trigger DOMStringList_insert_trigger */
-  { "_marpaXml_DOMStringList_delete",
-    "DELETE FROM DOMStringList WHERE (id = ?1)", NULL },                                                                       /* Will trigger DOMStringList_delete_trigger */
-  { "marpaXml_DOMStringList_item",
-    "SELECT item FROM DOMStringList WHERE (_ordering = ?1)", NULL },                                                              /* _ordering is indexed */
-  { "marpaXml_DOMStringList_getLength",
-    "SELECT nbrows FROM DOMStringList_counter", NULL },
-  { "marpaXml_DOMStringList_contains",
-    "SELECT 1 FROM DOMStringList WHERE ((_itemHash = xxhash(?1)) AND (item = ?1 COLLATE BINARY))", NULL },                    /* _itemHash is indexed */
+  { "INSERT INTO DOMStringList (item, _itemHash, _ordering) SELECT ?1, xxhash(?1), nbrows FROM DOMStringList_counter", NULL }, /* Will trigger */
+  { "DELETE FROM DOMStringList WHERE (id = ?1)", NULL },                                                                       /* Will trigger */
+  { "SELECT item FROM DOMStringList WHERE (_ordering = ?1)", NULL },                                                           /* _ordering is indexed */
+  { "SELECT nbrows FROM DOMStringList_counter", NULL },
+  { "SELECT 1 FROM DOMStringList WHERE ((_itemHash = xxhash(?1)) AND (item = ?1 COLLATE BINARY))", NULL },                     /* _itemHash is indexed */
 
   /* ----------------- */
   /* DOMImplementation */
   /* ----------------- */
-  { "marpaXml_DOMImplementation_insert",
-    "INSERT INTO DOMImplementation (feature, _featureHash, version, _versionHash, _ordering) SELECT ?1, xxhash(?1), ?2, xxhash(?2), nbrows FROM DOMImplementation_counter", NULL }, /* Will trigger DOMImplementation_insert_trigger */
-  { "_marpaXml_DOMImplementation_delete",
-    "DELETE FROM DOMImplementation WHERE (id = ?1)", NULL },                                                               /* Will trigger DOMImplementation_delete_trigger */
-  { "marpaXml_DOMImplementation_hasFeature",
-    "SELECT 1 FROM DOMImplementation WHERE ((feature LIKE ?1) AND ((?2 IS NULL) OR (version = ?2)))", NULL },           /* feature test is case insensitive, version is not (contains only digits or dot -;) */
-  { "_marpaXml_DOMImplementation_count",
-    "SELECT count(id) FROM DOMImplementation", NULL },
-  { NULL, NULL, NULL }
+  { "INSERT INTO DOMImplementation (feature, _featureHash, version, _versionHash, _ordering) SELECT ?1, xxhash(?1), ?2, xxhash(?2), nbrows FROM DOMImplementation_counter", NULL }, /* Will trigger */
+  { "DELETE FROM DOMImplementation WHERE (id = ?1)", NULL },                                                                                                                        /* Will trigger */
+  { "SELECT 1 FROM DOMImplementation WHERE ((feature LIKE ?1) AND ((?2 IS NULL) OR (version = ?2 COLLATE BINARY))) LIMIT 1", NULL },  /* feature test is case insensitive, version is not (contains only digits or dot -;) */
+  { "SELECT count(id) FROM DOMImplementation", NULL },
+
+  { NULL, NULL }
 };
 
 /*********************/
 /* Static prototypes */
 /*********************/
+static C_INLINE marpaXml_DOMBoolean_t _marpaXml_BeginImmediateTransaction(void);
+static C_INLINE marpaXml_DOMBoolean_t _marpaXml_EndTransaction(void);
+static C_INLINE marpaXml_DOMBoolean_t _marpaXml_RollbackTransaction(void);
 static C_INLINE void _marpaXml_DOMErrorLogCallback(void *pArg, int iErrCode, const char *zMsg);
 static C_INLINE marpaXml_DOMBoolean_t _marpaXml_exec(sqlite3 *db, const char *sql);
 static C_INLINE marpaXml_DOMBoolean_t _marpaXml_prepare(sqlite3 *db, const char *zSql, sqlite3_stmt **ppStmt);
@@ -143,6 +166,7 @@ static C_INLINE marpaXml_DOMBoolean_t _marpaXml_reset(sqlite3_stmt *pStmt);
 static C_INLINE marpaXml_DOMBoolean_t _marpaXml_finalize(sqlite3_stmt **ppStmt);
 static C_INLINE marpaXml_DOMBoolean_t _marpaXml_bind_text(sqlite3_stmt* pStmt, int pos, const char *txt);
 static C_INLINE marpaXml_DOMBoolean_t _marpaXml_bind_int(sqlite3_stmt* pStmt, int pos, int val);
+static C_INLINE marpaXml_DOMBoolean_t _marpaXml_step(sqlite3_stmt* pStmt);
 static C_INLINE void _marpaXml_DOMError_set(marpaXml_DOM_ErrorSeverity_t severity,
 					    marpaXml_DOMString_t         message,
 					    marpaXml_DOMString_t         type,
@@ -161,18 +185,20 @@ static C_INLINE marpaXml_DOMBoolean_t _marpaXml_DOMImplementation_hasFeature(mar
 #define MARPAXML_DOM_MUTEX_LEAVE {if (_initialized == MARPAXML_DOMBOOLEAN_TRUE) {sqlite3_mutex_leave(_mutexp);}}
 #define MARPAXML_DOM_DB_MUTEX_ENTER sqlite3_mutex_enter(sqlite3_db_mutex(_dbp))
 #define MARPAXML_DOM_DB_MUTEX_LEAVE sqlite3_mutex_leave(sqlite3_db_mutex(_dbp))
-#define MARPAXML_DOM_DB_BEGTRANS _marpaXml_exec(_dbp, "BEGIN IMMEDIATE TRANSACTION")
-#define MARPAXML_DOM_DB_ENDTRANS _marpaXml_exec(_dbp, "END TRANSACTION")
-#define MARPAXML_DOM_DB_ROLLBACK _marpaXml_exec(_dbp, "ROLLBACK TRANSACTION")
-#define MARPAXML_DOM_DB_API_HEADER   \
-  if (marpaXml_DOM_init(NULL) == MARPAXML_DOMBOOLEAN_FALSE) {	\
-    return MARPAXML_DOMBOOLEAN_FALSE;				\
-  }								\
-  MARPAXML_DOM_DB_MUTEX_ENTER;					\
-  if (MARPAXML_DOM_DB_BEGTRANS == MARPAXML_DOMBOOLEAN_FALSE) {	\
-    MARPAXML_DOM_DB_MUTEX_LEAVE;				\
-    return MARPAXML_DOMBOOLEAN_FALSE;				\
+#define MARPAXML_DOM_DB_BEGTRANS _marpaXml_BeginImmediateTransaction() /* _marpaXml_exec(_dbp, "BEGIN IMMEDIATE TRANSACTION") */
+#define MARPAXML_DOM_DB_ENDTRANS _marpaXml_EndTransaction() /* _marpaXml_exec(_dbp, "END TRANSACTION") */
+#define MARPAXML_DOM_DB_ROLLBACK _marpaXml_RollbackTransaction() /* _marpaXml_exec(_dbp, "ROLLBACK TRANSACTION") */
+#define MARPAXML_DOM_DB_API_HEADER(method)                              \
+  if (marpaXml_DOM_init(NULL) == MARPAXML_DOMBOOLEAN_FALSE) {           \
+    return MARPAXML_DOMBOOLEAN_FALSE;                                   \
+  }                                                                     \
+  MARPAXML_DOM_DB_MUTEX_ENTER;                                          \
+  MARPAXML_TRACEX("[%s] %s\n", STRINGLITERAL_DB_APICALL, method);       \
+  if (MARPAXML_DOM_DB_BEGTRANS == MARPAXML_DOMBOOLEAN_FALSE) {          \
+    MARPAXML_DOM_DB_MUTEX_LEAVE;                                        \
+    return MARPAXML_DOMBOOLEAN_FALSE;                                   \
   }
+
 #define MARPAXML_DOM_DB_API_TRAILER(rc)					\
   if ((rc) == MARPAXML_DOMBOOLEAN_FALSE || MARPAXML_DOM_DB_ENDTRANS == MARPAXML_DOMBOOLEAN_FALSE) { \
     MARPAXML_DOM_DB_ROLLBACK;						\
@@ -192,22 +218,25 @@ static C_INLINE void _marpaXml_DOMErrorLogCallback(void *pArg, int iErrCode, con
 /* _marpaXml_xxhash_xFunc                                          */
 /*******************************************************************/
 static C_INLINE void _marpaXml_xxhash_xFunc(sqlite3_context *pCtx, int nArg, sqlite3_value **apArg) {
-  void       *xxhp = sqlite3_user_data(pCtx);
-  const char *zString;
+  void                  *xxhp = sqlite3_user_data(pCtx);
+  const char            *zString;
+  unsigned long long int hash;
 
   assert(nArg==1);
   zString = (const char *)sqlite3_value_text(apArg[0]);
 
-  sqlite3_result_int64(pCtx, marpaXml_HashLongLong(xxhp, zString, zString != NULL ? strlen(zString) : 0)); 
+  if (marpaXml_HashLongLong(xxhp, zString, zString != NULL ? strlen(zString) : 0, &hash) == MARPAXML_HASH_TRUE) {
+    sqlite3_result_int64(pCtx, hash);
+  } else {
+    sqlite3_result_null(pCtx);
+  }
 }
 
 /*******************************************************************/
 /* _marpaXml_xxhash_xDestroy                                       */
 /*******************************************************************/
 static C_INLINE void _marpaXml_xxhash_xDestroy(void *p) {
-  if (p != NULL) {
-    free(p);
-  }
+  marpaXml_HashFree(&p);
 }
 
 /*******************************************************************/
@@ -217,7 +246,7 @@ static C_INLINE marpaXml_DOMBoolean_t _marpaXml_exec(sqlite3 *db, const char *sq
   char *errmsg = NULL;
   int   sqliteRc;
 
-  MARPAXML_TRACEX("%s\n", sql != NULL ? sql : "(null)");
+  MARPAXML_TRACEX("[%s] %s\n", STRINGLITERAL_DB_EXEC, sql != NULL ? sql : "(null)");
   if ((sqliteRc = sqlite3_exec(db, sql, NULL, NULL, &errmsg)) != SQLITE_OK) {
     MARPAXML_ERRORX("sqlite3_exec(..., %s%s%s, ...): %s\n", sql != NULL ? "\"" : "",  sql != NULL ? sql : "(null)", sql != NULL ? "\"" : "",  errmsg != NULL ? errmsg : "(null)");
     _marpaXml_DOMError_set(MARPAXML_DOM_SEVERITY_FATAL_ERROR,
@@ -248,7 +277,7 @@ static C_INLINE marpaXml_DOMBoolean_t _marpaXml_create_function(sqlite3 *db,
 								void (*xDestroy)(void*)) {
   int sqliteRc;
 
-  MARPAXML_TRACEX("Create FUNCTION: %s\n", name != NULL ? name : "(null)");
+  MARPAXML_TRACEX("[%s]: %s\n", STRINGLITERAL_DB_NEWFUNC, name != NULL ? name : "(null)");
   if ((sqliteRc = sqlite3_create_function_v2(db,
 					     name,
 					     nArg,
@@ -276,7 +305,7 @@ static C_INLINE marpaXml_DOMBoolean_t _marpaXml_create_function(sqlite3 *db,
 static C_INLINE marpaXml_DOMBoolean_t _marpaXml_prepare(sqlite3 *db, const char *sql, sqlite3_stmt **ppStmt) {
   int sqliteRc;
 
-  MARPAXML_TRACEX("Prepare SQL: %s\n", sql != NULL ? sql : "(null)");
+  MARPAXML_TRACEX("[%s] %s\n", STRINGLITERAL_DB_PREPARE, sql != NULL ? sql : "(null)");
   if ((sqliteRc = sqlite3_prepare_v2(_dbp, sql, -1, ppStmt, NULL)) != SQLITE_OK) {
     MARPAXML_ERRORX("sqlite3_prepare_v2(): %s\n\nSQL sequence was:\n\n%s\n", sqlite3_errstr(sqliteRc), sql);
     _marpaXml_DOMError_set(MARPAXML_DOM_SEVERITY_FATAL_ERROR,
@@ -336,7 +365,7 @@ static C_INLINE marpaXml_DOMBoolean_t _marpaXml_reset(sqlite3_stmt *pStmt) {
 static C_INLINE marpaXml_DOMBoolean_t _marpaXml_bind_text(sqlite3_stmt* pStmt, int pos, const char *txt) {
   int sqliteRc;
 
-  MARPAXML_TRACEX("sqlite3_bind_text(%p, %d, %p %s%s%s)\n", pStmt, pos, txt, txt != NULL ? "\"" : "", txt != NULL ? txt : "", txt != NULL ? "\"" : "");
+  MARPAXML_TRACEX("[%s] Pos: %d, Val: %s%s%s\n", STRINGLITERAL_DB_BINDTEXT, pos, txt != NULL ? "\"" : "", txt != NULL ? txt : "NULL", txt != NULL ? "\"" : "");
 
   if ((sqliteRc = sqlite3_bind_text(pStmt, pos, txt, -1, SQLITE_STATIC)) != SQLITE_OK) {
     MARPAXML_ERRORX("sqlite3_bind_text(): %s at %s:%d\n", sqlite3_errstr(sqliteRc), __FILE__, __LINE__);
@@ -357,7 +386,7 @@ static C_INLINE marpaXml_DOMBoolean_t _marpaXml_bind_text(sqlite3_stmt* pStmt, i
 static C_INLINE marpaXml_DOMBoolean_t _marpaXml_bind_int(sqlite3_stmt* pStmt, int pos, int val) {
   int sqliteRc;
 
-  MARPAXML_TRACEX("sqlite3_bind_int(%p, %d, %d)\n", pStmt, pos, val);
+  MARPAXML_TRACEX("[%s] Pos: %d, Val: %d\n", STRINGLITERAL_DB_BINDTEXT, pos, val);
 
   if ((sqliteRc = sqlite3_bind_int(pStmt, pos, val)) != SQLITE_OK) {
     MARPAXML_ERRORX("sqlite3_bind_int(): %s at %s:%d\n", sqlite3_errstr(sqliteRc), __FILE__, __LINE__);
@@ -370,6 +399,43 @@ static C_INLINE marpaXml_DOMBoolean_t _marpaXml_bind_int(sqlite3_stmt* pStmt, in
   }
 
   return MARPAXML_DOMBOOLEAN_TRUE;
+}
+
+/*******************************************************************/
+/* _marpaXml_step                                                  */
+/*******************************************************************/
+static C_INLINE marpaXml_DOMBoolean_t _marpaXml_step(sqlite3_stmt* pStmt) {
+  /* No need to spend time on this switch is trace is not enabled */
+#ifndef MARPAXML_NTRACE
+  int sqliteRc = sqlite3_step(pStmt);
+
+  switch (sqliteRc) {
+    /* We list explicitely only the legacy error codes */
+  case SQLITE_BUSY:
+    MARPAXML_TRACEX("[%s] %s\n", STRINGLITERAL_DB_STEP, STRINGLITERAL_DB_SQLITE_BUSY);
+    break;
+  case SQLITE_DONE:
+    MARPAXML_TRACEX("[%s] %s\n", STRINGLITERAL_DB_STEP, STRINGLITERAL_DB_SQLITE_DONE);
+    break;
+  case SQLITE_ROW:
+    MARPAXML_TRACEX("[%s] %s\n", STRINGLITERAL_DB_STEP, STRINGLITERAL_DB_SQLITE_ROW);
+    break;
+  case SQLITE_ERROR:
+    MARPAXML_TRACEX("[%s] %s\n", STRINGLITERAL_DB_STEP, STRINGLITERAL_DB_SQLITE_ERROR);
+    break;
+  case SQLITE_MISUSE:
+    MARPAXML_TRACEX("[%s] %s\n", STRINGLITERAL_DB_STEP, STRINGLITERAL_DB_SQLITE_MISUSE);
+    break;
+  default:
+    MARPAXML_TRACEX("[%s] code %d\n", STRINGLITERAL_DB_STEP, sqliteRc);
+    break;
+  }
+
+  return sqliteRc;
+#else
+  /* The compiler will certainly optimise it and put it inline */
+  return sqlite3_step(pStmt);
+#endif
 }
 
 /*******************************************************************/
@@ -537,12 +603,12 @@ marpaXml_DOMBoolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Opti
     return MARPAXML_DOMBOOLEAN_FALSE;
   }
   do {
-  } while ((sqliteRc = sqlite3_step(_db_loadcollation_stmt)) == SQLITE_ROW);
+  } while ((sqliteRc = _marpaXml_step(_db_loadcollation_stmt)) == SQLITE_ROW);
 
   if (sqliteRc != SQLITE_DONE) {
     sqlite3_mutex_leave(_mutexp);
     sqlite3_close_v2(_dbp);
-    MARPAXML_ERRORX("sqlite3_step() returns %d != SQLITE_DONE: %s at %s:%d\n", sqliteRc, sqlite3_errstr(sqliteRc), __FILE__, __LINE__);
+    MARPAXML_ERRORX("_marpaXml_step() returns %d != SQLITE_DONE: %s at %s:%d\n", sqliteRc, sqlite3_errstr(sqliteRc), __FILE__, __LINE__);
     _marpaXml_DOMError_set(MARPAXML_DOM_SEVERITY_FATAL_ERROR,
 			   messageBuilder("%s", sqlite3_errstr(sqliteRc)),
 			   NULL,
@@ -569,8 +635,7 @@ marpaXml_DOMBoolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Opti
   }
 
   /* Create the xxhash function */
-  xxhp = marpaXml_HashInit();
-  if (xxhp == NULL) {
+  if (marpaXml_HashInit(&xxhp) == MARPAXML_HASH_FALSE) {
     MARPAXML_ERRORX("marpaXml_HashInit(): %s\n", strerror(errno));
     _marpaXml_DOMError_set(MARPAXML_DOM_SEVERITY_FATAL_ERROR,
 			   messageBuilder("%s", strerror(errno)),
@@ -591,7 +656,7 @@ marpaXml_DOMBoolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Opti
 
   /* Insert triggers */
   i = -1;
-  while (marpaXml_DOM_trigger[++i].name != NULL && marpaXml_DOM_trigger[i].sql != NULL) {
+  while (marpaXml_DOM_trigger[++i].sql != NULL) {
     if (_marpaXml_exec(_dbp, marpaXml_DOM_trigger[i].sql) == MARPAXML_DOMBOOLEAN_FALSE) {
       sqlite3_mutex_leave(_mutexp);
       sqlite3_close_v2(_dbp);
@@ -602,7 +667,7 @@ marpaXml_DOMBoolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Opti
 
   /* Prepare the statements */
   i = -1;
-  while (marpaXml_DOM_stmt[++i].name != NULL && marpaXml_DOM_stmt[i].sql != NULL) {
+  while (marpaXml_DOM_stmt[++i].sql != NULL) {
     if (_marpaXml_prepare(_dbp, marpaXml_DOM_stmt[i].sql, &marpaXml_DOM_stmt[i].stmt) == MARPAXML_DOMBOOLEAN_FALSE) {
       sqlite3_mutex_leave(_mutexp);
       sqlite3_close_v2(_dbp);
@@ -726,6 +791,99 @@ static C_INLINE void _marpaXml_DOMError_set(marpaXml_DOM_ErrorSeverity_t severit
 
 /*******************************************************************/
 /*                                                                 */
+/*               Transaction Management                            */
+/*                                                                 */
+/*******************************************************************/
+static C_INLINE marpaXml_DOMBoolean_t _marpaXml_BeginImmediateTransaction() {
+  int sqliteRc;
+
+  MARPAXML_TRACEX("[%s] %s\n", STRINGLITERAL_DB_INTERNALCALL, "_marpaXml_BeginImmediateTransaction");
+  MARPAXML_TRACEX("[%s] %s\n", STRINGLITERAL_DB_BINDING, marpaXml_DOM_stmt[_marpaXml_BeginImmediateTransaction_e].sql);
+
+  do {
+  } while ((sqliteRc = _marpaXml_step(marpaXml_DOM_stmt[_marpaXml_BeginImmediateTransaction_e].stmt)) == SQLITE_ROW);
+
+  /* Always reset */
+  if (_marpaXml_reset(marpaXml_DOM_stmt[_marpaXml_BeginImmediateTransaction_e].stmt) == MARPAXML_DOMBOOLEAN_FALSE) {
+    return MARPAXML_DOMBOOLEAN_FALSE;
+  }
+
+  /* Check what step returned */
+  if (sqliteRc != SQLITE_DONE) {
+    MARPAXML_ERRORX("_marpaXml_step() returns %d != SQLITE_DONE: %s at %s:%d\n", sqliteRc, sqlite3_errstr(sqliteRc), __FILE__, __LINE__);
+    _marpaXml_DOMError_set(MARPAXML_DOM_SEVERITY_FATAL_ERROR,
+			   messageBuilder("%s", sqlite3_errstr(sqliteRc)),
+			   NULL,
+			   0
+			   );
+    return MARPAXML_DOMBOOLEAN_FALSE;
+  }
+
+  return MARPAXML_DOMBOOLEAN_TRUE;
+}
+
+/* --------------------------------------------------------------- */
+
+static C_INLINE marpaXml_DOMBoolean_t _marpaXml_EndTransaction() {
+  int sqliteRc;
+
+  MARPAXML_TRACEX("[%s] %s\n", STRINGLITERAL_DB_INTERNALCALL, "_marpaXml_EndTransaction");
+  MARPAXML_TRACEX("[%s] %s\n", STRINGLITERAL_DB_BINDING, marpaXml_DOM_stmt[_marpaXml_EndTransaction_e].sql);
+
+  do {
+  } while ((sqliteRc = _marpaXml_step(marpaXml_DOM_stmt[_marpaXml_EndTransaction_e].stmt)) == SQLITE_ROW);
+
+  /* Always reset */
+  if (_marpaXml_reset(marpaXml_DOM_stmt[_marpaXml_EndTransaction_e].stmt) == MARPAXML_DOMBOOLEAN_FALSE) {
+    return MARPAXML_DOMBOOLEAN_FALSE;
+  }
+
+  /* Check what step returned */
+  if (sqliteRc != SQLITE_DONE) {
+    MARPAXML_ERRORX("_marpaXml_step() returns %d != SQLITE_DONE: %s at %s:%d\n", sqliteRc, sqlite3_errstr(sqliteRc), __FILE__, __LINE__);
+    _marpaXml_DOMError_set(MARPAXML_DOM_SEVERITY_FATAL_ERROR,
+			   messageBuilder("%s", sqlite3_errstr(sqliteRc)),
+			   NULL,
+			   0
+			   );
+    return MARPAXML_DOMBOOLEAN_FALSE;
+  }
+
+  return MARPAXML_DOMBOOLEAN_TRUE;
+}
+
+/* --------------------------------------------------------------- */
+
+static C_INLINE marpaXml_DOMBoolean_t _marpaXml_RollbackTransaction() {
+  int sqliteRc;
+
+  MARPAXML_TRACEX("[%s] %s\n", STRINGLITERAL_DB_INTERNALCALL, "_marpaXml_RollbackTransaction");
+  MARPAXML_TRACEX("[%s] %s\n", STRINGLITERAL_DB_BINDING, marpaXml_DOM_stmt[_marpaXml_RollbackTransaction_e].sql);
+
+  do {
+  } while ((sqliteRc = _marpaXml_step(marpaXml_DOM_stmt[_marpaXml_RollbackTransaction_e].stmt)) == SQLITE_ROW);
+
+  /* Always reset */
+  if (_marpaXml_reset(marpaXml_DOM_stmt[_marpaXml_RollbackTransaction_e].stmt) == MARPAXML_DOMBOOLEAN_FALSE) {
+    return MARPAXML_DOMBOOLEAN_FALSE;
+  }
+
+  /* Check what step returned */
+  if (sqliteRc != SQLITE_DONE) {
+    MARPAXML_ERRORX("_marpaXml_step() returns %d != SQLITE_DONE: %s at %s:%d\n", sqliteRc, sqlite3_errstr(sqliteRc), __FILE__, __LINE__);
+    _marpaXml_DOMError_set(MARPAXML_DOM_SEVERITY_FATAL_ERROR,
+			   messageBuilder("%s", sqlite3_errstr(sqliteRc)),
+			   NULL,
+			   0
+			   );
+    return MARPAXML_DOMBOOLEAN_FALSE;
+  }
+
+  return MARPAXML_DOMBOOLEAN_TRUE;
+}
+
+/*******************************************************************/
+/*                                                                 */
 /*                        DOMStringList                            */
 /*                                                                 */
 /*******************************************************************/
@@ -742,10 +900,11 @@ static C_INLINE marpaXml_DOMBoolean_t _marpaXml_DOMImplementation_count(sqlite_i
   int                   sqliteRc;
   marpaXml_DOMBoolean_t domRc = MARPAXML_DOMBOOLEAN_FALSE;
 
+  MARPAXML_TRACEX("[%s] %s\n", STRINGLITERAL_DB_INTERNALCALL, "_marpaXml_DOMImplementation_count");
   MARPAXML_TRACEX("%s\n", marpaXml_DOM_stmt[_marpaXml_DOMImplementation_count_e].sql);
 
   while (1) {
-    if ((sqliteRc = sqlite3_step(marpaXml_DOM_stmt[_marpaXml_DOMImplementation_count_e].stmt)) == SQLITE_ROW) {
+    if ((sqliteRc = _marpaXml_step(marpaXml_DOM_stmt[_marpaXml_DOMImplementation_count_e].stmt)) == SQLITE_ROW) {
       /* We expect (at least) one row */
       *countp = sqlite3_column_int64(marpaXml_DOM_stmt[_marpaXml_DOMImplementation_count_e].stmt, 0);
       domRc = MARPAXML_DOMBOOLEAN_TRUE;
@@ -767,7 +926,7 @@ static C_INLINE marpaXml_DOMBoolean_t _marpaXml_DOMImplementation_count(sqlite_i
 marpaXml_DOMBoolean_t marpaXml_DOMImplementation_insert(marpaXml_DOMString_t feature, marpaXml_DOMString_t version) {
   marpaXml_DOMBoolean_t domRc;
 
-  MARPAXML_DOM_DB_API_HEADER
+  MARPAXML_DOM_DB_API_HEADER("marpaXml_DOMImplementation_insert");
   domRc = _marpaXml_DOMImplementation_insert(feature, version);
   MARPAXML_DOM_DB_API_TRAILER(domRc);
 
@@ -779,24 +938,25 @@ marpaXml_DOMBoolean_t marpaXml_DOMImplementation_insert(marpaXml_DOMString_t fea
 static C_INLINE marpaXml_DOMBoolean_t _marpaXml_DOMImplementation_insert(marpaXml_DOMString_t feature, marpaXml_DOMString_t version) {
   int sqliteRc;
 
-  MARPAXML_TRACEX("%s\n", marpaXml_DOM_stmt[marpaXml_DOMImplementation_insert_e].sql);
+  MARPAXML_TRACEX("[%s] %s\n", STRINGLITERAL_DB_INTERNALCALL, "_marpaXml_DOMImplementation_insert");
+  MARPAXML_TRACEX("[%s] %s\n", STRINGLITERAL_DB_BINDING, marpaXml_DOM_stmt[_marpaXml_DOMImplementation_insert_e].sql);
 
-  if (_marpaXml_bind_text(marpaXml_DOM_stmt[marpaXml_DOMImplementation_insert_e].stmt, 1, feature) == MARPAXML_DOMBOOLEAN_FALSE ||
-      _marpaXml_bind_text(marpaXml_DOM_stmt[marpaXml_DOMImplementation_insert_e].stmt, 2, version) == MARPAXML_DOMBOOLEAN_FALSE) {
+  if (_marpaXml_bind_text(marpaXml_DOM_stmt[_marpaXml_DOMImplementation_insert_e].stmt, 1, feature) == MARPAXML_DOMBOOLEAN_FALSE ||
+      _marpaXml_bind_text(marpaXml_DOM_stmt[_marpaXml_DOMImplementation_insert_e].stmt, 2, version) == MARPAXML_DOMBOOLEAN_FALSE) {
     return MARPAXML_DOMBOOLEAN_FALSE;
   }
 
   do {
-  } while ((sqliteRc = sqlite3_step(marpaXml_DOM_stmt[marpaXml_DOMImplementation_insert_e].stmt)) == SQLITE_ROW);
+  } while ((sqliteRc = _marpaXml_step(marpaXml_DOM_stmt[_marpaXml_DOMImplementation_insert_e].stmt)) == SQLITE_ROW);
 
   /* Always reset */
-  if (_marpaXml_reset(marpaXml_DOM_stmt[marpaXml_DOMImplementation_insert_e].stmt) == MARPAXML_DOMBOOLEAN_FALSE) {
+  if (_marpaXml_reset(marpaXml_DOM_stmt[_marpaXml_DOMImplementation_insert_e].stmt) == MARPAXML_DOMBOOLEAN_FALSE) {
     return MARPAXML_DOMBOOLEAN_FALSE;
   }
 
   /* Check what step returned */
   if (sqliteRc != SQLITE_DONE) {
-    MARPAXML_ERRORX("sqlite3_step() returns %d != SQLITE_DONE: %s at %s:%d\n", sqliteRc, sqlite3_errstr(sqliteRc), __FILE__, __LINE__);
+    MARPAXML_ERRORX("_marpaXml_step() returns %d != SQLITE_DONE: %s at %s:%d\n", sqliteRc, sqlite3_errstr(sqliteRc), __FILE__, __LINE__);
     _marpaXml_DOMError_set(MARPAXML_DOM_SEVERITY_FATAL_ERROR,
 			   messageBuilder("%s", sqlite3_errstr(sqliteRc)),
 			   NULL,
@@ -813,7 +973,7 @@ static C_INLINE marpaXml_DOMBoolean_t _marpaXml_DOMImplementation_insert(marpaXm
 marpaXml_DOMBoolean_t marpaXml_DOMImplementation_hasFeature(marpaXml_DOMString_t feature, marpaXml_DOMString_t version) {
   marpaXml_DOMBoolean_t domRc;
 
-  MARPAXML_DOM_DB_API_HEADER
+  MARPAXML_DOM_DB_API_HEADER("marpaXml_DOMImplementation_hasFeature");
   domRc = _marpaXml_DOMImplementation_hasFeature(feature, version);
   MARPAXML_DOM_DB_API_TRAILER(MARPAXML_DOMBOOLEAN_TRUE)
 
@@ -825,22 +985,24 @@ marpaXml_DOMBoolean_t marpaXml_DOMImplementation_hasFeature(marpaXml_DOMString_t
 static C_INLINE marpaXml_DOMBoolean_t _marpaXml_DOMImplementation_hasFeature(marpaXml_DOMString_t feature, marpaXml_DOMString_t version) {
   marpaXml_DOMBoolean_t domRc = MARPAXML_DOMBOOLEAN_FALSE;
 
-  MARPAXML_TRACEX("%s\n", marpaXml_DOM_stmt[marpaXml_DOMImplementation_hasFeature_e].sql);
+  MARPAXML_TRACEX("[%s] %s\n", STRINGLITERAL_DB_INTERNALCALL, "_marpaXml_DOMImplementation_hasFeature");
+  MARPAXML_TRACEX("[%s] %s\n", STRINGLITERAL_DB_BINDING, marpaXml_DOM_stmt[_marpaXml_DOMImplementation_hasFeature_e].sql);
 
-  if (_marpaXml_bind_text(marpaXml_DOM_stmt[marpaXml_DOMImplementation_hasFeature_e].stmt, 1, feature) == MARPAXML_DOMBOOLEAN_FALSE ||
-      _marpaXml_bind_text(marpaXml_DOM_stmt[marpaXml_DOMImplementation_hasFeature_e].stmt, 2, version) == MARPAXML_DOMBOOLEAN_FALSE) {
+  if (_marpaXml_bind_text(marpaXml_DOM_stmt[_marpaXml_DOMImplementation_hasFeature_e].stmt, 1, feature) == MARPAXML_DOMBOOLEAN_FALSE ||
+      _marpaXml_bind_text(marpaXml_DOM_stmt[_marpaXml_DOMImplementation_hasFeature_e].stmt, 2, version) == MARPAXML_DOMBOOLEAN_FALSE) {
     return MARPAXML_DOMBOOLEAN_FALSE;
   }
 
   while (1) {
-    if (sqlite3_step(marpaXml_DOM_stmt[marpaXml_DOMImplementation_hasFeature_e].stmt) == SQLITE_ROW) {
+    if (_marpaXml_step(marpaXml_DOM_stmt[_marpaXml_DOMImplementation_hasFeature_e].stmt) == SQLITE_ROW) {
+      /* No need for more - we also made sure the select statement is limited to one row */
       domRc = MARPAXML_DOMBOOLEAN_TRUE;
     } else {
       break;
     }
   }
 
-  if (_marpaXml_reset(marpaXml_DOM_stmt[marpaXml_DOMImplementation_hasFeature_e].stmt) == MARPAXML_DOMBOOLEAN_FALSE) {
+  if (_marpaXml_reset(marpaXml_DOM_stmt[_marpaXml_DOMImplementation_hasFeature_e].stmt) == MARPAXML_DOMBOOLEAN_FALSE) {
     return MARPAXML_DOMBOOLEAN_FALSE;
   }
 

@@ -31,6 +31,8 @@ You can contact the author at :
 */
 
 
+#include "internal/config.h"
+
 //**************************************
 // Tuning parameters
 //**************************************
@@ -47,7 +49,7 @@ You can contact the author at :
 // When this option is enabled, xxHash output for null input pointers will be the same as a null-length input.
 // This option has a very small performance cost (only measurable on small inputs).
 // By default, this option is disabled. To enable it, uncomment below define :
-// #define XXH_ACCEPT_NULL_INPUT_POINTER 1
+#define XXH_ACCEPT_NULL_INPUT_POINTER 1
 
 // XXH_FORCE_NATIVE_FORMAT :
 // By default, xxHash library provides endian-independant Hash values, based on little-endian convention.
@@ -56,7 +58,7 @@ You can contact the author at :
 // Should endian-independance be of no importance for your application, you may set the #define below to 1.
 // It will improve speed for Big-endian CPU.
 // This option has no impact on Little_Endian CPU.
-#define XXH_FORCE_NATIVE_FORMAT 0
+#define XXH_FORCE_NATIVE_FORMAT 1
 
 //**************************************
 // Compiler Specific Options
@@ -72,7 +74,7 @@ You can contact the author at :
 #  ifdef __GNUC__
 #    define FORCE_INLINE static inline __attribute__((always_inline))
 #  else
-#    define FORCE_INLINE static inline
+#    define FORCE_INLINE static C_INLINE
 #  endif
 #endif
 

@@ -1,5 +1,6 @@
 #include "internal/config.h"
 
+#include <stdlib.h>
 #include <stddef.h>
 #include "internal/hash.h"
 #include "xxhash-read-only/xxhash.h"
@@ -10,69 +11,85 @@
 #define XXH_update(state, input, length) XXH64_update(state, input, length)
 #define XXH_digest(state)                XXH64_digest(state)
 #define XXH_intermediateDigest(state)    XXH64_intermediateDigest(state)
+#define XXH_resetState(state)            XXH64_resetState(state, DEFAULT_XXH_SEED)
 #else                  /* At maximum 32bits target: XXH32 */
 #define XXH_init()                       XXH32_init(DEFAULT_XXH_SEED)
 #define XXH_update(state, input, length) XXH32_update(state, input, (unsigned int) length)
 #define XXH_digest(state)                XXH32_digest(state)
 #define XXH_intermediateDigest(state)    XXH32_intermediateDigest(state)
+#define XXH_resetState(state)            XXH32_resetState(state, DEFAULT_XXH_SEED)
 #endif
 
 static unsigned int unsignedintMax = -1;
 
-void *marpaXml_HashInit(void) {
-  return XXH_init();
+marpaXml_Hash_Boolean_t marpaXml_HashInit(void **ctxpp) {
+  if (ctxpp == NULL) {
+    return MARPAXML_HASH_FALSE;
+  } else {
+    if ((*ctxpp = XXH_init()) == NULL) {
+      return MARPAXML_HASH_FALSE;
+    } else {
+      return MARPAXML_HASH_TRUE;
+    }
+  }
 }
 
-unsigned long long int marpaXml_HashLongLong(const void *state, const void* input, unsigned long long int len) {
-  void                  *ctx = (void *) state;
-  char                  *p = (char *) input;
-  XXH_errorcode          errorcode;
-  unsigned long long int rc;
-
-  /* We assume that if input is NULL, len is correspondingly equal to zero */
-  /*
-  if (input == NULL) {
-    return 0;
-  }
-  */
+marpaXml_Hash_Boolean_t marpaXml_HashLongLong(const void *state, const void* input, unsigned long long int len, unsigned long long int *hashp) {
+  void                    *ctx = (void *) state;
+  char                    *p = (char *) input;
+  unsigned long long int   hash;
+  marpaXml_Hash_Boolean_t  rc;
 
   /* To avoid unnecessary malloc, the caller can provide a state */
   if (ctx == NULL) {
     ctx = XXH_init();
     if (ctx == NULL) {
-      return 0;
+      return MARPAXML_HASH_FALSE;
     }
   }
 
   while (len >= 0) {
     if (len > unsignedintMax) {
-      errorcode = XXH_update(ctx, (void *) p, unsignedintMax);
-      if (errorcode != XXH_OK) {
-	if (state == NULL) {
-	  XXH_digest(ctx);  /* This will free ctx as per the doc */
-	}
-	return 0;
+      if (XXH_update(ctx, (void *) p, unsignedintMax) != XXH_OK) {
+        return MARPAXML_HASH_FALSE;
       }
       p   += unsignedintMax;
       len -= unsignedintMax;
     } else {
-      errorcode = XXH_update(ctx, (void *) p, len);
-      if (errorcode != XXH_OK) {
-	if (state == NULL) {
-	  XXH_digest(ctx);  /* This will free ctx as per the doc */
-	}
-	return 0;
+      if (XXH_update(ctx, (void *) p, len) != XXH_OK) {
+        return MARPAXML_HASH_FALSE;
       }
       break;
     }
   }
 
   if (state == NULL) {
-    rc = XXH_digest(ctx);  /* This will free ctx as per the doc */
+    hash = XXH_digest(ctx);  /* This will free ctx as per the doc */
+    rc = MARPAXML_HASH_TRUE;
   } else {
-    rc = XXH_intermediateDigest(ctx);  /* This will not free ctx */
+    hash = XXH_intermediateDigest(ctx);  /* This will not free ctx */
+    if (XXH_resetState(ctx) == XXH_OK) {
+      rc = MARPAXML_HASH_TRUE;
+    } else {
+      rc = MARPAXML_HASH_FALSE;
+    }
+  }
+
+  if (rc == MARPAXML_HASH_TRUE) {
+    if (hashp != NULL) {
+      *hashp = hash;
+    }
   }
 
   return rc;
+}
+
+marpaXml_Hash_Boolean_t marpaXml_HashFree(void **ctxpp) {
+  if (ctxpp == NULL || *ctxpp == NULL) {
+    return MARPAXML_HASH_FALSE;
+  }
+  free(*ctxpp);
+  *ctxpp = NULL;
+  return MARPAXML_HASH_TRUE;
 }
 
