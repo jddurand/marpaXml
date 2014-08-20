@@ -72,6 +72,8 @@ static marpaXml_DOM_data_t marpaXml_DOM_data[] = {
 typedef struct marpaXml_DOM_trigger {
   const char   *sql;
 } marpaXml_DOM_trigger_t;
+/* These triggers are inefficient per def, but beware: we talk about DOMStringList and DOMImplementation that will always contain very small number */
+/* of entries. Switching to another model will add complexity for an invisible gain */
 static marpaXml_DOM_trigger_t marpaXml_DOM_trigger[] = {
   /* ------------- */
   /* DOMStringList */
@@ -195,22 +197,22 @@ static C_INLINE marpaXml_DOMBoolean_t _marpaXml_DOMImplementation_hasFeature(mar
 #define MARPAXML_DOM_DB_BEGTRANS _marpaXml_BeginImmediateTransaction() /* _marpaXml_exec(_dbp, "BEGIN IMMEDIATE TRANSACTION") */
 #define MARPAXML_DOM_DB_ENDTRANS _marpaXml_EndTransaction() /* _marpaXml_exec(_dbp, "END TRANSACTION") */
 #define MARPAXML_DOM_DB_ROLLBACK _marpaXml_RollbackTransaction() /* _marpaXml_exec(_dbp, "ROLLBACK TRANSACTION") */
-#define MARPAXML_DOM_DB_API_HEADER(method)                              \
+#define MARPAXML_DOM_DB_API_HEADER(method, badRc)                       \
   if (marpaXml_DOM_init(NULL) == MARPAXML_DOMBOOLEAN_FALSE) {           \
-    return MARPAXML_DOMBOOLEAN_FALSE;                                   \
+    return badRc;                                                       \
   }                                                                     \
   MARPAXML_DOM_DB_MUTEX_ENTER;                                          \
   MARPAXML_TRACEX("[%s] %s\n", STRINGLITERAL_DB_APICALL, method);       \
   if (MARPAXML_DOM_DB_BEGTRANS == MARPAXML_DOMBOOLEAN_FALSE) {          \
     MARPAXML_DOM_DB_MUTEX_LEAVE;                                        \
-    return MARPAXML_DOMBOOLEAN_FALSE;                                   \
+    return badRc;                                                       \
   }
 
-#define MARPAXML_DOM_DB_API_TRAILER(rc)					\
+#define MARPAXML_DOM_DB_API_TRAILER(rc, badRc)                          \
   if ((rc) == MARPAXML_DOMBOOLEAN_FALSE || MARPAXML_DOM_DB_ENDTRANS == MARPAXML_DOMBOOLEAN_FALSE) { \
     MARPAXML_DOM_DB_ROLLBACK;						\
     MARPAXML_DOM_DB_MUTEX_LEAVE;					\
-    return MARPAXML_DOMBOOLEAN_FALSE;					\
+    return badRc;                                                       \
   }									\
   MARPAXML_DOM_DB_MUTEX_LEAVE;
 
@@ -941,9 +943,9 @@ unsigned long long int marpaXml_DOMStringList_getLength(void) {
   int                    sqliteRc;
   unsigned long long int domRc = 0;
 
-  MARPAXML_DOM_DB_API_HEADER("marpaXml_DOMStringList_getLength");
+  MARPAXML_DOM_DB_API_HEADER("marpaXml_DOMStringList_getLength", 0);
   sqliteRc = _marpaXml_DOMStringList_getLength(&domRc);
-  MARPAXML_DOM_DB_API_TRAILER(sqliteRc);
+  MARPAXML_DOM_DB_API_TRAILER(sqliteRc, 0);
 
   return domRc;
 }
@@ -981,9 +983,9 @@ marpaXml_DOMString_t marpaXml_DOMStringList_item(unsigned long long int index) {
   int                  sqliteRc;
   marpaXml_DOMString_t domRc = NULL;
 
-  MARPAXML_DOM_DB_API_HEADER("marpaXml_DOMStringList_item");
+  MARPAXML_DOM_DB_API_HEADER("marpaXml_DOMStringList_item", NULL);
   sqliteRc = _marpaXml_DOMStringList_item(index, &domRc);
-  MARPAXML_DOM_DB_API_TRAILER(sqliteRc);
+  MARPAXML_DOM_DB_API_TRAILER(sqliteRc, NULL);
 
   return domRc;
 }
@@ -1028,9 +1030,9 @@ static C_INLINE marpaXml_DOMBoolean_t _marpaXml_DOMStringList_item(unsigned long
 marpaXml_DOMBoolean_t  marpaXml_DOMStringList_contains(marpaXml_DOMString_t str) {
   marpaXml_DOMBoolean_t domRc;
 
-  MARPAXML_DOM_DB_API_HEADER("marpaXml_DOMStringList_contains");
+  MARPAXML_DOM_DB_API_HEADER("marpaXml_DOMStringList_contains", MARPAXML_DOMBOOLEAN_FALSE);
   domRc = _marpaXml_DOMStringList_contains(str);
-  MARPAXML_DOM_DB_API_TRAILER(domRc);
+  MARPAXML_DOM_DB_API_TRAILER(domRc, MARPAXML_DOMBOOLEAN_FALSE);
 
   return domRc;
 }
@@ -1098,9 +1100,9 @@ static C_INLINE marpaXml_DOMBoolean_t _marpaXml_DOMImplementation_count(sqlite_i
 marpaXml_DOMBoolean_t marpaXml_DOMImplementation_insert(marpaXml_DOMString_t feature, marpaXml_DOMString_t version) {
   marpaXml_DOMBoolean_t domRc;
 
-  MARPAXML_DOM_DB_API_HEADER("marpaXml_DOMImplementation_insert");
+  MARPAXML_DOM_DB_API_HEADER("marpaXml_DOMImplementation_insert", MARPAXML_DOMBOOLEAN_FALSE);
   domRc = _marpaXml_DOMImplementation_insert(feature, version);
-  MARPAXML_DOM_DB_API_TRAILER(domRc);
+  MARPAXML_DOM_DB_API_TRAILER(domRc, MARPAXML_DOMBOOLEAN_FALSE);
 
   return domRc;
 }
@@ -1145,9 +1147,9 @@ static C_INLINE marpaXml_DOMBoolean_t _marpaXml_DOMImplementation_insert(marpaXm
 marpaXml_DOMBoolean_t marpaXml_DOMImplementation_hasFeature(marpaXml_DOMString_t feature, marpaXml_DOMString_t version) {
   marpaXml_DOMBoolean_t domRc;
 
-  MARPAXML_DOM_DB_API_HEADER("marpaXml_DOMImplementation_hasFeature");
+  MARPAXML_DOM_DB_API_HEADER("marpaXml_DOMImplementation_hasFeature", MARPAXML_DOMBOOLEAN_FALSE);
   domRc = _marpaXml_DOMImplementation_hasFeature(feature, version);
-  MARPAXML_DOM_DB_API_TRAILER(MARPAXML_DOMBOOLEAN_TRUE)
+  MARPAXML_DOM_DB_API_TRAILER(MARPAXML_DOMBOOLEAN_TRUE /* We force the API to ignore domRc and always to an END TRANSACTION */, MARPAXML_DOMBOOLEAN_FALSE)
 
   return domRc;
 }
