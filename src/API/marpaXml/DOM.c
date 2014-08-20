@@ -515,7 +515,7 @@ marpaXml_DOMBoolean_t marpaXml_DOM_release(void) {
     _mutexp = NULL;
   }
 
-  /* Close connection to the DB */
+  /* Close connection to the DB - this will call destructors for created functions */
   if ((sqliteRc = sqlite3_close_v2(_dbp)) != SQLITE_OK) {
     MARPAXML_ERRORX("sqlite3_close_v2(): %s at %s:%d\n", sqlite3_errstr(sqliteRc), __FILE__, __LINE__);
     rc = MARPAXML_DOMBOOLEAN_FALSE;
