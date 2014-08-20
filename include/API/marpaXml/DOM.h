@@ -96,8 +96,8 @@ marpaXml_DOMBoolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Opti
 marpaXml_DOMBoolean_t marpaXml_DOM_release(void);
 
 /* Some applications will say (char*), others (unsigned char*). This is not
-   important because we know we talk about UTF-8 strings. */
-typedef char                   *marpaXml_DOMString_t;
+   important because we know we talk about UTF-8 strings. So we say (void *). */
+typedef void                   *marpaXml_DOMString_t;
 typedef void                   *marpaXml_DOMUserData_t;
 typedef unsigned long long int  marpaXml_DOMImplementation_t;
 typedef unsigned long long int  marpaXml_DocumentType_t;

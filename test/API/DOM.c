@@ -15,6 +15,9 @@ int main(int argc, char **argv) {
     return 1;
   }
 
+  /*************************************/
+  /*       DOMImplementation           */
+  /*************************************/
   /* feature is case insensitive */
   /* version as well, but this is not relevant, since version in the data is 1.0, 2.0, 3.0, etc... */
   if (marpaXml_DOMImplementation_hasFeature((char *) "CoRe", NULL) == MARPAXML_DOMBOOLEAN_TRUE) {
@@ -33,6 +36,30 @@ int main(int argc, char **argv) {
     fprintf(stdout, "marpaXml_DOMImplementation_hasFeature(\"%s\", \"%s\"): OK\n", "CoRe", "2.0");
   } else {
     fprintf(stderr, "marpaXml_DOMImplementation_hasFeature(\"%s\", \"%s\"): KO\n", "CoRe", "2.0");
+    return 1;
+  }
+
+  /*************************************/
+  /*        DOMStringList              */
+  /*************************************/
+  if (marpaXml_DOMStringList_getLength() == 0) {
+    fprintf(stdout, "marpaXml_DOMStringList_getLength(): OK\n");
+  } else {
+    fprintf(stdout, "marpaXml_DOMStringList_getLength(): KO\n");
+    return 1;
+  }
+
+  if (marpaXml_DOMStringList_item(0) == NULL) {
+    fprintf(stdout, "marpaXml_DOMStringList_item(0): OK\n");
+  } else {
+    fprintf(stdout, "marpaXml_DOMStringList_item(0): KO\n");
+    return 1;
+  }
+
+  if (marpaXml_DOMStringList_contains((char *)"Nothing yet") == MARPAXML_DOMBOOLEAN_FALSE) {
+    fprintf(stdout, "marpaXml_DOMStringList_contains(\"%s\"): OK\n", "Nothing yet");
+  } else {
+    fprintf(stdout, "marpaXml_DOMStringList_contains(\"%s\"): KO\n", "Nothing yet");
     return 1;
   }
 
