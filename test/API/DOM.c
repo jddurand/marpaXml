@@ -68,5 +68,6 @@ int main(int argc, char **argv) {
     return 1;
   }
 
+  fprintf(stderr, "All tests returned OK\n");
   return 0;
 }
