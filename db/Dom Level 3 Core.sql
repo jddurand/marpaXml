@@ -2,15 +2,6 @@
 
 /* Create Tables */
 
-CREATE TABLE [DOMTypeInfo]
-(
-	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
-	[typeName] text,
-	[typeNamespace] text,
-	PRIMARY KEY ([id])
-);
-
-
 -- attributes is implemented a live query DOMNode
 -- childNodes is implemented a live query DOMNode
 CREATE TABLE [DOMNode]
@@ -44,6 +35,15 @@ CREATE TABLE [DOMElement]
 );
 
 
+CREATE TABLE [DOMTypeInfo]
+(
+	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
+	[typeName] text,
+	[typeNamespace] text,
+	PRIMARY KEY ([id])
+);
+
+
 CREATE TABLE [DOMAttr]
 (
 	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
@@ -55,12 +55,12 @@ CREATE TABLE [DOMAttr]
 	[isId] integer,
 	[schemaTypeInfo_id] integer NOT NULL UNIQUE,
 	PRIMARY KEY ([id]),
+	FOREIGN KEY ([ownerElement_id])
+	REFERENCES [DOMElement] ([id]),
 	FOREIGN KEY ([schemaTypeInfo_id])
 	REFERENCES [DOMTypeInfo] ([id]),
 	FOREIGN KEY ([DOMNode_id])
-	REFERENCES [DOMNode] ([id]),
-	FOREIGN KEY ([ownerElement_id])
-	REFERENCES [DOMElement] ([id])
+	REFERENCES [DOMNode] ([id])
 );
 
 
@@ -108,12 +108,14 @@ CREATE TABLE [DOMComment]
 );
 
 
+-- Because DOM spec says item should be unique, no need for hashing here.
+-- In theory a castastrophy to index on a TEXT, in practice, there is absolutely NO problem because we talk about a very small table, with very small values.
+-- In addition, DOM does NOT provide DELETE on this data, i.e. id is enough for ordering (could have used item as well)
+-- In addition again, because we talk a very small table, no need of DOMStringList_counter
 CREATE TABLE [DOMStringList]
 (
 	[id] integer NOT NULL PRIMARY KEY AUTOINCREMENT,
 	[item] text,
-	[_itemHash] integer,
-	[_ordering] integer,
 	PRIMARY KEY ([id])
 );
 
@@ -125,18 +127,6 @@ CREATE TABLE [DOMConfiguration]
 	PRIMARY KEY ([id]),
 	FOREIGN KEY ([parameterNames_id])
 	REFERENCES [DOMStringList] ([id])
-);
-
-
-CREATE TABLE [DOMImplementation]
-(
-	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
-	[feature] text,
-	[version] text,
-	[_featureHash] integer DEFAULT 0,
-	[_versionHash] integer DEFAULT 0,
-	[_ordering] integer,
-	PRIMARY KEY ([id])
 );
 
 
@@ -152,6 +142,18 @@ CREATE TABLE [DOMDocumentType]
 	PRIMARY KEY ([id]),
 	FOREIGN KEY ([DOMNode_id])
 	REFERENCES [DOMNode] ([id])
+);
+
+
+CREATE TABLE [DOMImplementation]
+(
+	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
+	[feature] text,
+	[version] text,
+	[_featureHash] integer DEFAULT 0,
+	[_versionHash] integer DEFAULT 0,
+	[_ordering] integer,
+	PRIMARY KEY ([id])
 );
 
 
@@ -172,16 +174,16 @@ CREATE TABLE [DOMDocument]
 	[documentURI] text,
 	[domConfig_id] integer NOT NULL UNIQUE,
 	PRIMARY KEY ([id]),
-	FOREIGN KEY ([implementation_id])
-	REFERENCES [DOMImplementation] ([id]),
+	FOREIGN KEY ([DOMNode_id])
+	REFERENCES [DOMNode] ([id]),
 	FOREIGN KEY ([documentElement_id])
 	REFERENCES [DOMElement] ([id]),
-	FOREIGN KEY ([doctype_id])
-	REFERENCES [DOMDocumentType] ([id]),
 	FOREIGN KEY ([domConfig_id])
 	REFERENCES [DOMConfiguration] ([id]),
-	FOREIGN KEY ([DOMNode_id])
-	REFERENCES [DOMNode] ([id])
+	FOREIGN KEY ([doctype_id])
+	REFERENCES [DOMDocumentType] ([id]),
+	FOREIGN KEY ([implementation_id])
+	REFERENCES [DOMImplementation] ([id])
 );
 
 
@@ -239,10 +241,10 @@ CREATE TABLE [DOMImplementationSource]
 	[DOMImplementation_id] integer NOT NULL UNIQUE,
 	[DOMImplementationList_id] integer NOT NULL UNIQUE,
 	PRIMARY KEY ([id]),
-	FOREIGN KEY ([DOMImplementationList_id])
-	REFERENCES [DOMImplementationList] ([id]),
 	FOREIGN KEY ([DOMImplementation_id])
-	REFERENCES [DOMImplementation] ([id])
+	REFERENCES [DOMImplementation] ([id]),
+	FOREIGN KEY ([DOMImplementationList_id])
+	REFERENCES [DOMImplementationList] ([id])
 );
 
 
@@ -288,12 +290,6 @@ CREATE TABLE [DOMProcessingInstruction]
 	PRIMARY KEY ([id]),
 	FOREIGN KEY ([DOMNode_id])
 	REFERENCES [DOMNode] ([id])
-);
-
-
-CREATE TABLE [DOMStringList_counter]
-(
-	[nbrows] integer
 );
 
 
@@ -356,8 +352,6 @@ CREATE TABLE [RDOMNodeUserDataKey]
 CREATE INDEX [DOMImplementation_featureHash_index] ON [DOMImplementation] ([_featureHash]);
 CREATE INDEX [DOMImplementation_versionHash_index] ON [DOMImplementation] ([_versionHash]);
 CREATE INDEX [DOMImplementation_order_index] ON [DOMImplementation] ([_ordering]);
-CREATE INDEX [DOMStringList_itemHash_index] ON [DOMStringList] ([_itemHash]);
-CREATE INDEX [DOMStringList_order_index] ON [DOMStringList] ([_ordering]);
 
 
 
