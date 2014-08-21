@@ -34,7 +34,24 @@ while ($sql =~ m/\bCREATE\s+TABLE\s+(\[(\w+)\]\s*\([^;]+\)\s*;)/sxmg) {
     #
     ## Well, except the very last one
     #
+    #
+    # Remove all '[' and ']'
+    #
+    $match =~ s/[\[\]]//g;
     $match =~ s/\\n"$/"/;
+    push(@c, $match);
+}
+#
+# Then the views
+#
+pos($sql) = undef;
+while ($sql =~ m/\bCREATE\s+VIEW\s+(\[(\w+)\]\s*[^;]+\s*;)/sxmg) {
+    push(@name, $2);
+    my $match = "CREATE VIEW IF NOT EXISTS $1";
+    $match =~ s/^/"/sxmg;
+    $match =~ s/$/\\n"/sxmg;
+    $match =~ s/\\n"$/"/;
+    $match =~ s/[\[\]]//g;
     push(@c, $match);
 }
 #
@@ -45,10 +62,8 @@ while ($sql =~ m/\b(CREATE\s+(?:UNIQUE\s+)?INDEX)\s+([^;]+;)/sxmg) {
     my $match = "$1 IF NOT EXISTS $2";
     $match =~ s/^/"/sxmg;
     $match =~ s/$/\\n"/sxmg;
-    #
-    ## Ditto
-    #
     $match =~ s/\\n"$/"/;
+    $match =~ s/[\[\]]//g;
     push(@c, $match);
 }
 my $h = "#define STRINGLITERAL_DDL_NBSTATEMENT " . scalar(@c) . "\n";

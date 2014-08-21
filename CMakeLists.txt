@@ -20,7 +20,7 @@ ENDIF ()
 PROJECT (marpaXml)
 
 # In any case we include our include directory for all targets
-INCLUDE_DIRECTORIES (${PROJECT_SOURCE_DIR}/include)
+INCLUDE_DIRECTORIES (${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/include/API)
 
 # ---------------------------------------
 # Add current path to modules search path
@@ -201,6 +201,7 @@ ADD_LIBRARY (marpaXml
   ${PROJECT_SOURCE_DIR}/src/internal/grammar/xml_1_0.c
   ${PROJECT_SOURCE_DIR}/src/internal/grammar/xml_1_1.c
   ${PROJECT_SOURCE_DIR}/src/API/marpaXml/DOM.c
+  ${PROJECT_SOURCE_DIR}/src/API/marpaXml/cplus.c
   ${PROJECT_SOURCE_DIR}/src/API/marpaXml/log.c
   ${PROJECT_SOURCE_DIR}/xxhash-read-only/xxhash.c
   )

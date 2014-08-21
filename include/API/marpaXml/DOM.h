@@ -2,7 +2,8 @@
 #define MARPAXML_API_DOM_H
 
 #include <sys/types.h>
-#include "API/marpaXml/log.h"
+#include "marpaXml/log.h"
+#include "cplus.h"
 
 /*
  * Copyright (c) 2004 World Wide Web Consortium,
@@ -97,21 +98,23 @@ marpaXml_DOMBoolean_t marpaXml_DOM_release(void);
 
 /* Some applications will say (char*), others (unsigned char*). This is not
    important because we know we talk about UTF-8 strings. So we say (void *). */
+
+/* All the List interfaces requires a destroy call to prevent space and memory leaks, not the others */
 typedef void                   *marpaXml_DOMString_t;
 typedef void                   *marpaXml_DOMUserData_t;
 typedef unsigned long long int  marpaXml_DOMImplementation_t;
 typedef unsigned long long int  marpaXml_DocumentType_t;
 typedef unsigned long long int  marpaXml_Document_t;
-typedef unsigned long long int  marpaXml_NodeList_t;
+typedef void                   *marpaXml_NodeList_t;
 typedef unsigned long long int  marpaXml_NamedNodeMap_t;
 typedef unsigned long long int  marpaXml_UserDataHandler_t;
 typedef unsigned long long int  marpaXml_Element_t;
 typedef unsigned long long int  marpaXml_TypeInfo_t;
 typedef unsigned long long int  marpaXml_DOMLocator_t;
 typedef unsigned long long int  marpaXml_DOMException_t;
-typedef unsigned long long int  marpaXml_DOMStringList_t;
-typedef unsigned long long int  marpaXml_NameList_t;
-typedef unsigned long long int  marpaXml_DOMImplementationList_t;
+typedef void                   *marpaXml_DOMStringList_t;
+typedef void                   *marpaXml_NameList_t;
+typedef void                   *marpaXml_DOMImplementationList_t;
 typedef unsigned long long int  marpaXml_DOMImplementationSource_t;
 typedef unsigned long long int  marpaXml_Node_t;
 typedef unsigned long long int  marpaXml_Attr_t;
@@ -241,9 +244,10 @@ extern marpaXml_DOMError_t marpaXml_DOMError;
 /*        DOMStringList              */
 /*************************************/
 /* Introduced in DOM Level 3: */
-marpaXml_DOMString_t   marpaXml_DOMStringList_item(unsigned long long int index);
-unsigned long long int marpaXml_DOMStringList_getLength(void);
-marpaXml_DOMBoolean_t  marpaXml_DOMStringList_contains(marpaXml_DOMString_t str);
+marpaXml_DOMString_t   marpaXml_DOMStringList_item(marpaXml_DOMStringList_t DOMstringList, unsigned long long int index);
+unsigned long long int marpaXml_DOMStringList_getLength(marpaXml_DOMStringList_t DOMstringList);
+marpaXml_DOMBoolean_t  marpaXml_DOMStringList_contains(marpaXml_DOMStringList_t DOMstringList, marpaXml_DOMString_t str);
+marpaXml_DOMBoolean_t  marpaXml_DOMStringList_free(marpaXml_DOMStringList_t DOMstringList);
 
 /*************************************/
 /*           NameList                */
@@ -254,13 +258,15 @@ marpaXml_DOMString_t   marpaXml_NameList_getNamespaceURI(unsigned long long int 
 unsigned long long int marpaXml_NameList_getLength(void);
 marpaXml_DOMBoolean_t  marpaXml_NameList_contains(marpaXml_DOMString_t str);
 marpaXml_DOMBoolean_t  marpaXml_NameList_containsNS(marpaXml_DOMString_t namespaceURI, marpaXml_DOMString_t name);
+marpaXml_DOMBoolean_t  marpaXml_NameList_free(marpaXml_NameList_t marpaXml_NameList);
 
 /*************************************/
 /*     DOMImplementationList         */
 /*************************************/
 /* Introduced in DOM Level 3: */
-marpaXml_DOMImplementation_t marpaXml_DOMImplementationList_item(unsigned long long int index);
-unsigned long long int       marpaXml_DOMImplementationList_getLength(void);
+marpaXml_DOMImplementation_t marpaXml_DOMImplementationList_item(marpaXml_DOMImplementationList_t DOMImplementationList, unsigned long long int index);
+unsigned long long int       marpaXml_DOMImplementationList_getLength(marpaXml_DOMImplementationList_t DOMImplementationList);
+marpaXml_DOMBoolean_t        marpaXml_DOMImplementationList_free(marpaXml_DOMImplementationList_t marpaXml_DOMImplementationList);
 
 /*************************************/
 /*    DOMImplementationSource        */
@@ -351,6 +357,7 @@ MARPAXML_NODE_DECLARATIONS(Node)
 /*************************************/
 marpaXml_Node_t        marpaXml_NodeList_item(unsigned long long int index);
 unsigned long long int marpaXml_NodeList_getLength(void);
+marpaXml_DOMBoolean_t  marpaXml_NodeList_free(marpaXml_NodeList_t marpaXml_NodeList);
 
 /*************************************/
 /*           NamedNodeMap            */
@@ -615,5 +622,7 @@ marpaXml_DOMConfiguration_t      marpaXml_Document_getDomConfig(void);
 void                             marpaXml_Document_normalizeDocument(void);
 /* Introduced in DOM Level 3: */
 marpaXml_Node_t                  marpaXml_Document_renameNode(marpaXml_Node_t n, marpaXml_DOMString_t namespaceURI, marpaXml_DOMString_t qualifiedName, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): NOT_SUPPORTED_ERR, INVALID_CHARACTER_ERR, WRONG_DOCUMENT_ERR, NAMESPACE_ERR */
+
+/* #include "DOM/Attr.h" */
 
 #endif /* MARPAXML_API_DOM_H_ */

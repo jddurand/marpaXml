@@ -2,15 +2,6 @@
 
 /* Create Tables */
 
-CREATE TABLE [DOMTypeInfo]
-(
-	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
-	[typeName] text,
-	[typeNamespace] text,
-	PRIMARY KEY ([id])
-);
-
-
 -- attributes is implemented a live query DOMNode
 -- childNodes is implemented a live query DOMNode
 CREATE TABLE [DOMNode]
@@ -50,6 +41,15 @@ CREATE TABLE [DOMElement]
 );
 
 
+CREATE TABLE [DOMTypeInfo]
+(
+	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
+	[typeName] text,
+	[typeNamespace] text,
+	PRIMARY KEY ([id])
+);
+
+
 CREATE TABLE [DOMAttr]
 (
 	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
@@ -61,12 +61,12 @@ CREATE TABLE [DOMAttr]
 	[isId] integer,
 	[schemaTypeInfo_id] integer NOT NULL UNIQUE,
 	PRIMARY KEY ([id]),
-	FOREIGN KEY ([schemaTypeInfo_id])
-	REFERENCES [DOMTypeInfo] ([id]),
+	FOREIGN KEY ([DOMNode_id])
+	REFERENCES [DOMNode] ([id]),
 	FOREIGN KEY ([ownerElement_id])
 	REFERENCES [DOMElement] ([id]),
-	FOREIGN KEY ([DOMNode_id])
-	REFERENCES [DOMNode] ([id])
+	FOREIGN KEY ([schemaTypeInfo_id])
+	REFERENCES [DOMTypeInfo] ([id])
 );
 
 
@@ -117,8 +117,7 @@ CREATE TABLE [DOMComment]
 -- Because DOM spec says item should be unique, no need for hashing here.
 -- In theory a castastrophy to index on a TEXT, in practice, there is absolutely NO problem because we talk about a very small table, with very small values.
 -- In addition, DOM does NOT provide DELETE on this data, i.e. id is enough for ordering (could have used item as well)
--- In addition again, because we talk a very small table, no need of DOMStringList_counter
-CREATE TABLE [DOMStringList]
+CREATE TABLE [DOMString]
 (
 	[id] integer NOT NULL PRIMARY KEY AUTOINCREMENT,
 	[item] text,
@@ -132,7 +131,18 @@ CREATE TABLE [DOMConfiguration]
 	[parameterNames_id] integer NOT NULL,
 	PRIMARY KEY ([id]),
 	FOREIGN KEY ([parameterNames_id])
-	REFERENCES [DOMStringList] ([id])
+	REFERENCES [DOMString] ([id])
+);
+
+
+CREATE TABLE [DOMImplementation]
+(
+	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
+	[feature] text,
+	[version] text,
+	[_featureHash] integer DEFAULT 0,
+	[_versionHash] integer DEFAULT 0,
+	PRIMARY KEY ([id])
 );
 
 
@@ -148,18 +158,6 @@ CREATE TABLE [DOMDocumentType]
 	PRIMARY KEY ([id]),
 	FOREIGN KEY ([DOMNode_id])
 	REFERENCES [DOMNode] ([id])
-);
-
-
-CREATE TABLE [DOMImplementation]
-(
-	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
-	[feature] text,
-	[version] text,
-	[_featureHash] integer DEFAULT 0,
-	[_versionHash] integer DEFAULT 0,
-	[_ordering] integer,
-	PRIMARY KEY ([id])
 );
 
 
@@ -180,16 +178,16 @@ CREATE TABLE [DOMDocument]
 	[documentURI] text,
 	[domConfig_id] integer NOT NULL UNIQUE,
 	PRIMARY KEY ([id]),
-	FOREIGN KEY ([doctype_id])
-	REFERENCES [DOMDocumentType] ([id]),
+	FOREIGN KEY ([documentElement_id])
+	REFERENCES [DOMElement] ([id]),
 	FOREIGN KEY ([implementation_id])
 	REFERENCES [DOMImplementation] ([id]),
+	FOREIGN KEY ([doctype_id])
+	REFERENCES [DOMDocumentType] ([id]),
 	FOREIGN KEY ([domConfig_id])
 	REFERENCES [DOMConfiguration] ([id]),
 	FOREIGN KEY ([DOMNode_id])
-	REFERENCES [DOMNode] ([id]),
-	FOREIGN KEY ([documentElement_id])
-	REFERENCES [DOMElement] ([id])
+	REFERENCES [DOMNode] ([id])
 );
 
 
@@ -229,28 +227,13 @@ CREATE TABLE [DOMEntityReference]
 );
 
 
-CREATE TABLE [DOMImplementationList]
-(
-	[id] integer NOT NULL PRIMARY KEY AUTOINCREMENT,
-	[DOMImplementation_id] integer NOT NULL UNIQUE,
-	[_order] integer,
-	PRIMARY KEY ([id]),
-	FOREIGN KEY ([DOMImplementation_id])
-	REFERENCES [DOMImplementation] ([id]),
-	CONSTRAINT DOMImplementationList_PK UNIQUE ([id], [_order])
-);
-
-
 CREATE TABLE [DOMImplementationSource]
 (
 	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
 	[DOMImplementation_id] integer NOT NULL UNIQUE,
-	[DOMImplementationList_id] integer NOT NULL UNIQUE,
 	PRIMARY KEY ([id]),
 	FOREIGN KEY ([DOMImplementation_id])
-	REFERENCES [DOMImplementation] ([id]),
-	FOREIGN KEY ([DOMImplementationList_id])
-	REFERENCES [DOMImplementationList] ([id])
+	REFERENCES [DOMImplementation] ([id])
 );
 
 
@@ -275,6 +258,12 @@ CREATE TABLE [DOMLocator]
 );
 
 
+CREATE TABLE [DOMNode_counter]
+(
+	[nbrows] integer
+);
+
+
 CREATE TABLE [DOMNotation]
 (
 	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
@@ -296,6 +285,12 @@ CREATE TABLE [DOMProcessingInstruction]
 	PRIMARY KEY ([id]),
 	FOREIGN KEY ([DOMNode_id])
 	REFERENCES [DOMNode] ([id])
+);
+
+
+CREATE TABLE [DOMString_counter]
+(
+	[nbrows] integer
 );
 
 
@@ -353,11 +348,18 @@ CREATE TABLE [RDOMNodeUserDataKey]
 
 
 
+/* Create Views */
+
+CREATE VIEW [DOMImplementationList] AS [select *, (select count(*) from DOMImplementation b where a.id >= b.id) as _order from DOMImplementation a];
+CREATE VIEW [DOMNodeList] AS [select *, (select count(*) from DOMNode b where a.id >= b.id) as _order from DOMNode a];
+CREATE VIEW [DOMStringList] AS [select *, (select count(*) from DOMString b where a.id >= b.id) as _order from DOMString a];
+
+
+
 /* Create Indexes */
 
 CREATE INDEX [DOMImplementation_featureHash_index] ON [DOMImplementation] ([_featureHash]);
 CREATE INDEX [DOMImplementation_versionHash_index] ON [DOMImplementation] ([_versionHash]);
-CREATE INDEX [DOMImplementation_order_index] ON [DOMImplementation] ([_ordering]);
 
 
 
