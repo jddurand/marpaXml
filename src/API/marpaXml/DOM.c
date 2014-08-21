@@ -1085,7 +1085,7 @@ marpaXml_DOMBoolean_t  marpaXml_DOMStringList_contains(marpaXml_DOMString_t str)
 
   MARPAXML_DOM_DB_API_HEADER("marpaXml_DOMStringList_contains", MARPAXML_DOMBOOLEAN_FALSE);
   domRc = _marpaXml_DOMStringList_contains(str);
-  MARPAXML_DOM_DB_API_TRAILER(domRc, MARPAXML_DOMBOOLEAN_FALSE);
+  MARPAXML_DOM_DB_API_TRAILER(MARPAXML_DOMBOOLEAN_TRUE /* We force the API to ignore domRc and always do an END TRANSACTION */, MARPAXML_DOMBOOLEAN_FALSE);
 
   return domRc;
 }
@@ -1190,7 +1190,7 @@ marpaXml_DOMBoolean_t marpaXml_DOMImplementation_hasFeature(marpaXml_DOMString_t
 
   MARPAXML_DOM_DB_API_HEADER("marpaXml_DOMImplementation_hasFeature", MARPAXML_DOMBOOLEAN_FALSE);
   domRc = _marpaXml_DOMImplementation_hasFeature(feature, version);
-  MARPAXML_DOM_DB_API_TRAILER(MARPAXML_DOMBOOLEAN_TRUE /* We force the API to ignore domRc and always to an END TRANSACTION */, MARPAXML_DOMBOOLEAN_FALSE)
+  MARPAXML_DOM_DB_API_TRAILER(MARPAXML_DOMBOOLEAN_TRUE /* We force the API to ignore domRc and always do an END TRANSACTION */, MARPAXML_DOMBOOLEAN_FALSE)
 
   return domRc;
 }
