@@ -126,7 +126,7 @@ static marpaXml_DOM_stmt_t marpaXml_DOM_stmt[] = {
   { "INSERT INTO DOMStringList (item) VALUES (?1)", NULL },
   { "SELECT item FROM DOMStringList WHERE (id = ?1)", NULL },
   { "SELECT COUNT(id) FROM DOMStringList", NULL },
-  { "SELECT 1 FROM DOMStringList WHERE (item = ?1)", NULL },
+  { "SELECT 1 FROM DOMStringList WHERE (item = ?1) LIMIT 1", NULL },
 
   /* ----------------- */
   /* DOMImplementation */
@@ -134,7 +134,7 @@ static marpaXml_DOM_stmt_t marpaXml_DOM_stmt[] = {
   /* Note: very small table, with very small value. No need to invent something complicated */
   { "INSERT INTO DOMImplementation (feature, _featureHash, version, _versionHash, _ordering) SELECT ?1, xxhash(?1), ?2, xxhash(?2), nbrows FROM DOMImplementation_counter", NULL }, /* Will trigger */
   { "DELETE FROM DOMImplementation WHERE (id = ?1)", NULL },                                                                                                                        /* Will trigger */
-  { "SELECT 1 FROM DOMImplementation WHERE ((feature LIKE ?1) AND ((?2 IS NULL) OR (version = ?2 COLLATE BINARY))) LIMIT 1", NULL },  /* feature test is case insensitive, version is not (contains only digits or dot -;) */
+  { "SELECT 1 FROM DOMImplementation WHERE ((feature LIKE ?1) AND ((?2 IS NULL) OR (version = ?2))) LIMIT 1", NULL },  /* feature test is case insensitive, version is not (contains only digits or dot -;) */
   { "SELECT count(id) FROM DOMImplementation", NULL },
 
   { NULL, NULL }
