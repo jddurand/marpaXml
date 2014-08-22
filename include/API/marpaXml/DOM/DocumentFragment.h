@@ -1,0 +1,11 @@
+#ifndef MARPAXML_API_DOM_DOCUMENTFRAGMENT_H
+#define MARPAXML_API_DOM_DOCUMENTFRAGMENT_H
+
+#include "marpaXml/DOM/Node.h"
+
+SUBCLASS(DocumentFragment, Node)
+  VTABLE(DocumentFragment, Node)
+METHODS
+END_CLASS
+
+#endif /* MARPAXML_API_DOM_DOCUMENTFRAGMENT_H */

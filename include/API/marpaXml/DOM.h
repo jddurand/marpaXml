@@ -623,6 +623,6 @@ void                             marpaXml_Document_normalizeDocument(void);
 /* Introduced in DOM Level 3: */
 marpaXml_Node_t                  marpaXml_Document_renameNode(marpaXml_Node_t n, marpaXml_DOMString_t namespaceURI, marpaXml_DOMString_t qualifiedName, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): NOT_SUPPORTED_ERR, INVALID_CHARACTER_ERR, WRONG_DOCUMENT_ERR, NAMESPACE_ERR */
 
-/* #include "DOM/Attr.h" */
+#include "DOM/Attr.h"
 
 #endif /* MARPAXML_API_DOM_H_ */

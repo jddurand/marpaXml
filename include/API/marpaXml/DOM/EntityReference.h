@@ -1,0 +1,11 @@
+#ifndef MARPAXML_API_DOM_ENTITYREFERENCE_H
+#define MARPAXML_API_DOM_ENTITYREFERENCE_H
+
+#include "marpaXml/DOM/Node.h"
+
+SUBCLASS(EntityReference, Node)
+  VTABLE(EntityReference, Node)
+METHODS
+END_CLASS
+
+#endif /* MARPAXML_API_DOM_ENTITYREFERENCE_H */
