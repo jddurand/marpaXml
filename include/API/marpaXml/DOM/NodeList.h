@@ -4,10 +4,13 @@
 #include "marpaXml/cplus.h"
 
 SUBCLASS(NodeList, Object)
-  VTABLE(NodeList, Object)
+  void *ctx;
+VTABLE(NodeList, Object)
+  int   (*getLength)(NodeList *me);
+  Node *(*item)(NodeList *me, int index);
 METHODS
- int  getLength();
- Node item(int index);
+  NodeList *NodeList_new();
+  void      NodeList_free(NodeList *me);
 END_CLASS
 
 #endif /* MARPAXML_API_DOM_NODELIST_H */

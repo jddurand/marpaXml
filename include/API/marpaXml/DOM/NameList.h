@@ -4,13 +4,16 @@
 #include "marpaXml/cplus.h"
 
 SUBCLASS(NameList, Object)
-  VTABLE(NameList, Object)
+  void *ctx;
+VTABLE(NameList, Object)
+  boolean  (*contains)(NameList *me, String *str);
+  boolean  (*containsNS)(NameList *me, String *namespaceURI, String *name);
+  int      (*getLength)(NameList *me);
+  String  *(*getName)(NameList *me, int index);
+  String  *(*getNamespaceURI)(NameList *me, int index);
 METHODS
-  boolean contains(String str);
-  boolean containsNS(String namespaceURI, String name);
-  int     getLength();
-  String  getName(int index);
-  String  getNamespaceURI(int index);
+  NameList *NameList_new();
+  void      NameList_free(NameList *me);
 END_CLASS
 
 #endif /* MARPAXML_API_DOM_NAMELIST_H */

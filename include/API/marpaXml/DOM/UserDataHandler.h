@@ -4,14 +4,16 @@
 #include "marpaXml/cplus.h"
 
 SUBCLASS(UserDataHandler, Object)
-  VTABLE(UserDataHandler, Object)
-  short NODE_ADOPTED;
-  short NODE_CLONED;
-  short NODE_DELETED;
-  short NODE_IMPORTED;
-  short NODE_RENAMED;
+  void           *ctx;
+  unsigned short  NODE_IMPORTED;
+  unsigned short  NODE_DELETED;
+  unsigned short  NODE_RENAMED;
+  unsigned short  NODE_ADOPTED;
+VTABLE(UserDataHandler, Object)
+  void (*handle)(UserDataHandler *me, short operation, String *key, Object *data, Node *src, Node *dst);
 METHODS
-  void handle(short operation, String key, Object data, Node src, Node dst);
+  UserDataHandler *UserDataHandler_new();
+  void             UserDataHandler_free(UserDataHandler *me);
 END_CLASS
 
 #endif /* MARPAXML_API_DOM_USERDATAHANDLER_H */

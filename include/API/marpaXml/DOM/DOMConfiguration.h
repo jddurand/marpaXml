@@ -3,13 +3,16 @@
 
 #include "marpaXml/cplus.h"
 
-CLASS(DOMConfiguration)
-  VTABLE(DOMConfiguration, Object)
+SUBCLASS(DOMConfiguration, Object)
+  void *ctx;
+VTABLE(DOMConfiguration, Object)
+  boolean        (*canSetParameter)(DOMConfiguration *me, String *name, Object *value);
+  Object        *(*getParameter)(DOMConfiguration *me, String *name);
+  DOMStringList *(*getParameterNames)(DOMConfiguration *me);
+  void           (*setParameter)(DOMConfiguration *me, String *name, Object *value);
 METHODS
-  boolean       canSetParameter(String name, Object value);
-  Object        getParameter(String name);
-  DOMStringList getParameterNames();
-  void          setParameter(String name, Object value);
+  DOMConfiguration *DOMConfiguration_new();
+  void              DOMConfiguration_free(DOMConfiguration *me);
 END_CLASS
 
 #endif /* MARPAXML_API_DOM_DOMCONFIGURATION_H */

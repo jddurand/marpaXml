@@ -130,4 +130,7 @@ extern ObjectVTABLE CP_ObjectVTABLE;             /* Object class descriptor */
 }
 #endif
 
+/* Addon : forward declaration of type */
+#define FORWARD_CLASS(name_) typedef struct name_##Tag name_;
+
 #endif                                                           /* cplus_h */

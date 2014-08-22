@@ -4,11 +4,14 @@
 #include "marpaXml/cplus.h"
 
 SUBCLASS(DOMStringList, Object)
-  VTABLE(DOMStringList, Object)
+  void *ctx;
+VTABLE(DOMStringList, Object)
+  boolean  (*contains)(DOMStringList *me, String *str);
+  int      (*getLength)(DOMStringList *me);
+  String  *(*item)(DOMStringList *me, int index);
 METHODS
-  boolean contains(String str);
-  int     getLength(void);
-  String  item(int index);
+  DOMStringList *DOMStringList_new();
+  void           DOMStringList_free(DOMStringList *me);
 END_CLASS
 
 #endif /* MARPAXML_API_DOM_DOMSTRINGLIST_H */

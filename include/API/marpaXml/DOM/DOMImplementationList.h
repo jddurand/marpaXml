@@ -4,10 +4,13 @@
 #include "marpaXml/cplus.h"
 
 SUBCLASS(DOMImplementationList, Object)
-  VTABLE(DOMImplementationList, Object)
+  void *ctx;
+VTABLE(DOMImplementationList, Object)
+  int                (*getLength)(DOMImplementationList *me);
+  DOMImplementation *(*item)(DOMImplementationList *me, int index);
 METHODS
-  int               getLength();
-  DOMImplementation item(int index);
+  DOMImplementationList *DOMImplementationList_new();
+  void                   DOMImplementationList_free(DOMImplementationList *me);
 END_CLASS
 
 #endif /* MARPAXML_API_DOM_DOMIMPLEMENTATIONLIST_H */

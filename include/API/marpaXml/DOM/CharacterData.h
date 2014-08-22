@@ -4,16 +4,19 @@
 #include "marpaXml/DOM/Node.h"
 
 SUBCLASS(CharacterData, Node)
-  VTABLE(CharacterData, Node)
+  void *ctx;
+VTABLE(CharacterData, Node)
+  void           (*appendData)(CharacterData *me, String *arg);
+  void           (*deleteData)(CharacterData *me, int offset, int count);
+  String        *(*getData)(CharacterData *me);
+  int            (*getLength)(CharacterData *me);
+  void           (*insertData)(CharacterData *me, int offset, String *arg);
+  void           (*replaceData)(CharacterData *me, int offset, int count, String *arg);
+  void           (*setData)(CharacterData *me, String *data);
+  String        *(*substringData)(CharacterData *me, int offset, int count);
 METHODS
-  void   appendData(String arg);
-  void   deleteData(int offset, int count);
-  String getData();
-  int    getLength();
-  void   insertData(int offset, String arg);
-  void   replaceData(int offset, int count, String arg);
-  void   setData(String data);
-  String substringData(int offset, int count);
+  CharacterData *CharacterData_new();
+  void           CharacterData_free(CharacterData *me);
 END_CLASS
 
 #endif /* MARPAXML_API_DOM_CHARACTERDATA_H */

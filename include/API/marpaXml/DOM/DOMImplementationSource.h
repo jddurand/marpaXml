@@ -4,10 +4,13 @@
 #include "marpaXml/cplus.h"
 
 SUBCLASS(DOMImplementationSource, Object)
-  VTABLE(DOMImplementationSource, Object)
+  void *ctx;
+VTABLE(DOMImplementationSource, Object)
+  DOMImplementation     *(*getDOMImplementation)(DOMImplementationSource *me, String *features);
+  DOMImplementationList *(*getDOMImplementationList)(DOMImplementationSource *me, String *features);
 METHODS
-  DOMImplementation     getDOMImplementation(String features);
-  DOMImplementationList getDOMImplementationList(String features);
+  DOMImplementationSource *DOMImplementationSource_new();
+  void                     DOMImplementationSource_free(DOMImplementationSource *me);
 END_CLASS
 
 #endif /* MARPAXML_API_DOM_DOMIMPLEMENTATIONSOURCE_H */

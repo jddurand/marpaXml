@@ -4,11 +4,14 @@
 #include "marpaXml/DOM/Node.h"
 
 SUBCLASS(ProcessingInstruction, Node)
-  VTABLE(ProcessingInstruction, Node)
+  void *ctx;
+VTABLE(ProcessingInstruction, Node)
+  String *(*getData)(ProcessingInstruction *me);
+  String *(*getTarget)(ProcessingInstruction *me);
+  void    (*setData)(ProcessingInstruction *me, String *data);
 METHODS
-  String getData();
-  String getTarget();
-  void   setData(String data);
+  ProcessingInstruction *ProcessingInstruction_new();
+  void                   ProcessingInstruction_free(ProcessingInstruction *me);
 END_CLASS
 
 #endif /* MARPAXML_API_DOM_PROCESSINGINSTRUCTION_H */

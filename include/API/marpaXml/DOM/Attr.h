@@ -4,15 +4,18 @@
 #include "marpaXml/DOM/Node.h"
 
 SUBCLASS(Attr, Node)
-  VTABLE(Attr, Node)
+  void *ctx;
+VTABLE(Attr, Node)
+  String   *(*getName)(Attr *me);
+  Element  *(*getOwnerElement)(Attr *me);
+  TypeInfo *(*getSchemaTypeInfo)(Attr *me);
+  boolean   (*getSpecified)(Attr *me);
+  String   *(*getValue)(Attr *me);
+  boolean   (*isId)(Attr *me);
+  void      (*setValue)(Attr *me, String *value);
 METHODS
-  String   getName();
-  Element  getOwnerElement();
-  TypeInfo getSchemaTypeInfo();
-  boolean  getSpecified();
-  String   getValue();
-  boolean  isId();
-  void 	   setValue(String value);
+  Attr     *Attr_new();
+  void      Attr_free(Attr *me);
 END_CLASS
 
 #endif /* MARPAXML_API_DOM_ATTR_H */

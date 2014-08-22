@@ -3,18 +3,22 @@
 
 #include "marpaXml/cplus.h"
 
+
 SUBCLASS(DOMError, Object)
-  VTABLE(DOMError, Object)
-  short SEVERITY_ERROR;
-  short SEVERITY_FATAL_ERROR;
-  short SEVERITY_WARNING;
+  void *ctx;
+  unsigned short      SEVERITY_WARNING;
+  unsigned short      SEVERITY_ERROR;
+  unsigned short      SEVERITY_FATAL_ERROR;
+VTABLE(DOMError, Object)
+  DOMLocator *(*getLocation)(DOMError *me);
+  String     *(*getMessage)(DOMError *me);
+  Object     *(*getRelatedData)(DOMError *me);
+  Object     *(*getRelatedException)(DOMError *me);
+  short       (*getSeverity)(DOMError *me);
+  String     *(*getType)(DOMError *me);
 METHODS
-  DOMLocator getLocation();
-  String     getMessage();
-  Object     getRelatedData();
-  Object     getRelatedException();
-  short      getSeverity();
-  String     getType();
+  DOMError *DOMError_new();
+  void      DOMError_free(DOMError *me);
 END_CLASS
 
 #endif /* MARPAXML_API_DOM_DOMERROR_H */

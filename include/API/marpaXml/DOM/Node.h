@@ -1,10 +1,11 @@
 #ifndef MARPAXML_API_DOM_NODE_H
 #define MARPAXML_API_DOM_NODE_H
 
+#include "marpaXml/_types.h"
 #include "marpaXml/cplus.h"
 
 SUBCLASS(Node, Object)
-  VTABLE(Node, Object)
+  void *ctx;
   short ATTRIBUTE_NODE;
   short CDATA_SECTION_NODE;
   short COMMENT_NODE;
@@ -23,44 +24,47 @@ SUBCLASS(Node, Object)
   short NOTATION_NODE;
   short PROCESSING_INSTRUCTION_NODE;
   short TEXT_NODE;
+VTABLE(Node, Object)
+  Node 	       *(*appendChild)(Node *me, Node *newChild);
+  Node 	       *(*cloneNode)(Node *me, boolean deep);
+  short         (*compareDocumentPosition)(Node *me, Node *other);
+  NamedNodeMap *(*getAttributes)(Node *me);
+  String       *(*getBaseURI)(Node *me);
+  NodeList     *(*getChildNodes)(Node *me);
+  Object       *(*getFeature)(Node *me, String *feature, String *version);
+  Node         *(*getFirstChild)(Node *me);
+  Node         *(*getLastChild)(Node *me);
+  String       *(*getLocalName)(Node *me);
+  String       *(*getNamespaceURI)(Node *me);
+  Node         *(*getNextSibling)(Node *me);
+  String       *(*getNodeName)(Node *me);
+  short         (*getNodeType)(Node *me);
+  String       *(*getNodeValue)(Node *me);
+  Document     *(*getOwnerDocument)(Node *me);
+  Node         *(*getParentNode)(Node *me);
+  String       *(*getPrefix)(Node *me);
+  Node         *(*getPreviousSibling)(Node *me);
+  String       *(*getTextContent)(Node *me);
+  Object       *(*getUserData)(Node *me, String *key);
+  boolean       (*hasAttributes)(Node *me);
+  boolean       (*hasChildNodes)(Node *me);
+  Node         *(*insertBefore)(Node *me, Node *newChild, Node *refChild);
+  boolean       (*isDefaultNamespace)(Node *me, String *namespaceURI);
+  boolean       (*isEqualNode)(Node *me, Node *arg);
+  boolean       (*isSameNode)(Node *me, Node *other);
+  boolean       (*isSupported)(Node *me, String *feature, String *version);
+  String       *(*lookupNamespaceURI)(Node *me, String *prefix);
+  String       *(*lookupPrefix)(Node *me, String *namespaceURI);
+  void          (*normalize)(Node *me);
+  Node         *(*removeChild)(Node *me, Node *oldChild);
+  Node         *(*replaceChild)(Node *me, Node *newChild, Node *oldChild);
+  void          (*setNodeValue)(Node *me, String *nodeValue);
+  void          (*setPrefix)(Node *me, String *prefix);
+  void          (*setTextContent)(Node *me, String *textContent);
+  Object       *(*setUserData)(Node *me, String *key, Object *data, UserDataHandler *handler);
 METHODS
-  Node 	       appendChild(Node newChild);
-  Node 	       cloneNode(boolean deep);
-  short        compareDocumentPosition(Node other);
-  NamedNodeMap getAttributes(void);
-  String       getBaseURI(void);
-  NodeList     getChildNodes(void);
-  Object       getFeature(String feature, String version);
-  Node         getFirstChild(void);
-  Node         getLastChild(void);
-  String       getLocalName(void);
-  String       getNamespaceURI(void);
-  Node         getNextSibling(void);
-  String       getNodeName(void);
-  short        getNodeType(void);
-  String       getNodeValue(void);
-  Document     getOwnerDocument(void);
-  Node         getParentNode(void);
-  String       getPrefix(void);
-  Node         getPreviousSibling(void);
-  String       getTextContent(void);
-  Object       getUserData(String key);
-  boolean      hasAttributes(void);
-  boolean      hasChildNodes(void);
-  Node         insertBefore(Node newChild, Node refChild);
-  boolean      isDefaultNamespace(String namespaceURI);
-  boolean      isEqualNode(Node arg);
-  boolean      isSameNode(Node other);
-  boolean      isSupported(String feature, String version);
-  String       lookupNamespaceURI(String prefix);
-  String       lookupPrefix(String namespaceURI);
-  void         normalize();
-  Node         removeChild(Node oldChild);
-  Node         replaceChild(Node newChild, Node oldChild);
-  void         setNodeValue(String nodeValue);
-  void         setPrefix(String prefix);
-  void         setTextContent(String textContent);
-  Object       setUserData(String key, Object data, UserDataHandler handler);
+  Node *(*Node_new)();
+  void  Node_free(Node *me);
 END_CLASS
 
 #endif /* MARPAXML_API_DOM_NODE_H */

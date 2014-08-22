@@ -1,13 +1,16 @@
 #ifndef MARPAXML_STRING_H
 #define MARPAXML_STRING_H
 
-#include <stddef.h>
+#include "marpaXml/cplus.h"
 
-typedef struct marpaXml_String {
-  const char  *string;            /* Not a hazard it is the first member */
-  const size_t byteLength;        /* Number of bytes */
-  const size_t characterLength;   /* Number of characters */
-  const char  *encoding;          /* If NULL: native encoding of your C implementation */
-} *marpaXml_String_t;
+SUBCLASS(String, Object)
+  VTABLE(String, Object)
+  unsigned char *utf8__;                    /* Internal representation: UTF-8 */
+  unsigned long long int *byteLength__;     /* Length of internal representation, including NULL byte */
+METHODS
+    String (*new)(void);
+    String (*new2)(char *bytes, unsigned long long int length);
+    String (*new3)(char *bytes, unsigned long long int length, char *charset);
+END_CLASS
 
 #endif /* MARPAXML_STRING_H */

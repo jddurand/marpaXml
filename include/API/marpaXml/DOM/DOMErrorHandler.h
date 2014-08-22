@@ -4,9 +4,12 @@
 #include "marpaXml/cplus.h"
 
 SUBCLASS(DOMErrorHandler, Object)
-  VTABLE(DOMErrorHandler, Object)
+  void *ctx;
+VTABLE(DOMErrorHandler, Object)
+  boolean (*handleError)(DOMErrorHandler *me, DOMError *error);
 METHODS
-  boolean 	handleError(DOMError error);
+  DOMErrorHandler *DOMErrorHandler_new();
+  void             DOMErrorHandler_free(DOMErrorHandler *me);
 END_CLASS
 
 #endif /* MARPAXML_API_DOM_DOMERRORHANDLER_H */
