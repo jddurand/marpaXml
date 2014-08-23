@@ -452,7 +452,7 @@ GetOptions('bnf=s' => \$bnf, 'output=s' => \$output)
   or die("Error in command line arguments\n");
 
 if (! $bnf) {
-  print STDERR "Usage: $^X $0 --bnf filename.bnf\n";
+  print STDERR "Usage: $^X $0 --bnf filename.bnf --output outputfilename.c\n";
   exit(EXIT_FAILURE);
 }
 
