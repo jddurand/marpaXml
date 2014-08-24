@@ -33,6 +33,29 @@
 #include "marpaXml/cplus.h"
 #include "marpaXml/boolean.h"
 #include "marpaXml/String.h"
+#include "marpaXml/log.h"
+
+/*************************
+   Options
+ *************************/
+typedef struct marpaXml_DOM_Option {
+  marpaXmlLogLevel_t           logLevelWantedi;               /* Default: MARPAXML_LOGLEVEL_WARNING           */
+  marpaXmlLogCallback_t        logCallbackp;                  /* Default: marpaXmlLog_defaultLogCallback()    */
+  void                        *logCallbackDatavp;             /* Default: NULL                                */
+  const char                  *dbFilename;                    /* Default: ":memory:"                          */
+  const char                  *locale;                        /* Default: NULL                                */
+  int                          collStrength;                  /* Default: -1                                  */
+} marpaXml_DOM_Option_t;
+
+/*
+  Can be called several times, but one is enough. Defaults will apply ONLY if parameter is NULL
+*/
+marpaXml_boolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Optionp);
+/*
+  Must be called once only, typically at program exit or library unload, one call at at time: this routine is not thread-safe.
+  All in all, simply do not call it - the memory leaks are small. On failure, using DOMError is not supported.
+*/
+marpaXml_boolean_t marpaXml_DOM_release(void);
 
 typedef marpaXml_String_t marpaXml_DOMString_t;
 typedef unsigned long long marpaXml_DOMTimeStamp_t;
