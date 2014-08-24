@@ -12,8 +12,8 @@
 
 /* File: http://www.w3.org/TR/2004/REC-DOM-Level-3-Core-20040407/dom.idl */
 
-#ifndef MARPAXML_DOM_IDL_
-#define MARPAXML_DOM_IDL_
+#ifndef MARPAXML_DOM_H
+#define MARPAXML_DOM_H
 
 /* About this file:
    - Object Oriented Programming is a design pattern. Nothing prevent to do full OO in C.
@@ -625,4 +625,4 @@ METHODS
   void                               marpaXml_Document_free(marpaXml_Document_t this);
 END_CLASS
 
-#endif /* MARPAXML_DOM_IDL_ */
+#endif /* MARPAXML_DOM_H_ */
