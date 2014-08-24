@@ -89,7 +89,9 @@ const unsigned short      MARPAXML_VALIDATION_ERR                 = 16;
 const unsigned short      MARPAXML_TYPE_MISMATCH_ERR              = 17;
 
 /* Introduced in DOM Level 3: */
+typedef struct marpaXml_DOMStringList_Context *marpaXml_DOMStringList_Context_t;
 SUBCLASS(marpaXml_DOMStringList, Object)
+  marpaXml_DOMStringList_Context_t _context;
 VTABLE(marpaXml_DOMStringList, Object)
   marpaXml_DOMString_t          (*item)(marpaXml_DOMString_t this, unsigned long index);
   unsigned long                 (*getLength)(marpaXml_DOMString_t this);
@@ -100,7 +102,9 @@ METHODS
 END_CLASS
 
 /* Introduced in DOM Level 3: */
+typedef struct marpaXml_NameList_Context *marpaXml_NameList_Context_t;
 SUBCLASS(marpaXml_NameList, Object)
+  marpaXml_NameList_Context_t _context;
 VTABLE(marpaXml_NameList, Object)
   marpaXml_DOMString_t          (*getName)(marpaXml_NameList_t this, unsigned long index);
   marpaXml_DOMString_t          (*getNamespaceURI)(marpaXml_NameList_t this, unsigned long index);
@@ -113,7 +117,9 @@ METHODS
 END_CLASS
 
 /* Introduced in DOM Level 3: */
+typedef struct marpaXml_DOMImplementationList_Context *marpaXml_DOMImplementationList_Context_t;
 SUBCLASS(marpaXml_DOMImplementationList, Object)
+  marpaXml_DOMImplementationList_Context_t _context;
 VTABLE(marpaXml_DOMImplementationList, Object)
   marpaXml_DOMImplementation_t   (*item)(marpaXml_DOMImplementationList_t this, unsigned long index);
   unsigned long                  (*getLength)(marpaXml_DOMImplementationList_t this);
@@ -123,7 +129,9 @@ METHODS
 END_CLASS
 
 /* Introduced in DOM Level 3: */
+typedef struct marpaXml_DOMImplementationSource_Context *marpaXml_DOMImplementationSource_Context_t;
 SUBCLASS(marpaXml_DOMImplementationSource, Object)
+  marpaXml_DOMImplementationSource_Context_t _context;
 VTABLE(marpaXml_DOMImplementationSource, Object)
   marpaXml_DOMImplementation_t     (*getDOMImplementation)(marpaXml_DOMImplementationSource_t this, marpaXml_DOMString_t features);
   marpaXml_DOMImplementationList_t (*getDOMImplementationList)(marpaXml_DOMImplementationSource_t this, marpaXml_DOMString_t features);
@@ -132,7 +140,9 @@ METHODS
   void                               marpaXml_DOMImplementationSource_free(marpaXml_DOMImplementationSource_t this);
 END_CLASS
 
+typedef struct marpaXml_DOMImplementation_Context *marpaXml_DOMImplementation_Context_t;
 SUBCLASS(marpaXml_DOMImplementation, Object)
+  marpaXml_DOMImplementation_Context_t _context;
 VTABLE(marpaXml_DOMImplementation, Object)
   marpaXml_boolean_t            (*hasFeature)(marpaXml_DOMImplementation_t this, marpaXml_DOMString_t feature, marpaXml_DOMString_t version);
   /* Introduced in DOM Level 2: */
@@ -168,7 +178,9 @@ const unsigned short      MARPAXML_DOCUMENT_POSITION_CONTAINS     = 0x08;
 const unsigned short      MARPAXML_DOCUMENT_POSITION_CONTAINED_BY = 0x10;
 const unsigned short      MARPAXML_DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC = 0x20;
 
+typedef struct marpaXml_Node_Context *marpaXml_Node_Context_t;
 SUBCLASS(marpaXml_Node, Object)
+  marpaXml_Node_Context_t _context;
 VTABLE(marpaXml_Node, Object)
   marpaXml_DOMString_t       (*getNodeName)(marpaXml_Node_t this);
   marpaXml_DOMString_t       (*getNodeValue)(marpaXml_Node_t this, marpaXml_DOMException_t exception);
@@ -236,7 +248,9 @@ METHODS
   void                         marpaXml_Node_free(marpaXml_Node_t this);
 END_CLASS
 
+typedef struct marpaXml_NodeList_Context *marpaXml_NodeList_Context_t;
 SUBCLASS(marpaXml_NodeList, Object)
+  marpaXml_NodeList_Context_t _context;
 VTABLE(marpaXml_NodeList, Object)
   marpaXml_Node_t   (*item)(marpaXml_NodeList_t this, unsigned long index);
   unsigned long     (*getLength)(marpaXml_NodeList_t this);
@@ -245,7 +259,9 @@ METHODS
   void                marpaXml_NodeList_free(marpaXml_NodeList_t this);
 END_CLASS
 
+typedef struct marpaXml_NamedNodeMap_Context *marpaXml_NamedNodeMap_Context_t;
 SUBCLASS(marpaXml_NamedNodeMap, Object)
+  marpaXml_NamedNodeMap_Context_t _context;
 VTABLE(marpaXml_NamedNodeMap, Object)
   marpaXml_Node_t               (*getNamedItem)(marpaXml_NamedNodeMap_t this, marpaXml_DOMString_t name);
   marpaXml_Node_t               (*setNamedItem)(marpaXml_NamedNodeMap_t this, marpaXml_Node_t arg, marpaXml_DOMException_t exception);
@@ -263,7 +279,9 @@ METHODS
   void                            marpaXml_NamedNodeMap_free(marpaXml_NamedNodeMap_t this);
 END_CLASS
 
+typedef struct marpaXml_CharacterData_Context *marpaXml_CharacterData_Context_t;
 SUBCLASS(marpaXml_CharacterData, marpaXml_Node)
+  marpaXml_CharacterData_Context_t _context;
 VTABLE(marpaXml_CharacterData, marpaXml_Node)
   marpaXml_DOMString_t       (*getData)(marpaXml_CharacterData_t this, marpaXml_DOMException_t exception);
   marpaXml_DOMString_t       (*setData)(marpaXml_CharacterData_t this, marpaXml_DOMString_t data, marpaXml_DOMException_t exception);
@@ -278,7 +296,9 @@ METHODS
   void                         marpaXml_CharacterData_free(marpaXml_CharacterData_t this);
 END_CLASS
 
+typedef struct marpaXml_Attr_Context *marpaXml_Attr_Context_t;
 SUBCLASS(marpaXml_Attr, marpaXml_Node)
+  marpaXml_Attr_Context_t _context;
 VTABLE(marpaXml_Attr, marpaXml_Node)
   marpaXml_DOMString_t       (*getName)(marpaXml_Attr_t this);
   marpaXml_boolean_t         (*getSpecified)(marpaXml_Attr_t this);
@@ -296,7 +316,9 @@ METHODS
   void                         marpaXml_Attr_free(marpaXml_Attr_t this);
 END_CLASS
 
+typedef struct marpaXml_Element_Context *marpaXml_Element_Context_t;
 SUBCLASS(marpaXml_Element, marpaXml_Node)
+  marpaXml_Element_Context_t _context;
 VTABLE(marpaXml_Element, marpaXml_Node)
   marpaXml_DOMString_t       (*getTagName)(marpaXml_Element_t this);
   marpaXml_DOMString_t       (*getAttribute)(marpaXml_Element_t this, marpaXml_DOMString_t name);
@@ -335,7 +357,9 @@ METHODS
   void                         marpaXml_Element_free(marpaXml_Element_t this);
 END_CLASS
 
+typedef struct marpaXml_Text_Context *marpaXml_Text_Context_t;
 SUBCLASS(marpaXml_Text, marpaXml_CharacterData)
+  marpaXml_Text_Context_t _context;
 VTABLE(marpaXml_Text, marpaXml_CharacterData)
   marpaXml_Text_t         (*splitText)(marpaXml_Text_t this, unsigned long offset, marpaXml_DOMException_t exception);
   /* Introduced in DOM Level 3: */
@@ -349,7 +373,9 @@ METHODS
   void                      marpaXml_Text_free(marpaXml_Text_t this);
 END_CLASS
 
+typedef struct marpaXml_Comment_Context *marpaXml_Comment_Context_t;
 SUBCLASS(marpaXml_Comment, marpaXml_CharacterData)
+  marpaXml_Comment_Context_t _context;
 VTABLE(marpaXml_Comment, marpaXml_CharacterData)
 METHODS
   marpaXml_Comment_t        marpaXml_Comment_new();
@@ -363,7 +389,9 @@ const unsigned long       MARPAXML_DERIVATION_UNION               = 0x00000004;
 const unsigned long       MARPAXML_DERIVATION_LIST                = 0x00000008;
 
 /* Introduced in DOM Level 3: */
+typedef struct marpaXml_TypeInfo_Context *marpaXml_TypeInfo_Context_t;
 SUBCLASS(marpaXml_TypeInfo, Object)
+  marpaXml_TypeInfo_Context_t _context;
 VTABLE(marpaXml_TypeInfo, Object)
   marpaXml_DOMString_t       (*getTypeName)(marpaXml_TypeInfo_t this);
   marpaXml_DOMString_t       (*getTypeNamespace)(marpaXml_TypeInfo_t this);
@@ -381,7 +409,9 @@ const unsigned short      MARPAXML_NODE_RENAMED                   = 4;
 const unsigned short      MARPAXML_NODE_ADOPTED                   = 5;
 
 /* Introduced in DOM Level 3: */
+typedef struct marpaXml_UserDataHandler_Context *marpaXml_UserDataHandler_Context_t;
 SUBCLASS(marpaXml_UserDataHandler, Object)
+  marpaXml_UserDataHandler_Context_t _context;
 VTABLE(marpaXml_UserDataHandler, Object)
   void                      (*handle)(unsigned short operation, marpaXml_DOMString_t key, marpaXml_DOMUserData_t data, marpaXml_Node_t src, marpaXml_Node_t dst);
 METHODS
@@ -395,7 +425,9 @@ const unsigned short      MARPAXML_SEVERITY_ERROR                 = 2;
 const unsigned short      MARPAXML_SEVERITY_FATAL_ERROR           = 3;
 
 /* Introduced in DOM Level 3: */
+typedef struct marpaXml_DOMError_Context *marpaXml_DOMError_Context_t;
 SUBCLASS(marpaXml_DOMError, Object)
+  marpaXml_DOMError_Context_t _context;
 VTABLE(marpaXml_DOMError, Object)
   unsigned short        (*getSeverity)(marpaXml_DOMError_t this);
   marpaXml_DOMString_t  (*getMessage)(marpaXml_DOMError_t this);
@@ -409,7 +441,9 @@ METHODS
 END_CLASS
 
 /* Introduced in DOM Level 3: */
+typedef struct marpaXml_DOMErrorHandler_Context *marpaXml_DOMErrorHandler_Context_t;
 SUBCLASS(marpaXml_DOMErrorHandler, Object)
+  marpaXml_DOMErrorHandler_Context_t _context;
 VTABLE(marpaXml_DOMErrorHandler, Object)
   marpaXml_boolean_t       (*handleError)(marpaXml_DOMErrorHandler_t this, marpaXml_DOMError_t error);
 METHODS
@@ -418,7 +452,9 @@ METHODS
 END_CLASS
 
 /* Introduced in DOM Level 3: */
+typedef struct marpaXml_DOMLocator_Context *marpaXml_DOMLocator_Context_t;
 SUBCLASS(marpaXml_DOMLocator, Object)
+  marpaXml_DOMLocator_Context_t _context;
 VTABLE(marpaXml_DOMLocator, Object)
   long                 (*getLineNumber)(marpaXml_DOMLocator_t this);
   long                 (*getColumnNumber)(marpaXml_DOMLocator_t this);
@@ -432,7 +468,9 @@ METHODS
 END_CLASS
 
 /* Introduced in DOM Level 3: */
+typedef struct marpaXml_DOMConfiguration_Context *marpaXml_DOMConfiguration_Context_t;
 SUBCLASS(marpaXml_DOMConfiguration, Object)
+  marpaXml_DOMConfiguration_Context_t _context;
 VTABLE(marpaXml_DOMConfiguration, Object)
   void                      (*setParameter)(marpaXml_DOMConfiguration_t this, marpaXml_DOMString_t name, marpaXml_DOMUserData_t value, marpaXml_DOMException_t exception);
   marpaXml_DOMUserData_t    (*getParameter)(marpaXml_DOMConfiguration_t this, marpaXml_DOMString_t name, marpaXml_DOMException_t exception);
@@ -443,14 +481,18 @@ METHODS
   void                        marpaXml_DOMConfiguration_free(marpaXml_DOMConfiguration_t this);
 END_CLASS
 
+typedef struct marpaXml_CDATASection_Context *marpaXml_CDATASection_Context_t;
 SUBCLASS(marpaXml_CDATASection, marpaXml_Text)
+  marpaXml_CDATASection_Context_t _context;
 VTABLE(marpaXml_CDATASection, marpaXml_Text)
 METHODS
   marpaXml_CDATASection_t marpaXml_CDATASection_new();
   void                    marpaXml_CDATASection_free(marpaXml_CDATASection_t this);
 END_CLASS
 
+typedef struct marpaXml_DocumentType_Context *marpaXml_DocumentType_Context_t;
 SUBCLASS(marpaXml_DocumentType, marpaXml_Node)
+  marpaXml_DocumentType_Context_t _context;
 VTABLE(marpaXml_DocumentType, marpaXml_Node)
   marpaXml_DOMString_t    (*getName)(marpaXml_DocumentType_t this);
   marpaXml_NamedNodeMap_t (*getEntities)(marpaXml_DocumentType_t this);
@@ -466,7 +508,9 @@ METHODS
   void                      marpaXml_DocumentType_free(marpaXml_DocumentType_t this);
 END_CLASS
 
+typedef struct marpaXml_Notation_Context *marpaXml_Notation_Context_t;
 SUBCLASS(marpaXml_Notation, marpaXml_Node)
+  marpaXml_Notation_Context_t _context;
 VTABLE(marpaXml_Notation, marpaXml_Node)
   marpaXml_DOMString_t (*getPublicId)(marpaXml_Notation_t this);
   marpaXml_DOMString_t (*getSystemId)(marpaXml_Notation_t this);
@@ -475,7 +519,9 @@ METHODS
   void                    marpaXml_Notation_free(marpaXml_Notation_t this);
 END_CLASS
 
+typedef struct marpaXml_Entity_Context *marpaXml_Entity_Context_t;
 SUBCLASS(marpaXml_Entity, marpaXml_Node)
+  marpaXml_Entity_Context_t _context;
 VTABLE(marpaXml_Entity, marpaXml_Node)
   marpaXml_DOMString_t       (*getPublicId)(marpaXml_Entity_t this);
   marpaXml_DOMString_t       (*getSystemId)(marpaXml_Entity_t this);
@@ -491,14 +537,18 @@ METHODS
   void                         marpaXml_Entity_free(marpaXml_Entity_t this);
 END_CLASS
 
+typedef struct marpaXml_EntityReference_Context *marpaXml_EntityReference_Context_t;
 SUBCLASS(marpaXml_EntityReference, marpaXml_Node)
+  marpaXml_EntityReference_Context_t _context;
 VTABLE(marpaXml_EntityReference, marpaXml_Node)
 METHODS
   marpaXml_EntityReference_t   marpaXml_EntityReference_new();
   void                         marpaXml_EntityReference_free(marpaXml_EntityReference_t this);
 END_CLASS
 
+typedef struct marpaXml_ProcessingInstruction_Context *marpaXml_ProcessingInstruction_Context_t;
 SUBCLASS(marpaXml_ProcessingInstruction, marpaXml_Node)
+  marpaXml_ProcessingInstruction_Context_t _context;
 VTABLE(marpaXml_ProcessingInstruction, marpaXml_Node)
   marpaXml_DOMString_t             (*getTarget)(marpaXml_ProcessingInstruction_t this);
   marpaXml_DOMString_t             (*getData)(marpaXml_ProcessingInstruction_t this);
@@ -508,14 +558,18 @@ METHODS
   void                               marpaXml_ProcessingInstruction_free(marpaXml_ProcessingInstruction_t this);
 END_CLASS
 
+typedef struct marpaXml_DocumentFragment_Context *marpaXml_DocumentFragment_Context_t;
 SUBCLASS(marpaXml_DocumentFragment, marpaXml_Node)
+  marpaXml_DocumentFragment_Context_t _context;
 VTABLE(marpaXml_DocumentFragment, marpaXml_Node)
 METHODS
   marpaXml_DocumentFragment_t   marpaXml_DocumentFragment_new();
   void                          marpaXml_DocumentFragment_free(marpaXml_DocumentFragment_t this);
 END_CLASS
 
+typedef struct marpaXml_Document_Context *marpaXml_Document_Context_t;
 SUBCLASS(marpaXml_Document, marpaXml_Node)
+  marpaXml_Document_Context_t _context;
 VTABLE(marpaXml_Document, marpaXml_Node)
   /* Modified in DOM Level 3: */
   marpaXml_DocumentType_t          (*getDoctype)(marpaXml_Document_t this);
