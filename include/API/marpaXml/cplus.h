@@ -39,8 +39,8 @@
 * Quantum Leaps licensing: http://www.quantum-leaps.com/licensing
 * e-mail:                  sales@quatnum-leaps.com
 *****************************************************************************/
-#ifndef cplus_h
-#define cplus_h
+#ifndef MARPAXML_CPLUS_H
+#define MARPAXML_CPLUS_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -136,4 +136,4 @@ extern ObjectVTABLE CP_ObjectVTABLE;             /* Object class descriptor */
 #define CLASS_METH(name_, meth_) name_##meth_
 #define CLASS_TYPEDEF(name_) typedef struct name_##Tag * CLASS_TYPE(name_)
 
-#endif                                                           /* cplus_h */
+#endif /* MARPAXML_CPLUS_H */

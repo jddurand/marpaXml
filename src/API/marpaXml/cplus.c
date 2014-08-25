@@ -39,7 +39,7 @@
 * Quantum Leaps licensing: http://www.quantum-leaps.com/licensing
 * e-mail:                  sales@quatnum-leaps.com
 *****************************************************************************/
-#include "cplus.h"
+#include "marpaXml/cplus.h"
 #include <assert.h>
 
 /* Global objects ----------------------------------------------------------*/

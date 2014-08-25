@@ -200,7 +200,8 @@ ADD_LIBRARY (marpaXml
   ${PROJECT_SOURCE_DIR}/src/internal/grammar/xml_common.c
   ${PROJECT_SOURCE_DIR}/src/internal/grammar/xml_1_0.c
   ${PROJECT_SOURCE_DIR}/src/internal/grammar/xml_1_1.c
-  ${PROJECT_SOURCE_DIR}/src/API/marpaXml/DOM.c
+  ${PROJECT_SOURCE_DIR}/src/API/marpaXml/String.c
+  ${PROJECT_SOURCE_DIR}/src/API/marpaXml/DOM2.c
   ${PROJECT_SOURCE_DIR}/src/API/marpaXml/cplus.c
   ${PROJECT_SOURCE_DIR}/src/API/marpaXml/log.c
   ${PROJECT_SOURCE_DIR}/xxhash-read-only/xxhash.c
@@ -293,6 +294,9 @@ TARGET_LINK_LIBRARIES (log_test marpaXml)
 
 ADD_EXECUTABLE        (DOM_test ${PROJECT_SOURCE_DIR}/test/API/DOM.c)
 TARGET_LINK_LIBRARIES (DOM_test marpaXml sqlite ${CMAKE_THREAD_LIBS_INIT})
+
+ADD_EXECUTABLE        (String_test ${PROJECT_SOURCE_DIR}/test/API/String_test.c)
+TARGET_LINK_LIBRARIES (String_test marpaXml)
 
 ADD_EXECUTABLE        (ICU4CDetectEncoding ${PROJECT_SOURCE_DIR}/test/internal/ICU4CDetectEncoding.c)
 

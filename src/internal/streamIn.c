@@ -157,22 +157,25 @@ streamIn_t *streamIn_newp(streamInOption_t *streamInOptionp) {
     return NULL;
   }
 
-  streamInp->nByteBufi     = 0;
-  streamInp->byteBufpp     = NULL;
+  streamInp->nByteBufi         = 0;
+  streamInp->byteBufpp         = NULL;
   streamInp->realSizeByteBufip = NULL;
-  streamInp->managedbp     = NULL;
-  streamInp->eofb          = 0;
-  streamInp->utf8b         = STREAMIN_BOOL_FALSE;
+  streamInp->managedbp         = NULL;
+  streamInp->eofb              = 0;
+  streamInp->utf8b             = STREAMIN_BOOL_FALSE;
 
   /* From now on we can use STREAMIN_LOG macro */
+  if (streamInOptionp != NULL) {
+    streamInp->marpaXmlLogp = marpaXmlLog_newp(streamInOptionp->logCallbackp, streamInOptionp->logCallbackDatavp, streamInOptionp->logLevelWantedi);
+  } else {
+    streamInp->marpaXmlLogp = marpaXmlLog_newp(NULL, NULL, MARPAXML_LOGLEVEL_WARNING);
+  }
 
   streamIn_optionDefaultb(&(streamInp->streamInOption));
   if (_streamIn_optionb(streamInp, streamInOptionp) == STREAMIN_BOOL_FALSE) {
     streamIn_destroyv(&streamInp);
     return NULL;
   }
-
-  streamInp->marpaXmlLogp = marpaXmlLog_newp(streamInp->streamInOption.logCallbackp, streamInp->streamInOption.logCallbackDatavp, streamInp->streamInOption.logLevelWantedi);
 
   return streamInp;
 }
@@ -189,16 +192,6 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_newb(streamIn_t *streamInp) {
   if (U_FAILURE(uErrorCode)) {
     return STREAMIN_BOOL_FALSE;
   }
-
-  streamInp->streamIn_ICU.byteBuf2UCharByteLengthlp = NULL;
-  streamInp->streamIn_ICU.ucharMarkedOffsetl       = 0;
-  streamInp->streamIn_ICU.ucharBufMulSizei         = 2;
-  streamInp->streamIn_ICU.ucharBufp                = NULL;
-  streamInp->streamIn_ICU.ucharBufSizel            = 0;
-  streamInp->streamIn_ICU.ucharByteLengthl         = 0;
-  streamInp->streamIn_ICU.uConverterFrom           = NULL;
-  streamInp->streamIn_ICU.uConverterTo             = NULL;
-  streamInp->streamIn_ICU.utextp                   = NULL;
 
   switch (streamInp->streamInUtf8Option.ICUFromCallback) {
   case STREAMINUTF8OPTION_ICU_DEFAULT:
@@ -254,6 +247,8 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_newb(streamIn_t *streamInp) {
   }
 
   switch (streamInp->streamInUtf8Option.ICUToCallback) {
+  case STREAMINUTF8OPTION_ICU_DEFAULT:
+    break;
   case STREAMINUTF8OPTION_ICU_SUBSTITUTE:
     streamInp->streamIn_ICU.uConverterToUCallback     = UCNV_TO_U_CALLBACK_SUBSTITUTE;
     streamInp->streamIn_ICU.uConverterToUCallbackCtxp = NULL;
@@ -318,7 +313,16 @@ streamIn_t *streamInUtf8_newp(streamInOption_t *streamInOptionp, streamInUtf8Opt
     return NULL;
   }
 
-  streamInp->utf8b = STREAMIN_BOOL_TRUE;
+  streamInp->utf8b                                  = STREAMIN_BOOL_TRUE;
+  streamInp->streamIn_ICU.byteBuf2UCharByteLengthlp = NULL;
+  streamInp->streamIn_ICU.ucharMarkedOffsetl        = 0;
+  streamInp->streamIn_ICU.ucharBufMulSizei          = 2;
+  streamInp->streamIn_ICU.ucharBufp                 = NULL;
+  streamInp->streamIn_ICU.ucharBufSizel             = 0;
+  streamInp->streamIn_ICU.ucharByteLengthl          = 0;
+  streamInp->streamIn_ICU.uConverterFrom            = NULL;
+  streamInp->streamIn_ICU.uConverterTo              = NULL;
+  streamInp->streamIn_ICU.utextp                    = NULL;
 
   streamInUtf8_optionDefaultb(&(streamInp->streamInUtf8Option));
   if (_streamInUtf8_optionb(streamInp, streamInUtf8Optionp) == STREAMIN_BOOL_FALSE) {
@@ -355,9 +359,14 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_doneBufferb(streamIn_t *streamI
   if ((bufIndexi + 1) == streamInp->nByteBufi) {
     /* In fact we destroy everything */
 
-    STREAMIN_FREE(streamInp->streamIn_ICU.byteBuf2UCharByteLengthlp);
+    /* In case of EOF, these buffers can be NULL */
+    if (streamInp->streamIn_ICU.byteBuf2UCharByteLengthlp != NULL) {
+      STREAMIN_FREE(streamInp->streamIn_ICU.byteBuf2UCharByteLengthlp);
+    }
     streamInp->streamIn_ICU.ucharMarkedOffsetl = 0;
-    STREAMIN_FREE(streamInp->streamIn_ICU.ucharBufp);
+    if (streamInp->streamIn_ICU.ucharBufp != NULL) {
+      STREAMIN_FREE(streamInp->streamIn_ICU.ucharBufp);
+    }
     streamInp->streamIn_ICU.ucharBufSizel = 0;
     streamInp->streamIn_ICU.ucharByteLengthl = 0;
 
@@ -725,7 +734,10 @@ static C_INLINE streamInBool_t _streamIn_readb(streamIn_t *streamInp) {
   if (byteManagedArrayp != NULL) {
     /* User-defined buffer */
     streamInp->managedbp[bufIndexi]  = STREAMIN_BOOL_TRUE;
-    STREAMIN_FREE_REPLACEMENT(streamInp->byteBufpp[bufIndexi], byteManagedArrayp);
+    if (streamInp->byteBufpp[bufIndexi] != NULL) {
+      STREAMIN_FREE(streamInp->byteBufpp[bufIndexi]);
+    }
+    streamInp->byteBufpp[bufIndexi] = byteManagedArrayp;
   }
 
   STREAMIN_TRACEX("read callback filled %d bytes in buffer No %d", streamInp->realSizeByteBufip[bufIndexi], bufIndexi);
@@ -1456,6 +1468,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_optionb(streamIn_t *streamInp, 
 
   if (streamInUtf8Optionp != NULL) {
       switch (streamInUtf8Optionp->ICUFromCallback) {
+      case STREAMINUTF8OPTION_ICU_DEFAULT:
       case STREAMINUTF8OPTION_ICU_SUBSTITUTE:
       case STREAMINUTF8OPTION_ICU_SKIP:
       case STREAMINUTF8OPTION_ICU_STOP:
@@ -1474,6 +1487,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_optionb(streamIn_t *streamInp, 
       }
 
       switch (streamInUtf8Optionp->ICUToCallback) {
+      case STREAMINUTF8OPTION_ICU_DEFAULT:
       case STREAMINUTF8OPTION_ICU_SUBSTITUTE:
       case STREAMINUTF8OPTION_ICU_SKIP:
       case STREAMINUTF8OPTION_ICU_STOP:
