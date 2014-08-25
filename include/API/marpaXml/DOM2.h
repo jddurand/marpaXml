@@ -75,23 +75,6 @@ CLASS_TYPEDEF(marpaXml_Element);
 CLASS_TYPEDEF(marpaXml_TypeInfo);
 CLASS_TYPEDEF(marpaXml_DOMLocator);
 
-/* Master class. All others inherit from it.
-   This class is responsible of:
-   - calling marpaXml_init() if not already done
-   - provide a thread-safe context
-*/
-typedef struct marpaXml_DOM_Context *marpaXml_DOM_Context_t;
-SUBCLASS(marpaXml_DOM, Object)
-  marpaXml_DOM_Context_t context;
-VTABLE(marpaXml_DOM, Object)
-  marpaXml_DOM_t          (*new)();
-  marpaXml_DOM_Context_t  (*getContext)();
-  marpaXml_DOM_Context_t  (*setContext)(marpaXml_DOM_Context_t context);
-  marpaXml_DOM_Context_t  (*freeContext)();
-  void                    (*free)(marpaXml_DOM_t this);
-METHODS
-END_CLASS
-
 typedef struct marpaXml_DOMException_Context *marpaXml_DOMException_Context_t;
 SUBCLASS(marpaXml_DOMException, Object)
   marpaXml_DOMException_Context_t _context;
