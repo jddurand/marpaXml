@@ -45,15 +45,18 @@ typedef struct marpaXml_DOM_Option {
   const char                  *dbFilename;                    /* Default: ":memory:"                          */
   const char                  *locale;                        /* Default: NULL                                */
   int                          collStrength;                  /* Default: -1                                  */
-} marpaXml_DOM_Option_t;
+} *marpaXml_DOM_Option_t;
 
 /*
-  Can be called several times, but one is enough. Defaults will apply ONLY if parameter is NULL
+  Can be called several times, but one is enough. Defaults will apply ONLY if parameter is NULL.
+  This routine is thread-safe.
+  If not called explicitely, it is guaranteed that all other methods will do it with a NULL parameter.
 */
-marpaXml_boolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Optionp);
+marpaXml_boolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t marpaXml_DOM_Option);
 /*
-  Must be called once only, typically at program exit or library unload, one call at at time: this routine is not thread-safe.
-  All in all, simply do not call it - the memory leaks are small. On failure, using DOMError is not supported.
+  Must be called once only, typically at program exit or library unload.
+  This routine is not thread-safe.
+  All in all, simply do not call it - the memory leaks are small.
 */
 marpaXml_boolean_t marpaXml_DOM_release(void);
 
@@ -72,9 +75,26 @@ CLASS_TYPEDEF(marpaXml_Element);
 CLASS_TYPEDEF(marpaXml_TypeInfo);
 CLASS_TYPEDEF(marpaXml_DOMLocator);
 
+/* Master class. All others inherit from it.
+   This class is responsible of:
+   - calling marpaXml_init() if not already done
+   - provide a thread-safe context
+*/
+typedef struct marpaXml_DOM_Context *marpaXml_DOM_Context_t;
+SUBCLASS(marpaXml_DOM, Object)
+  marpaXml_DOM_Context_t context;
+VTABLE(marpaXml_DOM, Object)
+  marpaXml_DOM_t          (*new)();
+  marpaXml_DOM_Context_t  (*getContext)();
+  marpaXml_DOM_Context_t  (*setContext)(marpaXml_DOM_Context_t context);
+  marpaXml_DOM_Context_t  (*freeContext)();
+  void                    (*free)(marpaXml_DOM_t this);
+METHODS
+END_CLASS
+
+typedef struct marpaXml_DOMException_Context *marpaXml_DOMException_Context_t;
 SUBCLASS(marpaXml_DOMException, Object)
-  unsigned short       _code;
-  marpaXml_DOMString_t _message;
+  marpaXml_DOMException_Context_t _context;
 VTABLE(marpaXml_DOMException, Object)
   marpaXml_DOMException_t (*new)(short code, marpaXml_DOMString_t message);
   unsigned short          (*getCode)(marpaXml_DOMException_t this);

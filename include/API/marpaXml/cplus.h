@@ -49,6 +49,7 @@ extern "C" {
               /* Macros for declaring simple classes (without polymorphism) */
 #define CLASS(name_) \
     typedef struct name_##Tag name_; \
+    typedef struct name_##Tag * name_##_t; \
     struct name_##Tag {
 #define METHODS };
 #define END_CLASS
@@ -130,7 +131,9 @@ extern ObjectVTABLE CP_ObjectVTABLE;             /* Object class descriptor */
 }
 #endif
 
-/* Addon : forward declaration of type */
-#define FORWARD_CLASS(name_) typedef struct name_##Tag name_;
+/* Addons */
+#define CLASS_TYPE(name_) name_##_t
+#define CLASS_METH(name_, meth_) name_##meth_
+#define CLASS_TYPEDEF(name_) typedef struct name_##Tag * CLASS_TYPE(name_)
 
 #endif                                                           /* cplus_h */
