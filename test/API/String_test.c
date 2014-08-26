@@ -17,23 +17,40 @@ int main(int argc, char **argv) {
     NULL,
     NULL
   };
-  size_t byteLength[4];
+  size_t byteLength[6];
+  size_t length[6];
 
   marpaXml_String_t marpaXml_String1 = marpaXml_String_new(&option);
-  marpaXml_String_t marpaXml_String2 = marpaXml_String_newFromUTF8(TESTSTRING, NULL);
-  marpaXml_String_t marpaXml_String3 = marpaXml_String_newFromUTF8AndByteLength(TESTSTRING, sizeof(TESTSTRING), NULL);
-  marpaXml_String_t marpaXml_String4 = marpaXml_String_newFromUTF8AndByteLength(TESTSTRING, strlen(TESTSTRING), NULL);  /* Null byte volontarily ommited */
-  marpaXml_String_t marpaXml_String5 = marpaXml_String_newFromAnyAndByteLengthAndCharset(TESTSTRING, strlen(TESTSTRING), NULL, NULL);  /* Null byte volontarily ommited */
-  char *String6 = marpaXml_String_encode(marpaXml_String5, &(byteLength[0]), NULL, "UTF-16", NULL);
-  char *String7 = marpaXml_String_encode(marpaXml_String5, &(byteLength[1]), NULL, "UTF-16LE", NULL);
-  char *String8 = marpaXml_String_encode(marpaXml_String5, &(byteLength[2]), NULL, "UTF-16BE", NULL);
-  char *String9 = marpaXml_String_encode(marpaXml_String5, &(byteLength[3]), NULL, "KOI8_R", NULL);
+  marpaXml_String_t marpaXml_String2 = marpaXml_String_newFromUTF8(TESTSTRING, &option);
+  marpaXml_String_t marpaXml_String3 = marpaXml_String_newFromUTF8AndByteLength(TESTSTRING, sizeof(TESTSTRING), &option);
+  marpaXml_String_t marpaXml_String4 = marpaXml_String_newFromUTF8AndByteLength(TESTSTRING, strlen(TESTSTRING), &option);  /* Null byte volontarily ommited */
+  marpaXml_String_t marpaXml_String5 = marpaXml_String_newFromAnyAndByteLengthAndCharset(TESTSTRING, strlen(TESTSTRING), NULL, &option);  /* Null byte volontarily ommited */
+  char *String6  = marpaXml_String_encode(marpaXml_String5, &(byteLength[0]), &(length[0]), "UTF-16", &option);
+  char *String7  = marpaXml_String_encode(marpaXml_String5, &(byteLength[1]), &(length[1]), "UTF-16LE", &option);
+  char *String8  = marpaXml_String_encode(marpaXml_String5, &(byteLength[2]), &(length[2]), "UTF-16BE", &option);
+  char *String9  = marpaXml_String_encode(marpaXml_String5, &(byteLength[3]), &(length[3]), "KOI8_R", &option);
+  char *String10 = marpaXml_String_encode(marpaXml_String3, &(byteLength[4]), &(length[4]), "UTF-16", &option);
+  char *String11 = marpaXml_String_encode(marpaXml_String3, &(byteLength[5]), &(length[5]), "UTF-16LE", &option);
 
-  hexdump(marpaXml_String_getUtf8(marpaXml_String5), marpaXml_String_getByteLength(marpaXml_String5));
+  fprintf(stdout, "\nUTF-8   : %d characters, %d bytes (input with null byte)\n", marpaXml_String_getLength(marpaXml_String3), marpaXml_String_getOrigUtf8ByteLength(marpaXml_String3));
+  hexdump(marpaXml_String_getUtf8(marpaXml_String3), marpaXml_String_getOrigUtf8ByteLength(marpaXml_String3));
+  fprintf(stdout, "UTF-16  : %d characters, %d bytes (original input with null byte)\n", length[4], byteLength[4]);
+  hexdump(String10, byteLength[4]);
+  fprintf(stdout, "UTF-16LE: %d characters, %d bytes (original input with null byte)\n", length[5], byteLength[5]);
+  hexdump(String11, byteLength[5]);
 
+  fprintf(stdout, "\n");
+  fprintf(stdout, "UTF-8   : %d characters, %d bytes (input without null byte)\n", marpaXml_String_getLength(marpaXml_String4), marpaXml_String_getOrigUtf8ByteLength(marpaXml_String4));
+  hexdump(marpaXml_String_getUtf8(marpaXml_String4), marpaXml_String_getOrigUtf8ByteLength(marpaXml_String4));
+  fprintf(stdout, "UTF-8   : %d characters, %d bytes (input without null byte)\n", marpaXml_String_getLength(marpaXml_String5), marpaXml_String_getOrigUtf8ByteLength(marpaXml_String5));
+  hexdump(marpaXml_String_getUtf8(marpaXml_String5), marpaXml_String_getOrigUtf8ByteLength(marpaXml_String5));
+  fprintf(stdout, "UTF-16  : %d characters, %d bytes\n", length[0], byteLength[0]);
   hexdump(String6, byteLength[0]);
+  fprintf(stdout, "UTF-16LE: %d characters, %d bytes\n", length[1], byteLength[1]);
   hexdump(String7, byteLength[1]);
+  fprintf(stdout, "UTF-16BE: %d characters, %d bytes\n", length[2], byteLength[2]);
   hexdump(String8, byteLength[2]);
+  fprintf(stdout, "KOI8_R  : %d characters, %d bytes\n", length[3], byteLength[3]);
   hexdump(String9, byteLength[3]);
 
   marpaXml_String_free(&marpaXml_String1);
@@ -45,6 +62,8 @@ int main(int argc, char **argv) {
   free(String7);
   free(String8);
   free(String9);
+  free(String10);
+  free(String11);
 
   return 0;
 }

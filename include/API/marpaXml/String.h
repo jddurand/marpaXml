@@ -40,12 +40,15 @@ CLASS(marpaXml_String)
 METHODS
   marpaXml_String_t           marpaXml_String_new(marpaXml_String_Option_t option);       /* Creates an empty string */
   marpaXml_String_t           marpaXml_String_newFromUTF8(char *utf8, marpaXml_String_Option_t option);  /* Assumes a VALID UTF-8 null terminated string */
-  marpaXml_String_t           marpaXml_String_newFromUTF8AndByteLength(char *utf8, size_t byteLength, marpaXml_String_Option_t option); /* Ditto */
-  marpaXml_String_t           marpaXml_String_newFromAnyAndByteLengthAndCharset(char *bytes, size_t byteLength, char *charset, marpaXml_String_Option_t option);
-  char                       *marpaXml_String_getUtf8(marpaXml_String_t this);
-  size_t                      marpaXml_String_getByteLength(marpaXml_String_t this);
-  size_t                      marpaXml_String_getLength(marpaXml_String_t this);
-  char                       *marpaXml_String_encode(marpaXml_String_t this, size_t *byteLengthp, size_t *lengthp, char *charset, marpaXml_String_Option_t option);  /* Convert to any charset: user will have to free it */
+  marpaXml_String_t           marpaXml_String_newFromUTF8AndByteLength(char *utf8, size_t byteLength, marpaXml_String_Option_t option); /* May not end with a null byte */
+  marpaXml_String_t           marpaXml_String_newFromAnyAndByteLengthAndCharset(char *bytes, size_t byteLength, char *charset, marpaXml_String_Option_t option); /* Ditto with charset's null */
+
+  char                       *marpaXml_String_getUtf8(marpaXml_String_t this);               /* Always a null terminated UTF-8 string */
+  size_t                      marpaXml_String_getUtf8ByteLength(marpaXml_String_t this);     /* Always with the null byte at the end */
+  size_t                      marpaXml_String_getOrigUtf8ByteLength(marpaXml_String_t this); /* When input did not have a null byte, UTF-8 byte length without the included null byte */
+  size_t                      marpaXml_String_getLength(marpaXml_String_t this);             /* Number of characters, null character always ommited */
+  marpaXml_boolean_t          marpaXml_String_getNullByteAddedb(marpaXml_String_t this);     /* if marpaXml_true, a null byte has been added in internal representation */
+  char                       *marpaXml_String_encode(marpaXml_String_t this, size_t *byteLengthp, size_t *lengthp, char *charset, marpaXml_String_Option_t option);  /* Convert to any charset: user will have to free it. If input did NOT have a null byte, neither will the output */
   void                        marpaXml_String_free(marpaXml_String_t *thisp);
 END_CLASS
 
