@@ -124,6 +124,7 @@ streamInBool_t streamInUtf8_currentFromMarkedb(streamIn_t *streamInp);          
 streamInBool_t streamInUnicode_fromEncodings  (streamIn_t *streamInp, char **fromEncodingsp);                           /* Get input encoding */
 streamInBool_t streamInUnicode_toEncodings    (streamIn_t *streamInp, char **toEncodingsp);                             /* Get output encoding */
 streamInBool_t streamInUnicode_nextBufferb    (streamIn_t *streamInp, size_t *indexBufferip, char **byteArraypp, size_t *bytesInBufferp, size_t *lengthInBufferp);
+/* Take care: *lengthInBufferp is the NATIVE length, i.e. the null character, if any, is counted. This is not strlen. */
 streamInBool_t streamInUnicode_getBufferb     (streamIn_t *streamInp, int indexBufferi, size_t *indexBufferip, char **byteArraypp, size_t *bytesInBufferp, size_t *lengthInBufferp);
 streamInBool_t streamInUnicode_doneBufferb    (streamIn_t *streamInp, int indexBufferi);
 

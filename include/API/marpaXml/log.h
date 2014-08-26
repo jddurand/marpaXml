@@ -30,6 +30,15 @@ marpaXmlLog_t        *marpaXmlLog_newp(marpaXmlLogCallback_t logCallbackp, void 
 void                  marpaXmlLog_freev(marpaXmlLog_t **marpaXmlLogpp);
 
 
+/*****************************************/
+/* Convenience structure for log options */
+/*****************************************/
+typedef struct marpaXmlLog_Option {
+  marpaXmlLogCallback_t logCallbackp;
+  void                 *logCallbackDatavp;
+  marpaXmlLogLevel_t    logLevelWantedi;
+} marpaXmlLog_Option_t;
+
 /* C99 has problems with empty __VA_ARGS__ so we split macros in two categories: */
 /* logging with no variable parameter */
 /* logging with    variable paramerer(s) */

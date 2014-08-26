@@ -49,7 +49,7 @@ extern "C" {
               /* Macros for declaring simple classes (without polymorphism) */
 #define CLASS(name_) \
     typedef struct name_##Tag name_; \
-    typedef struct name_##Tag * name_##_t; \
+    typedef struct name_##Tag name_##_t; \
     struct name_##Tag {
 #define METHODS };
 #define END_CLASS
@@ -127,13 +127,10 @@ extern ObjectVTABLE CP_ObjectVTABLE;             /* Object class descriptor */
                                /* Find an offset of a member into its class */
 #define OFFSET_OF(class_, attr_) ((unsigned)&((class_ *)0)->attr_)
 
+#define CLASS_FORWARDDECL_AS_PTR(name_) typedef struct name_##Tag * name_##p_t;
+
 #ifdef __cplusplus
 }
 #endif
-
-/* Addons */
-#define CLASS_TYPE(name_) name_##_t
-#define CLASS_METH(name_, meth_) name_##meth_
-#define CLASS_TYPEDEF(name_) typedef struct name_##Tag * CLASS_TYPE(name_)
 
 #endif /* MARPAXML_CPLUS_H */
