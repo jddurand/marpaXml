@@ -3,7 +3,6 @@
 
 #include <sys/types.h>
 #include "marpaXml/log.h"
-#include "cplus.h"
 
 /*
  * Copyright (c) 2004 World Wide Web Consortium,
@@ -622,69 +621,5 @@ marpaXml_DOMConfiguration_t      marpaXml_Document_getDomConfig(void);
 void                             marpaXml_Document_normalizeDocument(void);
 /* Introduced in DOM Level 3: */
 marpaXml_Node_t                  marpaXml_Document_renameNode(marpaXml_Node_t n, marpaXml_DOMString_t namespaceURI, marpaXml_DOMString_t qualifiedName, marpaXml_DOMException_t *DOMExceptionp); /* raises(DOMException): NOT_SUPPORTED_ERR, INVALID_CHARACTER_ERR, WRONG_DOCUMENT_ERR, NAMESPACE_ERR */
-
-/* Prelease basic types used in the DOM idl */
-#include "marpaXml/_types.h"
-
-/* All classes inherit from dom, that is an object which is holding a context: */
-SUBCLASS(DOM, Object)
-  void *ctx;
-VTABLE(DOM, Object)
-  void *(*getCtx)();
-  void *(*setCtx)(void *ctx);
-METHODS
-  DOM *DOM_new();
-  void DOM_free(DOM *me);
-END_CLASS
-
-/* ----------------------------------------------------------------------------------- */
-/* We are following exactly the declaration sequences in official DOM Level 3 Code IDL */
-/* ----------------------------------------------------------------------------------- */
-/* We FIX DOMString to be a NULL-byte terminated UTF-8 */
-typedef unsigned char DOMString[];
-/* Unused, but we declare it anyway */
-typedef unsigned long long DOMTimeStamp;
-/* Others */
-typedef void *DOMUserData;
-typedef Object DOMObject;
-/* Forward declarations */
-FORWARD_CLASS(DOMImplementation);
-FORWARD_CLASS(DocumentType);
-FORWARD_CLASS(Document);
-FORWARD_CLASS(NodeList);
-FORWARD_CLASS(NamedNodeMap);
-FORWARD_CLASS(UserDataHandler);
-FORWARD_CLASS(Element);
-FORWARD_CLASS(TypeInfo);
-FORWARD_CLASS(DOMLocator);
-
-#include "DOM/DOMException.h"
-#include "DOM/DOMStringList.h"
-#include "DOM/NameList.h"
-#include "DOM/DOMImplementationList.h"
-#include "DOM/DOMImplementationSource.h"
-#include "DOM/DOMImplementation.h"
-#include "DOM/Node.h"
-#include "DOM/NodeList.h"
-#include "DOM/NamedNodeMap.h"
-#include "DOM/CharacterData.h"
-#include "DOM/Attr.h"
-#include "DOM/Element.h"
-#include "DOM/Text.h"
-#include "DOM/Comment.h"
-#include "DOM/TypeInfo.h"
-#include "DOM/UserDataHandler.h"
-#include "DOM/DOMError.h"
-#include "DOM/DOMErrorHandler.h"
-#include "DOM/DOMLocator.h"
-#include "DOM/DOMConfiguration.h"
-#include "DOM/CDATASection.h"
-#include "DOM/DocumentType.h"
-#include "DOM/Notation.h"
-#include "DOM/Entity.h"
-#include "DOM/EntityReference.h"
-#include "DOM/ProcessingInstruction.h"
-#include "DOM/DocumentFragment.h"
-#include "DOM/Document.h"
 
 #endif /* MARPAXML_API_DOM_H_ */

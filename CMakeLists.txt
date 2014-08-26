@@ -178,7 +178,11 @@ SET_PROPERTY (TARGET sqlite APPEND_STRING PROPERTY COMPILE_FLAGS " -DSQLITE_MAX_
 #
 SET_PROPERTY (TARGET sqlite APPEND_STRING PROPERTY COMPILE_FLAGS " -DSQLITE_64BIT_STATS")
 #
-# Make sure db connection is serialized for multithread concurrent access
+# Make sure db connection is serialized for multithread concurrent access. This mean
+# that SQLite will systematically serialize any access to database connection and
+# prepared statement. I.e. there is no need for us to mutex on our database connection.
+# We just make sure that there is one and that all statements are prepared using
+# marpaXml_DOM_init().
 #
 SET_PROPERTY (TARGET sqlite APPEND_STRING PROPERTY COMPILE_FLAGS " -DSQLITE_THREADSAFE=1")
 #

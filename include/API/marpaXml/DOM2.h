@@ -65,15 +65,15 @@ typedef void marpaXml_DOMUserData_t;
 typedef Object marpaXml_DOMObject_t;
 
 /* Forward declarations */
-CLASS_FORWARDDECL_AS_PTR(marpaXml_DOMImplementation);
-CLASS_FORWARDDECL_AS_PTR(marpaXml_DocumentType);
-CLASS_FORWARDDECL_AS_PTR(marpaXml_Document);
-CLASS_FORWARDDECL_AS_PTR(marpaXml_NodeList);
-CLASS_FORWARDDECL_AS_PTR(marpaXml_NamedNodeMap);
-CLASS_FORWARDDECL_AS_PTR(marpaXml_UserDataHandler);
-CLASS_FORWARDDECL_AS_PTR(marpaXml_Element);
-CLASS_FORWARDDECL_AS_PTR(marpaXml_TypeInfo);
-CLASS_FORWARDDECL_AS_PTR(marpaXml_DOMLocator);
+CLASS_FORWARDDECL_AS_PTR(marpaXml_DOMImplementation)
+CLASS_FORWARDDECL_AS_PTR(marpaXml_DocumentType)
+CLASS_FORWARDDECL_AS_PTR(marpaXml_Document)
+CLASS_FORWARDDECL_AS_PTR(marpaXml_NodeList)
+CLASS_FORWARDDECL_AS_PTR(marpaXml_NamedNodeMap)
+CLASS_FORWARDDECL_AS_PTR(marpaXml_UserDataHandler)
+CLASS_FORWARDDECL_AS_PTR(marpaXml_Element)
+CLASS_FORWARDDECL_AS_PTR(marpaXml_TypeInfo)
+CLASS_FORWARDDECL_AS_PTR(marpaXml_DOMLocator)
 
 
 typedef struct marpaXml_DOMException_Context marpaXml_DOMException_Context_t;
@@ -447,6 +447,7 @@ METHODS
 END_CLASS
 
 /* ErrorSeverity */
+const unsigned short      MARPAXML_SEVERITY_NONE                  = 0;
 const unsigned short      MARPAXML_SEVERITY_WARNING               = 1;
 const unsigned short      MARPAXML_SEVERITY_ERROR                 = 2;
 const unsigned short      MARPAXML_SEVERITY_FATAL_ERROR           = 3;
