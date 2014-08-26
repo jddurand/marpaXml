@@ -48,7 +48,7 @@ METHODS
   size_t                      marpaXml_String_getOrigUtf8ByteLength(marpaXml_String_t this); /* When input did not have a null byte, UTF-8 byte length without the included null byte */
   size_t                      marpaXml_String_getLength(marpaXml_String_t this);             /* Number of characters, null character always ommited */
   marpaXml_boolean_t          marpaXml_String_getNullByteAddedb(marpaXml_String_t this);     /* if marpaXml_true, a null byte has been added in internal representation */
-  char                       *marpaXml_String_encode(marpaXml_String_t this, size_t *byteLengthp, size_t *lengthp, char *charset, marpaXml_String_Option_t option);  /* Convert to any charset: user will have to free it. If input did NOT have a null byte, neither will the output */
+  char                       *marpaXml_String_encode(marpaXml_String_t this, size_t *byteLengthp, size_t *lengthp, char *charset, marpaXml_String_Option_t option);  /* Convert to any charset: user will have to free it. If input did NOT have a null character at the end, neither will the output */
   void                        marpaXml_String_free(marpaXml_String_t *thisp);
 END_CLASS
 
