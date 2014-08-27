@@ -3,7 +3,6 @@
 
 #include <stddef.h>
 
-#include "marpaXml/cplus.h"
 #include "marpaXml/boolean.h"
 #include "marpaXml/log.h"
 
@@ -34,23 +33,23 @@ typedef struct marpaXml_String_Option {
   marpaXmlLog_Option_t         logOption;
 } marpaXml_String_Option_t;
 
-typedef struct marpaXml_String_Context marpaXml_String_Context_t;
+typedef struct marpaXml_String marpaXml_String_t;
 
-CLASS(marpaXml_String)
-  marpaXml_String_Context_t   *_contextp;
-METHODS
-  marpaXml_String             *marpaXml_String_new(marpaXml_String_Option_t *optionp);       /* Creates an empty string */
-  marpaXml_String             *marpaXml_String_newFromUTF8(char *utf8, marpaXml_String_Option_t *optionp);  /* Assumes a VALID UTF-8 null terminated string */
-  marpaXml_String             *marpaXml_String_newFromUTF8AndByteLength(char *utf8, size_t byteLength, marpaXml_String_Option_t *optionp); /* May not end with a null byte */
-  marpaXml_String             *marpaXml_String_newFromAnyAndByteLengthAndCharset(char *bytes, size_t byteLength, char *charset, marpaXml_String_Option_t *optionp); /* Ditto with charset's null */
+/* Constructors */
+marpaXml_String_t  *marpaXml_String_new(marpaXml_String_Option_t *optionp);       /* Creates an empty string */
+marpaXml_String_t  *marpaXml_String_newFromUTF8(char *utf8, marpaXml_String_Option_t *optionp);  /* Assumes a VALID UTF-8 null terminated string */
+marpaXml_String_t  *marpaXml_String_newFromUTF8AndByteLength(char *utf8, size_t byteLength, marpaXml_String_Option_t *optionp); /* May not end with a null byte */
+marpaXml_String_t  *marpaXml_String_newFromAnyAndByteLengthAndCharset(char *bytes, size_t byteLength, char *charset, marpaXml_String_Option_t *optionp); /* Ditto with charset's null */
 
-  char                       *marpaXml_String_getUtf8(marpaXml_String *thisp);               /* Always a null terminated UTF-8 string */
-  size_t                      marpaXml_String_getUtf8ByteLength(marpaXml_String *thisp);     /* Number of bytes, including null byte */
-  size_t                      marpaXml_String_getLength(marpaXml_String *thisp);             /* Number of characters (minus eventual null byte) */
-  marpaXml_boolean_t          marpaXml_String_getNullByteAddedb(marpaXml_String *thisp);     /* if marpaXml_true, a null byte has been added in internal representation */
-  /* Convert to any charset: user will have to free it. If input did NOT have a null character at the end, neither will the output */
-  char                       *marpaXml_String_encode(marpaXml_String *thisp, size_t *byteLengthp, size_t *lengthp, char *charset, marpaXml_String_Option_t *optionp);
-  void                        marpaXml_String_free(marpaXml_String **thispp);
-END_CLASS
+/* Methods */
+char               *marpaXml_String_getUtf8(marpaXml_String_t *thisp);               /* Always a null terminated UTF-8 string */
+size_t              marpaXml_String_getUtf8ByteLength(marpaXml_String_t *thisp);     /* Number of bytes, including null byte */
+size_t              marpaXml_String_getLength(marpaXml_String_t *thisp);             /* Number of characters (minus eventual null byte) */
+marpaXml_boolean_t  marpaXml_String_getNullByteAddedb(marpaXml_String_t *thisp);     /* if marpaXml_true, a null byte has been added in internal representation */
+/* ... Convert to any charset: user will have to free it. If input did NOT have a null character at the end, neither will the output */
+char               *marpaXml_String_encode(marpaXml_String_t *thisp, size_t *byteLengthp, size_t *lengthp, char *charset, marpaXml_String_Option_t *optionp);
+
+/* Destructor */
+void                marpaXml_String_free(marpaXml_String_t **thispp);
 
 #endif /* MARPAXML_STRING_H */
