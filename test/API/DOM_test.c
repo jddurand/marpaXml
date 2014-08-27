@@ -10,7 +10,7 @@ int main(int argc, char **argv) {
 #ifdef _WIN32
     marpaXml_DOM_Option_t marpaXml_DOM_Option = {"C:\\Windows\\Temp\\test.sqlite", NULL, -1, { NULL, NULL, MARPAXML_LOGLEVEL_TRACE} };
 #else
-    marpaXml_DOM_Option_t marpaXml_DOM_Option = {"/tmp/test.sqlite", NULL, -1, { NULL, NUL, MARPAXML_LOGLEVEL_TRACE } };
+    marpaXml_DOM_Option_t marpaXml_DOM_Option = {"/tmp/test.sqlite", NULL, -1, { NULL, NULL, MARPAXML_LOGLEVEL_TRACE } };
 #endif
 
   /*************************************/
@@ -24,7 +24,7 @@ int main(int argc, char **argv) {
   /*************************************/
   /*            DOMException           */
   /*************************************/
-  messagep = marpaXml_String_newFromUTF8("My Message", NULL);
+  messagep = marpaXml_String_newFromUTF8((char *) "My Message", NULL);
   exceptionp = marpaXml_DOMException_new(2, messagep);
 
   marpaXml_String_free(&messagep);

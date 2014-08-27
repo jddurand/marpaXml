@@ -2,6 +2,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <errno.h>
 
 #include "unicode/ustring.h"
 #include "unicode/uchar.h"
@@ -80,7 +81,7 @@ static const char *_MARPAXML_BINDINT64     = "   BIND";
 static const char *_MARPAXML_STEP          = "   STEP";
 static const char *_MARPAXML_APICALL       = ">>> API";
 static const char *_MARPAXML_INTERNALCALL  = "       ";
-static const char *_MARPAXML_INSERTID      = "INSERTID";
+static const char *_MARPAXML_ID            = "     ID";
 static const char *_MARPAXML_SQLITE_BUSY   = "SQLITE_BUSY";
 static const char *_MARPAXML_SQLITE_DONE   = "SQLITE_DONE";
 static const char *_MARPAXML_SQLITE_ROW    = "SQLITE_ROW";
@@ -210,7 +211,7 @@ static C_INLINE marpaXml_boolean_t _marpaXml_create_function(sqlite3 *db,
 								void (*xDestroy)(void*)) {
   int sqliteRc;
 
-  MARPAXML_TRACEX("[%s]: %s\n", _MARPAXML_NEWFUNC, name != NULL ? name : "(null)");
+  MARPAXML_TRACEX("[%s] %s\n", _MARPAXML_NEWFUNC, name != NULL ? name : "(null)");
   if ((sqliteRc = sqlite3_create_function_v2(db,
 					     name,
 					     nArg,
@@ -757,7 +758,7 @@ static C_INLINE marpaXml_DOMException_t *_marpaXml_DOMException_new(short code, 
     return NULL;
   }
 
-  MARPAXML_TRACEX("[%s] %lld\n", _MARPAXML_INSERTID, (unsigned long long int) rc->_contextp->id);
+  MARPAXML_TRACEX("[%s] %lld\n", _MARPAXML_ID, (unsigned long long int) rc->_contextp->id);
 
   return rc;
 }

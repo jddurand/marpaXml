@@ -4,7 +4,7 @@
  
 #include "API/marpaXml/String.h"
 
-#define TESTSTRING "TestString"
+#define TESTSTRING (char *) "TestString"
 
 void hexdump(void *mem, unsigned int len);
 
@@ -18,9 +18,6 @@ struct marpaXml_String_Option option = {
 };
 
 int main(int argc, char **argv) {
-
-  size_t byteLength[6];
-  size_t length[6];
 
   marpaXml_String_t *s = marpaXml_String_newFromAnyAndByteLengthAndCharset(TESTSTRING, strlen(TESTSTRING), NULL, &option);  /* Null byte volontarily ommited */
 
