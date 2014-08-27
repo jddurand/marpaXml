@@ -11,8 +11,8 @@ struct marpaXml_String {
   size_t             utf8ByteLength;      /* Internal representation: byte length, including eventual forced null byte */
   size_t             length;              /* Number of characters (minus null byte) */
   marpaXml_boolean_t nullByteAddedb;      /* When the input clearly did not have a null byte at the end */
-  marpaXmlLog_t     *_marpaXmlLogp;
-  size_t             _origUtf8ByteLength; /* Internal representation: original UTF-8 byte length */
+  marpaXmlLog_t     *marpaXmlLogp;
+  size_t             origUtf8ByteLength; /* Internal representation: original UTF-8 byte length */
 };
 
 typedef struct marpaXml_streamInData {
@@ -88,8 +88,8 @@ marpaXml_String_t *marpaXml_String_newFromAnyAndByteLengthAndCharset(char *bytes
   thisp->utf8ByteLength = 0;
   thisp->length = 0;
   thisp->nullByteAddedb = marpaXml_false;
-  thisp->_marpaXmlLogp = marpaXmlLogp;
-  thisp->_origUtf8ByteLength = 0;
+  thisp->marpaXmlLogp = marpaXmlLogp;
+  thisp->origUtf8ByteLength = 0;
 
   /* These calls never fail if you provide a non-NULL pointer -; */
   streamIn_optionDefaultb(&streamInOption);
@@ -131,15 +131,15 @@ marpaXml_String_t *marpaXml_String_newFromAnyAndByteLengthAndCharset(char *bytes
       thisp->utf8 = byteArrayp;
       thisp->utf8ByteLength = bytesInBuffer;
       thisp->length = lengthInBuffer;
-      thisp->_origUtf8ByteLength = bytesInBuffer;
+      thisp->origUtf8ByteLength = bytesInBuffer;
       firstCallToNextBufferb = marpaXml_false;
     } else {
       /* Argh, bad luck */
       tmpUtf8       = thisp->utf8;
-      tmpByteLength = thisp->_origUtf8ByteLength + bytesInBuffer;
+      tmpByteLength = thisp->origUtf8ByteLength + bytesInBuffer;
       tmpLength     = thisp->length + lengthInBuffer;
 
-      if (tmpByteLength < thisp->_origUtf8ByteLength || tmpLength < thisp->length) {
+      if (tmpByteLength < thisp->origUtf8ByteLength || tmpLength < thisp->length) {
         /* bits turnaround */
         MARPAXML_ERRORX("bits turnaround detected at %s:%d", __FILE__, __LINE__);
         streamIn_destroyv(&streamInp);
@@ -154,11 +154,11 @@ marpaXml_String_t *marpaXml_String_newFromAnyAndByteLengthAndCharset(char *bytes
         return NULL;
       }
 
-      memcpy(tmpUtf8 + thisp->_origUtf8ByteLength, byteArrayp, bytesInBuffer);
+      memcpy(tmpUtf8 + thisp->origUtf8ByteLength, byteArrayp, bytesInBuffer);
       thisp->utf8 = tmpUtf8;
       thisp->utf8ByteLength = tmpByteLength;
       thisp->length = tmpLength;
-      thisp->_origUtf8ByteLength = tmpByteLength;
+      thisp->origUtf8ByteLength = tmpByteLength;
     }
     if (streamInUnicode_doneBufferb(streamInp, indexBufferi) == STREAMIN_BOOL_FALSE) {
       streamIn_destroyv(&streamInp);
@@ -174,13 +174,13 @@ marpaXml_String_t *marpaXml_String_newFromAnyAndByteLengthAndCharset(char *bytes
       return NULL;
   }
 
-  if (thisp->utf8[thisp->_origUtf8ByteLength - 1] != '\0') {
+  if (thisp->utf8[thisp->origUtf8ByteLength - 1] != '\0') {
     /* Either input did not have the null byte in its byteLength count, either the conversion did not */
     /* introduce such null byte. We unfortunately have to do it ourself */
     tmpUtf8       = thisp->utf8;
-    tmpByteLength = thisp->_origUtf8ByteLength + 1;
+    tmpByteLength = thisp->origUtf8ByteLength + 1;
 
-    if (tmpByteLength < thisp->_origUtf8ByteLength) {
+    if (tmpByteLength < thisp->origUtf8ByteLength) {
       /* bits turnaround */
       MARPAXML_ERRORX("bits turnaround detected at %s:%d", __FILE__, __LINE__);
       streamIn_destroyv(&streamInp);
@@ -246,7 +246,7 @@ void marpaXml_String_free(marpaXml_String_t **thispp) {
       if (thisp->utf8 != NULL) {
 	free(thisp->utf8);
       }
-      marpaXmlLog_freev(&(thisp->_marpaXmlLogp));
+      marpaXmlLog_freev(&(thisp->marpaXmlLogp));
       free(thisp);
     }
     *thispp = NULL;
@@ -346,17 +346,17 @@ char *marpaXml_String_encode(marpaXml_String_t *thisp, size_t *byteLengthp, size
     return NULL;
   }
 
-  marpaXmlLogp = thisp->_marpaXmlLogp;
+  marpaXmlLogp = thisp->marpaXmlLogp;
 
   /* These calls never fail if you provide a non-NULL pointer -; */
   streamIn_optionDefaultb(&streamInOption);
   streamInUtf8_optionDefaultb(&streamInOptionUtf8);
 
   marpaXml_streamInData.buffer     = thisp->utf8;
-  marpaXml_streamInData.byteLength = thisp->_origUtf8ByteLength;
+  marpaXml_streamInData.byteLength = thisp->origUtf8ByteLength;
   marpaXml_streamInData.firstb     = STREAMIN_BOOL_TRUE;
 
-  streamInOption.bufMaxSizei                 = thisp->_origUtf8ByteLength;
+  streamInOption.bufMaxSizei                 = thisp->origUtf8ByteLength;
   streamInOption.allBuffersAreManagedByUserb = STREAMIN_BOOL_TRUE;
   streamInOption.readCallbackp               = &_marpaXml_String_readBufferCallback;
   streamInOption.readCallbackDatavp          = &marpaXml_streamInData;
