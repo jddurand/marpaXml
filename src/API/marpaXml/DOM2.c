@@ -9,28 +9,25 @@
 /********************************************************************************/
 /*                                 Constants                                    */
 /********************************************************************************/
-static const char *STRINGLITERAL_DB_LOADCOLLATION = "SELECT icu_load_collationWithStrength(:locale, 'LOCALIZED', :collStrength)"; /* UTF-8 compatible */
-static const char *STRINGLITERAL_DB_EXEC         = "   EXEC";
-static const char *STRINGLITERAL_DB_PREPARE      = "PREPARE";
-static const char *STRINGLITERAL_DB_NEWFUNC      = "NEWFUNC";
-static const char *STRINGLITERAL_DB_BINDING      = "    SQL";
-static const char *STRINGLITERAL_DB_BINDTEXT     = "   BIND";
-static const char *STRINGLITERAL_DB_BINDINT      = "   BIND";
-static const char *STRINGLITERAL_DB_BINDINT64    = "   BIND";
-static const char *STRINGLITERAL_DB_STEP         = "   STEP";
-static const char *STRINGLITERAL_DB_APICALL      = ">>> API";
-static const char *STRINGLITERAL_DB_INTERNALCALL = "       ";
-
-static const char *STRINGLITERAL_DB_SQLITE_BUSY     = "SQLITE_BUSY";
-static const char *STRINGLITERAL_DB_SQLITE_DONE     = "SQLITE_DONE";
-static const char *STRINGLITERAL_DB_SQLITE_ROW      = "SQLITE_ROW";
-static const char *STRINGLITERAL_DB_SQLITE_ERROR    = "SQLITE_ERROR";
-static const char *STRINGLITERAL_DB_SQLITE_MISUSE   = "SQLITE_MISUSE";
+static const char *STRING_DB_EXEC          = "   EXEC";
+static const char *STRING_DB_PREPARE       = "PREPARE";
+static const char *STRING_DB_NEWFUNC       = "NEWFUNC";
+static const char *STRING_DB_BINDING       = "    SQL";
+static const char *STRING_DB_BINDTEXT      = "   BIND";
+static const char *STRING_DB_BINDINT       = "   BIND";
+static const char *STRING_DB_BINDINT64     = "   BIND";
+static const char *STRING_DB_STEP          = "   STEP";
+static const char *STRING_DB_APICALL       = ">>> API";
+static const char *STRING_DB_INTERNALCALL  = "       ";
+static const char *STRING_DB_SQLITE_BUSY   = "SQLITE_BUSY";
+static const char *STRING_DB_SQLITE_DONE   = "SQLITE_DONE";
+static const char *STRING_DB_SQLITE_ROW    = "SQLITE_ROW";
+static const char *STRING_DB_SQLITE_ERROR  = "SQLITE_ERROR";
+static const char *STRING_DB_SQLITE_MISUSE = "SQLITE_MISUSE";
 
 /********************************************************************************/
 /*                           Static variables                                   */
 /********************************************************************************/
-static sqlite3_stmt         *db_loadcollation_stmt = NULL;
 static sqlite3              *dbp = NULL;
 static sqlite3_mutex        *mutexp = NULL;
 static marpaXml_boolean_t    initialized = marpaXml_false;
@@ -99,6 +96,11 @@ typedef struct marpaXml_DOM_stmt {
   sqlite3_stmt *stmt;
 } marpaXml_DOM_stmt_t;
 enum {
+  /* ---- */
+  /* Init */
+  /* ---- */
+  _marpaXml_LoadCollation_e,                /* Internal */
+
   /* ---------------------- */
   /* Transaction management */
   /* ---------------------- */
@@ -117,12 +119,17 @@ enum {
   _marpaXml_DOMImplementation_insert_e,     /* Internal */
 };
 static marpaXml_DOM_stmt_t marpaXml_DOM_stmt[] = {
+  /* ---- */
+  /* Init */
+  /* ---- */
+  { "SELECT icu_load_collationWithStrength(:locale, 'LOCALIZED', :collStrength)", NULL },
+
   /* ---------------------- */
   /* Transaction management */
   /* ---------------------- */
-  { "BEGIN IMMEDIATE TRANSACTION" },
-  { "END TRANSACTION" },
-  { "ROLLBACK TRANSACTION" },
+  { "BEGIN IMMEDIATE TRANSACTION", NULL },
+  { "END TRANSACTION", NULL },
+  { "ROLLBACK TRANSACTION", NULL },
 
   /* --------- */
   /* DOMString */
@@ -616,6 +623,7 @@ marpaXml_DOMBoolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Opti
   int            sqliteRc;
   int            i;
   void          *xxhp;
+  sqlite3_stmt  *loadcollation_stmt = NULL;
 
   /* We first check _initialized in a non thread-safe way for quick return */
   if (_initialized == MARPAXML_DOMBOOLEAN_TRUE) {
@@ -701,22 +709,22 @@ marpaXml_DOMBoolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Opti
   }
 
   /* Very first thing: load collation */
-  if (_marpaXml_prepare(_dbp, STRINGLITERAL_DB_LOADCOLLATION, &_db_loadcollation_stmt) == MARPAXML_DOMBOOLEAN_FALSE) {
+  if (_marpaXml_prepare(_dbp, STRINGLITERAL_DB_LOADCOLLATION, &loadcollation_stmt) == MARPAXML_DOMBOOLEAN_FALSE) {
     sqlite3_mutex_leave(_mutexp);
     sqlite3_close_v2(_dbp);
     _dbp = NULL;
     return MARPAXML_DOMBOOLEAN_FALSE;
   }
 
-  if (_marpaXml_bind_text(_db_loadcollation_stmt, 1, marpaXml_DOM_Option.locale)       == MARPAXML_DOMBOOLEAN_FALSE ||
-      _marpaXml_bind_int (_db_loadcollation_stmt, 2, marpaXml_DOM_Option.collStrength) == MARPAXML_DOMBOOLEAN_FALSE) {
+  if (_marpaXml_bind_text(loadcollation_stmt, 1, marpaXml_DOM_Option.locale)       == MARPAXML_DOMBOOLEAN_FALSE ||
+      _marpaXml_bind_int (loadcollation_stmt, 2, marpaXml_DOM_Option.collStrength) == MARPAXML_DOMBOOLEAN_FALSE) {
     sqlite3_mutex_leave(_mutexp);
     sqlite3_close_v2(_dbp);
     _dbp = NULL;
     return MARPAXML_DOMBOOLEAN_FALSE;
   }
   do {
-  } while ((sqliteRc = _marpaXml_step(_db_loadcollation_stmt)) == SQLITE_ROW);
+  } while ((sqliteRc = _marpaXml_step(loadcollation_stmt)) == SQLITE_ROW);
 
   if (sqliteRc != SQLITE_DONE) {
     sqlite3_mutex_leave(_mutexp);
@@ -730,7 +738,7 @@ marpaXml_DOMBoolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Opti
     _dbp = NULL;
     return MARPAXML_DOMBOOLEAN_FALSE;
   }
-  if (_marpaXml_finalize(&_db_loadcollation_stmt) == MARPAXML_DOMBOOLEAN_FALSE) {
+  if (_marpaXml_finalize(&loadcollation_stmt) == MARPAXML_DOMBOOLEAN_FALSE) {
     sqlite3_mutex_leave(_mutexp);
     sqlite3_close_v2(_dbp);
     _dbp = NULL;
