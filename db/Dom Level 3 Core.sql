@@ -140,8 +140,6 @@ CREATE TABLE [DOMImplementation]
 	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
 	[feature] text,
 	[version] text,
-	[_featureHash] integer DEFAULT 0,
-	[_versionHash] integer DEFAULT 0,
 	PRIMARY KEY ([id])
 );
 
@@ -182,10 +180,10 @@ CREATE TABLE [DOMDocument]
 	REFERENCES [DOMElement] ([id]),
 	FOREIGN KEY ([implementation_id])
 	REFERENCES [DOMImplementation] ([id]),
-	FOREIGN KEY ([doctype_id])
-	REFERENCES [DOMDocumentType] ([id]),
 	FOREIGN KEY ([domConfig_id])
 	REFERENCES [DOMConfiguration] ([id]),
+	FOREIGN KEY ([doctype_id])
+	REFERENCES [DOMDocumentType] ([id]),
 	FOREIGN KEY ([DOMNode_id])
 	REFERENCES [DOMNode] ([id])
 );
@@ -227,6 +225,15 @@ CREATE TABLE [DOMEntityReference]
 );
 
 
+CREATE TABLE [DOMException]
+(
+	[id] integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+	[code] none,
+	[message] text,
+	PRIMARY KEY ([id])
+);
+
+
 CREATE TABLE [DOMImplementationSource]
 (
 	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
@@ -234,12 +241,6 @@ CREATE TABLE [DOMImplementationSource]
 	PRIMARY KEY ([id]),
 	FOREIGN KEY ([DOMImplementation_id])
 	REFERENCES [DOMImplementation] ([id])
-);
-
-
-CREATE TABLE [DOMImplementation_counter]
-(
-	[nbrows] integer
 );
 
 
@@ -255,12 +256,6 @@ CREATE TABLE [DOMLocator]
 	PRIMARY KEY ([id]),
 	FOREIGN KEY ([relatedNode_id])
 	REFERENCES [DOMNode] ([id])
-);
-
-
-CREATE TABLE [DOMNode_counter]
-(
-	[nbrows] integer
 );
 
 
@@ -285,12 +280,6 @@ CREATE TABLE [DOMProcessingInstruction]
 	PRIMARY KEY ([id]),
 	FOREIGN KEY ([DOMNode_id])
 	REFERENCES [DOMNode] ([id])
-);
-
-
-CREATE TABLE [DOMString_counter]
-(
-	[nbrows] integer
 );
 
 
@@ -329,10 +318,10 @@ CREATE TABLE [RDOMConfigurationUserDataParameter]
 (
 	[DOMUserDataParameter_id] integer NOT NULL UNIQUE,
 	[DOMConfiguration_id] integer NOT NULL UNIQUE,
-	FOREIGN KEY ([DOMConfiguration_id])
-	REFERENCES [DOMConfiguration] ([id]),
 	FOREIGN KEY ([DOMUserDataParameter_id])
-	REFERENCES [DomUserDataParameter] ([id])
+	REFERENCES [DomUserDataParameter] ([id]),
+	FOREIGN KEY ([DOMConfiguration_id])
+	REFERENCES [DOMConfiguration] ([id])
 );
 
 
@@ -353,13 +342,6 @@ CREATE TABLE [RDOMNodeUserDataKey]
 CREATE VIEW [DOMImplementationList] AS [select *, (select count(*) from DOMImplementation b where a.id >= b.id) as _order from DOMImplementation a];
 CREATE VIEW [DOMNodeList] AS [select *, (select count(*) from DOMNode b where a.id >= b.id) as _order from DOMNode a];
 CREATE VIEW [DOMStringList] AS [select *, (select count(*) from DOMString b where a.id >= b.id) as _order from DOMString a];
-
-
-
-/* Create Indexes */
-
-CREATE INDEX [DOMImplementation_featureHash_index] ON [DOMImplementation] ([_featureHash]);
-CREATE INDEX [DOMImplementation_versionHash_index] ON [DOMImplementation] ([_versionHash]);
 
 
 

@@ -66,8 +66,8 @@ while ($sql =~ m/\b(CREATE\s+(?:UNIQUE\s+)?INDEX)\s+([^;]+;)/sxmg) {
     $match =~ s/[\[\]]//g;
     push(@c, $match);
 }
-my $h = "#define STRINGLITERAL_DDL_NBSTATEMENT " . scalar(@c) . "\n";
-$h .= "static const char *STRINGLITERAL_DDL[STRINGLITERAL_DDL_NBSTATEMENT] = {\n" . join(",\n", @c) . "};\n";
+my $h = "#define _DDL_NBSTATEMENT " . scalar(@c) . "\n";
+$h .= "static const char *_DDL_STATEMENT[_DDL_NBSTATEMENT] = {\n" . join(",\n", @c) . "};\n";
 
 open(H, '>', $dom3h) || die "Cannot open $dom3h, $!";
 print H $h;
