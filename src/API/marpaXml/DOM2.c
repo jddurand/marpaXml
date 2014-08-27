@@ -67,6 +67,17 @@ struct marpaXml_DOMException_Context {  sqlite3_int64 id; };
     return badRc;                                                       \
   }
 
+/* Version without DB access */
+
+#define MARPAXML_DOM_API_HEADER(method, badRc)				\
+  if (marpaXml_DOM_init(NULL) == marpaXml_false) { return badRc; }      \
+  MARPAXML_TRACEX("[%s] %s\n", _MARPAXML_APICALL, method);
+
+#define MARPAXML_DOM_API_TRAILER(rc, badRc)				\
+  if ((rc) == marpaXml_false) {						\
+    return badRc;                                                       \
+  }
+
 /********************************************************************************/
 /*                                 Constants                                    */
 /********************************************************************************/
@@ -769,31 +780,21 @@ static C_INLINE marpaXml_DOMException_t *_marpaXml_DOMException_new(short code, 
 /* ---------------------------------------------------------------- */
 
 void marpaXml_DOMException_free(marpaXml_DOMException_t **thispp) {
-  MARPAXML_DOM_DB_API_HEADER("marpaXml_DOMException_free",);
+  MARPAXML_DOM_API_HEADER("marpaXml_DOMException_free",);
   _marpaXml_DOMException_free(thispp);
-  MARPAXML_DOM_DB_API_TRAILER(marpaXml_true,);
+  MARPAXML_DOM_API_TRAILER(marpaXml_true,);
 
   return;
 }
 
 static C_INLINE void _marpaXml_DOMException_free(marpaXml_DOMException_t **thispp) {
   marpaXml_DOMException_t *thisp;
-  int                      sqliteRc;
 
   if (thispp != NULL) {
     thisp = *thispp;
 
     if (thisp != NULL) {
-      if (thisp->_contextp != NULL && thisp->_contextp->id > 0) {
-        MARPAXML_TRACEX("[%s] %s\n", _MARPAXML_BINDING, _marpaXml_stmt[_marpaXml_DOMException_free_e].sql);
-        if (_marpaXml_bind_int64(_marpaXml_stmt[_marpaXml_DOMException_free_e].stmt, 1, thisp->_contextp->id) == marpaXml_true) {
-          do {
-          } while ((sqliteRc = _marpaXml_step(_marpaXml_stmt[_marpaXml_DOMException_free_e].stmt)) == SQLITE_ROW);
-          if (sqliteRc != SQLITE_DONE) {
-            MARPAXML_ERRORX("_marpaXml_step() returns %d != SQLITE_DONE: %s at %s:%d\n", sqliteRc, sqlite3_errstr(sqliteRc), __FILE__, __LINE__);
-          }
-        }
-        _marpaXml_reset(_marpaXml_stmt[_marpaXml_Transaction_BeginImmediate_e].stmt);
+      if (thisp->_contextp != NULL) {
         free(thisp->_contextp);
       }
       free(thisp);
