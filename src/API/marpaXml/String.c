@@ -342,10 +342,6 @@ char *marpaXml_String_encode(marpaXml_String_t *thisp, size_t *byteLengthp, size
   size_t                  length = 0;
   marpaXmlLog_t          *marpaXmlLogp;
 
-  if (thisp == NULL) {
-    return NULL;
-  }
-
   marpaXmlLogp = thisp->marpaXmlLogp;
 
   /* These calls never fail if you provide a non-NULL pointer -; */
