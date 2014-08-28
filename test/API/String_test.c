@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include <ctype.h>
  
 #include "API/marpaXml/String.h"
@@ -34,18 +35,22 @@ void test(char *origBytes, size_t origByteLength, char *origCharset, marpaXml_St
   p = marpaXml_String_encode(s, &byteLength, &length, (char *) "UTF-8", &option);
   fprintf(stdout, "\n-->UTF-8  : %ld characters, %ld bytes\n", (unsigned long) length, (unsigned long) byteLength);
   hexdump(p, byteLength);
+  free(p);
 
   p = marpaXml_String_encode(s, &byteLength, &length, (char *) "UCS-2", &option);
   fprintf(stdout, "\n-->UCS-2  : %ld characters, %ld bytes\n", (unsigned long) length, (unsigned long) byteLength);
   hexdump(p, byteLength);
+  free(p);
 
   p = marpaXml_String_encode(s, &byteLength, &length, (char *) "UTF-32", &option);
   fprintf(stdout, "\n-->UTF-32  : %ld characters, %ld bytes\n", (unsigned long) length, (unsigned long) byteLength);
   hexdump(p, byteLength);
+  free(p);
 
   p = marpaXml_String_encode(s, &byteLength, &length, (char *) "GB2312", &option);
   fprintf(stdout, "\n-->GB2312  : %ld characters, %ld bytes\n", (unsigned long) length, (unsigned long) byteLength);
   hexdump(p, byteLength);
+  free(p);
 
   marpaXml_String_free(&s);
 }
