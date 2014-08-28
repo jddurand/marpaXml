@@ -52,9 +52,13 @@ typedef struct marpaXml_DOM_Option {
 */
 marpaXml_boolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *optionp);
 /*
+  Must be called when parsing is finished to free persistent data, leaving outside of DOM objects
+*/
+marpaXml_boolean_t marpaXml_DOM_done(void);
+/*
   Must be called once only, typically at program exit or library unload.
   This routine is not thread-safe.
-  All in all, simply do not call it - the memory leaks are small.
+  All in all, simply do not call it - the memory leaks are small if you call marpaXml_DOM_done().
 */
 marpaXml_boolean_t marpaXml_DOM_release(void);
 
@@ -75,17 +79,11 @@ CLASS_FORWARDDECL_AS_PTR(marpaXml_TypeInfo)
 CLASS_FORWARDDECL_AS_PTR(marpaXml_DOMLocator)
 
 
-typedef struct marpaXml_DOMException_Context marpaXml_DOMException_Context_t;
-CLASS(marpaXml_DOMException)
-  marpaXml_DOMException_Context_t *_contextp;
-METHODS
-  marpaXml_DOMException_t  *marpaXml_DOMException_new(short code, marpaXml_String_t *messagep);
-  unsigned short            marpaXml_DOMException_getCode(marpaXml_DOMException_t *thisp);
-  unsigned short            marpaXml_DOMException_setCode(marpaXml_DOMException_t *thisp, unsigned short code);
-  marpaXml_String_t        *marpaXml_DOMException_getMessage(marpaXml_DOMException_t *thisp);
-  marpaXml_String_t        *marpaXml_DOMException_setMessage(marpaXml_DOMException_t *thisp, marpaXml_String_t *messagep);
-  void                      marpaXml_DOMException_free(marpaXml_DOMException_t **thispp);
-END_CLASS
+typedef struct marpaXml_DOMException marpaXml_DOMException_t;
+marpaXml_DOMException_t  *marpaXml_DOMException_new(short code, marpaXml_String_t *messagep);
+unsigned short            marpaXml_DOMException_getCode(marpaXml_DOMException_t *thisp);
+marpaXml_String_t        *marpaXml_DOMException_getMessage(marpaXml_DOMException_t *thisp);
+void                      marpaXml_DOMException_free(marpaXml_DOMException_t **thispp);
 
 /* ExceptionCode */
 #define MARPAXML_INDEX_SIZE_ERR                 1;

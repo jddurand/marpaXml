@@ -24,9 +24,7 @@ typedef enum {
 
   _marpaXml_DOMException_new_e,
   _marpaXml_DOMException_getCode_e,
-  _marpaXml_DOMException_setCode_e,
   _marpaXml_DOMException_getMessage_e,
-  _marpaXml_DOMException_setMessage_e,
   _marpaXml_DOMException_free_e,
 
 } _marpaXml_stmt_e;
@@ -45,7 +43,7 @@ typedef struct _marpaXml_stmt {
 typedef int (*_marpaXml_SQLiteExecCallback_t)(void *, int, char **, char **);
 
 /* For the API */
-struct marpaXml_DOMException_Context {  sqlite3_int64 id; };
+struct marpaXml_DOMException {  sqlite3_int64 id; };
 
 /********************************************************************************/
 /*                                Macros                                        */
@@ -67,15 +65,138 @@ struct marpaXml_DOMException_Context {  sqlite3_int64 id; };
     return badRc;                                                       \
   }
 
-/* Version without DB access */
+#define MARPAXML_GENERIC_GET_API(rcType, dbType, dbMapType, rcDb2Rc, class, method, okCond, notOkRc, okFmts, okFmtArg) \
+  static C_INLINE rcType _marpaXml_##class##_##method(marpaXml_##class##_t *thisp) { \
+    rcType rc;                                                          \
+    dbMapType rcdb;                                                     \
+    int    sqliteRc;                                                    \
+    MARPAXML_TRACEX("[%s] %s\n", _MARPAXML_SQL, _marpaXml_stmt[_marpaXml_##class##_##method##_e].sql); \
+                                                                        \
+    if (_marpaXml_bind_int64(_marpaXml_stmt[_marpaXml_##class##_##method##_e].stmt, 1, thisp->id) == marpaXml_false) { \
+      _marpaXml_reset(_marpaXml_stmt[_marpaXml_##class##_##method##_e].stmt); \
+      return notOkRc;                                                   \
+    }                                                                   \
+    while ((sqliteRc = _marpaXml_step(_marpaXml_stmt[_marpaXml_##class##_##method##_e].stmt)) == SQLITE_ROW) { \
+      rcdb = sqlite3_column_##dbType(_marpaXml_stmt[_marpaXml_##class##_##method##_e].stmt, 0); \
+      rc = rcDb2Rc;                                                     \
+    }                                                                   \
+                                                                        \
+    if (_marpaXml_reset(_marpaXml_stmt[_marpaXml_##class##_##method##_e].stmt) == marpaXml_false) { \
+      return notOkRc;                                                   \
+    }                                                                   \
+    if (sqliteRc != SQLITE_DONE) {                                      \
+      MARPAXML_ERRORX("_marpaXml_step() returns %d != SQLITE_DONE: %s at %s:%d\n", sqliteRc, sqlite3_errstr(sqliteRc), __FILE__, __LINE__); \
+      return notOkRc;                                                   \
+    }                                                                   \
+                                                                        \
+    return rc;                                                          \
+  }                                                                     \
+                                                                        \
+  rcType marpaXml_##class##_##method(marpaXml_##class##_t *thisp) {     \
+    rcType rc;                                                          \
+                                                                        \
+    MARPAXML_DOM_DB_API_HEADER("marpaXml_" #class "_" #method, 0);      \
+    rc = _marpaXml_##class##_##method(thisp);                           \
+    MARPAXML_DOM_DB_API_TRAILER(okCond, notOkRc);                       \
+                                                                        \
+    MARPAXML_TRACEX("[%s] " okFmts "\n", _MARPAXML_RC, okFmtArg);       \
+    return rc;                                                          \
+  }
 
-#define MARPAXML_DOM_API_HEADER(method, badRc)				\
-  if (marpaXml_DOM_init(NULL) == marpaXml_false) { return badRc; }      \
-  MARPAXML_TRACEX("[%s] %s\n", _MARPAXML_APICALL, method);
+/* Hack to make the preprocessor believe a concatenation is a single argument */
+#define MARPAXML_ARG(x) ,x
 
-#define MARPAXML_DOM_API_TRAILER(rc, badRc)				\
-  if ((rc) == marpaXml_false) {						\
-    return badRc;                                                       \
+#define MARPAXML_GENERIC_NEW_API(class, decl, args, binding)      \
+  static C_INLINE marpaXml_##class##_t *_marpaXml_##class##_new(decl) { \
+    marpaXml_##class##_t *rc;                                           \
+    int                   sqliteRc;                                     \
+                                                                        \
+    if ((rc = malloc(sizeof(marpaXml_##class##_t))) == NULL) {          \
+      MARPAXML_ERRORX("malloc() returns NULL: %s at %s:%d\n", strerror(errno), __FILE__, __LINE__); \
+      marpaXml_##class##_free(&rc);                                     \
+        return NULL;                                                    \
+    }                                                                   \
+    rc->id = 0;                                                         \
+                                                                        \
+    MARPAXML_TRACEX("[%s] %s\n", _MARPAXML_SQL, _marpaXml_stmt[_marpaXml_##class##_new_e].sql); \
+                                                                        \
+    if (! (binding)) {                                                  \
+      _marpaXml_reset(_marpaXml_stmt[_marpaXml_##class##_new_e].stmt);  \
+      marpaXml_##class##_free(&rc);                                     \
+      return NULL;                                                      \
+    }                                                                   \
+                                                                        \
+    do {                                                                \
+    } while ((sqliteRc = _marpaXml_step(_marpaXml_stmt[_marpaXml_##class##_new_e].stmt)) == SQLITE_ROW); \
+                                                                        \
+    if (_marpaXml_reset(_marpaXml_stmt[_marpaXml_##class##_new_e].stmt) == marpaXml_false) { \
+      marpaXml_##class##_free(&rc);                                     \
+        return NULL;                                                    \
+    }                                                                   \
+                                                                        \
+    if (sqliteRc != SQLITE_DONE) {                                      \
+      MARPAXML_ERRORX("_marpaXml_step() returns %d != SQLITE_DONE: %s at %s:%d\n", sqliteRc, sqlite3_errstr(sqliteRc), __FILE__, __LINE__); \
+      marpaXml_##class##_free(&rc);                                     \
+        return NULL;                                                    \
+    }                                                                   \
+    rc->id = sqlite3_last_insert_rowid(_dbp);                           \
+    if (rc->id <= 0) {                                                  \
+      MARPAXML_ERRORX("sqlite3_last_insert_rowid return a number <= 0 at %s:%d\n", __FILE__, __LINE__); \
+      marpaXml_##class##_free(&rc);                                     \
+        return NULL;                                                    \
+    }                                                                   \
+                                                                        \
+    MARPAXML_TRACEX("[%s] %lld\n", _MARPAXML_ID, (unsigned long long int) rc->id); \
+                                                                        \
+    return rc;                                                          \
+  }                                                                     \
+                                                                        \
+  marpaXml_##class##_t *marpaXml_##class##_new(decl) {                  \
+    marpaXml_##class##_t *rc;                                           \
+                                                                        \
+    MARPAXML_DOM_DB_API_HEADER("marpaXml_" #class "_new", NULL);        \
+    rc = _marpaXml_##class##_new(args);                                 \
+    MARPAXML_DOM_DB_API_TRAILER(rc != NULL ? marpaXml_true : marpaXml_false, NULL); \
+                                                                        \
+    MARPAXML_TRACEX("[%s] %p\n", _MARPAXML_RC, rc);                     \
+                                                                        \
+    return rc;                                                          \
+  }
+
+#define MARPAXML_GENERIC_FREE_API(class, deleteFromDb)                  \
+  static C_INLINE void _marpaXml_##class##_free(marpaXml_##class##_t **thispp) { \
+    marpaXml_##class##_t *thisp;                                        \
+    int                  sqliteRc;                                      \
+                                                                        \
+    if (thispp != NULL) {                                               \
+      thisp = *thispp;                                                  \
+                                                                        \
+      if (thisp != NULL) {                                              \
+        if (deleteFromDb == marpaXml_true && thisp->id > 0) {                            \
+          MARPAXML_TRACEX("[%s] %s\n", _MARPAXML_SQL, _marpaXml_stmt[_marpaXml_##class##_free_e].sql); \
+          if (_marpaXml_bind_int64(_marpaXml_stmt[_marpaXml_##class##_free_e].stmt, 1, thisp->id) == marpaXml_false) { \
+            _marpaXml_reset(_marpaXml_stmt[_marpaXml_##class##_free_e].stmt); \
+          } else {                                                      \
+            do {                                                        \
+            } while ((sqliteRc = _marpaXml_step(_marpaXml_stmt[_marpaXml_##class##_free_e].stmt)) == SQLITE_ROW); \
+            _marpaXml_reset(_marpaXml_stmt[_marpaXml_##class##_free_e].stmt); \
+            if (sqliteRc != SQLITE_DONE) {                              \
+              MARPAXML_ERRORX("_marpaXml_step() returns %d != SQLITE_DONE: %s at %s:%d\n", sqliteRc, sqlite3_errstr(sqliteRc), __FILE__, __LINE__); \
+            }                                                           \
+          }                                                             \
+        }                                                               \
+        free(thisp);                                                    \
+      }                                                                 \
+      *thispp = NULL;                                                   \
+    }                                                                   \
+  }                                                                     \
+                                                                        \
+  void marpaXml_##class##_free(marpaXml_##class##_t **thispp) {         \
+    MARPAXML_DOM_DB_API_HEADER("marpaXml_" #class "_free",);            \
+    _marpaXml_##class##_free(thispp);                                   \
+    MARPAXML_DOM_DB_API_TRAILER(marpaXml_true,);                        \
+                                                                        \
+    return;                                                             \
   }
 
 /********************************************************************************/
@@ -85,14 +206,14 @@ static const char *_MARPAXML_LOADCOLLATION = "SELECT icu_load_collationWithStren
 static const char *_MARPAXML_EXEC          = "   EXEC";
 static const char *_MARPAXML_PREPARE       = "PREPARE";
 static const char *_MARPAXML_NEWFUNC       = "NEWFUNC";
-static const char *_MARPAXML_BINDING       = "    SQL";
+static const char *_MARPAXML_SQL           = "    SQL";
 static const char *_MARPAXML_BINDTEXT      = "   BIND";
 static const char *_MARPAXML_BINDINT       = "   BIND";
 static const char *_MARPAXML_BINDINT64     = "   BIND";
 static const char *_MARPAXML_STEP          = "   STEP";
 static const char *_MARPAXML_APICALL       = ">>> API";
-static const char *_MARPAXML_INTERNALCALL  = "       ";
 static const char *_MARPAXML_ID            = "     ID";
+static const char *_MARPAXML_RC            = "     RC";
 static const char *_MARPAXML_SQLITE_BUSY   = "SQLITE_BUSY";
 static const char *_MARPAXML_SQLITE_DONE   = "SQLITE_DONE";
 static const char *_MARPAXML_SQLITE_ROW    = "SQLITE_ROW";
@@ -105,6 +226,7 @@ static const char *_MARPAXML_SQLITE_MISUSE = "SQLITE_MISUSE";
 static sqlite3              *_dbp = NULL;
 static marpaXml_boolean_t    _initialized = marpaXml_false;
 static marpaXmlLog_t        *marpaXmlLogp = NULL;  /* Intentionnaly without s_ prefix because of MARPAXML log macros */
+static marpaXml_String_Option_t marpaXml_String_Option;
 
 static _marpaXml_stmt_t _marpaXml_stmt[] = {
   { NULL, _marpaXml_Transaction_BeginImmediate_e,        "BEGIN IMMEDIATE TRANSACTION" },
@@ -114,9 +236,7 @@ static _marpaXml_stmt_t _marpaXml_stmt[] = {
   /* DOMException: the lifetime of the row is the lifetime of the object */
   { NULL, _marpaXml_DOMException_new_e,                  "INSERT INTO DOMException (code, message) VALUES (?1, ?2)" },
   { NULL, _marpaXml_DOMException_getCode_e,              "SELECT code FROM DOMException WHERE (id = ?1)" },
-  { NULL, _marpaXml_DOMException_setCode_e,              "UPDATE DOMException SET code = ?2 WHERE (id = ?1)" },
   { NULL, _marpaXml_DOMException_getMessage_e,           "SELECT message FROM DOMException WHERE (id = ?1)" },
-  { NULL, _marpaXml_DOMException_setMessage_e,           "UPDATE DOMException SET message = ?2 WHERE (id = ?1)" },
   { NULL, _marpaXml_DOMException_free_e,                 "DELETE FROM DOMException WHERE (id = ?1)" },
 
   { NULL, 0, NULL }
@@ -151,6 +271,8 @@ static C_INLINE void               _marpaXml_xxhash_xFunc(sqlite3_context *pCtx,
 static C_INLINE void               _marpaXml_xxhash_xDestroy(void *p);
 
 static C_INLINE marpaXml_DOMException_t *_marpaXml_DOMException_new(short code, marpaXml_String_t *messagep);
+// static C_INLINE unsigned short           _marpaXml_DOMException_getCode(marpaXml_DOMException_t *thisp);
+// static C_INLINE marpaXml_String_t        *marpaXml_DOMException_getMessage(marpaXml_DOMException_t *thisp);
 static C_INLINE void                     _marpaXml_DOMException_free(marpaXml_DOMException_t **thispp);
 
 /*******************************************************************/
@@ -492,6 +614,10 @@ marpaXml_boolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Optionp
     }
   }
 
+  marpaXml_String_Option.marpaXml_String_Option_ICU = MARPAXML_STRING_OPTION_ICU_DEFAULT;
+  marpaXml_String_Option.fallback                   = marpaXml_true;
+  marpaXml_String_Option.logOption                  = marpaXml_DOM_Option.logOption;
+
   mutexp = sqlite3_mutex_alloc(SQLITE_MUTEX_FAST);
   if (mutexp == NULL) {
     MARPAXML_ERRORX("sqlite3_mutex_alloc(SQLITE_MUTEX_FAST): %s (latest errno string) at %s:%d\n", strerror(errno), __FILE__, __LINE__);
@@ -636,8 +762,7 @@ marpaXml_boolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Optionp
 static C_INLINE marpaXml_boolean_t _marpaXml_Transaction_Begin() {
   int sqliteRc;
 
-  MARPAXML_TRACEX("[%s] %s\n", _MARPAXML_INTERNALCALL, "_marpaXml_Transaction_Begin");
-  MARPAXML_TRACEX("[%s] %s\n", _MARPAXML_BINDING, _marpaXml_stmt[_marpaXml_Transaction_BeginImmediate_e].sql);
+  MARPAXML_TRACEX("[%s] %s\n", _MARPAXML_SQL, _marpaXml_stmt[_marpaXml_Transaction_BeginImmediate_e].sql);
 
   do {
   } while ((sqliteRc = _marpaXml_step(_marpaXml_stmt[_marpaXml_Transaction_BeginImmediate_e].stmt)) == SQLITE_ROW);
@@ -661,8 +786,7 @@ static C_INLINE marpaXml_boolean_t _marpaXml_Transaction_Begin() {
 static C_INLINE marpaXml_boolean_t _marpaXml_Transaction_End() {
   int sqliteRc;
 
-  MARPAXML_TRACEX("[%s] %s\n", _MARPAXML_INTERNALCALL, "_marpaXml_Transaction_End");
-  MARPAXML_TRACEX("[%s] %s\n", _MARPAXML_BINDING, _marpaXml_stmt[_marpaXml_Transaction_End_e].sql);
+  MARPAXML_TRACEX("[%s] %s\n", _MARPAXML_SQL, _marpaXml_stmt[_marpaXml_Transaction_End_e].sql);
 
   do {
   } while ((sqliteRc = _marpaXml_step(_marpaXml_stmt[_marpaXml_Transaction_End_e].stmt)) == SQLITE_ROW);
@@ -686,8 +810,7 @@ static C_INLINE marpaXml_boolean_t _marpaXml_Transaction_End() {
 static C_INLINE marpaXml_boolean_t _marpaXml_Transaction_Rollback() {
   int sqliteRc;
 
-  MARPAXML_TRACEX("[%s] %s\n", _MARPAXML_INTERNALCALL, "_marpaXml_Transaction_Rollback");
-  MARPAXML_TRACEX("[%s] %s\n", _MARPAXML_BINDING, _marpaXml_stmt[_marpaXml_Transaction_Rollback_e].sql);
+  MARPAXML_TRACEX("[%s] %s\n", _MARPAXML_SQL, _marpaXml_stmt[_marpaXml_Transaction_Rollback_e].sql);
 
   do {
   } while ((sqliteRc = _marpaXml_step(_marpaXml_stmt[_marpaXml_Transaction_Rollback_e].stmt)) == SQLITE_ROW);
@@ -714,93 +837,52 @@ static C_INLINE marpaXml_boolean_t _marpaXml_Transaction_Rollback() {
 /* ---------------------------------------------------------------- */
 /* marpaXml_DOMException_new                                        */
 /* ---------------------------------------------------------------- */
-marpaXml_DOMException_t *marpaXml_DOMException_new(short code, marpaXml_String_t *messagep) {
-  marpaXml_DOMException_t *rc;
 
-  MARPAXML_DOM_DB_API_HEADER("marpaXml_DOMException_new", NULL);
-  rc = _marpaXml_DOMException_new(code, messagep);
-  MARPAXML_DOM_DB_API_TRAILER(rc != NULL ? marpaXml_true : marpaXml_false, NULL);
+MARPAXML_GENERIC_NEW_API(DOMException,                                            /* class */
+                         short code MARPAXML_ARG(marpaXml_String_t *messagep),    /* decl */
+                         code MARPAXML_ARG(messagep),                             /* args */
+                         _marpaXml_bind_int (_marpaXml_stmt[_marpaXml_DOMException_new_e].stmt, 1, code                             ) == marpaXml_true && /* binding */
+                         _marpaXml_bind_text(_marpaXml_stmt[_marpaXml_DOMException_new_e].stmt, 2, marpaXml_String_getUtf8(messagep)) == marpaXml_true)
 
-  return rc;
-}
+/* ---------------------------------------------------------------- */
+/* marpaXml_DOMException_getCode                                    */
+/* ---------------------------------------------------------------- */
 
-static C_INLINE marpaXml_DOMException_t *_marpaXml_DOMException_new(short code, marpaXml_String_t *messagep) {
-  marpaXml_DOMException_t *rc;
-  int                      sqliteRc;
+MARPAXML_GENERIC_GET_API(unsigned short,                              /* rcType */
+                         int,                                         /* dbType */
+                         int,                                         /* dbMapType */
+                         (unsigned short) rcdb,                       /* rcDb2Rc */
+                         DOMException,                                /* class */
+                         getCode,                                     /* method */
+                         rc > 0 ? marpaXml_true : marpaXml_false,     /* okCond */
+                         0,                                           /* notOkRc */
+                         "%d",                                        /* okFmts */
+                         (int) rc)                                    /* okFmtArg */
 
-  MARPAXML_TRACEX("[%s] %s\n", _MARPAXML_INTERNALCALL, "_marpaXml_DOMException_new");
+/* ---------------------------------------------------------------- */
+/* marpaXml_DOMException_getMessage                                 */
+/* ---------------------------------------------------------------- */
 
-  if (((rc = malloc(sizeof(marpaXml_DOMException_t)))                    == NULL) ||
-      ((rc->_contextp = malloc(sizeof(marpaXml_DOMException_Context_t))) == NULL)) {
-    MARPAXML_ERRORX("malloc() returns NULL: %s at %s:%d\n", strerror(errno), __FILE__, __LINE__);
-    marpaXml_DOMException_free(&rc);
-    return NULL;
-  }
-  rc->_contextp->id = 0;
-
-  MARPAXML_TRACEX("[%s] %s\n", _MARPAXML_BINDING, _marpaXml_stmt[_marpaXml_DOMException_new_e].sql);
-
-  if (_marpaXml_bind_int (_marpaXml_stmt[_marpaXml_DOMException_new_e].stmt, 1, code                             ) == marpaXml_false ||
-      _marpaXml_bind_text(_marpaXml_stmt[_marpaXml_DOMException_new_e].stmt, 2, marpaXml_String_getUtf8(messagep)) == marpaXml_false) {
-    _marpaXml_reset(_marpaXml_stmt[_marpaXml_Transaction_BeginImmediate_e].stmt);
-    marpaXml_DOMException_free(&rc);
-    return NULL;
-  }
-
-  do {
-  } while ((sqliteRc = _marpaXml_step(_marpaXml_stmt[_marpaXml_DOMException_new_e].stmt)) == SQLITE_ROW);
-
-  /* Always reset */
-  if (_marpaXml_reset(_marpaXml_stmt[_marpaXml_Transaction_BeginImmediate_e].stmt) == marpaXml_false) {
-    marpaXml_DOMException_free(&rc);
-    return NULL;
-  }
-
-  /* Check what step returned */
-  if (sqliteRc != SQLITE_DONE) {
-    MARPAXML_ERRORX("_marpaXml_step() returns %d != SQLITE_DONE: %s at %s:%d\n", sqliteRc, sqlite3_errstr(sqliteRc), __FILE__, __LINE__);
-    marpaXml_DOMException_free(&rc);
-    return NULL;
-  }
-  rc->_contextp->id = sqlite3_last_insert_rowid(_dbp);
-  if (rc->_contextp->id <= 0) {
-    MARPAXML_ERRORX("sqlite3_last_insert_rowid return a number <= 0 at %s:%d\n", __FILE__, __LINE__);
-    marpaXml_DOMException_free(&rc);
-    return NULL;
-  }
-
-  MARPAXML_TRACEX("[%s] %lld\n", _MARPAXML_ID, (unsigned long long int) rc->_contextp->id);
-
-  return rc;
-}
+MARPAXML_GENERIC_GET_API(marpaXml_String_t *,                         /* rcType */
+                         text,                                        /* dbType */
+                         const unsigned char *,                       /* dbMapType */
+                         marpaXml_String_newFromUTF8((char *)rcdb, &marpaXml_String_Option),/* rcDb2Rc */
+                         DOMException,                                /* class */
+                         getMessage,                                  /* method */
+                         rc != NULL ? marpaXml_true : marpaXml_false, /* okCond */
+                         NULL,                                        /* notOkRc */
+                         "%p",                                        /* okFmts */
+                         rc)                                          /* okFmtArg */
 
 /* ---------------------------------------------------------------- */
 /* marpaXml_DOMException_free                                       */
 /* Note: the lifetime of a DOMException in the DB is the object     */
 /* ---------------------------------------------------------------- */
+MARPAXML_GENERIC_FREE_API(DOMException,                               /* class */
+                          marpaXml_true)                              /* deleteFromDb */
 
-void marpaXml_DOMException_free(marpaXml_DOMException_t **thispp) {
-  MARPAXML_DOM_API_HEADER("marpaXml_DOMException_free",);
-  _marpaXml_DOMException_free(thispp);
-  MARPAXML_DOM_API_TRAILER(marpaXml_true,);
-
-  return;
-}
-
-static C_INLINE void _marpaXml_DOMException_free(marpaXml_DOMException_t **thispp) {
-  marpaXml_DOMException_t *thisp;
-
-  if (thispp != NULL) {
-    thisp = *thispp;
-
-    if (thisp != NULL) {
-      if (thisp->_contextp != NULL) {
-        free(thisp->_contextp);
-      }
-      free(thisp);
-    }
-
-    *thispp = NULL;
-  }
-}
-
+/*******************************************************************/
+/*                                                                 */
+/*                           DOMNode                               */
+/*                                                                 */
+/*******************************************************************/
