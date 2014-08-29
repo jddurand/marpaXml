@@ -1,7 +1,8 @@
 #include <stdio.h>
+#include <string.h>
+
 #include "API/marpaXml/DOM2.h"
 #include "API/marpaXml/log.h"
-#include <unicode/ustring.h>
 
 int main(int argc, char **argv) {
     marpaXml_String_t       *messagep;
@@ -28,12 +29,12 @@ int main(int argc, char **argv) {
   /*************************************/
   messagep = marpaXml_String_newFromUTF8((char *) "My Message", NULL);
   exceptionp = marpaXml_DOMException_new(2, messagep);
-  /*
+
   if ((unsignedShort = marpaXml_DOMException_getCode(exceptionp)) != 2) {
     fprintf(stderr, "marpaXml_DOMException_getCode returns %d != 2\n", (int) unsignedShort);
     return 1;
   }
-  */
+
   if ((string = marpaXml_DOMException_getMessage(exceptionp)) == NULL) {
     fprintf(stderr, "marpaXml_DOMException_getMessage returns NULL\n");
     return 1;

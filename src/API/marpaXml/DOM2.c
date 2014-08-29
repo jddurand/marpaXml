@@ -67,7 +67,7 @@ struct marpaXml_DOMException {  sqlite3_int64 id; };
 
 #define MARPAXML_GENERIC_GET_API(rcType, dbType, dbMapType, rcDb2Rc, class, method, okCond, notOkRc, okFmts, okFmtArg) \
   static C_INLINE rcType _marpaXml_##class##_##method(marpaXml_##class##_t *thisp) { \
-    rcType rc;                                                          \
+    rcType rc = notOkRc;						\
     dbMapType rcdb;                                                     \
     int    sqliteRc;                                                    \
     MARPAXML_TRACEX("[%s] %s\n", _MARPAXML_SQL, _marpaXml_stmt[_marpaXml_##class##_##method##_e].sql); \
@@ -269,11 +269,6 @@ static C_INLINE marpaXml_boolean_t _marpaXml_bind_int64(sqlite3_stmt* pStmt, int
 static C_INLINE marpaXml_boolean_t _marpaXml_step(sqlite3_stmt* pStmt);
 static C_INLINE void               _marpaXml_xxhash_xFunc(sqlite3_context *pCtx, int nArg, sqlite3_value **apArg);
 static C_INLINE void               _marpaXml_xxhash_xDestroy(void *p);
-
-static C_INLINE marpaXml_DOMException_t *_marpaXml_DOMException_new(short code, marpaXml_String_t *messagep);
-// static C_INLINE unsigned short           _marpaXml_DOMException_getCode(marpaXml_DOMException_t *thisp);
-// static C_INLINE marpaXml_String_t        *marpaXml_DOMException_getMessage(marpaXml_DOMException_t *thisp);
-static C_INLINE void                     _marpaXml_DOMException_free(marpaXml_DOMException_t **thispp);
 
 /*******************************************************************/
 /* _marpaXml_DOMErrorLogCallback                                          */
