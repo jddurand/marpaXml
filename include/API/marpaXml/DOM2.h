@@ -15,6 +15,25 @@
 #ifndef MARPAXML_DOM_H
 #define MARPAXML_DOM_H
 
+
+/*
+  With no exception;
+  - "new" methods returns a non-NULL pointer on success, NULL on failure
+  - others, inclusing "free" methods, return a marpaXml_boolean_t
+
+  - get methods always require the last parameter (pointer to the output) to not be NULL.
+  - "free" methods always a pointer to pointer, to make sure it is NULL at return and if success
+
+  So the usage is always:
+
+  if ((thisp = xxx_new(...))    == NULL)           { ... failure ... }
+  if (xxx_setYyy(thisp, value)  == marpaXml_false) { ... failure ... }
+  if (xxx_getYyy(thisp, &value) == marpaXml_false) { ... failure ... }
+  if (xxx_method(thisp, ...)    == marpaXml_false) { ... failure ... }
+  if (xxx_free(&thisp)          == marpaXml_false) { ... failure ... }
+
+*/
+
 /* About this file:
    - Object Oriented Programming is a design pattern. Nothing prevent to do full OO in C.
      I use the cplus.h macros. By far this is the more portable implementation as I know.
@@ -80,10 +99,12 @@ CLASS_FORWARDDECL_AS_PTR(marpaXml_DOMLocator)
 
 
 typedef struct marpaXml_DOMException marpaXml_DOMException_t;
-marpaXml_DOMException_t  *marpaXml_DOMException_new(short code, marpaXml_String_t *messagep);
-unsigned short            marpaXml_DOMException_getCode(marpaXml_DOMException_t *thisp);
-marpaXml_String_t        *marpaXml_DOMException_getMessage(marpaXml_DOMException_t *thisp);
-void                      marpaXml_DOMException_free(marpaXml_DOMException_t **thispp);
+marpaXml_DOMException_t *marpaXml_DOMException_new       (short code, marpaXml_String_t *messagep);
+marpaXml_boolean_t       marpaXml_DOMException_getCode   (marpaXml_DOMException_t *thisp, unsigned short *codep);
+marpaXml_boolean_t       marpaXml_DOMException_setCode   (marpaXml_DOMException_t *thisp, unsigned short code);
+marpaXml_boolean_t       marpaXml_DOMException_getMessage(marpaXml_DOMException_t *thisp, marpaXml_String_t **messagepp);
+marpaXml_boolean_t       marpaXml_DOMException_setMessage(marpaXml_DOMException_t *thisp, marpaXml_String_t *messagep);
+marpaXml_boolean_t       marpaXml_DOMException_free      (marpaXml_DOMException_t **thispp);
 
 /* ExceptionCode */
 #define MARPAXML_INDEX_SIZE_ERR                 1;
@@ -451,13 +472,19 @@ END_CLASS
 /* Introduced in DOM Level 3: */
 typedef struct marpaXml_DOMError marpaXml_DOMError_t;
 marpaXml_DOMError_t        *marpaXml_DOMError_new(void);
-unsigned short              marpaXml_DOMError_getSeverity(marpaXml_DOMError_t *thisp);
-marpaXml_String_t          *marpaXml_DOMError_getMessage(marpaXml_DOMError_t *thisp);
-marpaXml_String_t          *marpaXml_DOMError_getType(marpaXml_DOMError_t *thisp);
-marpaXml_DOMObject_t       *marpaXml_DOMError_getRelatedException(marpaXml_DOMError_t *thisp);
-marpaXml_DOMObject_t       *marpaXml_DOMError_getRelatedData(marpaXml_DOMError_t *thisp);
-struct marpaXml_DOMLocator *marpaXml_DOMError_getLocation(marpaXml_DOMError_t *thisp);
-void                        marpaXml_DOMError_free(marpaXml_DOMError_t **thispp);
+marpaXml_boolean_t          marpaXml_DOMError_getSeverity(marpaXml_DOMError_t *thisp, unsigned short *severityp);
+marpaXml_boolean_t          marpaXml_DOMError_setSeverity(marpaXml_DOMError_t *thisp, unsigned short severity);
+marpaXml_boolean_t          marpaXml_DOMError_getMessage(marpaXml_DOMError_t *thisp, marpaXml_String_t **messagepp);
+marpaXml_boolean_t          marpaXml_DOMError_setMessage(marpaXml_DOMError_t *thisp, marpaXml_String_t *messagep);
+marpaXml_boolean_t          marpaXml_DOMError_getType(marpaXml_DOMError_t *thisp, marpaXml_String_t **typepp);
+marpaXml_boolean_t          marpaXml_DOMError_setType(marpaXml_DOMError_t *thisp, marpaXml_String_t *typep);
+marpaXml_boolean_t          marpaXml_DOMError_getRelatedException(marpaXml_DOMError_t *thisp, marpaXml_DOMObject_t **objectpp);
+marpaXml_boolean_t          marpaXml_DOMError_setRelatedException(marpaXml_DOMError_t *thisp, marpaXml_DOMObject_t *objectp);
+marpaXml_boolean_t          marpaXml_DOMError_getRelatedData(marpaXml_DOMError_t *thisp, marpaXml_DOMObject_t **relatedDatapp);
+marpaXml_boolean_t          marpaXml_DOMError_setRelatedData(marpaXml_DOMError_t *thisp, marpaXml_DOMObject_t *relatedDatap);
+marpaXml_boolean_t          marpaXml_DOMError_getLocation(marpaXml_DOMError_t *thisp, struct marpaXml_DOMLocator **locationpp);
+marpaXml_boolean_t          marpaXml_DOMError_setLocation(marpaXml_DOMError_t *thisp, struct marpaXml_DOMLocator *locationp);
+marpaXml_boolean_t          marpaXml_DOMError_free(marpaXml_DOMError_t **thispp);
 
 /* Introduced in DOM Level 3: */
 typedef struct marpaXml_DOMErrorHandler_Context marpaXml_DOMErrorHandler_Context_t;

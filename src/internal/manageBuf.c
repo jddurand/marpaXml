@@ -3,7 +3,7 @@
 #include <string.h>
 
 #include "internal/config.h"
-#include "internal/bufManager.h"
+#include "internal/manageBuf.h"
 
 /*********************/
 /* manageBuf_createp */

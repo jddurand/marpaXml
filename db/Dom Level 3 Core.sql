@@ -19,11 +19,11 @@ CREATE TABLE [DOMNode]
 	[prevId] integer,
 	[nextId] integer,
 	PRIMARY KEY ([id]),
-	FOREIGN KEY ([nextId])
-	REFERENCES [DOMNode] ([id]),
 	FOREIGN KEY ([parent_id])
 	REFERENCES [DOMNode] ([id]),
 	FOREIGN KEY ([prevId])
+	REFERENCES [DOMNode] ([id]),
+	FOREIGN KEY ([nextId])
 	REFERENCES [DOMNode] ([id])
 );
 
@@ -176,16 +176,16 @@ CREATE TABLE [DOMDocument]
 	[documentURI] text,
 	[domConfig_id] integer NOT NULL UNIQUE,
 	PRIMARY KEY ([id]),
-	FOREIGN KEY ([implementation_id])
-	REFERENCES [DOMImplementation] ([id]),
-	FOREIGN KEY ([doctype_id])
-	REFERENCES [DOMDocumentType] ([id]),
-	FOREIGN KEY ([documentElement_id])
-	REFERENCES [DOMElement] ([id]),
 	FOREIGN KEY ([DOMNode_id])
 	REFERENCES [DOMNode] ([id]),
+	FOREIGN KEY ([implementation_id])
+	REFERENCES [DOMImplementation] ([id]),
 	FOREIGN KEY ([domConfig_id])
-	REFERENCES [DOMConfiguration] ([id])
+	REFERENCES [DOMConfiguration] ([id]),
+	FOREIGN KEY ([documentElement_id])
+	REFERENCES [DOMElement] ([id]),
+	FOREIGN KEY ([doctype_id])
+	REFERENCES [DOMDocumentType] ([id])
 );
 
 
@@ -228,7 +228,7 @@ CREATE TABLE [DOMEntityReference]
 CREATE TABLE [DOMException]
 (
 	[id] integer NOT NULL PRIMARY KEY AUTOINCREMENT,
-	[code] none,
+	[code] integer,
 	[message] text,
 	PRIMARY KEY ([id])
 );
@@ -259,12 +259,12 @@ CREATE TABLE [DOMError]
 	[relatedData_id] integer NOT NULL UNIQUE,
 	[location_id] integer NOT NULL UNIQUE,
 	PRIMARY KEY ([id]),
-	FOREIGN KEY ([relatedData_id])
-	REFERENCES [DOMNode] ([id]),
 	FOREIGN KEY ([relatedException_id])
 	REFERENCES [DOMException] ([id]),
 	FOREIGN KEY ([location_id])
-	REFERENCES [DOMLocator] ([id])
+	REFERENCES [DOMLocator] ([id]),
+	FOREIGN KEY ([relatedData_id])
+	REFERENCES [DOMNode] ([id])
 );
 
 
@@ -337,10 +337,10 @@ CREATE TABLE [RDOMConfigurationUserDataParameter]
 (
 	[DOMUserDataParameter_id] integer NOT NULL UNIQUE,
 	[DOMConfiguration_id] integer NOT NULL UNIQUE,
-	FOREIGN KEY ([DOMConfiguration_id])
-	REFERENCES [DOMConfiguration] ([id]),
 	FOREIGN KEY ([DOMUserDataParameter_id])
-	REFERENCES [DomUserDataParameter] ([id])
+	REFERENCES [DomUserDataParameter] ([id]),
+	FOREIGN KEY ([DOMConfiguration_id])
+	REFERENCES [DOMConfiguration] ([id])
 );
 
 

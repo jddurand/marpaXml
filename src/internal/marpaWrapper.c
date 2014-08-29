@@ -9,7 +9,7 @@
 #include "internal/marpaWrapper.h"
 #include "internal/genericStack.h"
 #include "internal/messageBuilder.h"
-#include "internal/bufManager.h"
+#include "internal/manageBuf.h"
 #include "marpa.h"
 
 #include "API/marpaXml/log.h"

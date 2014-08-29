@@ -99,7 +99,7 @@ char *messageBuilder_ap(const char *fmts, va_list ap) {
 
     if
 #ifdef _WIN32
-      (n >= 0 && n < size)
+      (n >= 0 && n < (int) size)
 #else
       (n < size)
 #endif

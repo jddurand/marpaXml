@@ -196,7 +196,7 @@ SET_PROPERTY (TARGET sqlite APPEND_STRING PROPERTY COMPILE_FLAGS " -DSQLITE_THRE
 ADD_LIBRARY (marpaXml
   ${PROJECT_SOURCE_DIR}/src/internal/genericStack.c
   ${PROJECT_SOURCE_DIR}/src/internal/marpaWrapper.c
-  ${PROJECT_SOURCE_DIR}/src/internal/bufManager.c
+  ${PROJECT_SOURCE_DIR}/src/internal/manageBuf.c
   ${PROJECT_SOURCE_DIR}/src/internal/messageBuilder.c
   ${PROJECT_SOURCE_DIR}/src/internal/dateBuilder.c
   ${PROJECT_SOURCE_DIR}/src/internal/streamIn.c
