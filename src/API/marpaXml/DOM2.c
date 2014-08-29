@@ -80,7 +80,7 @@ struct marpaXml_DOMError     {  sqlite3_int64 id; };
     unsigned short nbRows = 0;                                          \
                                                                         \
     if (rcp == NULL) {                                                  \
-      MARPAXML_ERRORX("Last argument must be != NULL\n");               \
+      MARPAXML_ERROR0("Last argument must be != NULL\n");               \
       return marpaXml_false;                                            \
     }                                                                   \
                                                                         \
@@ -95,7 +95,7 @@ struct marpaXml_DOMError     {  sqlite3_int64 id; };
         break;                                                          \
       }                                                                 \
       rcDb = sqlite3_column_##dbType(_marpaXml_stmt[_marpaXml_##class##_##get##method##_e].stmt, 0); \
-      *rcp = rcDb2Rc;                                                   \
+     *rcp = rcDb2Rc;							\
     }                                                                   \
                                                                         \
     if (_marpaXml_reset(_marpaXml_stmt[_marpaXml_##class##_##get##method##_e].stmt) == marpaXml_false) { \
@@ -106,7 +106,7 @@ struct marpaXml_DOMError     {  sqlite3_int64 id; };
       return marpaXml_false;                                            \
     }                                                                   \
     if (nbRows != 1) {                                                  \
-      MARPAXML_ERRORX("_marpaXml_step() returned more than one row\n"); \
+      MARPAXML_ERROR0("_marpaXml_step() returned more than one row\n"); \
       return marpaXml_false;                                            \
     }                                                                   \
                                                                         \
@@ -293,7 +293,6 @@ static const char *_MARPAXML_EXEC          = "   EXEC";
 static const char *_MARPAXML_PREPARE       = "PREPARE";
 static const char *_MARPAXML_NEWFUNC       = "NEWFUNC";
 static const char *_MARPAXML_SQL           = "    SQL";
-static const char *_MARPAXML_CHANGES       = "CHANGES";
 static const char *_MARPAXML_BINDTEXT      = "   BIND";
 static const char *_MARPAXML_BINDINT       = "   BIND";
 static const char *_MARPAXML_BINDINT64     = "   BIND";
