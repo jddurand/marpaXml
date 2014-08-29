@@ -449,20 +449,15 @@ END_CLASS
 #define MARPAXML_SEVERITY_FATAL_ERROR           3;
 
 /* Introduced in DOM Level 3: */
-typedef struct marpaXml_DOMError_Context marpaXml_DOMError_Context_t;
-SUBCLASS(marpaXml_DOMError, Object)
-  marpaXml_DOMError_Context_t *_contextp;
-VTABLE(marpaXml_DOMError, Object)
-  unsigned short              (*getSeverity)(marpaXml_DOMError_t *thisp);
-  marpaXml_String_t          *(*getMessage)(marpaXml_DOMError_t *thisp);
-  marpaXml_String_t          *(*getType)(marpaXml_DOMError_t *thisp);
-  marpaXml_DOMObject_t       *(*getRelatedException)(marpaXml_DOMError_t *thisp);
-  marpaXml_DOMObject_t       *(*getRelatedData)(marpaXml_DOMError_t *thisp);
-  struct marpaXml_DOMLocator *(*getLocation)(marpaXml_DOMError_t *thisp);
-METHODS
-  marpaXml_DOMError_t    *marpaXml_DOMError_new();
-  void                    marpaXml_DOMError_free(marpaXml_DOMError_t **thispp);
-END_CLASS
+typedef struct marpaXml_DOMError marpaXml_DOMError_t;
+marpaXml_DOMError_t        *marpaXml_DOMError_new(void);
+unsigned short              marpaXml_DOMError_getSeverity(marpaXml_DOMError_t *thisp);
+marpaXml_String_t          *marpaXml_DOMError_getMessage(marpaXml_DOMError_t *thisp);
+marpaXml_String_t          *marpaXml_DOMError_getType(marpaXml_DOMError_t *thisp);
+marpaXml_DOMObject_t       *marpaXml_DOMError_getRelatedException(marpaXml_DOMError_t *thisp);
+marpaXml_DOMObject_t       *marpaXml_DOMError_getRelatedData(marpaXml_DOMError_t *thisp);
+struct marpaXml_DOMLocator *marpaXml_DOMError_getLocation(marpaXml_DOMError_t *thisp);
+void                        marpaXml_DOMError_free(marpaXml_DOMError_t **thispp);
 
 /* Introduced in DOM Level 3: */
 typedef struct marpaXml_DOMErrorHandler_Context marpaXml_DOMErrorHandler_Context_t;

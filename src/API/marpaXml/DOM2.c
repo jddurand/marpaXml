@@ -27,6 +27,9 @@ typedef enum {
   _marpaXml_DOMException_getMessage_e,
   _marpaXml_DOMException_free_e,
 
+  _marpaXml_DOMError_new_e,
+  _marpaXml_DOMError_free_e,
+
 } _marpaXml_stmt_e;
 
 /*
@@ -44,6 +47,7 @@ typedef int (*_marpaXml_SQLiteExecCallback_t)(void *, int, char **, char **);
 
 /* For the API */
 struct marpaXml_DOMException {  sqlite3_int64 id; };
+struct marpaXml_DOMError     {  sqlite3_int64 id; };
 
 /********************************************************************************/
 /*                                Macros                                        */
@@ -120,7 +124,7 @@ struct marpaXml_DOMException {  sqlite3_int64 id; };
                                                                         \
     MARPAXML_TRACEX("[%s] %s\n", _MARPAXML_SQL, _marpaXml_stmt[_marpaXml_##class##_new_e].sql); \
                                                                         \
-    if (! (binding)) {                                                  \
+    if ((binding) == marpaXml_false) {					\
       _marpaXml_reset(_marpaXml_stmt[_marpaXml_##class##_new_e].stmt);  \
       marpaXml_##class##_free(&rc);                                     \
       return NULL;                                                      \
@@ -238,6 +242,10 @@ static _marpaXml_stmt_t _marpaXml_stmt[] = {
   { NULL, _marpaXml_DOMException_getCode_e,              "SELECT code FROM DOMException WHERE (id = ?1)" },
   { NULL, _marpaXml_DOMException_getMessage_e,           "SELECT message FROM DOMException WHERE (id = ?1)" },
   { NULL, _marpaXml_DOMException_free_e,                 "DELETE FROM DOMException WHERE (id = ?1)" },
+
+  /* DOMError */
+  { NULL, _marpaXml_DOMError_new_e,                  "INSERT INTO DOMError DEFAULT VALUES" },
+  { NULL, _marpaXml_DOMError_free_e,                 "DELETE FROM DOMError WHERE (id = ?1)" },
 
   { NULL, 0, NULL }
 };
@@ -829,19 +837,20 @@ static C_INLINE marpaXml_boolean_t _marpaXml_Transaction_Rollback() {
 /*                        DOMException                             */
 /*                                                                 */
 /*******************************************************************/
-/* ---------------------------------------------------------------- */
-/* marpaXml_DOMException_new                                        */
-/* ---------------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+/* marpaXml_DOMException_new                                       */
+/* --------------------------------------------------------------- */
 
 MARPAXML_GENERIC_NEW_API(DOMException,                                            /* class */
                          short code MARPAXML_ARG(marpaXml_String_t *messagep),    /* decl */
                          code MARPAXML_ARG(messagep),                             /* args */
-                         _marpaXml_bind_int (_marpaXml_stmt[_marpaXml_DOMException_new_e].stmt, 1, code                             ) == marpaXml_true && /* binding */
-                         _marpaXml_bind_text(_marpaXml_stmt[_marpaXml_DOMException_new_e].stmt, 2, marpaXml_String_getUtf8(messagep)) == marpaXml_true)
+                         (_marpaXml_bind_int (_marpaXml_stmt[_marpaXml_DOMException_new_e].stmt, 1, code                             ) == marpaXml_true && /* binding */
+			  _marpaXml_bind_text(_marpaXml_stmt[_marpaXml_DOMException_new_e].stmt, 2, marpaXml_String_getUtf8(messagep)) == marpaXml_true) ? marpaXml_true : marpaXml_false
+			 )
 
-/* ---------------------------------------------------------------- */
-/* marpaXml_DOMException_getCode                                    */
-/* ---------------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+/* marpaXml_DOMException_getCode                                   */
+/* --------------------------------------------------------------- */
 
 MARPAXML_GENERIC_GET_API(unsigned short,                              /* rcType */
                          int,                                         /* dbType */
@@ -852,11 +861,12 @@ MARPAXML_GENERIC_GET_API(unsigned short,                              /* rcType 
                          rc > 0 ? marpaXml_true : marpaXml_false,     /* okCond */
                          0,                                           /* notOkRc */
                          "%d",                                        /* okFmts */
-                         (int) rc)                                    /* okFmtArg */
+                         (int) rc                                     /* okFmtArg */
+			 )
 
-/* ---------------------------------------------------------------- */
-/* marpaXml_DOMException_getMessage                                 */
-/* ---------------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+/* marpaXml_DOMException_getMessage                                */
+/* --------------------------------------------------------------- */
 
 MARPAXML_GENERIC_GET_API(marpaXml_String_t *,                         /* rcType */
                          text,                                        /* dbType */
@@ -867,17 +877,37 @@ MARPAXML_GENERIC_GET_API(marpaXml_String_t *,                         /* rcType 
                          rc != NULL ? marpaXml_true : marpaXml_false, /* okCond */
                          NULL,                                        /* notOkRc */
                          "%p",                                        /* okFmts */
-                         rc)                                          /* okFmtArg */
+                         rc                                           /* okFmtArg */
+			 )
 
-/* ---------------------------------------------------------------- */
-/* marpaXml_DOMException_free                                       */
-/* Note: the lifetime of a DOMException in the DB is the object     */
-/* ---------------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+/* marpaXml_DOMException_free                                      */
+/* Note: the lifetime of a DOMException in the DB is the object    */
+/* --------------------------------------------------------------- */
 MARPAXML_GENERIC_FREE_API(DOMException,                               /* class */
-                          marpaXml_true)                              /* deleteFromDb */
+                          marpaXml_true                               /* deleteFromDb */
+			  )
 
 /*******************************************************************/
 /*                                                                 */
-/*                           DOMNode                               */
+/*                          DOMError                               */
 /*                                                                 */
 /*******************************************************************/
+/* --------------------------------------------------------------- */
+/* marpaXml_DOMError_new                                           */
+/* --------------------------------------------------------------- */
+
+MARPAXML_GENERIC_NEW_API(DOMError,                                    /* class */
+                         void,                                        /* decl */
+                         ,                                            /* args */
+			 marpaXml_true                                /* binding */
+			 )
+
+/* --------------------------------------------------------------- */
+/* marpaXml_DOMError_free                                          */
+/* Note: the lifetime of a DOMError in the DB is the object        */
+/* --------------------------------------------------------------- */
+MARPAXML_GENERIC_FREE_API(DOMError,                                   /* class */
+                          marpaXml_true                               /* deleteFromDb */
+			  )
+
