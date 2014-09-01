@@ -7,10 +7,12 @@
 int main(int argc, char **argv) {
     marpaXml_String_t        *messagep;
     marpaXml_String_t        *message2p;
+    marpaXml_String_t        *containsp;
     marpaXml_DOMException_t  *exceptionp;
-    marpaXml_DOMStringList_t *DOMStringList1p, *DOMStringList2p;
+    marpaXml_DOMStringList_t *DOMStringList1p, *DOMStringList2p, *DOMStringList3p;
     marpaXml_String_t        *string;
     unsigned short            unsignedShort;
+    marpaXml_boolean_t        rcb;
 
 #ifdef _WIN32
     marpaXml_DOM_Option_t marpaXml_DOM_Option = {"C:\\Windows\\Temp\\test.sqlite", NULL, -1, { NULL, NULL, MARPAXML_LOGLEVEL_TRACE} };
@@ -31,6 +33,7 @@ int main(int argc, char **argv) {
   /*************************************/
   messagep = marpaXml_String_newFromUTF8((char *) "My Message", NULL);
   message2p = marpaXml_String_newFromUTF8((char *) "My New Message", NULL);
+  containsp = marpaXml_String_newFromUTF8((char *) "Test for DOMStringList_contains", NULL);
 
   if (marpaXml_DOMException_new(0, messagep) != NULL) {
     fprintf(stderr, "marpaXml_DOMException_new success with invalid code 0\n");
@@ -100,13 +103,10 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  marpaXml_String_free(&string);
-  marpaXml_String_free(&messagep);
-  marpaXml_String_free(&message2p);
-
   /*************************************/
-  /*            DOMException           */
+  /*            DOMStringList          */
   /*************************************/
+  /* The reel test is to interleave creations and destructions */
   DOMStringList1p = marpaXml_DOMStringList_new();
   if (DOMStringList1p == NULL) {
     fprintf(stderr, "marpaXml_DOMStringList_new failure\n");
@@ -121,7 +121,22 @@ int main(int argc, char **argv) {
     fprintf(stderr, "marpaXml_DOMStringList_free failure\n");
     return 1;
   }
+  DOMStringList3p = marpaXml_DOMStringList_new();
+  if (DOMStringList3p == NULL) {
+    fprintf(stderr, "marpaXml_DOMStringList_new failure\n");
+    return 1;
+  }
+  marpaXml_DOMStringList_contains(DOMStringList3p, containsp, &rcb);
+  if (rcb == marpaXml_true) {
+    fprintf(stderr, "marpaXml_DOMStringList_contains says it contains \"%s\"\n", marpaXml_String_getUtf8(containsp));
+    return 1;
+  }
+
   if (marpaXml_DOMStringList_free(&DOMStringList2p) == marpaXml_false) {
+    fprintf(stderr, "marpaXml_DOMStringList_free failure\n");
+    return 1;
+  }
+  if (marpaXml_DOMStringList_free(&DOMStringList3p) == marpaXml_false) {
     fprintf(stderr, "marpaXml_DOMStringList_free failure\n");
     return 1;
   }
@@ -133,6 +148,11 @@ int main(int argc, char **argv) {
     fprintf(stderr, "marpaXml_DOM_release() failure\n");
     return 1;
   }
+
+  marpaXml_String_free(&string);
+  marpaXml_String_free(&messagep);
+  marpaXml_String_free(&message2p);
+  marpaXml_String_free(&containsp);
 
   fprintf(stderr, "All tests returned OK\n");
   return 0;

@@ -130,7 +130,7 @@ marpaXml_boolean_t       marpaXml_DOMException_free      (marpaXml_DOMException_
 marpaXml_DOMStringList_t           *marpaXml_DOMStringList_new(void);
 marpaXml_boolean_t                  marpaXml_DOMStringList_item(marpaXml_DOMStringList_t *thisp, unsigned long index,   marpaXml_String_t **itempp);
 marpaXml_boolean_t                  marpaXml_DOMStringList_getLength(marpaXml_DOMStringList_t *thisp,  unsigned long *lengthp);
-marpaXml_boolean_t                  marpaXml_DOMStringList_contains(marpaXml_DOMStringList_t *thisp, marpaXml_String_t *strp,   marpaXml_boolean_t *containsp);
+marpaXml_boolean_t                  marpaXml_DOMStringList_contains(marpaXml_DOMStringList_t *thisp, marpaXml_String_t *strp, marpaXml_boolean_t *containsp);
 marpaXml_boolean_t                  marpaXml_DOMStringList_free(marpaXml_DOMStringList_t **thisp);
 
 marpaXml_NameList_t                *marpaXml_NameList_new(void);
