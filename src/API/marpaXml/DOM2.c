@@ -233,14 +233,13 @@ struct marpaXml_DOMStringList { sqlite3_int64 id /* not used */; int objectCount
                                                                         \
     if ((rc = malloc(sizeof(marpaXml_##class##_t))) == NULL) {          \
       MARPAXML_ERRORX("malloc() returns NULL: %s at %s:%d\n", strerror(errno), __FILE__, __LINE__); \
-      _marpaXml_##class##_free(&rc);					\
-	return NULL;                                                    \
+      return NULL;							\
     }                                                                   \
-    rc  ->id = 0;							\
+    rc->id = 0;								\
                                                                         \
     if (_marpaXml_getDynamicStmt(rc, _marpaXml_##class##_new_e, &sqls, &sqliteStmtp) == marpaXml_false) { \
-      _marpaXml_##class##_free(&rc);					\
-	return NULL;                                                    \
+      if (_marpaXml_##class##_free(&rc) == marpaXml_false) { free(rc); } \
+      return NULL;							\
     }									\
     									\
     MARPAXML_TRACEX("[%s] %s\n", _MARPAXML_SQL, sqls);			\
@@ -248,8 +247,8 @@ struct marpaXml_DOMStringList { sqlite3_int64 id /* not used */; int objectCount
     if ((bindingResult) == marpaXml_false) {				\
       _marpaXml_reset(sqliteStmtp);					\
       _marpaXml_freeDynamicStmt(_marpaXml_##class##_new_e, &sqls, &sqliteStmtp); \
-      _marpaXml_##class##_free(&rc);					\
-	return NULL;							\
+      if (_marpaXml_##class##_free(&rc) == marpaXml_false) { free(rc); } \
+      return NULL;							\
     }                                                                   \
                                                                         \
     while ((sqliteRc = _marpaXml_step(sqliteStmtp)) == SQLITE_ROW) {	\
@@ -260,29 +259,29 @@ struct marpaXml_DOMStringList { sqlite3_int64 id /* not used */; int objectCount
     }									\
     if (_marpaXml_reset(sqliteStmtp) == marpaXml_false) {		\
       _marpaXml_freeDynamicStmt(_marpaXml_##class##_new_e, &sqls, &sqliteStmtp); \
-      _marpaXml_##class##_free(&rc);					\
-	return NULL;							\
+      if (_marpaXml_##class##_free(&rc) == marpaXml_false) { free(rc); } \
+      return NULL;							\
     }                                                                   \
     									\
     if (sqliteRc != SQLITE_DONE) {                                      \
       MARPAXML_ERRORX("[%s] step returned %d != SQLITE_DONE: %s at %s:%d\n", sqls, sqliteRc, sqlite3_errstr(sqliteRc), __FILE__, __LINE__); \
       _marpaXml_freeDynamicStmt(_marpaXml_##class##_new_e, &sqls, &sqliteStmtp); \
-      _marpaXml_##class##_free(&rc);					\
-	return NULL;							\
+      if (_marpaXml_##class##_free(&rc) == marpaXml_false) { free(rc); } \
+      return NULL;							\
     }                                                                   \
                                                                         \
     if (_marpaXml_stmt[_marpaXml_##class##_new_e].changesb == marpaXml_true) { \
       if (_marpaXml_changes() == marpaXml_false) {			\
 	_marpaXml_freeDynamicStmt(_marpaXml_##class##_new_e, &sqls, &sqliteStmtp); \
-	_marpaXml_##class##_free(&rc);					\
-	  return NULL;							\
+	if (_marpaXml_##class##_free(&rc) == marpaXml_false) { free(rc); } \
+	return NULL;							\
       }									\
       rc->id = sqlite3_last_insert_rowid(_dbp);				\
       if (rc->id <= 0) {						\
 	MARPAXML_ERRORX("[%s] id <= 0 at %s:%d\n", sqls, __FILE__, __LINE__); \
 	_marpaXml_freeDynamicStmt(_marpaXml_##class##_new_e, &sqls, &sqliteStmtp); \
-	_marpaXml_##class##_free(&rc);					\
-	  return NULL;							\
+	if (_marpaXml_##class##_free(&rc) == marpaXml_false) { free(rc); } \
+	return NULL;							\
       }									\
       MARPAXML_TRACEX("[%s] %lld\n", _MARPAXML_ID, (unsigned long long int) rc->id); \
     }									\
@@ -290,21 +289,21 @@ struct marpaXml_DOMStringList { sqlite3_int64 id /* not used */; int objectCount
       if (nbRows == 0) {						\
 	MARPAXML_ERRORX("[%s] no row at %s:%d\n", sqls, __FILE__, __LINE__); \
 	_marpaXml_freeDynamicStmt(_marpaXml_##class##_new_e, &sqls, &sqliteStmtp); \
-	_marpaXml_##class##_free(&rc);					\
-	  return NULL;							\
+	if (_marpaXml_##class##_free(&rc) == marpaXml_false) { free(rc); } \
+	return NULL;							\
       }									\
       else if (nbRows > 1) {						\
 	MARPAXML_ERRORX("[%s] more than one row at %s:%d\n", sqls, __FILE__, __LINE__); \
 	_marpaXml_freeDynamicStmt(_marpaXml_##class##_new_e, &sqls, &sqliteStmtp); \
-	_marpaXml_##class##_free(&rc);					\
-	  return NULL;							\
+	if (_marpaXml_##class##_free(&rc) == marpaXml_false) { free(rc); } \
+	return NULL;							\
       }									\
       rc->id = id;							\
       if (rc->id <= 0) {						\
 	MARPAXML_ERRORX("[%s] id is <= 0 at %s:%d\n", sqls, __FILE__, __LINE__); \
 	_marpaXml_freeDynamicStmt(_marpaXml_##class##_new_e, &sqls, &sqliteStmtp); \
-	_marpaXml_##class##_free(&rc);					\
-	  return NULL;							\
+	if (_marpaXml_##class##_free(&rc) == marpaXml_false) { free(rc); } \
+	return NULL;							\
       }									\
       MARPAXML_TRACEX("[%s] %lld\n", _MARPAXML_ID, (unsigned long long int) rc->id); \
     }									\
@@ -339,7 +338,9 @@ struct marpaXml_DOMStringList { sqlite3_int64 id /* not used */; int objectCount
                                                                         \
       if (thisp != NULL) {                                              \
         if (impactOnDb == marpaXml_true) {				\
-	  if (_marpaXml_getDynamicStmt(thisp, _marpaXml_##class##_free_e, &sqls, &sqliteStmtp) == marpaXml_true) { \
+	  if (_marpaXml_getDynamicStmt(thisp, _marpaXml_##class##_free_e, &sqls, &sqliteStmtp) == marpaXml_false) { \
+	    rc = marpaXml_false;					\
+	  } else {							\
 	    MARPAXML_TRACEX("[%s] %s\n", _MARPAXML_SQL, sqls);		\
 	    if ((thisp->id > 0) && _marpaXml_bind_int64(sqliteStmtp, 1, thisp->id) == marpaXml_false) { \
 	      _marpaXml_reset(sqliteStmtp);				\
@@ -361,9 +362,6 @@ struct marpaXml_DOMStringList { sqlite3_int64 id /* not used */; int objectCount
 	      }								\
 	      _marpaXml_freeDynamicStmt(_marpaXml_##class##_free_e, &sqls, &sqliteStmtp); \
 	    }								\
-	  } else { /* Happens when new() fails */			\
-	    free(thisp);						\
-	    *thispp = NULL;						\
 	  }								\
         } else {                                                        \
           free(thisp);                                                  \
