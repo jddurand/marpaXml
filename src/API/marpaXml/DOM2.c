@@ -42,6 +42,7 @@ typedef enum {
   _marpaXml_DOMStringList_contains_e,
   _marpaXml_DOMStringList_free_e,
 
+  __marpaXml_stmt_max_e,
 } _marpaXml_stmt_e;
 
 /* This is used to exec() anything that must be done before init the init */
@@ -75,7 +76,10 @@ marpaXml_boolean_t      marpaXml_DOMObjects_free(marpaXml_DOMObjects_t **thisp);
 struct marpaXml_DOMException  { sqlite3_int64 id; };
 struct marpaXml_DOMError      { sqlite3_int64 id; };
 struct marpaXml_DOMObjects    { sqlite3_int64 id; };
-struct marpaXml_DOMStringList { sqlite3_int64 id; marpaXml_DOMObjects_t *DOMObjectsp; };
+struct marpaXml_DOMStringList {
+  sqlite3_int64 id;
+  marpaXml_DOMObjects_t *DOMObjectsp;
+};
 
 /********************************************************************************/
 /*                                Macros                                        */
@@ -1385,7 +1389,6 @@ static C_INLINE marpaXml_boolean_t _marpaXml_getStmt(void *objp, _marpaXml_stmt_
     *sqliteStmtpp = _marpaXml_stmt[stmt].stmt;
     return marpaXml_true;
   } else {
-    /* Per def this is the reference to a method that will return a malloced string */
     return _marpaXml_generateStmt(objp, stmt, sqlsp, sqliteStmtpp);
   }
 }
