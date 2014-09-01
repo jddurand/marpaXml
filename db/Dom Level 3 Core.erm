@@ -42,7 +42,7 @@
 		<export_setting>
 			<category_name_to_export>All</category_name_to_export>
 			<html_output></html_output>
-			<ddl_output>C:\Users\Jean-Damien.Durand\Documents\GitHub\marpaXml\db\Dom Level 3 Core.sql</ddl_output>
+			<ddl_output>Dom Level 3 Core.sql</ddl_output>
 			<excel_output></excel_output>
 			<excel_template></excel_template>
 			<image_output></image_output>
@@ -111,7 +111,7 @@
 			</connections>
 			<display>false</display>
 			<creation_date>2014-08-10 12:15:25</creation_date>
-			<updated_date>2014-08-31 22:17:03</updated_date>
+			<updated_date>2014-09-01 02:08:07</updated_date>
 			<model_property>
 				<name>Project Name</name>
 				<value></value>
