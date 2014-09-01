@@ -1367,7 +1367,7 @@ MARPAXML_GENERIC_METHOD_API(marpaXml_boolean_t,                     /* rcType */
                             rcDb,                                   /* rcDb2rc */
                             marpaXml_false,                         /* defaultRc */
                             marpaXml_false                          /* changeId */
-                            );
+                            )
 
 /* --------------------------------------------------------------- */
 /* marpaXml_DOMStringList_free                                     */
@@ -1418,7 +1418,6 @@ static C_INLINE marpaXml_boolean_t _marpaXml_generateStmt(void *objp, _marpaXml_
   marpaXml_boolean_t      rcb = marpaXml_false;
   char                   *sqls;
   marpaXml_DOMObjects_t  *DOMObjectsp;
-  int                     objectCount = 0;
 
   switch (stmt) {
   case _marpaXml_DOMStringList_new_e:
