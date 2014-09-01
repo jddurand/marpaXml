@@ -265,7 +265,7 @@ struct marpaXml_DOMStringList { sqlite3_int64 id /* not used */; int objectCount
     }                                                                   \
     									\
     if (sqliteRc != SQLITE_DONE) {                                      \
-      MARPAXML_ERRORX("_marpaXml_step() returns %d != SQLITE_DONE: %s at %s:%d\n", sqliteRc, sqlite3_errstr(sqliteRc), __FILE__, __LINE__); \
+      MARPAXML_ERRORX("[%s] step returned %d != SQLITE_DONE: %s at %s:%d\n", sqls, sqliteRc, sqlite3_errstr(sqliteRc), __FILE__, __LINE__); \
       _marpaXml_freeDynamicStmt(_marpaXml_##class##_new_e, &sqls, &sqliteStmtp); \
       _marpaXml_##class##_free(&rc);					\
 	return NULL;							\
@@ -1038,6 +1038,7 @@ marpaXml_boolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Optionp
   _dbp = dbp;
 
   sqlite3_mutex_leave(mutexp);
+  sqlite3_mutex_free(mutexp);
 
   return marpaXml_true;
 
@@ -1354,7 +1355,7 @@ static C_INLINE marpaXml_boolean_t _marpaXml_stmtGenerator(void *objp, _marpaXml
     ((marpaXml_DOMStringList_t *) objp)->objectCount = objectCount;
     *sqlsp = sqls;
     rcb = marpaXml_true;
-
+    _marpaXml_DOMCounters_free(&DOMCountersp);
     break;
 
   case _marpaXml_DOMStringList_free_e:
@@ -1382,7 +1383,7 @@ static C_INLINE marpaXml_boolean_t _marpaXml_stmtGenerator(void *objp, _marpaXml
 
     *sqlsp = sqls;
     rcb = marpaXml_true;
-
+    _marpaXml_DOMCounters_free(&DOMCountersp);
     break;
 
   default:
