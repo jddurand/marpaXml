@@ -17,12 +17,11 @@
 
 
 /*
-  With no exception;
-  - "new" methods returns a non-NULL pointer on success, NULL on failure
-  - others, inclusing "free" methods, return a marpaXml_boolean_t
-
-  - get methods always require the last parameter (pointer to the output) to not be NULL.
-  - "free" methods always a pointer to pointer, to make sure it is NULL at return and if success
+  0. All DOM objects are prefixed with marpaXml_DOM
+  1. new methods returns a non-NULL pointer on success, NULL on failure. Others, inclusing "free" methods, return a marpaXml_boolean_t
+  2. get methods always require the last parameter (pointer to the output) to not be NULL.
+  3. free methods always use a pointer to pointer that must be non NULL, to make sure its content NULL at return and if success
+  4. methods that can generate an exception have a last parameter: marpaXml_DOMException_t **exceptionpp
 
   So the usage is always:
 
@@ -32,24 +31,13 @@
   if (xxx_method(thisp, ...)    == marpaXml_false) { ... failure ... }
   if (xxx_free(&thisp)          == marpaXml_false) { ... failure ... }
 
+  The only exceptions are the marpaXml_DOM_init(), marpaXml_DOM_done() and marpaXml_DOM_release(), that
+  are not part of the IDL.
+
+  I could have played with cplus, ooc, etc... but I did not feed I would have gained so much
+  by abstracting and making code less readable, just to have the OO pattern in here.
 */
 
-/* About this file:
-   - Object Oriented Programming is a design pattern. Nothing prevent to do full OO in C.
-     I use the cplus.h macros. By far this is the more portable implementation as I know.
-   - Exceptions is an implementation on top of native OO languages. I am not gonne play
-     with raise() and so on, this triggers also the problem of thread-specific storage.
-     By far, the simplest and totally portable implementation is to provide an explicit
-     exception parameter on all methods that are designed to raise one.
-
-     The caller is expected to check the output of new() methods, and error, if any,
-     will be in strerror(errno).
-
-     As usual with C (alike most other languages) a misuse of pointers give undefined
-     behaviour - usually SIGSEGV -;
-*/
-
-#include "marpaXml/cplus.h"
 #include "marpaXml/boolean.h"
 #include "marpaXml/String.h"
 #include "marpaXml/log.h"
@@ -81,24 +69,38 @@ marpaXml_boolean_t marpaXml_DOM_done(void);
 */
 marpaXml_boolean_t marpaXml_DOM_release(void);
 
-/* Basic types */
-typedef unsigned long long marpaXml_DOMTimeStamp_t;
-typedef void marpaXml_DOMUserData_t;
-typedef Object marpaXml_DOMObject_t;
+/* Types */
+typedef void                                    marpaXml_DOMUserData_t;
+typedef void                                    marpaXml_DOMObject_t;
+typedef struct marpaXml_DOMException            marpaXml_DOMException_t;
+typedef struct marpaXml_DOMError                marpaXml_DOMError_t;
+typedef struct marpaXml_DOMStringList           marpaXml_DOMStringList_t;
+typedef struct marpaXml_NameList                marpaXml_NameList_t;
+typedef struct marpaXml_DOMImplementationList   marpaXml_DOMImplementationList_t;
+typedef struct marpaXml_DOMImplementationSource marpaXml_DOMImplementationSource_t;
+typedef struct marpaXml_DOMImplementation       marpaXml_DOMImplementation_t;
+typedef struct marpaXml_Node                    marpaXml_Node_t;
+typedef struct marpaXml_NodeList                marpaXml_NodeList_t;
+typedef struct marpaXml_NamedNodeMap            marpaXml_NamedNodeMap_t;
+typedef struct marpaXml_CharacterData           marpaXml_CharacterData_t;
+typedef struct marpaXml_Attr                    marpaXml_Attr_t;
+typedef struct marpaXml_Element                 marpaXml_Element_t;
+typedef struct marpaXml_Text                    marpaXml_Text_t;
+typedef struct marpaXml_Comment                 marpaXml_Comment_t;
+typedef struct marpaXml_TypeInfo                marpaXml_TypeInfo_t;
+typedef struct marpaXml_UserDataHandler         marpaXml_UserDataHandler_t;
+typedef struct marpaXml_DOMErrorHandler         marpaXml_DOMErrorHandler_t;
+typedef struct marpaXml_DOMLocator              marpaXml_DOMLocator_t;
+typedef struct marpaXml_DOMConfiguration        marpaXml_DOMConfiguration_t;
+typedef struct marpaXml_CDATASection            marpaXml_CDATASection_t;
+typedef struct marpaXml_DocumentType            marpaXml_DocumentType_t;
+typedef struct marpaXml_Notation                marpaXml_Notation_t;
+typedef struct marpaXml_Entity                  marpaXml_Entity_t;
+typedef struct marpaXml_EntityReference         marpaXml_EntityReference_t;
+typedef struct marpaXml_ProcessingInstruction   marpaXml_ProcessingInstruction_t;
+typedef struct marpaXml_DocumentFragment        marpaXml_DocumentFragment_t;
+typedef struct marpaXml_Document                marpaXml_Document_t;
 
-/* Forward declarations */
-CLASS_FORWARDDECL_AS_PTR(marpaXml_DOMImplementation)
-CLASS_FORWARDDECL_AS_PTR(marpaXml_DocumentType)
-CLASS_FORWARDDECL_AS_PTR(marpaXml_Document)
-CLASS_FORWARDDECL_AS_PTR(marpaXml_NodeList)
-CLASS_FORWARDDECL_AS_PTR(marpaXml_NamedNodeMap)
-CLASS_FORWARDDECL_AS_PTR(marpaXml_UserDataHandler)
-CLASS_FORWARDDECL_AS_PTR(marpaXml_Element)
-CLASS_FORWARDDECL_AS_PTR(marpaXml_TypeInfo)
-CLASS_FORWARDDECL_AS_PTR(marpaXml_DOMLocator)
-
-
-typedef struct marpaXml_DOMException marpaXml_DOMException_t;
 marpaXml_DOMException_t *marpaXml_DOMException_new       (short code, marpaXml_String_t *messagep);
 marpaXml_boolean_t       marpaXml_DOMException_getCode   (marpaXml_DOMException_t *thisp, unsigned short *codep);
 marpaXml_boolean_t       marpaXml_DOMException_setCode   (marpaXml_DOMException_t *thisp, unsigned short code);
@@ -117,88 +119,44 @@ marpaXml_boolean_t       marpaXml_DOMException_free      (marpaXml_DOMException_
 #define MARPAXML_NOT_FOUND_ERR                  8;
 #define MARPAXML_NOT_SUPPORTED_ERR              9;
 #define MARPAXML_INUSE_ATTRIBUTE_ERR            10;
-/* Introduced in DOM Level 2: */
 #define MARPAXML_INVALID_STATE_ERR              11;
-/* Introduced in DOM Level 2: */
 #define MARPAXML_SYNTAX_ERR                     12;
-/* Introduced in DOM Level 2: */
 #define MARPAXML_INVALID_MODIFICATION_ERR       13;
-/* Introduced in DOM Level 2: */
 #define MARPAXML_NAMESPACE_ERR                  14;
-/* Introduced in DOM Level 2: */
 #define MARPAXML_INVALID_ACCESS_ERR             15;
-/* Introduced in DOM Level 3: */
 #define MARPAXML_VALIDATION_ERR                 16;
-/* Introduced in DOM Level 3: */
 #define MARPAXML_TYPE_MISMATCH_ERR              17;
 
-/* Introduced in DOM Level 3: */
-typedef struct marpaXml_StringList_Context marpaXml_StringList_Context_t;
-SUBCLASS(marpaXml_StringList, Object)
-  marpaXml_StringList_Context_t *_contextp;
-VTABLE(marpaXml_StringList, Object)
-  marpaXml_String_t          *(*item)(marpaXml_String_t *thisp, unsigned long index);
-  unsigned long               (*getLength)(marpaXml_String_t *thisp);
-  marpaXml_boolean_t          (*contains)(marpaXml_String_t *thisp, marpaXml_String_t *strp);
-METHODS
-  marpaXml_StringList_t       *marpaXml_StringList_new();
-  void                         marpaXml_StringList_free(marpaXml_String_t **thisp);
-END_CLASS
+marpaXml_DOMStringList_t           *marpaXml_DOMStringList_new(void);
+marpaXml_boolean_t                  marpaXml_DOMStringList_item(marpaXml_DOMStringList_t *thisp, unsigned long index,   marpaXml_String_t **itempp);
+marpaXml_boolean_t                  marpaXml_DOMStringList_getLength(marpaXml_DOMStringList_t *thisp,  unsigned long *lengthp);
+marpaXml_boolean_t                  marpaXml_DOMStringList_contains(marpaXml_DOMStringList_t *thisp, marpaXml_String_t *strp,   marpaXml_boolean_t *containsp);
+marpaXml_boolean_t                  marpaXml_DOMStringList_free(marpaXml_DOMStringList_t **thisp);
 
-/* Introduced in DOM Level 3: */
-typedef struct marpaXml_NameList_Context *marpaXml_NameList_Context_t;
-SUBCLASS(marpaXml_NameList, Object)
-  marpaXml_NameList_Context_t *_contextp;
-VTABLE(marpaXml_NameList, Object)
-  marpaXml_String_t         *(*getName)(marpaXml_NameList_t *thisp, unsigned long index);
-  marpaXml_String_t         *(*getNamespaceURI)(marpaXml_NameList_t *thisp, unsigned long index);
-  unsigned long              (*getLength)(marpaXml_NameList_t *thisp);
-  marpaXml_boolean_t         (*contains)(marpaXml_NameList_t *thisp, marpaXml_String_t *strp);
-  marpaXml_boolean_t         (*containsNS)(marpaXml_NameList_t *thisp, marpaXml_String_t *namespaceURIp, marpaXml_String_t *namep);
-METHODS
-  marpaXml_NameList_t         *marpaXml_NameList_new();
-  void                         marpaXml_NameList_free(marpaXml_NameList_t **thispp);
-END_CLASS
+marpaXml_NameList_t                *marpaXml_NameList_new(void);
+marpaXml_boolean_t                  marpaXml_NameList_getName(marpaXml_NameList_t *thisp, unsigned long index, marpaXml_String_t **namepp);
+marpaXml_boolean_t                  marpaXml_NameList_getNamespaceURI(marpaXml_NameList_t *thisp, unsigned long index, marpaXml_String_t **namespaceURIpp);
+marpaXml_boolean_t                  marpaXml_NameList_getLength(marpaXml_NameList_t *thisp, unsigned long *lengthp);
+marpaXml_boolean_t                  marpaXml_NameList_contains(marpaXml_NameList_t *thisp, marpaXml_String_t *strp, marpaXml_boolean_t *containsp);
+marpaXml_boolean_t                  marpaXml_NameList_containsNS(marpaXml_NameList_t *thisp, marpaXml_String_t *namespaceURIp, marpaXml_String_t *namep, marpaXml_boolean_t *containsNSp);
+marpaXml_boolean_t                  marpaXml_NameList_free(marpaXml_NameList_t **thispp);
 
-/* Introduced in DOM Level 3: */
-typedef struct marpaXml_DOMImplementationList_Context marpaXml_DOMImplementationList_Context_t;
-SUBCLASS(marpaXml_DOMImplementationList, Object)
-  marpaXml_DOMImplementationList_Context_t *_contextp;
-VTABLE(marpaXml_DOMImplementationList, Object)
-  marpaXml_DOMImplementationp_t   (*item)(marpaXml_DOMImplementationList_t *thisp, unsigned long index);
-  unsigned long                   (*getLength)(marpaXml_DOMImplementationList_t *thisp);
-METHODS
-  marpaXml_DOMImplementationList_t *marpaXml_DOMImplementationList_new();
-  void                              marpaXml_DOMImplementationList_free(marpaXml_DOMImplementationList_t **thispp);
-END_CLASS
+marpaXml_DOMImplementationList_t   *marpaXml_DOMImplementationList_new(void);
+marpaXml_boolean_t                  marpaXml_DOMImplementationList_item(marpaXml_DOMImplementationList_t *thisp, unsigned long index, marpaXml_DOMImplementation_t **itempp);
+marpaXml_boolean_t                  marpaXml_DOMImplementationList_getLength(marpaXml_DOMImplementationList_t *thisp, unsigned long *lengthp);
+marpaXml_boolean_t                  marpaXml_DOMImplementationList_free(marpaXml_DOMImplementationList_t **thispp);
 
-/* Introduced in DOM Level 3: */
-typedef struct marpaXml_DOMImplementationSource_Context marpaXml_DOMImplementationSource_Context_t;
-SUBCLASS(marpaXml_DOMImplementationSource, Object)
-  marpaXml_DOMImplementationSource_Context_t *_contextp;
-VTABLE(marpaXml_DOMImplementationSource, Object)
-  marpaXml_DOMImplementationp_t     (*getDOMImplementation)(marpaXml_DOMImplementationSource_t *thisp, marpaXml_String_t *featuresp);
-  marpaXml_DOMImplementationList_t *(*getDOMImplementationList)(marpaXml_DOMImplementationSource_t *thisp, marpaXml_String_t *featuresp);
-METHODS
-  marpaXml_DOMImplementationSource_t *marpaXml_DOMImplementationSource_new();
-  void                                marpaXml_DOMImplementationSource_free(marpaXml_DOMImplementationSource_t **thispp);
-END_CLASS
+marpaXml_DOMImplementationSource_t *marpaXml_DOMImplementationSource_new(void);
+marpaXml_boolean_t                  marpaXml_DOMImplementationSource_getDOMImplementation(marpaXml_DOMImplementationSource_t *thisp, marpaXml_String_t *featuresp, marpaXml_DOMImplementation_t **DOMImplementationpp);
+marpaXml_boolean_t                  marpaXml_DOMImplementationSource_getDOMImplementationList(marpaXml_DOMImplementationSource_t *thisp, marpaXml_String_t *featuresp, marpaXml_DOMImplementationList_t **DOMImplementationListpp);
+marpaXml_boolean_t                  marpaXml_DOMImplementationSource_free(marpaXml_DOMImplementationSource_t **thispp);
 
-typedef struct marpaXml_DOMImplementation_Context marpaXml_DOMImplementation_Context_t;
-SUBCLASS(marpaXml_DOMImplementation, Object)
-  marpaXml_DOMImplementation_Context_t *_contextp;
-VTABLE(marpaXml_DOMImplementation, Object)
-  marpaXml_boolean_t                (*hasFeature)(marpaXml_DOMImplementation_t *thisp, marpaXml_String_t *featurep, marpaXml_String_t *versionp);
-  /* Introduced in DOM Level 2: */
-  marpaXml_DocumentTypep_t          (*createDocumentType)(marpaXml_DOMImplementation_t *thisp, marpaXml_String_t *qualifiedNamep, marpaXml_String_t *publicIdp, marpaXml_String_t *systemIdp, marpaXml_DOMException_t *exceptionp);
-  /* Introduced in DOM Level 2: */
-  marpaXml_Documentp_t              (*createDocument)(marpaXml_DOMImplementation_t *thisp, marpaXml_String_t *namespaceURIp,  marpaXml_String_t *qualifiedNamep, marpaXml_DocumentTypep_t doctypep, marpaXml_DOMException_t *exceptionp);
-  /* Introduced in DOM Level 3: */
-  marpaXml_DOMObject_t             *(*getFeature)(marpaXml_DOMImplementation_t *thisp, marpaXml_String_t *featurep, marpaXml_String_t *versionp);
-METHODS
-  marpaXml_DOMImplementation_t   *marpaXml_DOMImplementation_new();
-  void                            marpaXml_DOMImplementation_free(marpaXml_DOMImplementation_t **thispp);
-END_CLASS
+marpaXml_DOMImplementation_t       *marpaXml_DOMImplementation_new(void);
+marpaXml_boolean_t                  marpaXml_DOMImplementation_hasFeature(marpaXml_DOMImplementation_t *thisp, marpaXml_String_t *featurep, marpaXml_String_t *versionp, marpaXml_boolean_t **hasFeaturepp);
+marpaXml_boolean_t                  marpaXml_DOMImplementation_createDocumentType(marpaXml_DOMImplementation_t *thisp, marpaXml_String_t *qualifiedNamep, marpaXml_String_t *publicIdp, marpaXml_String_t *systemIdp, marpaXml_DocumentType_t **documentTypepp, marpaXml_DOMException_t **exceptionpp);
+marpaXml_boolean_t                 *marpaXml_DOMImplementation_createDocument(marpaXml_DOMImplementation_t *thisp, marpaXml_String_t *namespaceURIp,  marpaXml_String_t *qualifiedNamep, marpaXml_DocumentType_t *doctypep, marpaXml_Document_t **documentpp, marpaXml_DOMException_t **exceptionpp);
+marpaXml_boolean_t                 *marpaXml_DOMImplementation_getFeature(marpaXml_DOMImplementation_t *thisp, marpaXml_String_t *featurep, marpaXml_String_t *versionp, marpaXml_DOMObject_t **featurepp);
+marpaXml_boolean_t                  marpaXml_DOMImplementation_free(marpaXml_DOMImplementation_t **thispp);
 
 /* NodeType */
 #define MARPAXML_ELEMENT_NODE                   1;
@@ -222,209 +180,127 @@ END_CLASS
 #define MARPAXML_DOCUMENT_POSITION_CONTAINED_BY = 0x10;
 #define MARPAXML_DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC = 0x20;
 
-typedef struct marpaXml_Node_Context marpaXml_Node_Context_t;
-SUBCLASS(marpaXml_Node, Object)
-  marpaXml_Node_Context_t *_contextp;
-VTABLE(marpaXml_Node, Object)
-  marpaXml_String_t         *(*getNodeName)(marpaXml_Node_t *thisp);
-  marpaXml_String_t         *(*getNodeValue)(marpaXml_Node_t *thisp, marpaXml_DOMException_t *exceptionp);
-  marpaXml_String_t         *(*setNodeValue)(marpaXml_Node_t *thisp, marpaXml_String_t *nodeValuep, marpaXml_DOMException_t *exceptionp);
-  unsigned short             (*getNodeType)(marpaXml_Node_t *thisp);
-  marpaXml_Node_t           *(*getParentNode)(marpaXml_Node_t *thisp);
-  marpaXml_NodeListp_t       (*getChildNodes)(marpaXml_Node_t *thisp);
-  marpaXml_Node_t           *(*getFirstChild)(marpaXml_Node_t *thisp);
-  marpaXml_Node_t           *(*getLastChild)(marpaXml_Node_t *thisp);
-  marpaXml_Node_t           *(*previousSibling)(marpaXml_Node_t *thisp);
-  marpaXml_Node_t           *(*nextSibling)(marpaXml_Node_t *thisp);
-  marpaXml_NamedNodeMapp_t   (*attributes)(marpaXml_Node_t *thisp);
-  /* Modified in DOM Level 2: */
-  marpaXml_Documentp_t       (*ownerDocument)(marpaXml_Node_t *thisp);
-  /* Modified in DOM Level 3: */
-  marpaXml_Node_t           *(*insertBefore)(marpaXml_Node_t *thisp, marpaXml_Node_t *newChildp, marpaXml_Node_t *refChildp, marpaXml_DOMException_t *exceptionp);
-  /* Modified in DOM Level 3: */
-  marpaXml_Node_t           *(*replaceChild)(marpaXml_Node_t *thisp, marpaXml_Node_t *newChildp, marpaXml_Node_t *oldChildp, marpaXml_DOMException_t *exceptionp);
-  /* Modified in DOM Level 3: */
-  marpaXml_Node_t           *(*removeChild)(marpaXml_Node_t *thisp, marpaXml_Node_t *oldChildp, marpaXml_DOMException_t *exceptionp);
-  /* Modified in DOM Level 3: */
-  marpaXml_Node_t           *(*appendChild)(marpaXml_Node_t *thisp, marpaXml_Node_t *newChildp, marpaXml_DOMException_t *exceptionp);
-  marpaXml_boolean_t         (*hasChildNodes)(marpaXml_Node_t *thisp);
-  marpaXml_Node_t           *(*cloneNode)(marpaXml_Node_t *thisp, marpaXml_boolean_t deep);
-  /* Modified in DOM Level 3: */
-  void                       (*normalize)(marpaXml_Node_t *thisp);
-  /* Introduced in DOM Level 2: */
-  marpaXml_boolean_t         (*isSupported)(marpaXml_Node_t *thisp, marpaXml_String_t *featurep, marpaXml_String_t *versionp);
-  /* Introduced in DOM Level 2: */
-  marpaXml_String_t         *(*getNamespaceURI)(marpaXml_Node_t *thisp);
-  /* Introduced in DOM Level 2: */
-  marpaXml_String_t         *(*getPrefix)(marpaXml_Node_t *thisp);
-  marpaXml_String_t         *(*setPrefix)(marpaXml_Node_t *thisp, marpaXml_String_t *prefixp, marpaXml_DOMException_t *exceptionp);
-  /* Introduced in DOM Level 2: */
-  marpaXml_String_t         *(*getLocalName)(marpaXml_Node_t *thisp);
-  /* Introduced in DOM Level 2: */
-  marpaXml_boolean_t         (*hasAttributes)(marpaXml_Node_t *thisp);
-  /* Introduced in DOM Level 3: */
-  marpaXml_String_t      *(*getBaseURI)(marpaXml_Node_t *thisp);
+/* Herited methods: we use a #define */
+marpaXml_Node_t    *marpaXml_Node_new(void);
+#define MARPAXML_NODE_METHODS(class) \
+  marpaXml_boolean_t  marpaXml_##class##_getNodeName(marpaXml_##class##_t *thisp, marpaXml_String_t **nodeNamepp); \
+  marpaXml_boolean_t  marpaXml_##class##_getNodeValue(marpaXml_##class##_t *thisp, marpaXml_String_t **nodeValuepp, marpaXml_DOMException_t *exceptionp); \
+  marpaXml_boolean_t  marpaXml_##class##_setNodeValue(marpaXml_##class##_t *thisp, marpaXml_String_t *nodeValuep, marpaXml_DOMException_t *exceptionp);	\
+  marpaXml_boolean_t  marpaXml_##class##_getNodeType(marpaXml_##class##_t *thisp, unsigned short **nodeTypepp);	\
+  marpaXml_boolean_t  marpaXml_##class##_getParentNode(marpaXml_##class##_t *thisp, marpaXml_Node_t **parendNodepp); \
+  marpaXml_boolean_t  marpaXml_##class##_getChildNodes(marpaXml_##class##_t *thisp, marpaXml_NodeList_t **childNodespp); \
+  marpaXml_boolean_t  marpaXml_##class##_getFirstChild(marpaXml_##class##_t *thisp, marpaXml_Node_t **firstChildpp); \
+  marpaXml_boolean_t  marpaXml_##class##_getLastChild(marpaXml_##class##_t *thisp, marpaXml_Node_t **lastChildpp); \
+  marpaXml_boolean_t  marpaXml_##class##_previousSibling(marpaXml_##class##_t *thisp, marpaXml_Node_t **previousSiblingpp); \
+  marpaXml_boolean_t  marpaXml_##class##_nextSibling(marpaXml_##class##_t *thisp, marpaXml_Node_t **nextSibblingpp); \
+  marpaXml_boolean_t  marpaXml_##class##_attributes(marpaXml_##class##_t *thisp, marpaXml_NamedNodeMap_t **attributespp); \
+  marpaXml_boolean_t  marpaXml_##class##_ownerDocument(marpaXml_##class##_t *thisp, marpaXml_Document_t **ownerDocumentpp); \
+  marpaXml_boolean_t  marpaXml_##class##_insertBefore(marpaXml_##class##_t *thisp, marpaXml_Node_t *newChildp, marpaXml_Node_t *refChildp, marpaXml_Node_t **insertBeforepp, marpaXml_DOMException_t *exceptionp); \
+  marpaXml_boolean_t  marpaXml_##class##_replaceChild(marpaXml_##class##_t *thisp, marpaXml_Node_t *newChildp, marpaXml_Node_t *oldChildp, marpaXml_Node_t **replaceChildpp, marpaXml_DOMException_t *exceptionp); \
+  marpaXml_boolean_t  marpaXml_##class##_removeChild(marpaXml_##class##_t *thisp, marpaXml_Node_t *oldChildp, marpaXml_Node_t **removeChildpp, marpaXml_DOMException_t *exceptionp); \
+  marpaXml_boolean_t  marpaXml_##class##_appendChild(marpaXml_##class##_t *thisp, marpaXml_Node_t *newChildp, marpaXml_Node_t **appendChildpp, marpaXml_DOMException_t *exceptionp); \
+  marpaXml_boolean_t  marpaXml_##class##_hasChildNodes(marpaXml_##class##_t *thisp, marpaXml_boolean_t **hasChildNodespp); \
+  marpaXml_boolean_t  marpaXml_##class##_cloneNode(marpaXml_##class##_t *thisp, marpaXml_boolean_t deep, marpaXml_Node_t *nodepp); \
+  marpaXml_boolean_t  marpaXml_##class##_normalize(marpaXml_##class##_t *thisp); \
+  marpaXml_boolean_t  marpaXml_##class##_isSupported(marpaXml_##class##_t *thisp, marpaXml_String_t *featurep, marpaXml_String_t *versionp, marpaXml_boolean_t **isSupportedpp); \
+  marpaXml_boolean_t  marpaXml_##class##_getNamespaceURI(marpaXml_##class##_t *thisp, marpaXml_String_t **namespaceURIpp); \
+  marpaXml_boolean_t  marpaXml_##class##_getPrefix(marpaXml_##class##_t *thisp, marpaXml_String_t **prefixpp); \
+  marpaXml_boolean_t  marpaXml_##class##_setPrefix(marpaXml_##class##_t *thisp, marpaXml_String_t *prefixp, marpaXml_DOMException_t *exceptionp); \
+  marpaXml_boolean_t  marpaXml_##class##_getLocalName(marpaXml_##class##_t *thisp, marpaXml_String_t *localNamepp); \
+  marpaXml_boolean_t  marpaXml_##class##_hasAttributes(marpaXml_##class##_t *thisp, marpaXml_boolean_t **hasAttributespp); \
+  marpaXml_boolean_t  marpaXml_##class##_getBaseURI(marpaXml_##class##_t *thisp, marpaXml_String_t **baseURIpp); \
+  marpaXml_boolean_t  marpaXml_##class##_compareDocumentPosition(marpaXml_##class##_t *thisp, marpaXml_Node_t *otherp, unsigned short *comparep, marpaXml_DOMException_t *exceptionp); \
+  marpaXml_boolean_t  marpaXml_##class##_getTextContent(marpaXml_##class##_t *thisp, marpaXml_String_t **textContentpp, marpaXml_DOMException_t *exceptionp); \
+  marpaXml_boolean_t  marpaXml_##class##_setTextContent(marpaXml_##class##_t *thisp, marpaXml_String_t *textContentp, marpaXml_DOMException_t *exceptionp); \
+  marpaXml_boolean_t  marpaXml_##class##_isSameNode(marpaXml_##class##_t *thisp, marpaXml_Node_t *otherp, marpaXml_boolean_t *isSameNodep); \
+  marpaXml_boolean_t  marpaXml_##class##_lookupPrefix(marpaXml_##class##_t *thisp, marpaXml_String_t *namespaceURIp, marpaXml_String_t **lookupPrefixpp); \
+  marpaXml_boolean_t  marpaXml_##class##_isDefaultNamespace(marpaXml_##class##_t *thisp, marpaXml_String_t *namespaceURIp, marpaXml_boolean_t *isDefaultNamespacep); \
+  marpaXml_boolean_t  marpaXml_##class##_lookupNamespaceURI(marpaXml_##class##_t *thisp, marpaXml_String_t *prefixp, marpaXml_String_t **namespaceURIpp); \
+  marpaXml_boolean_t  marpaXml_##class##_isEqualNode(marpaXml_##class##_t *thisp, marpaXml_Node_t *argp, marpaXml_boolean_t *equalp); \
+  marpaXml_boolean_t  marpaXml_##class##_getFeature(marpaXml_##class##_t *thisp, marpaXml_String_t *featurep, marpaXml_String_t *versionp, marpaXml_DOMObject_t **featurepp); \
+  marpaXml_boolean_t  marpaXml_##class##_setUserData(marpaXml_##class##_t *thisp, marpaXml_String_t *keyp, marpaXml_DOMUserData_t *userDatap, marpaXml_UserDataHandler_t *handlerp); \
+  marpaXml_boolean_t  marpaXml_##class##_getUserData(marpaXml_##class##_t *thisp, marpaXml_String_t *keyp, marpaXml_DOMUserData_t **userDatapp);
+MARPAXML_NODE_METHODS(Node)
+marpaXml_boolean_t  marpaXml_Node_free(marpaXml_Node_t **thispp);
 
-  /* Introduced in DOM Level 3: */
-  unsigned short             (*compareDocumentPosition)(marpaXml_Node_t *thisp, marpaXml_Node_t *otherp, marpaXml_DOMException_t *exceptionp);
-  /* Introduced in DOM Level 3: */
-  marpaXml_String_t         *(*getTextContent)(marpaXml_Node_t *thisp, marpaXml_DOMException_t *exceptionp);
-  marpaXml_String_t         *(*setTextContent)(marpaXml_Node_t *thisp, marpaXml_String_t *textContentp, marpaXml_DOMException_t *exceptionp);
+marpaXml_NodeList_t *marpaXml_NodeList_new(void);
+marpaXml_boolean_t   marpaXml_NodeList_item(marpaXml_NodeList_t *thisp, unsigned long index, marpaXml_Node_t **nodepp);
+marpaXml_boolean_t   marpaXml_NodeList_getLength(marpaXml_NodeList_t *thisp, unsigned long *lengthp);
+marpaXml_boolean_t   marpaXml_NodeList_free(marpaXml_NodeList_t **thispp);
 
-  /* Introduced in DOM Level 3: */
-  marpaXml_boolean_t         (*isSameNode)(marpaXml_Node_t *thisp, marpaXml_Node_t *otherp);
-  /* Introduced in DOM Level 3: */
-  marpaXml_String_t         *(*lookupPrefix)(marpaXml_Node_t *thisp, marpaXml_String_t *namespaceURIp);
-  /* Introduced in DOM Level 3: */
-  marpaXml_boolean_t         (*isDefaultNamespace)(marpaXml_Node_t *thisp, marpaXml_String_t *namespaceURIp);
-  /* Introduced in DOM Level 3: */
-  marpaXml_String_t         *(*lookupNamespaceURI)(marpaXml_Node_t *thisp, marpaXml_String_t *prefixp);
-  /* Introduced in DOM Level 3: */
-  marpaXml_boolean_t         (*isEqualNode)(marpaXml_Node_t *thisp, marpaXml_Node_t *argp);
-  /* Introduced in DOM Level 3: */
-  marpaXml_DOMObject_t      *(*getFeature)(marpaXml_Node_t *thisp, marpaXml_String_t *featurep, marpaXml_String_t *versionp);
-  /* Introduced in DOM Level 3: */
-  marpaXml_DOMUserData_t    *(*setUserData)(marpaXml_Node_t *thisp, marpaXml_String_t *keyp, marpaXml_DOMUserData_t *datap, marpaXml_UserDataHandlerp_t handlerp);
-  /* Introduced in DOM Level 3: */
-  marpaXml_DOMUserData_t    *(*getUserData)(marpaXml_Node_t *thisp, marpaXml_String_t *keyp);
-METHODS
-  marpaXml_Node_t             *marpaXml_Node_new();
-  void                         marpaXml_Node_free(marpaXml_Node_t **thispp);
-END_CLASS
+marpaXml_NamedNodeMap_t *marpaXml_NamedNodeMap_new(void);
+marpaXml_boolean_t       marpaXml_NamedNodeMap_getNamedItem(marpaXml_NamedNodeMap_t *thisp, marpaXml_String_t *namep, marpaXml_Node_t **namedItempp);
+marpaXml_boolean_t       marpaXml_NamedNodeMap_setNamedItem(marpaXml_NamedNodeMap_t *thisp, marpaXml_Node_t *namedItemp, marpaXml_DOMException_t *exceptionp);
+marpaXml_boolean_t       marpaXml_NamedNodeMap_removeNamedItem(marpaXml_NamedNodeMap_t *thisp, marpaXml_String_t *namep, marpaXml_DOMException_t *exceptionp);
+marpaXml_boolean_t       marpaXml_NamedNodeMap_item(marpaXml_NamedNodeMap_t *thisp, unsigned long index, marpaXml_Node_t **itempp);
+marpaXml_boolean_t       marpaXml_NamedNodeMap_getLength(marpaXml_NamedNodeMap_t *thisp, unsigned long **lengthp);
+marpaXml_boolean_t       marpaXml_NamedNodeMap_getNamedItemNS(marpaXml_NamedNodeMap_t *thisp, marpaXml_String_t *namespaceURIp, marpaXml_String_t *localNamep, marpaXml_Node_t **namedItemNSpp, marpaXml_DOMException_t *exceptionp);
+marpaXml_boolean_t       marpaXml_NamedNodeMap_setNamedItemNS(marpaXml_NamedNodeMap_t *thisp, marpaXml_Node_t *namedItemNSp, marpaXml_DOMException_t *exceptionp);
+marpaXml_boolean_t       marpaXml_NamedNodeMap_removeNamedItemNS(marpaXml_NamedNodeMap_t *thisp, marpaXml_String_t *namespaceURIp, marpaXml_String_t *localNamep, marpaXml_Node_t **namedItemNSp, marpaXml_DOMException_t *exceptionp);
+marpaXml_boolean_t       marpaXml_NamedNodeMap_free(marpaXml_NamedNodeMap_t **thispp);
 
-typedef struct marpaXml_NodeList_Context marpaXml_NodeList_Context_t;
-SUBCLASS(marpaXml_NodeList, Object)
-  marpaXml_NodeList_Context_t *_contextp;
-VTABLE(marpaXml_NodeList, Object)
-  marpaXml_Node_t  *(*item)(marpaXml_NodeList_t *thisp, unsigned long index);
-  unsigned long     (*getLength)(marpaXml_NodeList_t *thisp);
-METHODS
-  marpaXml_NodeList_t *marpaXml_NodeList_new();
-  void                 marpaXml_NodeList_free(marpaXml_NodeList_t **thispp);
-END_CLASS
+marpaXml_CharacterData_t *marpaXml_CharacterData_new(void);
+#define MARPAXML_CHARACTERDATA_METHODS(class)				\
+  MARPAXML_NODE_METHODS(class)						\
+  marpaXml_boolean_t        marpaXml_##class##_getData(marpaXml_##class##_t *thisp, marpaXml_String_t **datapp, marpaXml_DOMException_t *exceptionp); \
+  marpaXml_boolean_t        marpaXml_##class##_setData(marpaXml_##class##_t *thisp, marpaXml_String_t *datap, marpaXml_DOMException_t *exceptionp); \
+  marpaXml_boolean_t        marpaXml_##class##_getLength(marpaXml_##class##_t *thisp, unsigned long *lengthp); \
+  marpaXml_boolean_t        marpaXml_##class##_substringData(marpaXml_##class##_t *thisp, unsigned long offset, unsigned long count, marpaXml_String_t **substringDatapp, marpaXml_DOMException_t *exceptionp); \
+  marpaXml_boolean_t        marpaXml_##class##_appendData(marpaXml_##class##_t *thisp, marpaXml_String_t *datap, marpaXml_DOMException_t *exceptionp); \
+  marpaXml_boolean_t        marpaXml_##class##_insertData(marpaXml_##class##_t *thisp, unsigned long offset, marpaXml_String_t *datap, marpaXml_DOMException_t *exceptionp); \
+  marpaXml_boolean_t        marpaXml_##class##_deleteData(marpaXml_##class##_t *thisp, unsigned long offset, unsigned long count, marpaXml_DOMException_t *exceptionp); \
+  marpaXml_boolean_t        marpaXml_##class##_replaceData(marpaXml_##class##_t this, unsigned long offset, unsigned long count, marpaXml_String_t *datap, marpaXml_DOMException_t *exceptionp);
+MARPAXML_CHARACTERDATA_METHODS(CharacterData)
+marpaXml_boolean_t        marpaXml_CharacterData_free(marpaXml_CharacterData_t **thispp);
 
-typedef struct marpaXml_NamedNodeMap_Context marpaXml_NamedNodeMap_Context_t;
-SUBCLASS(marpaXml_NamedNodeMap, Object)
-  marpaXml_NamedNodeMap_Context_t *_contextp;
-VTABLE(marpaXml_NamedNodeMap, Object)
-  marpaXml_Node_t               *(*getNamedItem)(marpaXml_NamedNodeMap_t *thisp, marpaXml_String_t *namep);
-  marpaXml_Node_t               *(*setNamedItem)(marpaXml_NamedNodeMap_t *thisp, marpaXml_Node_t *argp, marpaXml_DOMException_t *exceptionp);
-  marpaXml_Node_t               *(*removeNamedItem)(marpaXml_NamedNodeMap_t *thisp, marpaXml_String_t *namep, marpaXml_DOMException_t *exceptionp);
-  marpaXml_Node_t               *(*item)(marpaXml_NamedNodeMap_t *thisp, unsigned long index);
-  unsigned long                 (*getLength)(marpaXml_NamedNodeMap_t *thisp);
-  /* Introduced in DOM Level 2: */
-  marpaXml_Node_t               *(*getNamedItemNS)(marpaXml_NamedNodeMap_t *thisp, marpaXml_String_t *namespaceURIp, marpaXml_String_t *localNamep, marpaXml_DOMException_t *exceptionp);
-  /* Introduced in DOM Level 2: */
-  marpaXml_Node_t               *(*setNamedItemNS)(marpaXml_NamedNodeMap_t *thisp, marpaXml_Node_t *argp, marpaXml_DOMException_t *exceptionp);
-  /* Introduced in DOM Level 2: */
-  marpaXml_Node_t               *(*removeNamedItemNS)(marpaXml_NamedNodeMap_t *thisp, marpaXml_String_t *namespaceURIp, marpaXml_String_t *localNamep, marpaXml_DOMException_t *exceptionp);
-METHODS
-  marpaXml_NamedNodeMap_t        *marpaXml_NamedNodeMap_new();
-  void                            marpaXml_NamedNodeMap_free(marpaXml_NamedNodeMap_t **thispp);
-END_CLASS
+marpaXml_Attr_t    *marpaXml_Attr_new(void);
+MARPAXML_NODE_METHODS(Attr)
+marpaXml_boolean_t  marpaXml_Attr_getName(marpaXml_Attr_t *thisp, marpaXml_String_t **namepp);
+marpaXml_boolean_t  marpaXml_Attr_getSpecified(marpaXml_Attr_t *thisp, marpaXml_boolean_t *specifiedp);
+marpaXml_boolean_t  marpaXml_Attr_getValue(marpaXml_Attr_t *thisp, marpaXml_String_t *valuepp);
+marpaXml_boolean_t  marpaXml_Attr_setValue(marpaXml_Attr_t *thisp, marpaXml_String_t *valuep, marpaXml_DOMException_t *exceptionp);
+marpaXml_boolean_t  marpaXml_Attr_getOwnerElement(marpaXml_Attr_t *thisp, marpaXml_Element_t **ownerElementpp);
+marpaXml_boolean_t  marpaXml_Attr_getSchemaTypeInfo(marpaXml_Attr_t *thisp, marpaXml_TypeInfo_t **schemaTypeInfopp);
+marpaXml_boolean_t  marpaXml_Attr_getIsId(marpaXml_Attr_t *thisp, marpaXml_boolean_t *isIdp);
+marpaXml_boolean_t  marpaXml_Attr_free(marpaXml_Attr_t **thispp);
 
-typedef struct marpaXml_CharacterData_Context marpaXml_CharacterData_Context_t;
-SUBCLASS(marpaXml_CharacterData, marpaXml_Node)
-  marpaXml_CharacterData_Context_t *_contextp;
-VTABLE(marpaXml_CharacterData, marpaXml_Node)
-  marpaXml_String_t          *(*getData)(marpaXml_CharacterData_t *thisp, marpaXml_DOMException_t *exceptionp);
-  marpaXml_String_t          *(*setData)(marpaXml_CharacterData_t *thisp, marpaXml_String_t *datap, marpaXml_DOMException_t *exceptionp);
-  unsigned long               (*getLength)(marpaXml_CharacterData_t *thisp);
-  marpaXml_String_t          *(*substringData)(marpaXml_CharacterData_t *thisp, unsigned long offset, unsigned long count, marpaXml_DOMException_t *exceptionp);
-  void                        (*appendData)(marpaXml_CharacterData_t *thisp, marpaXml_String_t *argp, marpaXml_DOMException_t *exceptionp);
-  void                        (*insertData)(marpaXml_CharacterData_t *thisp, unsigned long offset, marpaXml_String_t *argp, marpaXml_DOMException_t *exceptionp);
-  void                        (*deleteData)(marpaXml_CharacterData_t *thisp, unsigned long offset, unsigned long count, marpaXml_DOMException_t *exceptionp);
-  void                        (*replaceData)(marpaXml_CharacterData_t this, unsigned long offset, unsigned long count, marpaXml_String_t *argp, marpaXml_DOMException_t *exceptionp);
-METHODS
-  marpaXml_CharacterData_t     *marpaXml_CharacterData_new();
-  void                          marpaXml_CharacterData_free(marpaXml_CharacterData_t **thispp);
-END_CLASS
+marpaXml_Element_t *marpaXml_Element_new(void);
+MARPAXML_NODE_METHODS(Element)
+marpaXml_boolean_t  marpaXml_Element_getTagName(marpaXml_Element_t *thisp, marpaXml_String_t **tagNamepp);
+marpaXml_boolean_t  marpaXml_Element_getAttribute(marpaXml_Element_t *thisp, marpaXml_String_t *namep, marpaXml_String_t **attributepp);
+marpaXml_boolean_t  marpaXml_Element_setAttribute(marpaXml_Element_t *thisp, marpaXml_String_t *namep, marpaXml_String_t *valuep, marpaXml_DOMException_t *exceptionp);
+marpaXml_boolean_t  marpaXml_Element_removeAttribute(marpaXml_Element_t *thisp, marpaXml_String_t *namep, marpaXml_DOMException_t *exceptionp);
+marpaXml_boolean_t  marpaXml_Element_getAttributeNode(marpaXml_Element_t *thisp, marpaXml_String_t *namep, marpaXml_Attr_t **attributeNodepp);
+marpaXml_boolean_t  marpaXml_Element_setAttributeNode(marpaXml_Element_t *thisp, marpaXml_Attr_t *attributeNodep, marpaXml_DOMException_t *exceptionp);
+marpaXml_boolean_t  marpaXml_Element_removeAttributeNode(marpaXml_Element_t *thisp, marpaXml_Attr_t *oldAttrp, marpaXml_Attr_t **attributepp, marpaXml_DOMException_t *exceptionp);
+marpaXml_boolean_t  marpaXml_Element_getElementsByTagName(marpaXml_Element_t *thisp, marpaXml_String_t *namep, marpaXml_NodeList_t **elementsByTagNamepp);
+marpaXml_boolean_t  marpaXml_Element_getAttributeNS(marpaXml_Element_t *thisp, marpaXml_String_t *namespaceURIp, marpaXml_String_t *localNamep, marpaXml_String_t **attributeNSpp, marpaXml_DOMException_t *exceptionp);
+marpaXml_boolean_t  marpaXml_Element_setAttributeNS(marpaXml_Element_t *thisp, marpaXml_String_t *namespaceURIp, marpaXml_String_t *qualifiedNamep, marpaXml_String_t *valuep, marpaXml_DOMException_t *exceptionp);
+marpaXml_boolean_t  marpaXml_Element_removeAttributeNS(marpaXml_Element_t *thisp, marpaXml_String_t *namespaceURIp, marpaXml_String_t *localNamep, marpaXml_DOMException_t *exceptionp);
+marpaXml_boolean_t  marpaXml_Element_getAttributeNodeNS(marpaXml_Element_t *thisp, marpaXml_String_t *namespaceURIp, marpaXml_String_t *localNamep, marpaXml_Attr_t **attributeNodeNSpp, marpaXml_DOMException_t *exceptionp);
+marpaXml_boolean_t  marpaXml_Element_setAttributeNodeNS(marpaXml_Element_t *thisp, marpaXml_Attr_t *newAttrp, marpaXml_Attr_t **attributeNodeNSpp, marpaXml_DOMException_t *exceptionp);
+marpaXml_boolean_t  marpaXml_Element_getElementsByTagNameNS(marpaXml_Element_t *thisp, marpaXml_String_t *namespaceURIp, marpaXml_String_t *localNamep, marpaXml_NodeList_t **elementsByTagNameNSpp, marpaXml_DOMException_t *exceptionp);
+marpaXml_boolean_t  marpaXml_Element_hasAttribute(marpaXml_Element_t *thisp, marpaXml_String_t *namep, marpaXml_boolean_t *hasp);
+marpaXml_boolean_t  marpaXml_Element_hasAttributeNS(marpaXml_Element_t *thisp, marpaXml_String_t *namespaceURIp, marpaXml_String_t *localNamep, marpaXml_boolean_t *hasNSp, marpaXml_DOMException_t *exceptionp);
+marpaXml_boolean_t  marpaXml_Element_getSchemaTypeInfo(struct marpaXml_Element *thisp, marpaXml_TypeInfo_t **schemaTypeInfopp);
+marpaXml_boolean_t  marpaXml_Element_setIdAttribute(marpaXml_Element_t *thisp, marpaXml_String_t *namep, marpaXml_boolean_t isId, marpaXml_DOMException_t *exceptionp);
+marpaXml_boolean_t  marpaXml_Element_setIdAttributeNS(marpaXml_Element_t *thisp, marpaXml_String_t *namespaceURIp, marpaXml_String_t *localNamep, marpaXml_boolean_t isId, marpaXml_DOMException_t *exceptionp);
+marpaXml_boolean_t  marpaXml_Element_setIdAttributeNode(marpaXml_Element_t *thisp, marpaXml_Attr_t *idAttrp, marpaXml_boolean_t isId, marpaXml_DOMException_t *exceptionp);
+marpaXml_boolean_t  marpaXml_Element_free(marpaXml_Element_t **thispp);
 
-typedef struct marpaXml_Attr_Context marpaXml_Attr_Context_t;
-SUBCLASS(marpaXml_Attr, marpaXml_Node)
-  marpaXml_Attr_Context_t *_contextp;
-VTABLE(marpaXml_Attr, marpaXml_Node)
-  marpaXml_String_t          *(*getName)(marpaXml_Attr_t *thisp);
-  marpaXml_boolean_t          (*getSpecified)(marpaXml_Attr_t *thisp);
-  marpaXml_String_t          *(*getValue)(marpaXml_Attr_t *thisp);
-  marpaXml_String_t          *(*setValue)(marpaXml_Attr_t *thisp, marpaXml_String_t *valuep, marpaXml_DOMException_t *exceptionp);
+marpaXml_Text_t   *marpaXml_Text_new(void);
+#define MARPAXML_TEXT_METHODS(class) \
+  MARPAXML_CHARACTERDATA_METHODS(class)					\
+  marpaXml_boolean_t marpaXml_##class##_splitText(marpaXml_##class##_t *thisp, unsigned long offset, marpaXml_Text_t **textpp, marpaXml_DOMException_t *exceptionp); \
+  marpaXml_boolean_t marpaXml_##class##_getIsElementContentWhitespace(marpaXml_##class##_t *thisp, marpaXml_boolean_t *isElementContentWhitespacep); \
+  marpaXml_boolean_t marpaXml_##class##_getWholeText(marpaXml_##class##_t *thisp, marpaXml_String_t **wholeTextpp); \
+  marpaXml_boolean_t marpaXml_##class##_replaceWholeText(marpaXml_##class##_t *thisp, marpaXml_String_t *contentp, marpaXml_Text_t *wholeTextpp, marpaXml_DOMException_t *exceptionp);
+MARPAXML_TEXT_METHODS(Text)
+marpaXml_boolean_t marpaXml_Text_free(marpaXml_Text_t **thispp);
 
-  /* Introduced in DOM Level 2 */
-  struct marpaXml_Element    *(*getOwnerElement)(marpaXml_Attr_t *thisp);
-  /* Introduced in DOM Level 3: */
-  struct marpaXml_TypeInfo   *(*getSchemaTypeInfo)(marpaXml_Attr_t *thisp);
-  /* Introduced in DOM Level 3: */
-  marpaXml_boolean_t         (*getIsId)(marpaXml_Attr_t *thisp);
-METHODS
-  marpaXml_Attr_t              *marpaXml_Attr_new();
-  void                          marpaXml_Attr_free(marpaXml_Attr_t **thispp);
-END_CLASS
-
-typedef struct marpaXml_Element_Context marpaXml_Element_Context_t;
-SUBCLASS(marpaXml_Element, marpaXml_Node)
-  marpaXml_Element_Context_t *_contextp;
-VTABLE(marpaXml_Element, marpaXml_Node)
-  marpaXml_String_t          *(*getTagName)(marpaXml_Element_t *thisp);
-  marpaXml_String_t          *(*getAttribute)(marpaXml_Element_t *thisp, marpaXml_String_t *namep);
-  void                       *(*setAttribute)(marpaXml_Element_t *thisp, marpaXml_String_t *namep, marpaXml_String_t *valuep, marpaXml_DOMException_t *exceptionp);
-  void                        (*removeAttribute)(marpaXml_Element_t *thisp, marpaXml_String_t *namep, marpaXml_DOMException_t *exceptionp);
-  marpaXml_Attr_t            *(*getAttributeNode)(marpaXml_Element_t *thisp, marpaXml_String_t *namep);
-  marpaXml_Attr_t            *(*setAttributeNode)(marpaXml_Element_t *thisp, marpaXml_Attr_t *newAttrp, marpaXml_DOMException_t *exceptionp);
-  marpaXml_Attr_t            *(*removeAttributeNode)(marpaXml_Element_t *thisp, marpaXml_Attr_t *oldAttrp, marpaXml_DOMException_t *exceptionp);
-  marpaXml_NodeList_t        *(*getElementsByTagName)(marpaXml_Element_t *thisp, marpaXml_String_t *namep);
-  /* Introduced in DOM Level 2: */
-  marpaXml_String_t       *(*getAttributeNS)(marpaXml_Element_t *thisp, marpaXml_String_t *namespaceURIp, marpaXml_String_t *localNamep, marpaXml_DOMException_t *exceptionp);
-  /* Introduced in DOM Level 2: */
-  void                        (*setAttributeNS)(marpaXml_Element_t *thisp, marpaXml_String_t *namespaceURIp, marpaXml_String_t *qualifiedNamep, marpaXml_String_t *valuep, marpaXml_DOMException_t *exceptionp);
-  /* Introduced in DOM Level 2: */
-  void                        (*removeAttributeNS)(marpaXml_Element_t *thisp, marpaXml_String_t *namespaceURIp, marpaXml_String_t *localNamep, marpaXml_DOMException_t *exceptionp);
-  /* Introduced in DOM Level 2: */
-  marpaXml_Attr_t            *(*getAttributeNodeNS)(marpaXml_Element_t *thisp, marpaXml_String_t *namespaceURIp, marpaXml_String_t *localNamep, marpaXml_DOMException_t *exceptionp);
-  /* Introduced in DOM Level 2: */
-  marpaXml_Attr_t            *(*setAttributeNodeNS)(marpaXml_Element_t *thisp, marpaXml_Attr_t *newAttrp, marpaXml_DOMException_t *exceptionp);
-  /* Introduced in DOM Level 2: */
-  marpaXml_NodeList_t        *(*getElementsByTagNameNS)(marpaXml_Element_t *thisp, marpaXml_String_t *namespaceURIp, marpaXml_String_t *localNamep, marpaXml_DOMException_t *exceptionp);
-  /* Introduced in DOM Level 2: */
-  marpaXml_boolean_t          (*hasAttribute)(marpaXml_Element_t *thisp, marpaXml_String_t *namep);
-  /* Introduced in DOM Level 2: */
-  marpaXml_boolean_t          (*hasAttributeNS)(marpaXml_Element_t *thisp, marpaXml_String_t *namespaceURIp, marpaXml_String_t *localNamep, marpaXml_DOMException_t *exceptionp);
-  /* Introduced in DOM Level 3: */
-  struct marpaXml_TypeInfo   *(*getSchemaTypeInfo)(struct marpaXml_Element *thisp);
-  /* Introduced in DOM Level 3: */
-  void                        (*setIdAttribute)(marpaXml_Element_t *thisp, marpaXml_String_t *namep, marpaXml_boolean_t isId, marpaXml_DOMException_t *exceptionp);
-  /* Introduced in DOM Level 3: */
-  void                        (*setIdAttributeNS)(marpaXml_Element_t *thisp, marpaXml_String_t *namespaceURIp, marpaXml_String_t *localNamep, marpaXml_boolean_t isId, marpaXml_DOMException_t *exceptionp);
-  /* Introduced in DOM Level 3: */
-  void                        (*setIdAttributeNode)(marpaXml_Element_t *thisp, marpaXml_Attr_t *idAttrp, marpaXml_boolean_t isId, marpaXml_DOMException_t *exceptionp);
-METHODS
-  marpaXml_Element_t           *marpaXml_Element_new();
-  void                          marpaXml_Element_free(marpaXml_Element_t **thispp);
-END_CLASS
-
-typedef struct marpaXml_Text_Context marpaXml_Text_Context_t;
-SUBCLASS(marpaXml_Text, marpaXml_CharacterData)
-  marpaXml_Text_Context_t *_contextp;
-VTABLE(marpaXml_Text, marpaXml_CharacterData)
-  marpaXml_Text_t         *(*splitText)(marpaXml_Text_t *thisp, unsigned long offset, marpaXml_DOMException_t *exceptionp);
-  /* Introduced in DOM Level 3: */
-  marpaXml_boolean_t       (*getIsElementContentWhitespace)(marpaXml_Text_t *thisp);
-  /* Introduced in DOM Level 3: */
-  marpaXml_String_t       *(*getWholeText)(marpaXml_Text_t *thisp);
-  /* Introduced in DOM Level 3: */
-  marpaXml_Text_t          (*replaceWholeText)(marpaXml_Text_t *thisp, marpaXml_String_t *contentp, marpaXml_DOMException_t *exceptionp);
-METHODS
-  marpaXml_Text_t           *marpaXml_Text_new();
-  void                       marpaXml_Text_free(marpaXml_Text_t **thispp);
-END_CLASS
-
-typedef struct marpaXml_Comment_Context marpaXml_Comment_Context_t;
-SUBCLASS(marpaXml_Comment, marpaXml_CharacterData)
-  marpaXml_Comment_Context_t *_contextp;
-VTABLE(marpaXml_Comment, marpaXml_CharacterData)
-METHODS
-  marpaXml_Comment_t        *marpaXml_Comment_new();
-  void                       marpaXml_Comment_free(marpaXml_Comment_t **thispp);
-END_CLASS
+marpaXml_Comment_t *marpaXml_Comment_new(void);
+MARPAXML_CHARACTERDATA_METHODS(Comment)
+marpaXml_boolean_t  marpaXml_Comment_free(marpaXml_Comment_t **thispp);
 
 /* DerivationMethods */
 #define MARPAXML_DERIVATION_RESTRICTION         0x00000001;
@@ -432,18 +308,11 @@ END_CLASS
 #define MARPAXML_DERIVATION_UNION               0x00000004;
 #define MARPAXML_DERIVATION_LIST                0x00000008;
 
-/* Introduced in DOM Level 3: */
-typedef struct marpaXml_TypeInfo_Context marpaXml_TypeInfo_Context_t;
-SUBCLASS(marpaXml_TypeInfo, Object)
-  marpaXml_TypeInfo_Context_t *_contextp;
-VTABLE(marpaXml_TypeInfo, Object)
-  marpaXml_String_t          *(*getTypeName)(marpaXml_TypeInfo_t *thisp);
-  marpaXml_String_t          *(*getTypeNamespace)(marpaXml_TypeInfo_t *thisp);
-  marpaXml_boolean_t          (*isDerivedFrom)(marpaXml_TypeInfo_t *thisp, marpaXml_String_t *typeNamespaceArgp, marpaXml_String_t *typeNameArgp, unsigned long derivationMethod);
-METHODS
-  marpaXml_TypeInfo_t          *marpaXml_TypeInfo_new();
-  void                          marpaXml_TypeInfo_free(marpaXml_TypeInfo_t **thispp);
-END_CLASS
+marpaXml_TypeInfo_t *marpaXml_TypeInfo_new(void);
+marpaXml_boolean_t   marpaXml_TypeInfo_getTypeName(marpaXml_TypeInfo_t *thisp, marpaXml_String_t **typeNamepp);
+marpaXml_boolean_t   marpaXml_TypeInfo_getTypeNamespace(marpaXml_TypeInfo_t *thisp, marpaXml_String_t **typeNamespacepp);
+marpaXml_boolean_t   marpaXml_TypeInfo_isDerivedFrom(marpaXml_TypeInfo_t *thisp, marpaXml_String_t *typeNamespaceArgp, marpaXml_String_t *typeNameArgp, unsigned long derivationMethod, marpaXml_boolean_t *isDerivedFromp);
+marpaXml_boolean_t   marpaXml_TypeInfo_free(marpaXml_TypeInfo_t **thispp);
 
 /* OperationType */
 #define MARPAXML_NODE_CLONED                    1;
@@ -452,16 +321,9 @@ END_CLASS
 #define MARPAXML_NODE_RENAMED                   4;
 #define MARPAXML_NODE_ADOPTED                   5;
 
-/* Introduced in DOM Level 3: */
-typedef struct marpaXml_UserDataHandler_Context *marpaXml_UserDataHandler_Context_t;
-SUBCLASS(marpaXml_UserDataHandler, Object)
-  marpaXml_UserDataHandler_Context_t *_contextp;
-VTABLE(marpaXml_UserDataHandler, Object)
-  void                       (*handle)(unsigned short operation, marpaXml_String_t *keyp, marpaXml_DOMUserData_t *datap, marpaXml_Node_t *srcp, marpaXml_Node_t *dstp);
-METHODS
-  marpaXml_UserDataHandler_t  *marpaXml_UserDataHandler_new();
-  void                         marpaXml_UserDataHandler_free(marpaXml_UserDataHandler_t **thispp);
-END_CLASS
+marpaXml_UserDataHandler_t  *marpaXml_UserDataHandler_new(void);
+marpaXml_boolean_t           marpaXml_UserDataHandler_handle(unsigned short operation, marpaXml_String_t *keyp, marpaXml_DOMUserData_t *datap, marpaXml_Node_t *srcp, marpaXml_Node_t *dstp);
+marpaXml_boolean_t           marpaXml_UserDataHandler_free(marpaXml_UserDataHandler_t **thispp);
 
 /* ErrorSeverity */
 #define MARPAXML_SEVERITY_NONE                  0;
@@ -469,8 +331,6 @@ END_CLASS
 #define MARPAXML_SEVERITY_ERROR                 2;
 #define MARPAXML_SEVERITY_FATAL_ERROR           3;
 
-/* Introduced in DOM Level 3: */
-typedef struct marpaXml_DOMError marpaXml_DOMError_t;
 marpaXml_DOMError_t        *marpaXml_DOMError_new(void);
 marpaXml_boolean_t          marpaXml_DOMError_getSeverity(marpaXml_DOMError_t *thisp, unsigned short *severityp);
 marpaXml_boolean_t          marpaXml_DOMError_setSeverity(marpaXml_DOMError_t *thisp, unsigned short severity);
@@ -482,193 +342,108 @@ marpaXml_boolean_t          marpaXml_DOMError_getRelatedException(marpaXml_DOMEr
 marpaXml_boolean_t          marpaXml_DOMError_setRelatedException(marpaXml_DOMError_t *thisp, marpaXml_DOMObject_t *objectp);
 marpaXml_boolean_t          marpaXml_DOMError_getRelatedData(marpaXml_DOMError_t *thisp, marpaXml_DOMObject_t **relatedDatapp);
 marpaXml_boolean_t          marpaXml_DOMError_setRelatedData(marpaXml_DOMError_t *thisp, marpaXml_DOMObject_t *relatedDatap);
-marpaXml_boolean_t          marpaXml_DOMError_getLocation(marpaXml_DOMError_t *thisp, struct marpaXml_DOMLocator **locationpp);
-marpaXml_boolean_t          marpaXml_DOMError_setLocation(marpaXml_DOMError_t *thisp, struct marpaXml_DOMLocator *locationp);
+marpaXml_boolean_t          marpaXml_DOMError_getLocation(marpaXml_DOMError_t *thisp, marpaXml_DOMLocator_t **locationpp);
+marpaXml_boolean_t          marpaXml_DOMError_setLocation(marpaXml_DOMError_t *thisp, marpaXml_DOMLocator_t *locationp);
 marpaXml_boolean_t          marpaXml_DOMError_free(marpaXml_DOMError_t **thispp);
 
-/* Introduced in DOM Level 3: */
-typedef struct marpaXml_DOMErrorHandler_Context marpaXml_DOMErrorHandler_Context_t;
-SUBCLASS(marpaXml_DOMErrorHandler, Object)
-  marpaXml_DOMErrorHandler_Context_t *_contextp;
-VTABLE(marpaXml_DOMErrorHandler, Object)
-  marpaXml_boolean_t        (*handleError)(marpaXml_DOMErrorHandler_t *thisp, marpaXml_DOMError_t *errorp);
-METHODS
-  marpaXml_DOMErrorHandler_t *marpaXml_DOMErrorHandler_new();
-  void                        marpaXml_DOMErrorHandler_free(marpaXml_DOMErrorHandler_t **thispp);
-END_CLASS
+marpaXml_DOMErrorHandler_t *marpaXml_DOMErrorHandler_new(void);
+marpaXml_boolean_t          marpaXml_DOMErrorHandler_handleError(marpaXml_DOMErrorHandler_t *thisp, marpaXml_DOMError_t *errorp, marpaXml_boolean_t *handleErrorp);
+marpaXml_boolean_t          marpaXml_DOMErrorHandler_free(marpaXml_DOMErrorHandler_t **thispp);
 
-/* Introduced in DOM Level 3: */
-typedef struct marpaXml_DOMLocator_Context marpaXml_DOMLocator_Context_t;
-SUBCLASS(marpaXml_DOMLocator, Object)
-  marpaXml_DOMLocator_Context_t *_contextp;
-VTABLE(marpaXml_DOMLocator, Object)
-  long                  (*getLineNumber)(marpaXml_DOMLocator_t *thisp);
-  long                  (*getColumnNumber)(marpaXml_DOMLocator_t *thisp);
-  long                  (*getByteOffset)(marpaXml_DOMLocator_t *thisp);
-  long                  (*getUtf16Offset)(marpaXml_DOMLocator_t *thisp);
-  marpaXml_Node_t       (*getRelatedNode)(marpaXml_DOMLocator_t *thisp);
-  marpaXml_String_t    *(*getUri)(marpaXml_DOMLocator_t *thisp);
-METHODS
-  marpaXml_DOMLocator_t  *marpaXml_DOMLocator_new();
-  void                    marpaXml_DOMLocator_free(marpaXml_DOMLocator_t **thispp);
-END_CLASS
+marpaXml_DOMLocator_t *marpaXml_DOMLocator_new(void);
+marpaXml_boolean_t     marpaXml_DOMLocator_getLineNumber(marpaXml_DOMLocator_t *thisp, long *lineNumberp);
+marpaXml_boolean_t     marpaXml_DOMLocator_getColumnNumber(marpaXml_DOMLocator_t *thisp, long *columnNumberp);
+marpaXml_boolean_t     marpaXml_DOMLocator_getByteOffset(marpaXml_DOMLocator_t *thisp, long *byteOffsetp);
+marpaXml_boolean_t     marpaXml_DOMLocator_getUtf16Offset(marpaXml_DOMLocator_t *thisp, long *utf16Offsetp);
+marpaXml_boolean_t     marpaXml_DOMLocator_getRelatedNode(marpaXml_DOMLocator_t *thisp, marpaXml_Node_t **relatedNodepp);
+marpaXml_boolean_t     marpaXml_DOMLocator_getUri(marpaXml_DOMLocator_t *thisp, marpaXml_String_t **uripp);
+marpaXml_boolean_t     marpaXml_DOMLocator_free(marpaXml_DOMLocator_t **thispp);
 
-/* Introduced in DOM Level 3: */
-typedef struct marpaXml_DOMConfiguration_Context marpaXml_DOMConfiguration_Context_t;
-SUBCLASS(marpaXml_DOMConfiguration, Object)
-  marpaXml_DOMConfiguration_Context_t *_contextp;
-VTABLE(marpaXml_DOMConfiguration, Object)
-  void                       (*setParameter)(marpaXml_DOMConfiguration_t *thisp, marpaXml_String_t *namep, marpaXml_DOMUserData_t *valuep, marpaXml_DOMException_t *exceptionp);
-  marpaXml_DOMUserData_t    *(*getParameter)(marpaXml_DOMConfiguration_t *thisp, marpaXml_String_t *namep, marpaXml_DOMException_t *exceptionp);
-  marpaXml_boolean_t         (*canSetParameter)(marpaXml_DOMConfiguration_t *thisp, marpaXml_String_t *namep, marpaXml_DOMUserData_t *valuep);
-  marpaXml_StringList_t     *(*getParameterNames)(marpaXml_DOMConfiguration_t *thisp);
-METHODS
-  marpaXml_DOMConfiguration_t *marpaXml_DOMConfiguration_new();
-  void                         marpaXml_DOMConfiguration_free(marpaXml_DOMConfiguration_t **thispp);
-END_CLASS
+marpaXml_DOMConfiguration_t *marpaXml_DOMConfiguration_new(void);
+marpaXml_boolean_t           marpaXml_DOMConfiguration_setParameter(marpaXml_DOMConfiguration_t *thisp, marpaXml_String_t *namep, marpaXml_DOMUserData_t *valuep, marpaXml_DOMException_t *exceptionp);
+marpaXml_boolean_t           marpaXml_DOMConfiguration_getParameter(marpaXml_DOMConfiguration_t *thisp, marpaXml_String_t *namep, marpaXml_DOMUserData_t **userDatapp, marpaXml_DOMException_t *exceptionp);
+marpaXml_boolean_t           marpaXml_DOMConfiguration_canSetParameter(marpaXml_DOMConfiguration_t *thisp, marpaXml_String_t *namep, marpaXml_boolean_t *canSetParameterp, marpaXml_DOMUserData_t *valuep);
+marpaXml_boolean_t           marpaXml_DOMConfiguration_getParameterNames(marpaXml_DOMConfiguration_t *thisp, marpaXml_DOMStringList_t **parameterNamespp);
+marpaXml_boolean_t           marpaXml_DOMConfiguration_free(marpaXml_DOMConfiguration_t **thispp);
 
-typedef struct marpaXml_CDATASection_Context marpaXml_CDATASection_Context_t;
-SUBCLASS(marpaXml_CDATASection, marpaXml_Text)
-  marpaXml_CDATASection_Context_t *_contextp;
-VTABLE(marpaXml_CDATASection, marpaXml_Text)
-METHODS
-  marpaXml_CDATASection_t *marpaXml_CDATASection_new();
-  void                     marpaXml_CDATASection_free(marpaXml_CDATASection_t **thispp);
-END_CLASS
+marpaXml_CDATASection_t *marpaXml_CDATASection_new(void);
+MARPAXML_TEXT_METHODS(CDATASection)
+marpaXml_boolean_t       marpaXml_CDATASection_free(marpaXml_CDATASection_t **thispp);
 
-typedef struct marpaXml_DocumentType_Context marpaXml_DocumentType_Context_t;
-SUBCLASS(marpaXml_DocumentType, marpaXml_Node)
-  marpaXml_DocumentType_Context_t *_contextp;
-VTABLE(marpaXml_DocumentType, marpaXml_Node)
-  marpaXml_String_t       *(*getName)(marpaXml_DocumentType_t *thisp);
-  marpaXml_NamedNodeMap_t *(*getEntities)(marpaXml_DocumentType_t *thisp);
-  marpaXml_NamedNodeMap_t *(*getNotations)(marpaXml_DocumentType_t *thisp);
-  /* Introduced in DOM Level 2: */
-  marpaXml_String_t       *(*getPublicId)(marpaXml_DocumentType_t *thisp);
-  /* Introduced in DOM Level 2: */
-  marpaXml_String_t       *(*getSystemId)(marpaXml_DocumentType_t *thisp);
-  /* Introduced in DOM Level 2: */
-  marpaXml_String_t       *(*getInternalSubset)(marpaXml_DocumentType_t *thisp);
-METHODS
-  marpaXml_DocumentType_t   *marpaXml_DocumentType_new();
-  void                       marpaXml_DocumentType_free(marpaXml_DocumentType_t **thispp);
-END_CLASS
+marpaXml_DocumentType_t *marpaXml_DocumentType_new(void);
+MARPAXML_NODE_METHODS(DocumentType)
+marpaXml_boolean_t       marpaXml_DocumentType_getName(marpaXml_DocumentType_t *thisp, marpaXml_String_t **namepp);
+marpaXml_boolean_t       marpaXml_DocumentType_getEntities(marpaXml_DocumentType_t *thisp, marpaXml_NamedNodeMap_t **entitiespp);
+marpaXml_boolean_t       marpaXml_DocumentType_getNotations(marpaXml_DocumentType_t *thisp, marpaXml_NamedNodeMap_t **notationspp);
+marpaXml_boolean_t       marpaXml_DocumentType_getPublicId(marpaXml_DocumentType_t *thisp, marpaXml_String_t **publicIdpp);
+marpaXml_boolean_t       marpaXml_DocumentType_getSystemId(marpaXml_DocumentType_t *thisp, marpaXml_String_t **systemIdpp);
+marpaXml_boolean_t       marpaXml_DocumentType_getInternalSubset(marpaXml_DocumentType_t *thisp, marpaXml_String_t **internalSubsetpp);
+marpaXml_boolean_t       marpaXml_DocumentType_marpaXml_DocumentType_free(marpaXml_DocumentType_t **thispp);
 
-typedef struct marpaXml_Notation_Context marpaXml_Notation_Context_t;
-SUBCLASS(marpaXml_Notation, marpaXml_Node)
-  marpaXml_Notation_Context_t *_contextp;
-VTABLE(marpaXml_Notation, marpaXml_Node)
-  marpaXml_String_t    *(*getPublicId)(marpaXml_Notation_t *thisp);
-  marpaXml_String_t    *(*getSystemId)(marpaXml_Notation_t *thisp);
-METHODS
-  marpaXml_Notation_t    *marpaXml_Notation_new();
-  void                    marpaXml_Notation_free(marpaXml_Notation_t **thispp);
-END_CLASS
+marpaXml_Notation_t *marpaXml_Notation_new(void);
+MARPAXML_NODE_METHODS(Notation)
+marpaXml_boolean_t   marpaXml_Notation_getPublicId(marpaXml_Notation_t *thisp, marpaXml_String_t **publicIdpp);
+marpaXml_boolean_t   marpaXml_Notation_getSystemId(marpaXml_Notation_t *thisp, marpaXml_String_t **systemIdpp);
+marpaXml_boolean_t   marpaXml_Notation_free(marpaXml_Notation_t **thispp);
 
-typedef struct marpaXml_Entity_Context marpaXml_Entity_Context_t;
-SUBCLASS(marpaXml_Entity, marpaXml_Node)
-  marpaXml_Entity_Context_t *_contextp;
-VTABLE(marpaXml_Entity, marpaXml_Node)
-  marpaXml_String_t       *(*getPublicId)(marpaXml_Entity_t *thisp);
-  marpaXml_String_t       *(*getSystemId)(marpaXml_Entity_t *thisp);
-  marpaXml_String_t       *(*getNotationName)(marpaXml_Entity_t *thisp);
-  /* Introduced in DOM Level 3: */
-  marpaXml_String_t       *(*getInputEncoding)(marpaXml_Entity_t *thisp);
-  /* Introduced in DOM Level 3: */
-  marpaXml_String_t       *(*getXmlEncoding)(marpaXml_Entity_t *thisp);
-  /* Introduced in DOM Level 3: */
-  marpaXml_String_t       *(*getXmlVersion)(marpaXml_Entity_t *thisp);
-METHODS
-  marpaXml_Entity_t         *marpaXml_Entity_new();
-  void                       marpaXml_Entity_free(marpaXml_Entity_t **thispp);
-END_CLASS
+marpaXml_Entity_t  *marpaXml_Entity_new(void);
+MARPAXML_NODE_METHODS(Entity)
+marpaXml_boolean_t  marpaXml_Entity_getPublicId(marpaXml_Entity_t *thisp, marpaXml_String_t **publicIdpp);
+marpaXml_boolean_t  marpaXml_Entity_getSystemId(marpaXml_Entity_t *thisp, marpaXml_String_t **systemIdpp);
+marpaXml_boolean_t  marpaXml_Entity_getNotationName(marpaXml_Entity_t *thisp, marpaXml_String_t **notationNamepp);
+marpaXml_boolean_t  marpaXml_Entity_getInputEncoding(marpaXml_Entity_t *thisp, marpaXml_String_t **inputEncodingpp);
+marpaXml_boolean_t  marpaXml_Entity_getXmlEncoding(marpaXml_Entity_t *thisp, marpaXml_String_t **xmlEncodingpp);
+marpaXml_boolean_t  marpaXml_Entity_getXmlVersion(marpaXml_Entity_t *thisp, marpaXml_String_t **xmlVersionpp);
+marpaXml_boolean_t  marpaXml_Entity_free(marpaXml_Entity_t **thispp);
 
-typedef struct marpaXml_EntityReference_Context marpaXml_EntityReference_Context_t;
-SUBCLASS(marpaXml_EntityReference, marpaXml_Node)
-  marpaXml_EntityReference_Context_t *_contextp;
-VTABLE(marpaXml_EntityReference, marpaXml_Node)
-METHODS
-  marpaXml_EntityReference_t   *marpaXml_EntityReference_new();
-  void                          marpaXml_EntityReference_free(marpaXml_EntityReference_t **thispp);
-END_CLASS
+marpaXml_EntityReference_t *marpaXml_EntityReference_new(void);
+MARPAXML_NODE_METHODS(EntityReference)
+marpaXml_boolean_t          marpaXml_EntityReference_free(marpaXml_EntityReference_t **thispp);
 
-typedef struct marpaXml_ProcessingInstruction_Context marpaXml_ProcessingInstruction_Context_t;
-SUBCLASS(marpaXml_ProcessingInstruction, marpaXml_Node)
-  marpaXml_ProcessingInstruction_Context_t *_contextp;
-VTABLE(marpaXml_ProcessingInstruction, marpaXml_Node)
-  marpaXml_String_t             *(*getTarget)(marpaXml_ProcessingInstruction_t *thisp);
-  marpaXml_String_t             *(*getData)(marpaXml_ProcessingInstruction_t *thisp);
-  marpaXml_String_t             *(*setData)(marpaXml_ProcessingInstruction_t *thisp, marpaXml_String_t *datap, marpaXml_DOMException_t *exceptionp);
-METHODS
-  marpaXml_ProcessingInstruction_t  *marpaXml_ProcessingInstruction_new();
-  void                               marpaXml_ProcessingInstruction_free(marpaXml_ProcessingInstruction_t **thispp);
-END_CLASS
+marpaXml_ProcessingInstruction_t *marpaXml_ProcessingInstruction_new(void);
+MARPAXML_NODE_METHODS(ProcessingInstruction)
+marpaXml_boolean_t                marpaXml_ProcessingInstruction_getTarget(marpaXml_ProcessingInstruction_t *thisp, marpaXml_String_t **targetpp);
+marpaXml_boolean_t                marpaXml_ProcessingInstruction_getData(marpaXml_ProcessingInstruction_t *thisp, marpaXml_String_t **datapp);
+marpaXml_boolean_t                marpaXml_ProcessingInstruction_setData(marpaXml_ProcessingInstruction_t *thisp, marpaXml_String_t *datap, marpaXml_DOMException_t *exceptionp);
+marpaXml_boolean_t                marpaXml_ProcessingInstruction_free(marpaXml_ProcessingInstruction_t **thispp);
 
-typedef struct marpaXml_DocumentFragment_Context marpaXml_DocumentFragment_Context_t;
-SUBCLASS(marpaXml_DocumentFragment, marpaXml_Node)
-  marpaXml_DocumentFragment_Context_t *_contextp;
-VTABLE(marpaXml_DocumentFragment, marpaXml_Node)
-METHODS
-  marpaXml_DocumentFragment_t   *marpaXml_DocumentFragment_new();
-  void                           marpaXml_DocumentFragment_free(marpaXml_DocumentFragment_t **thispp);
-END_CLASS
+marpaXml_DocumentFragment_t *marpaXml_DocumentFragment_new(void);
+MARPAXML_NODE_METHODS(DocumentFragment)
+marpaXml_boolean_t           marpaXml_DocumentFragment_free(marpaXml_DocumentFragment_t **thispp);
 
-typedef struct marpaXml_Document_Context *marpaXml_Document_Context_t;
-SUBCLASS(marpaXml_Document, marpaXml_Node)
-  marpaXml_Document_Context_t *_contextp;
-VTABLE(marpaXml_Document, marpaXml_Node)
-  /* Modified in DOM Level 3: */
-  marpaXml_DocumentType_t          *(*getDoctype)(marpaXml_Document_t *thisp);
-  marpaXml_DOMImplementation_t     *(*getImplementation)(marpaXml_Document_t *thisp);
-  marpaXml_Element_t               *(*getDocumentElement)(marpaXml_Document_t *thisp);
-  marpaXml_Element_t               *(*createElement)(marpaXml_Document_t *thisp, marpaXml_String_t *tagNamep, marpaXml_DOMException_t *exceptionp);
-  marpaXml_DocumentFragment_t      *(*createDocumentFragment)(marpaXml_Document_t *thisp);
-  marpaXml_Text_t                  *(*createTextNode)(marpaXml_Document_t *thisp, marpaXml_String_t *datap);
-  marpaXml_Comment_t               *(*createComment)(marpaXml_Document_t *thisp, marpaXml_String_t *datap);
-  marpaXml_CDATASection_t          *(*createCDATASection)(marpaXml_Document_t *thisp, marpaXml_String_t *datap, marpaXml_DOMException_t *exceptionp);
-  marpaXml_ProcessingInstruction_t *(*createProcessingInstruction)(marpaXml_Document_t *thisp, marpaXml_String_t *targetp, marpaXml_String_t *datap, marpaXml_DOMException_t *exceptionp);
-  marpaXml_Attr_t                  *(*createAttribute)(marpaXml_Document_t *thisp, marpaXml_String_t *namep, marpaXml_DOMException_t *exceptionp);
-  marpaXml_EntityReference_t       *(*createEntityReference)(marpaXml_Document_t *thisp, marpaXml_String_t *namep, marpaXml_DOMException_t *exceptionp);
-  marpaXml_NodeList_t              *(*getElementsByTagName)(marpaXml_Document_t *thisp, marpaXml_String_t *tagnamep);
-  /* Introduced in DOM Level 2: */
-  marpaXml_Node_t                  *(*importNode)(marpaXml_Document_t *thisp, marpaXml_Node_t *importedNodep, marpaXml_boolean_t deep, marpaXml_DOMException_t *exceptionp);
-  /* Introduced in DOM Level 2: */
-  marpaXml_Element_t               *(*createElementNS)(marpaXml_Document_t *thisp, marpaXml_String_t *namespaceURIp, marpaXml_String_t *qualifiedNamep, marpaXml_DOMException_t *exceptionp);
-  /* Introduced in DOM Level 2: */
-  marpaXml_Attr_t                  *(*createAttributeNS)(marpaXml_Document_t *thisp, marpaXml_String_t *namespaceURIp, marpaXml_String_t *qualifiedNamep, marpaXml_DOMException_t *exceptionp);
-  /* Introduced in DOM Level 2: */
-  marpaXml_NodeList_t              *(*getElementsByTagNameNS)(marpaXml_Document_t *thisp, marpaXml_String_t *namespaceURIp, marpaXml_String_t *localNamep);
-  /* Introduced in DOM Level 2: */
-  marpaXml_Element_t               *(*getElementById)(marpaXml_Document_t *thisp, marpaXml_String_t *elementIdp);
-  /* Introduced in DOM Level 3: */
-  marpaXml_String_t                *(*getInputEncoding)(marpaXml_Document_t *thisp);
-  /* Introduced in DOM Level 3: */
-  marpaXml_String_t                *(*getXmlEncoding)(marpaXml_Document_t *thisp);
-  /* Introduced in DOM Level 3: */
-  marpaXml_boolean_t               (*getXmlStandalone)(marpaXml_Document_t *thisp);
-  marpaXml_boolean_t               (*setXmlStandalone)(marpaXml_Document_t *thisp, marpaXml_boolean_t xmlStandalone, marpaXml_DOMException_t *exceptionp);
-
-  /* Introduced in DOM Level 3: */
-  marpaXml_String_t                *(*getXmlVersion)(marpaXml_Document_t *thisp);
-  marpaXml_String_t                *(*setXmlVersion)(marpaXml_Document_t *thisp, marpaXml_String_t *xmlVersionp, marpaXml_DOMException_t *exceptionp);
-
-  // Introduced in DOM Level 3:
-  marpaXml_boolean_t                (*getStrictErrorChecking)(marpaXml_Document_t *thisp);
-  marpaXml_boolean_t                (*setStrictErrorChecking)(marpaXml_Document_t *thisp, marpaXml_boolean_t strictErrorChecking);
-  // Introduced in DOM Level 3:
-  marpaXml_String_t                *(*getDocumentURI)(marpaXml_Document_t *thisp);
-  marpaXml_String_t                *(*setDocumentURI)(marpaXml_Document_t *thisp, marpaXml_String_t *documentURIp);
-  // Introduced in DOM Level 3:
-  marpaXml_Node_t                  *(*adoptNode)(marpaXml_Document_t *thisp, marpaXml_Node_t *sourcep, marpaXml_DOMException_t *exceptionp);
-  // Introduced in DOM Level 3:
-  marpaXml_DOMConfiguration_t      *(*getDomConfig)(marpaXml_Document_t *thisp);
-  // Introduced in DOM Level 3:
-  void                              (*normalizeDocument)(marpaXml_Document_t *thisp);
-  // Introduced in DOM Level 3:
-  marpaXml_Node_t                  *(*renameNode)(marpaXml_Document_t *thisp, marpaXml_Node_t *np, marpaXml_String_t *namespaceURIp, marpaXml_String_t *qualifiedNamep, marpaXml_DOMException_t *exceptionp);
-METHODS
-  marpaXml_Document_t                *marpaXml_Document_new();
-  void                                marpaXml_Document_free(marpaXml_Document_t *thisp);
-END_CLASS
+marpaXml_Document_t *marpaXml_Document_new(void);
+MARPAXML_NODE_METHODS(Document)
+marpaXml_boolean_t   marpaXml_Document_getDoctype(marpaXml_Document_t *thisp, marpaXml_DocumentType_t **doctypepp);
+marpaXml_boolean_t   marpaXml_Document_getImplementation(marpaXml_Document_t *thisp, marpaXml_DOMImplementation_t **implementationpp);
+marpaXml_boolean_t   marpaXml_Document_getDocumentElement(marpaXml_Document_t *thisp, marpaXml_Element_t **elementpp);
+marpaXml_boolean_t   marpaXml_Document_createElement(marpaXml_Document_t *thisp, marpaXml_String_t *tagNamep, marpaXml_Element_t **elementpp, marpaXml_DOMException_t *exceptionp);
+marpaXml_boolean_t   marpaXml_Document_createDocumentFragment(marpaXml_Document_t *thisp, marpaXml_DocumentFragment_t **documentFragmentpp);
+marpaXml_boolean_t   marpaXml_Document_createTextNode(marpaXml_Document_t *thisp, marpaXml_String_t *datap, marpaXml_Text_t **textNodepp);
+marpaXml_boolean_t   marpaXml_Document_createComment(marpaXml_Document_t *thisp, marpaXml_String_t *datap, marpaXml_Comment_t **commentpp);
+marpaXml_boolean_t   marpaXml_Document_createCDATASection(marpaXml_Document_t *thisp, marpaXml_String_t *datap, marpaXml_CDATASection_t **CDATASectionpp, marpaXml_DOMException_t *exceptionp);
+marpaXml_boolean_t   marpaXml_Document_createProcessingInstruction(marpaXml_Document_t *thisp, marpaXml_String_t *targetp, marpaXml_String_t *datap, marpaXml_ProcessingInstruction_t **processingInstructionpp, marpaXml_DOMException_t *exceptionp);
+marpaXml_boolean_t   marpaXml_Document_createAttribute(marpaXml_Document_t *thisp, marpaXml_String_t *namep, marpaXml_Attr_t **attributepp, marpaXml_DOMException_t *exceptionp);
+marpaXml_boolean_t   marpaXml_Document_createEntityReference(marpaXml_Document_t *thisp, marpaXml_String_t *namep, marpaXml_EntityReference_t **entityReferencepp, marpaXml_DOMException_t *exceptionp);
+marpaXml_boolean_t   marpaXml_Document_getElementsByTagName(marpaXml_Document_t *thisp, marpaXml_String_t *tagnamep, marpaXml_NodeList_t **elementsByTagNamepp);
+marpaXml_boolean_t   marpaXml_Document_importNode(marpaXml_Document_t *thisp, marpaXml_Node_t *importedNodep, marpaXml_boolean_t deep, marpaXml_Node_t **nodepp, marpaXml_DOMException_t *exceptionp);
+marpaXml_boolean_t   marpaXml_Document_createElementNS(marpaXml_Document_t *thisp, marpaXml_String_t *namespaceURIp, marpaXml_String_t *qualifiedNamep, marpaXml_Element_t **elementNSpp, marpaXml_DOMException_t *exceptionp);
+marpaXml_boolean_t   marpaXml_Document_createAttributeNS(marpaXml_Document_t *thisp, marpaXml_String_t *namespaceURIp, marpaXml_String_t *qualifiedNamep, marpaXml_Attr_t **attributeNSpp, marpaXml_DOMException_t *exceptionp);
+marpaXml_boolean_t   marpaXml_Document_getElementsByTagNameNS(marpaXml_Document_t *thisp, marpaXml_String_t *namespaceURIp, marpaXml_NodeList_t **elementsByTagNameNSpp, marpaXml_String_t *localNamep);
+marpaXml_boolean_t   marpaXml_Document_getElementById(marpaXml_Document_t *thisp, marpaXml_String_t *elementIdp, marpaXml_Element_t **elementByIdpp);
+marpaXml_boolean_t   marpaXml_Document_getInputEncoding(marpaXml_Document_t *thisp, marpaXml_String_t **inputEncodingpp);
+marpaXml_boolean_t   marpaXml_Document_getXmlEncoding(marpaXml_Document_t *thisp, marpaXml_String_t *xmlEncodingpp);
+marpaXml_boolean_t   marpaXml_Document_getXmlStandalone(marpaXml_Document_t *thisp, marpaXml_boolean_t *xmlStandalonep);
+marpaXml_boolean_t   marpaXml_Document_setXmlStandalone(marpaXml_Document_t *thisp, marpaXml_boolean_t xmlStandalone, marpaXml_DOMException_t *exceptionp);
+marpaXml_boolean_t   marpaXml_Document_getXmlVersion(marpaXml_Document_t *thisp, marpaXml_String_t **xmlVersionpp);
+marpaXml_boolean_t   marpaXml_Document_setXmlVersion(marpaXml_Document_t *thisp, marpaXml_String_t *xmlVersionp, marpaXml_DOMException_t *exceptionp);
+marpaXml_boolean_t   marpaXml_Document_getStrictErrorChecking(marpaXml_Document_t *thisp, marpaXml_boolean_t *strictErrorCheckingp);
+marpaXml_boolean_t   marpaXml_Document_setStrictErrorChecking(marpaXml_Document_t *thisp, marpaXml_boolean_t strictErrorChecking);
+marpaXml_boolean_t   marpaXml_Document_getDocumentURI(marpaXml_Document_t *thisp, marpaXml_String_t **documentURIpp);
+marpaXml_boolean_t   marpaXml_Document_setDocumentURI(marpaXml_Document_t *thisp, marpaXml_String_t *documentURIp);
+marpaXml_boolean_t   marpaXml_Document_adoptNode(marpaXml_Document_t *thisp, marpaXml_Node_t *sourcep, marpaXml_Node_t **nodepp, marpaXml_DOMException_t *exceptionp);
+marpaXml_boolean_t   marpaXml_Document_getDomConfig(marpaXml_Document_t *thisp, marpaXml_DOMConfiguration_t **DOMConfigurationpp);
+marpaXml_boolean_t   marpaXml_Document_normalizeDocument(marpaXml_Document_t *thisp);
+marpaXml_boolean_t   marpaXml_Document_renameNode(marpaXml_Document_t *thisp, marpaXml_Node_t *np, marpaXml_String_t *namespaceURIp, marpaXml_String_t *qualifiedNamep, marpaXml_Node_t **nodepp, marpaXml_DOMException_t *exceptionp);
+marpaXml_boolean_t   marpaXml_Document_free(marpaXml_Document_t *thisp);
 
 #endif /* MARPAXML_DOM_H_ */

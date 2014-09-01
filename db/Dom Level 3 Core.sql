@@ -19,11 +19,11 @@ CREATE TABLE [DOMNode]
 	[prevId] integer,
 	[nextId] integer,
 	PRIMARY KEY ([id]),
+	FOREIGN KEY ([nextId])
+	REFERENCES [DOMNode] ([id]),
 	FOREIGN KEY ([parent_id])
 	REFERENCES [DOMNode] ([id]),
 	FOREIGN KEY ([prevId])
-	REFERENCES [DOMNode] ([id]),
-	FOREIGN KEY ([nextId])
 	REFERENCES [DOMNode] ([id])
 );
 
@@ -61,12 +61,12 @@ CREATE TABLE [DOMAttr]
 	[isId] integer,
 	[schemaTypeInfo_id] integer NOT NULL UNIQUE,
 	PRIMARY KEY ([id]),
+	FOREIGN KEY ([DOMNode_id])
+	REFERENCES [DOMNode] ([id]),
 	FOREIGN KEY ([ownerElement_id])
 	REFERENCES [DOMElement] ([id]),
 	FOREIGN KEY ([schemaTypeInfo_id])
-	REFERENCES [DOMTypeInfo] ([id]),
-	FOREIGN KEY ([DOMNode_id])
-	REFERENCES [DOMNode] ([id])
+	REFERENCES [DOMTypeInfo] ([id])
 );
 
 
@@ -135,11 +135,11 @@ CREATE TABLE [DOMConfiguration]
 );
 
 
-CREATE TABLE [DOMImplementation]
+CREATE TABLE [DOMCounters]
 (
 	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
-	[feature] text,
-	[version] text,
+	[objectName] text,
+	[objectCount] integer,
 	PRIMARY KEY ([id])
 );
 
@@ -156,6 +156,15 @@ CREATE TABLE [DOMDocumentType]
 	PRIMARY KEY ([id]),
 	FOREIGN KEY ([DOMNode_id])
 	REFERENCES [DOMNode] ([id])
+);
+
+
+CREATE TABLE [DOMImplementation]
+(
+	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
+	[feature] text,
+	[version] text,
+	PRIMARY KEY ([id])
 );
 
 
@@ -176,16 +185,16 @@ CREATE TABLE [DOMDocument]
 	[documentURI] text,
 	[domConfig_id] integer NOT NULL UNIQUE,
 	PRIMARY KEY ([id]),
-	FOREIGN KEY ([DOMNode_id])
-	REFERENCES [DOMNode] ([id]),
-	FOREIGN KEY ([implementation_id])
-	REFERENCES [DOMImplementation] ([id]),
 	FOREIGN KEY ([domConfig_id])
 	REFERENCES [DOMConfiguration] ([id]),
+	FOREIGN KEY ([DOMNode_id])
+	REFERENCES [DOMNode] ([id]),
 	FOREIGN KEY ([documentElement_id])
 	REFERENCES [DOMElement] ([id]),
 	FOREIGN KEY ([doctype_id])
-	REFERENCES [DOMDocumentType] ([id])
+	REFERENCES [DOMDocumentType] ([id]),
+	FOREIGN KEY ([implementation_id])
+	REFERENCES [DOMImplementation] ([id])
 );
 
 
@@ -225,15 +234,6 @@ CREATE TABLE [DOMEntityReference]
 );
 
 
-CREATE TABLE [DOMException]
-(
-	[id] integer NOT NULL PRIMARY KEY AUTOINCREMENT,
-	[code] integer,
-	[message] text,
-	PRIMARY KEY ([id])
-);
-
-
 CREATE TABLE [DOMLocator]
 (
 	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
@@ -249,6 +249,15 @@ CREATE TABLE [DOMLocator]
 );
 
 
+CREATE TABLE [DOMException]
+(
+	[id] integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+	[code] integer,
+	[message] text,
+	PRIMARY KEY ([id])
+);
+
+
 CREATE TABLE [DOMError]
 (
 	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
@@ -259,12 +268,12 @@ CREATE TABLE [DOMError]
 	[relatedData_id] integer NOT NULL UNIQUE,
 	[location_id] integer NOT NULL UNIQUE,
 	PRIMARY KEY ([id]),
-	FOREIGN KEY ([relatedException_id])
-	REFERENCES [DOMException] ([id]),
+	FOREIGN KEY ([relatedData_id])
+	REFERENCES [DOMNode] ([id]),
 	FOREIGN KEY ([location_id])
 	REFERENCES [DOMLocator] ([id]),
-	FOREIGN KEY ([relatedData_id])
-	REFERENCES [DOMNode] ([id])
+	FOREIGN KEY ([relatedException_id])
+	REFERENCES [DOMException] ([id])
 );
 
 

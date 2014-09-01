@@ -15,7 +15,7 @@
 /* this pointer CAN be equal to messageBuilder_internalErrors()   */
 /* output.                                                        */
 
-char *messageBuilder_internalErrors(void);
+char *messageBuilder_internalErrors(void); /* This is returning a STATIC adress */
 char *messageBuilder(const char *fmts, ...);
 char *messageBuilder_ap(const char *fmts, va_list ap);
 

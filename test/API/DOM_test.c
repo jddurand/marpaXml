@@ -5,11 +5,12 @@
 #include "API/marpaXml/log.h"
 
 int main(int argc, char **argv) {
-    marpaXml_String_t       *messagep;
-    marpaXml_String_t       *message2p;
-    marpaXml_DOMException_t *exceptionp;
-    marpaXml_String_t       *string;
-    unsigned short           unsignedShort;
+    marpaXml_String_t        *messagep;
+    marpaXml_String_t        *message2p;
+    marpaXml_DOMException_t  *exceptionp;
+    marpaXml_DOMStringList_t *DOMStringList1p, *DOMStringList2p;
+    marpaXml_String_t        *string;
+    unsigned short            unsignedShort;
 
 #ifdef _WIN32
     marpaXml_DOM_Option_t marpaXml_DOM_Option = {"C:\\Windows\\Temp\\test.sqlite", NULL, -1, { NULL, NULL, MARPAXML_LOGLEVEL_TRACE} };
@@ -30,7 +31,17 @@ int main(int argc, char **argv) {
   /*************************************/
   messagep = marpaXml_String_newFromUTF8((char *) "My Message", NULL);
   message2p = marpaXml_String_newFromUTF8((char *) "My New Message", NULL);
+
+  if (marpaXml_DOMException_new(0, messagep) != NULL) {
+    fprintf(stderr, "marpaXml_DOMException_new success with invalid code 0\n");
+    return 1;
+  }
+
   exceptionp = marpaXml_DOMException_new(2, messagep);
+  if (exceptionp == NULL) {
+    fprintf(stderr, "marpaXml_DOMException_new failure\n");
+    return 1;
+  }
 
   /* marpaXml_DOMException_getCode */
   if (marpaXml_DOMException_getCode(exceptionp, &unsignedShort) == marpaXml_false) {
@@ -43,6 +54,10 @@ int main(int argc, char **argv) {
   }
 
   /* marpaXml_DOMException_setCode */
+  if (marpaXml_DOMException_setCode(exceptionp, 0) == marpaXml_true) {
+    fprintf(stderr, "marpaXml_DOMException_setCode success with value 0\n");
+    return 1;
+  }
   if (marpaXml_DOMException_setCode(exceptionp, 3) == marpaXml_false) {
     fprintf(stderr, "marpaXml_DOMException_setCode failure\n");
     return 1;
@@ -80,11 +95,36 @@ int main(int argc, char **argv) {
     fprintf(stderr, "marpaXml_DOMException_getMessage returns \"%s\" ne \"%s\"\n", marpaXml_String_getUtf8(string), marpaXml_String_getUtf8(message2p));
     return 1;
   }
-  marpaXml_String_free(&string);
+  if (marpaXml_DOMException_free(&exceptionp) == marpaXml_false) {
+    fprintf(stderr, "marpaXml_DOMException_free failure\n");
+    return 1;
+  }
 
+  marpaXml_String_free(&string);
   marpaXml_String_free(&messagep);
   marpaXml_String_free(&message2p);
-  marpaXml_DOMException_free(&exceptionp);
+
+  /*************************************/
+  /*            DOMException           */
+  /*************************************/
+  DOMStringList1p = marpaXml_DOMStringList_new();
+  if (DOMStringList1p == NULL) {
+    fprintf(stderr, "marpaXml_DOMStringList_new failure\n");
+    return 1;
+  }
+  DOMStringList2p = marpaXml_DOMStringList_new();
+  if (DOMStringList2p == NULL) {
+    fprintf(stderr, "marpaXml_DOMStringList_new failure\n");
+    return 1;
+  }
+  if (marpaXml_DOMStringList_free(&DOMStringList1p) == marpaXml_false) {
+    fprintf(stderr, "marpaXml_DOMStringList_free failure\n");
+    return 1;
+  }
+  if (marpaXml_DOMStringList_free(&DOMStringList2p) == marpaXml_false) {
+    fprintf(stderr, "marpaXml_DOMStringList_free failure\n");
+    return 1;
+  }
 
   /*************************************/
   /*                End                */
