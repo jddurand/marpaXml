@@ -7,7 +7,7 @@
 int main(int argc, char **argv) {
     marpaXml_String_t        *messagep;
     marpaXml_String_t        *message2p;
-    marpaXml_String_t        *containsp;
+    marpaXml_String_t        *containsp, *contains2p;
     marpaXml_DOMException_t  *exceptionp;
     marpaXml_DOMStringList_t *DOMStringList1p, *DOMStringList2p, *DOMStringList3p;
     marpaXml_String_t        *string;
@@ -34,6 +34,7 @@ int main(int argc, char **argv) {
   messagep = marpaXml_String_newFromUTF8((char *) "My Message", NULL);
   message2p = marpaXml_String_newFromUTF8((char *) "My New Message", NULL);
   containsp = marpaXml_String_newFromUTF8((char *) "Test for DOMStringList_contains", NULL);
+  contains2p = marpaXml_String_newFromUTF8((char *) "Another test for DOMStringList_contains", NULL);
 
   if (marpaXml_DOMException_new(0, messagep) != NULL) {
     fprintf(stderr, "marpaXml_DOMException_new success with invalid code 0\n");
@@ -127,6 +128,12 @@ int main(int argc, char **argv) {
     return 1;
   }
   marpaXml_DOMStringList_contains(DOMStringList3p, containsp, &rcb);
+  if (rcb == marpaXml_true) {
+    fprintf(stderr, "marpaXml_DOMStringList_contains says it contains \"%s\"\n", marpaXml_String_getUtf8(containsp));
+    return 1;
+  }
+  /* TODO: prepared statement optimization */
+  marpaXml_DOMStringList_contains(DOMStringList3p, contains2p, &rcb);
   if (rcb == marpaXml_true) {
     fprintf(stderr, "marpaXml_DOMStringList_contains says it contains \"%s\"\n", marpaXml_String_getUtf8(containsp));
     return 1;
