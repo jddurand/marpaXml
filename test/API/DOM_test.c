@@ -160,6 +160,7 @@ int main(int argc, char **argv) {
   marpaXml_String_free(&messagep);
   marpaXml_String_free(&message2p);
   marpaXml_String_free(&containsp);
+  marpaXml_String_free(&contains2p);
 
   fprintf(stderr, "All tests returned OK\n");
   return 0;
