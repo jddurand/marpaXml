@@ -5,23 +5,28 @@
 #include "API/marpaXml/log.h"
 
 int main(int argc, char **argv) {
-    marpaXml_String_t        *message1p, *message2p;
-    marpaXml_String_t        *contains1p, *contains2p;
+    marpaXml_String_t        *message1p = NULL, *message2p = NULL;
+    marpaXml_String_t        *contains1p = NULL, *contains2p = NULL;
     marpaXml_DOMException_t  *exceptionp;
-    marpaXml_DOMStringList_t *DOMStringList1p, *DOMStringList2p, *DOMStringList3p;
-    marpaXml_NameList_t      *NameList1p, *NameList2p, *NameList3p;
-    marpaXml_Node_t          *nodep;
-    marpaXml_String_t        *string;
+    marpaXml_DOMStringList_t *DOMStringList1p = NULL, *DOMStringList2p = NULL, *DOMStringList3p = NULL;
+    marpaXml_NameList_t      *NameList1p = NULL, *NameList2p = NULL, *NameList3p = NULL;
+    marpaXml_Node_t          *nodep = NULL;
+    marpaXml_String_t        *string = NULL;
     unsigned short            unsignedShort;
     marpaXml_boolean_t        rcb;
     unsigned long             rcl;
-    marpaXml_String_t        *rcString;
+    marpaXml_String_t        *rcString = NULL;
 
 #ifdef _WIN32
     marpaXml_DOM_Option_t marpaXml_DOM_Option = {"C:\\Windows\\Temp\\test.sqlite", NULL, -1, { NULL, NULL, MARPAXML_LOGLEVEL_TRACE} };
 #else
     marpaXml_DOM_Option_t marpaXml_DOM_Option = {"/tmp/test.sqlite", NULL, -1, { NULL, NULL, MARPAXML_LOGLEVEL_TRACE } };
 #endif
+
+  message1p = marpaXml_String_newFromUTF8((char *) "My Message", NULL);
+  message2p = marpaXml_String_newFromUTF8((char *) "My New Message", NULL);
+  contains1p = marpaXml_String_newFromUTF8((char *) "String for contains(1)", NULL);
+  contains2p = marpaXml_String_newFromUTF8((char *) "String for contains(2)", NULL);
 
   /*************************************/
   /*                Init               */
@@ -34,10 +39,6 @@ int main(int argc, char **argv) {
   /*************************************/
   /*            DOMException           */
   /*************************************/
-  message1p = marpaXml_String_newFromUTF8((char *) "My Message", NULL);
-  message2p = marpaXml_String_newFromUTF8((char *) "My New Message", NULL);
-  contains1p = marpaXml_String_newFromUTF8((char *) "String for contains(1)", NULL);
-  contains2p = marpaXml_String_newFromUTF8((char *) "String for contains(2)", NULL);
 
   if (marpaXml_DOMException_new(0, message1p) != NULL) {
     fprintf(stderr, "marpaXml_DOMException_new success with invalid code 0\n");
@@ -106,6 +107,8 @@ int main(int argc, char **argv) {
     fprintf(stderr, "marpaXml_DOMException_free failure\n");
     return 1;
   }
+
+  goto end;
 
   /*************************************/
   /*            DOMStringList          */
@@ -260,6 +263,8 @@ int main(int argc, char **argv) {
   }
   */
 
+ end:
+
   /*************************************/
   /*                End                */
   /*************************************/
@@ -268,7 +273,9 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  marpaXml_String_free(&string);
+  if (string != NULL) {
+    marpaXml_String_free(&string);
+  }
   marpaXml_String_free(&message1p);
   marpaXml_String_free(&message2p);
   marpaXml_String_free(&contains1p);

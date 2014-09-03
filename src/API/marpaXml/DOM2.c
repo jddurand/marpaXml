@@ -947,10 +947,11 @@ marpaXml_boolean_t marpaXml_DOM_release(void) {
   }
 
   /* Free the statements */
-  i = -1;
-  while (_marpaXml_stmt[++i].stmt != NULL) {
-    if (_marpaXml_finalize(_marpaXml_stmt[i].sql, &_marpaXml_stmt[i].stmt) == marpaXml_false) {
-      rc = marpaXml_false;
+  for (i = 0; i < __marpaXml_stmt_max_e; i++) {
+    if (_marpaXml_stmt[i].stmt != NULL) {
+      if (_marpaXml_finalize(_marpaXml_stmt[i].sql, &_marpaXml_stmt[i].stmt) == marpaXml_false) {
+	rc = marpaXml_false;
+      }
     }
   }
 
