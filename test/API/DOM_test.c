@@ -108,8 +108,6 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  goto end;
-
   /*************************************/
   /*            DOMStringList          */
   /*************************************/
@@ -154,7 +152,7 @@ int main(int argc, char **argv) {
     return 1;
   }
   if (rcString != NULL) {
-    fprintf(stderr, "marpaXml_DOMStringList_item returned \"%p\"\n", rcString);
+    fprintf(stderr, "marpaXml_DOMStringList_item returned \"%p\"\n", (void *) rcString);
     return 1;
   }
   if (marpaXml_DOMStringList_contains(DOMStringList3p, contains2p, &rcb) == marpaXml_false) {
@@ -251,7 +249,6 @@ int main(int argc, char **argv) {
   /*************************************/
   /*                 Node              */
   /*************************************/
-  /*
   nodep = marpaXml_Node_new();
   if (nodep == NULL) {
     fprintf(stderr, "marpaXml_Node_new failure\n");
@@ -261,9 +258,6 @@ int main(int argc, char **argv) {
     fprintf(stderr, "marpaXml_Node_free failure\n");
     return 1;
   }
-  */
-
- end:
 
   /*************************************/
   /*                End                */

@@ -614,8 +614,8 @@ static _marpaXml_stmt_t _marpaXml_stmt[] = {
   { NULL, marpaXml_true,  marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_NameList_free_e,              "DROP VIEW NameList%lld" },
 
   /* Node */
-  { NULL, marpaXml_false, marpaXml_true,  marpaXml_false, marpaXml_true,  _marpaXml_Node_new_e,                   "INSERT INTO Node DEFAULT VALUES" },
-  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_Node_free_e,                  "/* No op */" },
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_Node_new_e,                   "PRAGMA _marpaXml_Node_new_e; /* No op */" },
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_Node_free_e,                  "PRAGMA _marpaXml_Node_free_e; /* No op */" },
 
   { NULL, 0, 0, 0, 0, 0, NULL }
 };
