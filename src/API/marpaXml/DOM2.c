@@ -1511,13 +1511,13 @@ MARPAXML_GENERIC_FREE_API(DOMStringList,                            /* class */
 
 /*******************************************************************/
 /*                                                                 */
-/*                       DOMImplementationList                             */
+/*                       DOMImplementationList                     */
 /*                                                                 */
 /*******************************************************************/
 /* --------------------------------------------------------------- */
-/* marpaXml_DOMImplementationList_new                                      */
+/* marpaXml_DOMImplementationList_new                              */
 /* --------------------------------------------------------------- */
-MARPAXML_GENERIC_NEW_API(DOMImplementationList,                             /* class */
+MARPAXML_GENERIC_NEW_API(DOMImplementationList,                     /* class */
                          void,                                      /* decl */
                          ,                                          /* args */
 			 /* extraInit */
@@ -1535,10 +1535,10 @@ MARPAXML_GENERIC_NEW_API(DOMImplementationList,                             /* c
 			 )
 
 /* --------------------------------------------------------------- */
-/* marpaXml_DOMImplementationList_getLength                                */
+/* marpaXml_DOMImplementationList_getLength                        */
 /* --------------------------------------------------------------- */
 MARPAXML_GENERIC_METHOD_API(unsigned long,                          /* rcType */
-                            DOMImplementationList,                          /* class */
+                            DOMImplementationList,                  /* class */
                             getLength,                              /* method */
                             marpaXml_DOMImplementationList_t *thisp MARPAXML_ARG(unsigned long *rcp), /* decl */
                             thisp MARPAXML_ARG(rcp),                /* args */
@@ -1551,10 +1551,10 @@ MARPAXML_GENERIC_METHOD_API(unsigned long,                          /* rcType */
                             )
 
 /* --------------------------------------------------------------- */
-/* marpaXml_DOMImplementationList_free                                     */
-/* The lifetime of a DOMImplementationList in the DB is the object         */
+/* marpaXml_DOMImplementationList_free                             */
+/* The lifetime of a DOMImplementationList in the DB is the object */
 /* --------------------------------------------------------------- */
-MARPAXML_GENERIC_FREE_API(DOMImplementationList,                            /* class */
+MARPAXML_GENERIC_FREE_API(DOMImplementationList,                    /* class */
                           marpaXml_true                             /* impactOnDb */
 			  )
 
