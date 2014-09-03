@@ -10,6 +10,7 @@ int main(int argc, char **argv) {
     marpaXml_DOMException_t  *exceptionp;
     marpaXml_DOMStringList_t *DOMStringList1p = NULL, *DOMStringList2p = NULL, *DOMStringList3p = NULL;
     marpaXml_NameList_t      *NameList1p = NULL, *NameList2p = NULL, *NameList3p = NULL;
+    marpaXml_DOMImplementationList_t *DOMImplementationList1p = NULL, *DOMImplementationList2p = NULL, *DOMImplementationList3p = NULL;
     marpaXml_Node_t          *nodep = NULL;
     marpaXml_String_t        *string = NULL;
     unsigned short            unsignedShort;
@@ -243,6 +244,46 @@ int main(int argc, char **argv) {
   }
   if (marpaXml_NameList_free(&NameList3p) == marpaXml_false) {
     fprintf(stderr, "marpaXml_NameList_free failure\n");
+    return 1;
+  }
+
+  /*************************************/
+  /*               DOMImplementationList            */
+  /*************************************/
+  /* The reel test is to interleave creations and destructions */
+  DOMImplementationList1p = marpaXml_DOMImplementationList_new();
+  if (DOMImplementationList1p == NULL) {
+    fprintf(stderr, "marpaXml_DOMImplementationList_new failure\n");
+    return 1;
+  }
+  DOMImplementationList2p = marpaXml_DOMImplementationList_new();
+  if (DOMImplementationList2p == NULL) {
+    fprintf(stderr, "marpaXml_DOMImplementationList_new failure\n");
+    return 1;
+  }
+  if (marpaXml_DOMImplementationList_free(&DOMImplementationList1p) == marpaXml_false) {
+    fprintf(stderr, "marpaXml_DOMImplementationList_free failure\n");
+    return 1;
+  }
+  DOMImplementationList3p = marpaXml_DOMImplementationList_new();
+  if (DOMImplementationList3p == NULL) {
+    fprintf(stderr, "marpaXml_DOMImplementationList_new failure\n");
+    return 1;
+  }
+  if (marpaXml_DOMImplementationList_getLength(DOMImplementationList3p, &rcl) == marpaXml_false) {
+    fprintf(stderr, "marpaXml_DOMImplementationList_getLength failure\n");
+    return 1;
+  }
+  if (rcl != 0) {
+    fprintf(stderr, "marpaXml_DOMImplementationList_getLength returned \"%ld\"\n", (long) rcl);
+    return 1;
+  }
+  if (marpaXml_DOMImplementationList_free(&DOMImplementationList2p) == marpaXml_false) {
+    fprintf(stderr, "marpaXml_DOMImplementationList_free failure\n");
+    return 1;
+  }
+  if (marpaXml_DOMImplementationList_free(&DOMImplementationList3p) == marpaXml_false) {
+    fprintf(stderr, "marpaXml_DOMImplementationList_free failure\n");
     return 1;
   }
 

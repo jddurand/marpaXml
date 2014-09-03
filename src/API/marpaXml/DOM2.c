@@ -57,6 +57,11 @@ typedef enum {
   _marpaXml_Node_new_e,
   _marpaXml_Node_free_e,
 
+  _marpaXml_DOMImplementationList_new_e,
+  _marpaXml_DOMImplementationList_item_e,
+  _marpaXml_DOMImplementationList_getLength_e,
+  _marpaXml_DOMImplementationList_free_e,
+
   __marpaXml_stmt_max_e,
 } _marpaXml_stmt_e;
 
@@ -65,8 +70,9 @@ typedef struct _marpaXml_cachedStmtExclusiveRange {
   _marpaXml_stmt_e free_e;
 } _marpaXml_cachedStmtExclusiveRange_t;
 
-static _marpaXml_cachedStmtExclusiveRange_t DOMStringListCachedStmt = { _marpaXml_DOMStringList_new_e, _marpaXml_DOMStringList_free_e };
-static _marpaXml_cachedStmtExclusiveRange_t NameListCachedStmt = { _marpaXml_NameList_new_e, _marpaXml_NameList_free_e };
+static _marpaXml_cachedStmtExclusiveRange_t DOMStringListCachedStmt         = { _marpaXml_DOMStringList_new_e, _marpaXml_DOMStringList_free_e };
+static _marpaXml_cachedStmtExclusiveRange_t NameListCachedStmt              = { _marpaXml_NameList_new_e, _marpaXml_NameList_free_e };
+static _marpaXml_cachedStmtExclusiveRange_t DOMImplementationListCachedStmt = { _marpaXml_DOMImplementationList_new_e, _marpaXml_DOMImplementationList_free_e };
 
 /* This is used to exec() anything that must be done before init the init */
 typedef struct _marpaXml_init {
@@ -120,7 +126,13 @@ struct marpaXml_NameList {
   sqlite3_stmt          *cachedUntilFreeStmt[__marpaXml_stmt_max_e];  /* Tant pis for the few bytes unused */
   char                  *cachedUntilFreeSqls[__marpaXml_stmt_max_e];  /* Ditto */
 };
-struct marpaXml_Node          { sqlite3_int64 id; };
+struct marpaXml_Node                  { sqlite3_int64 id; };
+struct marpaXml_DOMImplementationList {
+  sqlite3_int64 id;
+  marpaXml_DOMObjects_t *DOMObjectsp;
+  sqlite3_stmt          *cachedUntilFreeStmt[__marpaXml_stmt_max_e];  /* Tant pis for the few bytes unused */
+  char                  *cachedUntilFreeSqls[__marpaXml_stmt_max_e];  /* Ditto */
+};
 
 /********************************************************************************/
 /*                                Macros                                        */
@@ -573,6 +585,7 @@ static _marpaXml_stmt_t _marpaXml_stmt[] = {
   /* ------------------------------------------------------------------------------------------------------------------------*/
   /* Note: For selectb, we put 0 instead of marpaXml_false to indicate this is a noop in this context.                       */
   /*       Indeed, selectb is meaninful only in the new() sql's that have changesb to false                                  */
+  /*       In C, _order start at 0, In db this is at 1. DOM spec says to return NULL if nothing found                        */
   /* ------------------------------------------------------------------------------------------------------------------------*/
 
   { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_Transaction_BeginImmediate_e, "BEGIN IMMEDIATE TRANSACTION" },
@@ -598,24 +611,33 @@ static _marpaXml_stmt_t _marpaXml_stmt[] = {
   { NULL, marpaXml_false, marpaXml_true,  marpaXml_false, marpaXml_false, _marpaXml_DOMObjects_free_e,            "DELETE FROM DOMObjects WHERE (id = ?1)" },
 
   /* DOMStringList : we use the temp namespace so that main is not changed */
-  { NULL, marpaXml_true,  marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMStringList_new_e,          "CREATE TEMPORARY VIEW DOMStringList%lld AS SELECT item, (SELECT COUNT(*) FROM DOMString b WHERE a.id >= b.id) AS _order FROM DOMString a" },
-  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMStringList_item_e,         "SELECT COALESCE((SELECT item FROM DOMStringList%lld WHERE (_order = ?1 + 1)), NULL)" /* In C, _order start at 0, In db this is at 1. DOM spec says to return NULL if nothing found, i.e. we have to return a row in any case */},
+  { NULL, marpaXml_true,  marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMStringList_new_e,          "CREATE TEMPORARY VIEW DOMStringList%lld AS "
+                                                                                                                  "  SELECT item, (SELECT COUNT(*) FROM DOMString b WHERE a.id >= b.id) AS _order FROM DOMString a" },
+  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMStringList_item_e,         "SELECT COALESCE((SELECT item FROM DOMStringList%lld WHERE (_order = ?1 + 1)), NULL)" },
   { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMStringList_getLength_e,    "SELECT COUNT(*) FROM DOMStringList%lld" },
-  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMStringList_contains_e,     "SELECT COALESCE((SELECT 1 FROM DOMStringList%lld WHERE (item = ?1)), 0)" }, /* Boolean method in DOM spec, i.e. we have to return a row in any case */
+  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMStringList_contains_e,     "SELECT COALESCE((SELECT 1 FROM DOMStringList%lld WHERE (item = ?1)), 0)" },
   { NULL, marpaXml_true,  marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMStringList_free_e,         "DROP VIEW DOMStringList%lld" },
 
   /* NameList : we use the temp namespace so that main is not changed */
-  { NULL, marpaXml_true,  marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_NameList_new_e,               "CREATE TEMPORARY VIEW NameList%lld AS SELECT name, namespaceURI, (SELECT COUNT(*) FROM Node b WHERE a.id >= b.id) AS _order FROM Node a" },
-  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_NameList_getName_e,           "SELECT COALESCE((SELECT name FROM NameList%lld WHERE (_order = ?1 + 1)), NULL)" /* In C, _order start at 0, In db this is at 1. DOM spec says to return NULL if nothing found, i.e. we have to return a row in any case */},
-  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_NameList_getNamespaceURI_e,   "SELECT COALESCE((SELECT namespaceURI FROM NameList%lld WHERE (_order = ?1 + 1)), NULL)" /* In C, _order start at 0, In db this is at 1. DOM spec says to return NULL if nothing found, i.e. we have to return a row in any case */},
+  { NULL, marpaXml_true,  marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_NameList_new_e,               "CREATE TEMPORARY VIEW NameList%lld AS "
+                                                                                                                  "  SELECT name, namespaceURI, (SELECT COUNT(*) FROM Node b WHERE a.id >= b.id) AS _order FROM Node a" },
+  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_NameList_getName_e,           "SELECT COALESCE((SELECT name FROM NameList%lld WHERE (_order = ?1 + 1)), NULL)" },
+  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_NameList_getNamespaceURI_e,   "SELECT COALESCE((SELECT namespaceURI FROM NameList%lld WHERE (_order = ?1 + 1)), NULL)" },
   { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_NameList_getLength_e,         "SELECT COUNT(*) FROM NameList%lld" },
-  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_NameList_contains_e,          "SELECT COALESCE((SELECT 1 FROM NameList%lld WHERE (name = ?1)), 0)" }, /* Boolean method in DOM spec, i.e. we have to return a row in any case */
-  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_NameList_containsNS_e,        "SELECT COALESCE((SELECT 1 FROM NameList%lld WHERE (namespaceURI = ?1 AND name = ?2)), 0)" }, /* Boolean method in DOM spec, i.e. we have to return a row in any case */
+  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_NameList_contains_e,          "SELECT COALESCE((SELECT 1 FROM NameList%lld WHERE (name = ?1)), 0)" },
+  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_NameList_containsNS_e,        "SELECT COALESCE((SELECT 1 FROM NameList%lld WHERE (namespaceURI = ?1 AND name = ?2)), 0)" },
   { NULL, marpaXml_true,  marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_NameList_free_e,              "DROP VIEW NameList%lld" },
 
   /* Node */
   { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_Node_new_e,                   "PRAGMA _marpaXml_Node_new_e; /* No op */" },
   { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_Node_free_e,                  "PRAGMA _marpaXml_Node_free_e; /* No op */" },
+
+  /* DOMImplementationList */
+  { NULL, marpaXml_true,  marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementationList_new_e,  "CREATE TEMPORARY VIEW DOMImplementationList%lld AS "
+                                                                                                                  "  SELECT id, (SELECT COUNT(*) FROM DOMImplementationList b WHERE a.id >= b.id) AS _order FROM DOMImplementationList a" },
+  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMImplementationList_item_e, "SELECT COALESCE((SELECT id FROM DOMImplementationList%lld WHERE (_order = ?1 + 1)), NULL)" },
+  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMImplementationList_getLength_e,    "SELECT COUNT(*) FROM DOMImplementationList%lld" },
+  { NULL, marpaXml_true,  marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementationList_free_e,         "DROP VIEW DOMImplementationList%lld" },
 
   { NULL, 0, 0, 0, 0, 0, NULL }
 };
@@ -1489,6 +1511,55 @@ MARPAXML_GENERIC_FREE_API(DOMStringList,                            /* class */
 
 /*******************************************************************/
 /*                                                                 */
+/*                       DOMImplementationList                             */
+/*                                                                 */
+/*******************************************************************/
+/* --------------------------------------------------------------- */
+/* marpaXml_DOMImplementationList_new                                      */
+/* --------------------------------------------------------------- */
+MARPAXML_GENERIC_NEW_API(DOMImplementationList,                             /* class */
+                         void,                                      /* decl */
+                         ,                                          /* args */
+			 /* extraInit */
+			 {
+                           int i = DOMImplementationListCachedStmt.new_e;
+
+			   rcp->DOMObjectsp = NULL;
+
+                           while (++i < DOMImplementationListCachedStmt.free_e) {
+                             rcp->cachedUntilFreeStmt[i] = NULL;
+                             rcp->cachedUntilFreeSqls[i] = NULL;
+                           }
+			 },
+			 marpaXml_true                              /* bindingResult */
+			 )
+
+/* --------------------------------------------------------------- */
+/* marpaXml_DOMImplementationList_getLength                                */
+/* --------------------------------------------------------------- */
+MARPAXML_GENERIC_METHOD_API(unsigned long,                          /* rcType */
+                            DOMImplementationList,                          /* class */
+                            getLength,                              /* method */
+                            marpaXml_DOMImplementationList_t *thisp MARPAXML_ARG(unsigned long *rcp), /* decl */
+                            thisp MARPAXML_ARG(rcp),                /* args */
+                            marpaXml_true,                          /* bindingResult */
+                            int64,                                  /* dbType */
+                            sqlite3_int64,                          /* dbMapType */
+                            (unsigned long) rcDb,                   /* rcDb2rc */
+                            0,                                      /* defaultRc */
+                            marpaXml_false                          /* changeId */
+                            )
+
+/* --------------------------------------------------------------- */
+/* marpaXml_DOMImplementationList_free                                     */
+/* The lifetime of a DOMImplementationList in the DB is the object         */
+/* --------------------------------------------------------------- */
+MARPAXML_GENERIC_FREE_API(DOMImplementationList,                            /* class */
+                          marpaXml_true                             /* impactOnDb */
+			  )
+
+/*******************************************************************/
+/*                                                                 */
 /*                          NameList                               */
 /*                                                                 */
 /*******************************************************************/
@@ -1655,6 +1726,7 @@ static C_INLINE void _marpaXml_freeDynamicCachedStmt(void *obj, char **sqlsp, sq
 static C_INLINE void _marpaXml_freeStmt(void *objp, _marpaXml_stmt_e stmt, char **sqlsp, sqlite3_stmt **sqliteStmtpp) {
   marpaXml_DOMStringList_t             *DOMStringListp;
   marpaXml_NameList_t                  *NameListp;
+  marpaXml_DOMImplementationList_t     *DOMImplementationListp;
   sqlite3_stmt                        **cachedUntilFreeStmtp;
   char                                **cachedUntilFreeSqlsp;
   _marpaXml_cachedStmtExclusiveRange_t *cachedStmtp;
@@ -1662,8 +1734,11 @@ static C_INLINE void _marpaXml_freeStmt(void *objp, _marpaXml_stmt_e stmt, char 
 
   if (_marpaXml_stmt[stmt].generatedb == marpaXml_true) {
 
-    if (((stmt > _marpaXml_DOMStringList_new_e) && (stmt < _marpaXml_DOMStringList_free_e)) ||
-        ((stmt > _marpaXml_NameList_new_e) && (stmt < _marpaXml_NameList_free_e))) {
+    if (
+	((stmt > _marpaXml_DOMStringList_new_e) && (stmt < _marpaXml_DOMStringList_free_e)) ||
+        ((stmt > _marpaXml_NameList_new_e) && (stmt < _marpaXml_NameList_free_e)) ||
+        ((stmt > _marpaXml_DOMImplementationList_new_e) && (stmt < _marpaXml_DOMImplementationList_free_e))
+	) {
       /* Delayed until free */
     } else {
       switch (stmt) {
@@ -1679,6 +1754,12 @@ static C_INLINE void _marpaXml_freeStmt(void *objp, _marpaXml_stmt_e stmt, char 
         cachedStmtp = &NameListCachedStmt;
         cachedUntilFreeStmtp = NameListp->cachedUntilFreeStmt;
         cachedUntilFreeSqlsp = NameListp->cachedUntilFreeSqls;
+        break;
+      case _marpaXml_DOMImplementationList_free_e:
+        DOMImplementationListp = (marpaXml_DOMImplementationList_t *) objp;
+        cachedStmtp = &DOMImplementationListCachedStmt;
+        cachedUntilFreeStmtp = DOMImplementationListp->cachedUntilFreeStmt;
+        cachedUntilFreeSqlsp = DOMImplementationListp->cachedUntilFreeSqls;
         break;
       default:
         cachedStmtp = NULL;
@@ -1714,29 +1795,38 @@ static C_INLINE marpaXml_boolean_t _marpaXml_generateStmt(void *objp, _marpaXml_
 
   marpaXml_DOMStringList_t              *DOMStringListp;
   marpaXml_NameList_t                   *NameListp;
+  marpaXml_DOMImplementationList_t      *DOMImplementationListp;
 
   switch (stmt) {
   case _marpaXml_DOMStringList_new_e:
   case _marpaXml_NameList_new_e:
-
-    if ((DOMObjectsp = _marpaXml_DOMObjects_new((char *) "DOMStringList")) == NULL) {
-      break;
-    }
+  case _marpaXml_DOMImplementationList_new_e:
 
     if (stmt == _marpaXml_DOMStringList_new_e) {
       DOMStringListp = (marpaXml_DOMStringList_t *) objp;
-      DOMStringListp->DOMObjectsp = DOMObjectsp;
+      DOMStringListp->DOMObjectsp = DOMObjectsp = _marpaXml_DOMObjects_new((char *) "DOMStringList");
       cachedStmtp = &DOMStringListCachedStmt;
       cachedUntilFreeStmtp = DOMStringListp->cachedUntilFreeStmt;
       cachedUntilFreeSqlsp = DOMStringListp->cachedUntilFreeSqls;
     } else if (stmt == _marpaXml_NameList_new_e) {
       NameListp = (marpaXml_NameList_t *) objp;
-      NameListp->DOMObjectsp = DOMObjectsp;
+      NameListp->DOMObjectsp = DOMObjectsp = _marpaXml_DOMObjects_new((char *) "NameList");
+      cachedStmtp = &NameListCachedStmt;
+      cachedUntilFreeStmtp = NameListp->cachedUntilFreeStmt;
+      cachedUntilFreeSqlsp = NameListp->cachedUntilFreeSqls;
+    } else if (stmt == _marpaXml_DOMImplementationList_new_e) {
+      NameListp = (marpaXml_NameList_t *) objp;
+      NameListp->DOMObjectsp = DOMObjectsp = _marpaXml_DOMObjects_new((char *) "DOMImplementationList");
       cachedStmtp = &NameListCachedStmt;
       cachedUntilFreeStmtp = NameListp->cachedUntilFreeStmt;
       cachedUntilFreeSqlsp = NameListp->cachedUntilFreeSqls;
     } else {
-      MARPAXML_ERRORX("_marpaXml_generateStmt internal error, stmt=%d\n", stmt);
+      /* Simply impossible */
+      MARPAXML_ERRORX("_marpaXml_generateStmt internal error, stmt=%d, at %s:%d\n", stmt, __FILE__, __LINE__);
+      break;
+    }
+
+    if (DOMObjectsp == NULL) {
       break;
     }
 
@@ -1763,6 +1853,7 @@ static C_INLINE marpaXml_boolean_t _marpaXml_generateStmt(void *objp, _marpaXml_
 
   case _marpaXml_DOMStringList_free_e:
   case _marpaXml_NameList_free_e:
+  case _marpaXml_DOMImplementationList_free_e:
 
     if (stmt == _marpaXml_DOMStringList_free_e) {
       DOMStringListp = (marpaXml_DOMStringList_t *) objp;
@@ -1770,8 +1861,12 @@ static C_INLINE marpaXml_boolean_t _marpaXml_generateStmt(void *objp, _marpaXml_
     } else if (stmt == _marpaXml_NameList_free_e) {
       NameListp = (marpaXml_NameList_t *) objp;
       DOMObjectsp = NameListp->DOMObjectsp;
+    } else if (stmt == _marpaXml_DOMImplementationList_free_e) {
+      DOMImplementationListp = (marpaXml_DOMImplementationList_t *) objp;
+      DOMObjectsp = DOMImplementationListp->DOMObjectsp;
     } else {
-      MARPAXML_ERRORX("_marpaXml_generateStmt internal error, stmt=%d\n", stmt);
+      /* Simply impossible again -; */
+      MARPAXML_ERRORX("_marpaXml_generateStmt internal error, stmt=%d, at %s:%d\n", stmt, __FILE__, __LINE__);
       break;
     }
 
@@ -1806,8 +1901,14 @@ static C_INLINE marpaXml_boolean_t _marpaXml_generateStmt(void *objp, _marpaXml_
       DOMObjectsp = NameListp->DOMObjectsp;
       cachedUntilFreeStmtp = NameListp->cachedUntilFreeStmt;
       cachedUntilFreeSqlsp = NameListp->cachedUntilFreeSqls;
+    } else if ((stmt > _marpaXml_DOMImplementationList_new_e) && (stmt < _marpaXml_DOMImplementationList_free_e)) {
+      DOMImplementationListp = (marpaXml_DOMImplementationList_t *) objp;
+      DOMObjectsp = DOMImplementationListp->DOMObjectsp;
+      cachedUntilFreeStmtp = DOMImplementationListp->cachedUntilFreeStmt;
+      cachedUntilFreeSqlsp = DOMImplementationListp->cachedUntilFreeSqls;
     } else {
-      MARPAXML_ERRORX("_marpaXml_generateStmt internal error, stmt=%d\n", stmt);
+      /* This case means the big array at the top of the file is misconfigured */
+      MARPAXML_ERRORX("_marpaXml_generateStmt internal error, stmt=%d, at %s:%d\n", stmt, __FILE__, __LINE__);
       break;
     }
 
