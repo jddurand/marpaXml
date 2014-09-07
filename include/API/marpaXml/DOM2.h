@@ -36,6 +36,12 @@
 
   I could have played with cplus, ooc, etc... but I did not feed I would have gained so much
   by abstracting and making code less readable, just to have the OO pattern in here.
+
+  In DOMImplementationRegistry, the addSource() method assumes that the DOMImplementationSource pointer will leave forever
+  the user makes use of DOMImplementationRegistry.
+  This means that the DOMImplementationSource used here should be a static instance, for convienience, although this is not
+  obligatory. The only requirement is that the DOMImplementationSource is valid pointer.
+
 */
 
 #include "marpaXml/boolean.h"
@@ -70,36 +76,47 @@ marpaXml_boolean_t marpaXml_DOM_done(void);
 marpaXml_boolean_t marpaXml_DOM_release(void);
 
 /* Types */
-typedef void                                    marpaXml_DOMUserData_t;
-typedef void                                    marpaXml_DOMObject_t;
-typedef struct marpaXml_DOMException            marpaXml_DOMException_t;
-typedef struct marpaXml_DOMError                marpaXml_DOMError_t;
-typedef struct marpaXml_DOMStringList           marpaXml_DOMStringList_t;
-typedef struct marpaXml_NameList                marpaXml_NameList_t;
-typedef struct marpaXml_DOMImplementationList   marpaXml_DOMImplementationList_t;
-typedef struct marpaXml_DOMImplementationSource marpaXml_DOMImplementationSource_t;
-typedef struct marpaXml_DOMImplementation       marpaXml_DOMImplementation_t;
-typedef struct marpaXml_Node                    marpaXml_Node_t;
-typedef struct marpaXml_NodeList                marpaXml_NodeList_t;
-typedef struct marpaXml_NamedNodeMap            marpaXml_NamedNodeMap_t;
-typedef struct marpaXml_CharacterData           marpaXml_CharacterData_t;
-typedef struct marpaXml_Attr                    marpaXml_Attr_t;
-typedef struct marpaXml_Element                 marpaXml_Element_t;
-typedef struct marpaXml_Text                    marpaXml_Text_t;
-typedef struct marpaXml_Comment                 marpaXml_Comment_t;
-typedef struct marpaXml_TypeInfo                marpaXml_TypeInfo_t;
-typedef struct marpaXml_UserDataHandler         marpaXml_UserDataHandler_t;
-typedef struct marpaXml_DOMErrorHandler         marpaXml_DOMErrorHandler_t;
-typedef struct marpaXml_DOMLocator              marpaXml_DOMLocator_t;
-typedef struct marpaXml_DOMConfiguration        marpaXml_DOMConfiguration_t;
-typedef struct marpaXml_CDATASection            marpaXml_CDATASection_t;
-typedef struct marpaXml_DocumentType            marpaXml_DocumentType_t;
-typedef struct marpaXml_Notation                marpaXml_Notation_t;
-typedef struct marpaXml_Entity                  marpaXml_Entity_t;
-typedef struct marpaXml_EntityReference         marpaXml_EntityReference_t;
-typedef struct marpaXml_ProcessingInstruction   marpaXml_ProcessingInstruction_t;
-typedef struct marpaXml_DocumentFragment        marpaXml_DocumentFragment_t;
-typedef struct marpaXml_Document                marpaXml_Document_t;
+typedef void                                      marpaXml_DOMUserData_t;
+typedef void                                      marpaXml_DOMObject_t;
+typedef struct marpaXml_DOMImplementationRegistry marpaXml_DOMImplementationRegistry_t;
+typedef struct marpaXml_DOMException              marpaXml_DOMException_t;
+typedef struct marpaXml_DOMError                  marpaXml_DOMError_t;
+typedef struct marpaXml_DOMStringList             marpaXml_DOMStringList_t;
+typedef struct marpaXml_NameList                  marpaXml_NameList_t;
+typedef struct marpaXml_DOMImplementationList     marpaXml_DOMImplementationList_t;
+typedef struct marpaXml_DOMImplementationSource   marpaXml_DOMImplementationSource_t;
+typedef struct marpaXml_DOMImplementation         marpaXml_DOMImplementation_t;
+typedef struct marpaXml_Node                      marpaXml_Node_t;
+typedef struct marpaXml_NodeList                  marpaXml_NodeList_t;
+typedef struct marpaXml_NamedNodeMap              marpaXml_NamedNodeMap_t;
+typedef struct marpaXml_CharacterData             marpaXml_CharacterData_t;
+typedef struct marpaXml_Attr                      marpaXml_Attr_t;
+typedef struct marpaXml_Element                   marpaXml_Element_t;
+typedef struct marpaXml_Text                      marpaXml_Text_t;
+typedef struct marpaXml_Comment                   marpaXml_Comment_t;
+typedef struct marpaXml_TypeInfo                  marpaXml_TypeInfo_t;
+typedef struct marpaXml_UserDataHandler           marpaXml_UserDataHandler_t;
+typedef struct marpaXml_DOMErrorHandler           marpaXml_DOMErrorHandler_t;
+typedef struct marpaXml_DOMLocator                marpaXml_DOMLocator_t;
+typedef struct marpaXml_DOMConfiguration          marpaXml_DOMConfiguration_t;
+typedef struct marpaXml_CDATASection              marpaXml_CDATASection_t;
+typedef struct marpaXml_DocumentType              marpaXml_DocumentType_t;
+typedef struct marpaXml_Notation                  marpaXml_Notation_t;
+typedef struct marpaXml_Entity                    marpaXml_Entity_t;
+typedef struct marpaXml_EntityReference           marpaXml_EntityReference_t;
+typedef struct marpaXml_ProcessingInstruction     marpaXml_ProcessingInstruction_t;
+typedef struct marpaXml_DocumentFragment          marpaXml_DocumentFragment_t;
+typedef struct marpaXml_Document                  marpaXml_Document_t;
+
+marpaXml_DOMImplementationRegistry_t *marpaXml_DOMImplementationRegistry_new(void);
+marpaXml_boolean_t                    marpaXml_DOMImplementationRegistry_addSource(marpaXml_DOMImplementationRegistry_t *thisp, marpaXml_DOMImplementationSource_t *DOMImplementationSourcep);
+marpaXml_DOMImplementation_t          marpaXml_DOMImplementationRegistry_getDOMImplementation(marpaXml_DOMImplementationRegistry_t *thisp, marpaXml_String_t *featuresp);
+marpaXml_DOMImplementationList_t      marpaXml_DOMImplementationRegistry_getDOMImplementationList(marpaXml_DOMImplementationRegistry_t *thisp, marpaXml_String_t *featuresp);
+#ifdef marpaXml_DOMImplementationRegistry_newInstance
+#undef marpaXml_DOMImplementationRegistry_newInstance
+#endif
+#define marpaXml_DOMImplementationRegistry_newInstance marpaXml_DOMImplementationRegistry_new
+marpaXml_boolean_t                    marpaXml_DOMImplementationRegistry_free(marpaXml_DOMImplementationRegistry_t **thispp);
 
 marpaXml_DOMException_t *marpaXml_DOMException_new       (short code, marpaXml_String_t *messagep);
 marpaXml_boolean_t       marpaXml_DOMException_getCode   (marpaXml_DOMException_t *thisp, unsigned short *codep);
