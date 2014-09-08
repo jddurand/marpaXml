@@ -25,10 +25,6 @@ typedef enum {
   _marpaXml_Transaction_End_e,
   _marpaXml_Transaction_Rollback_e,
 
-  _marpaXml_DOMImplementationRegistry_new_e,
-  _marpaXml_DOMImplementationRegistry_addSource_e,
-  _marpaXml_DOMImplementationRegistry_free_e,
-
   _marpaXml_DOMException_new_e,
   _marpaXml_DOMException_getCode_e,
   _marpaXml_DOMException_setCode_e,
@@ -120,8 +116,6 @@ marpaXml_DOMObjects_t *marpaXml_DOMObjects_new(char *objectName);
 marpaXml_boolean_t      marpaXml_DOMObjects_free(marpaXml_DOMObjects_t **thisp);
 
 /* For the API */
-struct marpaXml_DOMImplementationRegistry { sqlite3_int64 id; };
-static marpaXml_DOMImplementationRegistry_t *marpaXml_DOMImplementationRegistryp = NULL;
 struct marpaXml_DOMException  { sqlite3_int64 id; };
 struct marpaXml_DOMError      { sqlite3_int64 id; };
 struct marpaXml_DOMObjects    { sqlite3_int64 id; };
@@ -607,11 +601,6 @@ static _marpaXml_stmt_t _marpaXml_stmt[] = {
   { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_Transaction_BeginImmediate_e, "BEGIN IMMEDIATE TRANSACTION" },
   { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_Transaction_End_e,            "END TRANSACTION" },
   { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_Transaction_Rollback_e,       "ROLLBACK TRANSACTION" },
-
-  /* DOMImplementationRegistry */
-  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementationRegistry_new_e,  "PRAGMA _marpaXml_DOMImplementationRegistry_new_e; /* No op */" },
-  { NULL, marpaXml_false, marpaXml_true,  marpaXml_false, marpaXml_true,  _marpaXml_DOMImplementationRegistry_addSource_e, "INSERT INTO DOMImplementationRegistry (DOMImplementationSourcep) VALUES (?1)" },
-  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementationRegistry_free_e, "PRAGMA _marpaXml_DOMImplementationRegistry_free_e; /* No op */" },
 
   /* DOMException: the lifetime of the row is the lifetime of the object */
   { NULL, marpaXml_false, marpaXml_true,  marpaXml_false, marpaXml_true,  _marpaXml_DOMException_new_e,           "INSERT INTO DOMException (code, message) VALUES (?1, ?2)" },
@@ -1154,45 +1143,6 @@ static C_INLINE marpaXml_boolean_t _marpaXml_Transaction_Rollback() {
 
   return marpaXml_true;
 }
-
-/*******************************************************************/
-/*                                                                 */
-/*                 DOMImplementationRegistry                       */
-/*                                                                 */
-/*******************************************************************/
-/* --------------------------------------------------------------- */
-/* marpaXml_DOMImplementationRegistry_new                          */
-/* --------------------------------------------------------------- */
-MARPAXML_GENERIC_NEW_API(DOMImplementationRegistry,                 /* class */
-                         void,                                      /* decl */
-                         ,                                          /* args */
-			 ,                                          /* extraInit */
-			 marpaXml_true                              /* bindingResult */
-			 )
-
-/* --------------------------------------------------------------- */
-/* marpaXml_DOMImplementationRegistry_addSource                    */
-/* --------------------------------------------------------------- */
-MARPAXML_GENERIC_METHOD_API(DOMImplementationRegistry,              /* class */
-                            addSource,                              /* method */
-                            marpaXml_DOMImplementationRegistry_t *thisp MARPAXML_ARG(marpaXml_DOMImplementationSource_t *rcp), /* decl */
-                            thisp MARPAXML_ARG(rcp),                /* args */
-			    if (thisp == NULL) { thisp = marpaXml_DOMImplementationRegistryp; }, /* prolog */
-                            (_marpaXml_bind_ptr(sqliteStmtp, 1, rcp) == marpaXml_true) ? marpaXml_true : marpaXml_false, /* bindingResult */
-                            ptr,                                    /* dbType */
-                            void *,                                 /* dbMapType */
-                            {rcDb = rcDb;},                         /* rcDb2rc - just to avoid warning about variable not used, compiler will probably dismiss the instruction */
-                            ,                                       /* defaultRc */
-                            marpaXml_false                          /* changeId */
-                            )
-
-/* --------------------------------------------------------------- */
-/* marpaXml_DOMImplementationRegistry_free                         */
-/* --------------------------------------------------------------- */
-MARPAXML_GENERIC_FREE_API(DOMImplementationRegistry,                /* class */
-                          marpaXml_false                            /* impactOnDb */
-			  )
-
 
 /*******************************************************************/
 /*                                                                 */
@@ -2035,9 +1985,11 @@ marpaXml_boolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Optionp
   }
 
   /* Prepare static instances */
+  /*
   if (((marpaXml_DOMImplementationRegistryp = _marpaXml_DOMImplementationRegistry_new()) == NULL)) {
     goto error;
   }
+  */
 
   /* Fill hardcoded data using standard methods */
 /*
@@ -2088,9 +2040,11 @@ marpaXml_boolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Optionp
   if (master_mutexp != NULL) {
     sqlite3_mutex_leave(master_mutexp);
   }
+  /*
   if (marpaXml_DOMImplementationRegistryp != NULL) {
     marpaXml_DOMImplementationRegistry_free(&marpaXml_DOMImplementationRegistryp);
   }
+  */
   if (dbp != NULL) {
     sqlite3_close_v2(dbp);
   }

@@ -37,11 +37,6 @@
   I could have played with cplus, ooc, etc... but I did not feed I would have gained so much
   by abstracting and making code less readable, just to have the OO pattern in here.
 
-  In DOMImplementationRegistry, the addSource() method assumes that the DOMImplementationSource pointer will leave forever
-  the user makes use of DOMImplementationRegistry.
-  This means that the DOMImplementationSource used here should be a static instance, for convienience, although this is not
-  obligatory. The only requirement is that the DOMImplementationSource is valid pointer.
-
 */
 
 #include "marpaXml/boolean.h"
@@ -78,7 +73,6 @@ marpaXml_boolean_t marpaXml_DOM_release(void);
 /* Types */
 typedef void                                      marpaXml_DOMUserData_t;
 typedef void                                      marpaXml_DOMObject_t;
-typedef struct marpaXml_DOMImplementationRegistry marpaXml_DOMImplementationRegistry_t;
 typedef struct marpaXml_DOMException              marpaXml_DOMException_t;
 typedef struct marpaXml_DOMError                  marpaXml_DOMError_t;
 typedef struct marpaXml_DOMStringList             marpaXml_DOMStringList_t;
@@ -107,16 +101,6 @@ typedef struct marpaXml_EntityReference           marpaXml_EntityReference_t;
 typedef struct marpaXml_ProcessingInstruction     marpaXml_ProcessingInstruction_t;
 typedef struct marpaXml_DocumentFragment          marpaXml_DocumentFragment_t;
 typedef struct marpaXml_Document                  marpaXml_Document_t;
-
-marpaXml_DOMImplementationRegistry_t *marpaXml_DOMImplementationRegistry_new(void);
-marpaXml_boolean_t                    marpaXml_DOMImplementationRegistry_addSource(marpaXml_DOMImplementationRegistry_t *thisp, marpaXml_DOMImplementationSource_t *DOMImplementationSourcep);
-marpaXml_DOMImplementation_t          marpaXml_DOMImplementationRegistry_getDOMImplementation(marpaXml_DOMImplementationRegistry_t *thisp, marpaXml_String_t *featuresp);
-marpaXml_DOMImplementationList_t      marpaXml_DOMImplementationRegistry_getDOMImplementationList(marpaXml_DOMImplementationRegistry_t *thisp, marpaXml_String_t *featuresp);
-#ifdef marpaXml_DOMImplementationRegistry_newInstance
-#undef marpaXml_DOMImplementationRegistry_newInstance
-#endif
-#define marpaXml_DOMImplementationRegistry_newInstance marpaXml_DOMImplementationRegistry_new
-marpaXml_boolean_t                    marpaXml_DOMImplementationRegistry_free(marpaXml_DOMImplementationRegistry_t **thispp);
 
 marpaXml_DOMException_t *marpaXml_DOMException_new       (short code, marpaXml_String_t *messagep);
 marpaXml_boolean_t       marpaXml_DOMException_getCode   (marpaXml_DOMException_t *thisp, unsigned short *codep);
