@@ -322,7 +322,7 @@ int main(int argc, char **argv) {
     fprintf(stderr, "marpaXml_DOMImplementation_hasFeature returned marpaXml_false for feature \"%s\"\n", marpaXml_String_getUtf8(feature1p));
     return 1;
   }
-  if (marpaXml_DOMImplementation_getFeature(DOMImplementationp, feature1p, NULL, &DOMImplementation2p) == marpaXml_false) {
+  if (marpaXml_DOMImplementation_getFeature(DOMImplementationp, feature1p, NULL, (marpaXml_DOMObject_t **) &DOMImplementation2p) == marpaXml_false) {
     fprintf(stderr, "marpaXml_DOMImplementation_hasFeature failure\n");
     return 1;
   }
