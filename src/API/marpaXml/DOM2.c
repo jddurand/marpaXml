@@ -5,6 +5,7 @@
 #include <errno.h>
 #include <stdio.h>
 
+#include "unicode/utext.h"
 #include "unicode/ustring.h"
 #include "unicode/uchar.h"
 #include "unicode/uclean.h"
@@ -148,6 +149,11 @@ struct marpaXml_DOMImplementationList {
 
 struct marpaXml_DOMImplementationSource   { sqlite3_int64 id; };
 struct marpaXml_DOMImplementation         { sqlite3_int64 id; };
+
+typedef struct marpaXml_featureAndVersion {
+  marpaXml_String_t *featurep;
+  marpaXml_String_t *versionp;
+} marpaXml_featureAndVersion_t;
 
 /********************************************************************************/
 /*                                Macros                                        */
@@ -751,6 +757,7 @@ static C_INLINE marpaXml_boolean_t _marpaXml_getStmt(void *objp, _marpaXml_stmt_
 static C_INLINE void               _marpaXml_freeStmt(void *obj, _marpaXml_stmt_e stmt, char **sqlsp, sqlite3_stmt **sqliteStmtpp);
 static C_INLINE void               _marpaXml_freeDynamicCachedStmt(void *obj, char **sqlsp, sqlite3_stmt **sqliteStmtpp);
 static C_INLINE marpaXml_boolean_t _marpaXml_generateStmt(void *objp, _marpaXml_stmt_e stmt, char **sqlsp, sqlite3_stmt **sqliteStmtpp);
+static C_INLINE marpaXml_boolean_t _marpaXml_parseFeaturesAndVersions(marpaXml_String_t *requestp, marpaXml_featureAndVersion_t **featureAndVersionArraypp, size_t *featureAndVersionLengthp);
 
 /*******************************************************************/
 /* _marpaXml_DOMErrorLogCallback                                          */
@@ -2206,3 +2213,18 @@ marpaXml_boolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Optionp
   return marpaXml_false;
 }
 
+/*******************************************************************/
+/* _marpaXml_parseFeaturesAndVersions                              */
+/*******************************************************************/
+/* Reference: https://gist.github.com/edhemphill/1731633 */
+static C_INLINE marpaXml_boolean_t _marpaXml_parseFeaturesAndVersions(marpaXml_String_t *requestp, marpaXml_featureAndVersion_t **featureAndVersionArraypp, size_t *featureAndVersionLengthp) {
+  UErrorCode status = U_ZERO_ERROR;
+  UText *regex1 = NULL;
+  UText *matchthis = NULL;
+
+  /* Spec says this is a space-separated list of: [+]feature [version] */
+  regex1 = utext_openUTF8(NULL, "\\+?[^ ]+ ?[^ ]*", -1, &status);
+  if (requestp == NULL) {
+    return marpaXml_false;
+  }
+}
