@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
     marpaXml_boolean_t        rcb;
     unsigned long             rcl;
     marpaXml_String_t        *rcString = NULL;
-    marpaXml_DOMImplementation_t *DOMImplementationp = NULL;
+    marpaXml_DOMImplementation_t *DOMImplementationp = NULL, *DOMImplementation2p = NULL;
 
 #ifdef _WIN32
     marpaXml_DOM_Option_t marpaXml_DOM_Option = {"C:\\Windows\\Temp\\test.sqlite", NULL, -1, { NULL, NULL, MARPAXML_LOGLEVEL_TRACE} };
@@ -312,6 +312,26 @@ int main(int argc, char **argv) {
   }
   if (rcb != marpaXml_true) {
     fprintf(stderr, "marpaXml_DOMImplementation_hasFeature returned marpaXml_false for feature \"%s\" and version \"%s\"\n", marpaXml_String_getUtf8(feature1p), marpaXml_String_getUtf8(version1p));
+    return 1;
+  }
+  if (marpaXml_DOMImplementation_hasFeature(DOMImplementationp, feature1p, NULL, &rcb) == marpaXml_false) {
+    fprintf(stderr, "marpaXml_DOMImplementation_hasFeature failure\n");
+    return 1;
+  }
+  if (rcb != marpaXml_true) {
+    fprintf(stderr, "marpaXml_DOMImplementation_hasFeature returned marpaXml_false for feature \"%s\"\n", marpaXml_String_getUtf8(feature1p));
+    return 1;
+  }
+  if (marpaXml_DOMImplementation_getFeature(DOMImplementationp, feature1p, NULL, &DOMImplementation2p) == marpaXml_false) {
+    fprintf(stderr, "marpaXml_DOMImplementation_hasFeature failure\n");
+    return 1;
+  }
+  if (DOMImplementation2p == NULL) {
+    fprintf(stderr, "marpaXml_DOMImplementation_getFeature returned a NULL DOMImplementation for feature \"%s\"\n", marpaXml_String_getUtf8(feature1p));
+    return 1;
+  }
+  if (marpaXml_DOMImplementation_free(&DOMImplementation2p) == marpaXml_false) {
+    fprintf(stderr, "marpaXml_DOMImplementation_free failure\n");
     return 1;
   }
   if (marpaXml_DOMImplementation_free(&DOMImplementationp) == marpaXml_false) {
