@@ -153,7 +153,7 @@ marpaXml_boolean_t                  marpaXml_DOMImplementationSource_getDOMImple
 marpaXml_boolean_t                  marpaXml_DOMImplementationSource_free(marpaXml_DOMImplementationSource_t **thispp);
 
 marpaXml_DOMImplementation_t       *marpaXml_DOMImplementation_new(void);
-marpaXml_boolean_t                  marpaXml_DOMImplementation_hasFeature(marpaXml_DOMImplementation_t *thisp, marpaXml_String_t *featurep, marpaXml_String_t *versionp, marpaXml_boolean_t **hasFeaturepp);
+marpaXml_boolean_t                  marpaXml_DOMImplementation_hasFeature(marpaXml_DOMImplementation_t *thisp, marpaXml_String_t *featurep, marpaXml_String_t *versionp, marpaXml_boolean_t *hasFeaturep);
 marpaXml_boolean_t                  marpaXml_DOMImplementation_createDocumentType(marpaXml_DOMImplementation_t *thisp, marpaXml_String_t *qualifiedNamep, marpaXml_String_t *publicIdp, marpaXml_String_t *systemIdp, marpaXml_DocumentType_t **documentTypepp, marpaXml_DOMException_t **exceptionpp);
 marpaXml_boolean_t                 *marpaXml_DOMImplementation_createDocument(marpaXml_DOMImplementation_t *thisp, marpaXml_String_t *namespaceURIp,  marpaXml_String_t *qualifiedNamep, marpaXml_DocumentType_t *doctypep, marpaXml_Document_t **documentpp, marpaXml_DOMException_t **exceptionpp);
 marpaXml_boolean_t                 *marpaXml_DOMImplementation_getFeature(marpaXml_DOMImplementation_t *thisp, marpaXml_String_t *featurep, marpaXml_String_t *versionp, marpaXml_DOMObject_t **featurepp);

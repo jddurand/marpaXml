@@ -67,6 +67,13 @@ typedef enum {
   _marpaXml_DOMImplementationSource_getDOMImplementationList_e,
   _marpaXml_DOMImplementationSource_free_e,
 
+  _marpaXml_DOMImplementation_new_e,
+  _marpaXml_DOMImplementation_hasFeature_e,
+  _marpaXml_DOMImplementation_createDocumentType_e,
+  _marpaXml_DOMImplementation_createDocument_e,
+  _marpaXml_DOMImplementation_getFeature_e,
+  _marpaXml_DOMImplementation_free_e,
+
   __marpaXml_stmt_max_e,
 } _marpaXml_stmt_e;
 
@@ -140,6 +147,7 @@ struct marpaXml_DOMImplementationList {
 };
 
 struct marpaXml_DOMImplementationSource   { sqlite3_int64 id; };
+struct marpaXml_DOMImplementation         { sqlite3_int64 id; };
 
 /********************************************************************************/
 /*                                Macros                                        */
@@ -655,6 +663,14 @@ static _marpaXml_stmt_t _marpaXml_stmt[] = {
   { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementationSource_getDOMImplementationList_e,  "PRAGMA _marpaXml_DOMImplementationSource_getDOMImplementationList_e; /* TO DO */" },
   { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementationSource_free_e, "PRAGMA _marpaXml_DOMImplementationSource_free_e; /* No op */" },
 
+  /* DOMImplementation */
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementation_new_e,  "PRAGMA _marpaXml_DOMImplementation_new_e; /* No op */" },
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementation_hasFeature_e,  "SELECT COALESCE((SELECT 1 FROM DOMImplementation WHERE ((feature LIKE ?1) AND (version = ?2))), 0)" },
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementation_createDocumentType_e,  "PRAGMA _marpaXml_DOMImplementation_createDocumentType_e; /* TO DO */" },
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementation_createDocument_e,  "PRAGMA _marpaXml_DOMImplementation_createDocument_e; /* TO DO */" },
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementation_getFeature_e,  "PRAGMA _marpaXml_DOMImplementation_getFeature_e; /* TO DO */" },
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementation_free_e, "PRAGMA _marpaXml_DOMImplementation_free_e; /* No op */" },
+
   { NULL, 0, 0, 0, 0, 0, NULL }
 };
 
@@ -676,6 +692,21 @@ static _marpaXml_init_t _marpaXml_init[] = {
     "BEGIN "
     "  SELECT RAISE(FAIL, 'Invalid code number'); "
     "END;"
+  },
+  /* Features */
+  {
+    /* The DOM Level 3 Core module is backward compatible with the DOM Level 2 Core [DOM Level 2 Core] module, */
+    "DELETE FROM DOMImplementation; "
+    "INSERT INTO DOMImplementation (feature, version) VALUES ('Core', '3.0'); "
+    "INSERT INTO DOMImplementation (feature, version) VALUES ('Core', '2.0'); "
+    "INSERT INTO DOMImplementation (feature, version) VALUES ('Core', ''); "
+    "INSERT INTO DOMImplementation (feature, version) VALUES ('Core', NULL); "
+    /* The DOM Level 3 XML module is backward compatible with the DOM Level 2 XML [DOM Level 2 Core] and DOM Level 1 XML [DOM Level 1] modules */
+    "INSERT INTO DOMImplementation (feature, version) VALUES ('XML', '3.0'); "
+    "INSERT INTO DOMImplementation (feature, version) VALUES ('XML', '2.0'); "
+    "INSERT INTO DOMImplementation (feature, version) VALUES ('XML', '1.0'); "
+    "INSERT INTO DOMImplementation (feature, version) VALUES ('XML', ''); "
+    "INSERT INTO DOMImplementation (feature, version) VALUES ('XML', NULL); "
   },
   {
     "PRAGMA integrity_check;"
@@ -1520,7 +1551,7 @@ MARPAXML_GENERIC_METHOD_API(DOMImplementationList,                  /* class */
                             marpaXml_true,                          /* bindingResult */
                             int64,                                  /* dbType */
                             sqlite3_int64,                          /* dbMapType */
-                            {rcDb = rcDb; *rcp = (unsigned long) rcDb;},         /* rcDb2rc */
+                            {*rcp = (unsigned long) rcDb;},         /* rcDb2rc */
                             {*rcp = 0;},                            /* defaultRc */
                             marpaXml_false                          /* changeId */
                             )
@@ -1562,6 +1593,62 @@ MARPAXML_GENERIC_NEW_API(DOMImplementationSource,                   /* class */
 /* marpaXml_DOMImplementationSource_free                           */
 /* --------------------------------------------------------------- */
 MARPAXML_GENERIC_FREE_API(DOMImplementationSource,                  /* class */
+                          marpaXml_false                            /* impactOnDb */
+			  )
+
+
+/*******************************************************************/
+/*                                                                 */
+/*                      DOMImplementation                          */
+/*                                                                 */
+/*******************************************************************/
+/* --------------------------------------------------------------- */
+/* marpaXml_DOMImplementation_new                                  */
+/* --------------------------------------------------------------- */
+MARPAXML_GENERIC_NEW_API(DOMImplementation,                         /* class */
+                         void,                                      /* decl */
+                         ,                                          /* args */
+			 ,                                          /* extraInit */
+			 marpaXml_true                              /* bindingResult */
+			 )
+
+/* --------------------------------------------------------------- */
+/* marpaXml_DOMImplementation_hasFeature                           */
+/* --------------------------------------------------------------- */
+MARPAXML_GENERIC_METHOD_API(DOMImplementation,                      /* class */
+                            hasFeature,                              /* method */
+                            marpaXml_DOMImplementation_t *thisp MARPAXML_ARG(marpaXml_String_t *featurep) MARPAXML_ARG(marpaXml_String_t *versionp) MARPAXML_ARG(marpaXml_boolean_t *rcp), /* decl */
+                            thisp MARPAXML_ARG(featurep) MARPAXML_ARG(versionp) MARPAXML_ARG(rcp),                /* args */
+			    ,                                       /* prolog */
+                            ((_marpaXml_bind_text(sqliteStmtp, 1, marpaXml_String_getUtf8(featurep)) == marpaXml_true) &&
+                             (_marpaXml_bind_text(sqliteStmtp, 2, marpaXml_String_getUtf8(versionp)) == marpaXml_true)) ? marpaXml_true : marpaXml_false, /* bindingResult */
+                            int,                                  /* dbType */
+                            int,                                  /* dbMapType */
+                            {*rcp = (rcDb != 0) ? marpaXml_true : marpaXml_false;},         /* rcDb2rc */
+                            {*rcp = marpaXml_false;},               /* defaultRc */
+                            marpaXml_false                          /* changeId */
+                            )
+
+
+/* --------------------------------------------------------------- */
+/* marpaXml_DOMImplementation_createDocumentType                   */
+/* --------------------------------------------------------------- */
+/* TO DO */
+
+/* --------------------------------------------------------------- */
+/* marpaXml_DOMImplementation_createDocument                       */
+/* --------------------------------------------------------------- */
+/* TO DO */
+
+/* --------------------------------------------------------------- */
+/* marpaXml_DOMImplementation_getFeature                           */
+/* --------------------------------------------------------------- */
+/* TO DO */
+
+/* --------------------------------------------------------------- */
+/* marpaXml_DOMImplementation_createDocument                       */
+/* --------------------------------------------------------------- */
+MARPAXML_GENERIC_FREE_API(DOMImplementation,                        /* class */
                           marpaXml_false                            /* impactOnDb */
 			  )
 
