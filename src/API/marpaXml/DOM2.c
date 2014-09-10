@@ -2241,9 +2241,18 @@ static C_INLINE marpaXml_boolean_t _marpaXml_parseFeaturesAndVersions(marpaXml_S
       currentNativeIndex = UTEXT_GETNATIVEINDEX(utextp);
       while ((uchar32 = UTEXT_NEXT32(utextp)) != U_SENTINEL) {
 	if (u_isUWhiteSpace(uchar32)) {
-	  break;
+	  if (inTokenb == marpaXml_true) {
+	    /* This is the end of a token, its indexes are [startTokenNativeIndex,endTokenNativeIndex] */
+	    inTokenb = marpaXml_false;
+	  }
+	  continue;
 	}
-	if (u_isdigit(uchar32)) {
+	/* Here we expect a feature or a version */
+	else if (uchar32 == '+') {
+	  /* + is meaningful only if it is followed by a feature */
+	  canBeVersionb = marpaXml_false;
+	}
+	else if (u_isdigit(uchar32)) {
 	  if (canBeVersionb == marpaXml_false) {
 	    MARPAXML_ERROR0("Malformed input: digit not expected");
 	    rcb = marpaXml_false;
@@ -2252,9 +2261,6 @@ static C_INLINE marpaXml_boolean_t _marpaXml_parseFeaturesAndVersions(marpaXml_S
 	    startTokenNativeIndex = currentNativeIndex;
 	  }
 	} else {
-	  if (uchar32 == '+') {
-	    /* + is ignored in our implementation */
-	  }
 	}
 	currentNativeIndex = UTEXT_GETNATIVEINDEX(utextp);
       }
