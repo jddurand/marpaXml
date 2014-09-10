@@ -2218,13 +2218,52 @@ marpaXml_boolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Optionp
 /*******************************************************************/
 /* Reference: https://gist.github.com/edhemphill/1731633 */
 static C_INLINE marpaXml_boolean_t _marpaXml_parseFeaturesAndVersions(marpaXml_String_t *requestp, marpaXml_featureAndVersion_t **featureAndVersionArraypp, size_t *featureAndVersionLengthp) {
-  UErrorCode status = U_ZERO_ERROR;
-  UText *regex1 = NULL;
-  UText *matchthis = NULL;
+  UErrorCode         uErrorCode = U_ZERO_ERROR;
+  UText             *utextp = NULL;
+  UChar32            uchar32;
+  size_t             wantedNumberi;
+  size_t             elementSizei = sizeof(marpaXml_featureAndVersion_t);
+  marpaXml_boolean_t rcb  = marpaXml_true;
+  marpaXml_boolean_t canBeVersionb = marpaXml_false;
+  marpaXml_boolean_t inTokenb = marpaXml_false;
+  int64_t            currentNativeIndex;
+  int64_t            startTokenNativeIndex;
+  int64_t            endTokenNativeIndex;
 
   /* Spec says this is a space-separated list of: [+]feature [version] */
-  regex1 = utext_openUTF8(NULL, "\\+?[^ ]+ ?[^ ]*", -1, &status);
-  if (requestp == NULL) {
-    return marpaXml_false;
+  /* We assume space is any unicode character having the White_Space unicode property */
+  if (requestp != NULL) {
+    utextp = utext_openUTF8(NULL, (const char *) marpaXml_String_getUtf8(requestp), -1, &uErrorCode);
+    if (U_FAILURE(uErrorCode)) {
+      MARPAXML_ERRORX("utext_openUChars(): %s", u_errorName(uErrorCode));
+      rcb = marpaXml_false;
+    } else {
+      currentNativeIndex = UTEXT_GETNATIVEINDEX(utextp);
+      while ((uchar32 = UTEXT_NEXT32(utextp)) != U_SENTINEL) {
+	if (u_isUWhiteSpace(uchar32)) {
+	  break;
+	}
+	if (u_isdigit(uchar32)) {
+	  if (canBeVersionb == marpaXml_false) {
+	    MARPAXML_ERROR0("Malformed input: digit not expected");
+	    rcb = marpaXml_false;
+	    break;
+	  } else {
+	    startTokenNativeIndex = currentNativeIndex;
+	  }
+	} else {
+	  if (uchar32 == '+') {
+	    /* + is ignored in our implementation */
+	  }
+	}
+	currentNativeIndex = UTEXT_GETNATIVEINDEX(utextp);
+      }
+    }
   }
+
+  if (utextp != NULL) {
+    utext_close(utextp);
+  }
+
+  return rcb;
 }
