@@ -195,7 +195,7 @@ marpaXml_String_t *marpaXml_String_newFromAnyAndByteLengthAndCharset(char *bytes
       return NULL;
     }
 
-    tmpUtf8[byteLength] = '\0';
+    tmpUtf8[tmpByteLength - 1] = '\0';
     thisp->utf8 = tmpUtf8;
     thisp->utf8ByteLength = tmpByteLength;
     thisp->nullByteAddedb = marpaXml_true;
