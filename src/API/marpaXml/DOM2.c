@@ -1,9 +1,9 @@
 #include "internal/config.h"
 
-#include <string.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
-#include <stdio.h>
+#include <string.h>
 
 #include "unicode/utext.h"
 #include "unicode/ustring.h"
@@ -148,7 +148,10 @@ struct marpaXml_DOMImplementationList {
   char                  *cachedUntilFreeSqls[__marpaXml_stmt_max_e];  /* Ditto */
 };
 
-struct marpaXml_DOMImplementationSource   { sqlite3_int64 id; };
+struct marpaXml_DOMImplementationSource {
+  sqlite3_int64 id;
+  char         *whereStatement;
+};
 struct marpaXml_DOMImplementation         { sqlite3_int64 id; };
 
 typedef struct marpaXml_featureAndVersion {
@@ -163,6 +166,14 @@ typedef struct marpaXml_featureAndVersion {
 #define _MARPAXML_TRANSACTION_END      _marpaXml_Transaction_End()      /* For any API call: transaction commit */
 #define _MARPAXML_TRANSACTION_ROLLBACK _marpaXml_Transaction_Rollback() /* For any API call: transaction rollback */
 #define _MARPAXML_MAXCHARS_IN_TRACE    30                               /* Maximum length when printing out SQL commands */
+#define _MARPAXML_FEATURE_LIKE         " (feature LIKE '%s') "
+#define _MARPAXML_AND                  " AND "
+#define _MARPAXML_VERSION_EQ           " (version = '%s') "
+#ifdef _WIN32
+#define _marpaXml_snprintf(p, s, fmt, ...)  _snprintf_s(p, s, _TRUNCATE, fmt, __VA_ARGS__)
+#else
+#define _marpaXml_snprintf(p, s, fmt, ...)  snprintf(p, s, fmt, __VA_ARGS__)
+#endif
 
 static C_INLINE void *sqlite3_column_ptr(sqlite3_stmt*, int iCol);
 
@@ -761,7 +772,7 @@ static C_INLINE marpaXml_boolean_t _marpaXml_getStmt(void *objp, _marpaXml_stmt_
 static C_INLINE void               _marpaXml_freeStmt(void *obj, _marpaXml_stmt_e stmt, char **sqlsp, sqlite3_stmt **sqliteStmtpp);
 static C_INLINE void               _marpaXml_freeDynamicCachedStmt(void *obj, char **sqlsp, sqlite3_stmt **sqliteStmtpp);
 static C_INLINE marpaXml_boolean_t _marpaXml_generateStmt(void *objp, _marpaXml_stmt_e stmt, char **sqlsp, sqlite3_stmt **sqliteStmtpp);
-static C_INLINE marpaXml_boolean_t _marpaXml_parseFeaturesAndVersions(marpaXml_String_t *requestp, marpaXml_featureAndVersion_t ***featureAndVersionppp, size_t *featureAndVersionLengthlp);
+static C_INLINE marpaXml_boolean_t _marpaXml_featuresWhereClause(marpaXml_String_t *requestp, char **wheresp);
 
 /*******************************************************************/
 /* _marpaXml_DOMErrorLogCallback                                          */
@@ -1637,8 +1648,8 @@ MARPAXML_GENERIC_METHOD_API(DOMImplementationSource,                /* class */
                             marpaXml_DOMImplementationSource_t *thisp MARPAXML_ARG(marpaXml_String_t *featuresp) MARPAXML_ARG(marpaXml_DOMImplementation_t **rcp), /* decl */
                             thisp MARPAXML_ARG(featuresp) MARPAXML_ARG(rcp),   /* args */
 
-			    marpaXml_featureAndVersion_t **featureAndVersionpp; size_t featureAndVersionLengthl;
-			    if (_marpaXml_parseFeaturesAndVersions(featuresp, &featureAndVersionpp, &featureAndVersionLengthl) == marpaXml_false) {
+			    char *wheres;
+			    if (_marpaXml_featuresWhereClause(featuresp, &wheres) == marpaXml_false) {
 			      return marpaXml_false;
 			    }, /* prolog */
 
@@ -1876,18 +1887,21 @@ static C_INLINE marpaXml_boolean_t _marpaXml_generateStmt(void *objp, _marpaXml_
       cachedStmtp = &DOMStringListCachedStmt;
       cachedUntilFreeStmtp = DOMStringListp->cachedUntilFreeStmt;
       cachedUntilFreeSqlsp = DOMStringListp->cachedUntilFreeSqls;
+      sqls = messageBuilder(_marpaXml_stmt[stmt].sql, DOMObjectsp->id);
     } else if (stmt == _marpaXml_NameList_new_e) {
       NameListp = (marpaXml_NameList_t *) objp;
       NameListp->DOMObjectsp = DOMObjectsp = _marpaXml_DOMObjects_new((char *) "NameList");
       cachedStmtp = &NameListCachedStmt;
       cachedUntilFreeStmtp = NameListp->cachedUntilFreeStmt;
       cachedUntilFreeSqlsp = NameListp->cachedUntilFreeSqls;
+      sqls = messageBuilder(_marpaXml_stmt[stmt].sql, DOMObjectsp->id);
     } else if (stmt == _marpaXml_DOMImplementationList_new_e) {
       NameListp = (marpaXml_NameList_t *) objp;
       NameListp->DOMObjectsp = DOMObjectsp = _marpaXml_DOMObjects_new((char *) "DOMImplementationList");
       cachedStmtp = &NameListCachedStmt;
       cachedUntilFreeStmtp = NameListp->cachedUntilFreeStmt;
       cachedUntilFreeSqlsp = NameListp->cachedUntilFreeSqls;
+      sqls = messageBuilder(_marpaXml_stmt[stmt].sql, DOMObjectsp->id);
     } else {
       /* Simply impossible */
       MARPAXML_ERRORX("_marpaXml_generateStmt internal error, stmt=%d, at %s:%d\n", stmt, __FILE__, __LINE__);
@@ -1898,7 +1912,7 @@ static C_INLINE marpaXml_boolean_t _marpaXml_generateStmt(void *objp, _marpaXml_
       break;
     }
 
-    if ((sqls = messageBuilder(_marpaXml_stmt[stmt].sql, DOMObjectsp->id)) == messageBuilder_internalErrors()) {
+    if (sqls == messageBuilder_internalErrors()) {
       MARPAXML_ERRORX("%s", sqls);
       _marpaXml_DOMObjects_free(&DOMObjectsp);
       break;
@@ -2235,23 +2249,30 @@ marpaXml_boolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Optionp
 }
 
 /*******************************************************************/
-/* _marpaXml_parseFeaturesAndVersions                              */
+/* _marpaXml_featuresWhereClause                                   */
 /*******************************************************************/
-/* Reference: https://gist.github.com/edhemphill/1731633 */
-static C_INLINE marpaXml_boolean_t _marpaXml_parseFeaturesAndVersions(marpaXml_String_t *requestp, marpaXml_featureAndVersion_t ***featureAndVersionppp, size_t *featureAndVersionLengthlp) {
+static C_INLINE marpaXml_boolean_t _marpaXml_featuresWhereClause(marpaXml_String_t *requestp, char **wheresp) {
   UErrorCode                     uErrorCode = U_ZERO_ERROR;
   UText                         *utextp = NULL;
-  UChar32                        uchar32;
-  size_t                         wantedNumberi;
+  UChar32                        uChar32;
   marpaXml_boolean_t             rcb  = marpaXml_true;
   marpaXml_boolean_t             canBeVersionb = marpaXml_false;
+  marpaXml_boolean_t             isVersionb = marpaXml_false;
   marpaXml_boolean_t             inTokenb = marpaXml_false;
   int64_t                        currentNativeIndex;
   int64_t                        startTokenNativeIndex;
   int64_t                        endTokenNativeIndex;
   marpaXml_featureAndVersion_t **featureAndVersionpp = NULL;
-  size_t                         featureAndVersionLengthl = 0;
-  size_t                         featureAndVersionLengthNumberl = 0;
+  size_t                         featureAndVersionSizel = 0;
+  size_t                         featureAndVersionWantedSizel = 0;
+  int32_t                        uCharSizei;
+  size_t                         uCharByteLengthi;
+  UChar                         *uCharp;
+  marpaXml_String_t            **stringpp;
+  size_t                         i;
+  char                          *fcts = "_marpaXml_featuresWhereClause";
+  char                          *wheres;
+  size_t                         wherel;
 
   /* Spec says this is a space-separated list of: [+]feature [version] */
   /* We assume space is any unicode character having the White_Space unicode property */
@@ -2261,54 +2282,175 @@ static C_INLINE marpaXml_boolean_t _marpaXml_parseFeaturesAndVersions(marpaXml_S
       MARPAXML_ERRORX("utext_openUChars(): %s", u_errorName(uErrorCode));
       rcb = marpaXml_false;
     } else {
-      currentNativeIndex = UTEXT_GETNATIVEINDEX(utextp);
       while (1) {
-	uchar32 = UTEXT_NEXT32(utextp);
-	if ((uchar32 == U_SENTINEL) || u_isUWhiteSpace(uchar32)) {
+        currentNativeIndex = UTEXT_GETNATIVEINDEX(utextp);
+	uChar32 = UTEXT_NEXT32(utextp);
+	if ((uChar32 == U_SENTINEL) || u_isUWhiteSpace(uChar32)) {
 	  if (inTokenb == marpaXml_true) {
+            endTokenNativeIndex = currentNativeIndex;
 	    /* This is the end of a token, its indexes are [startTokenNativeIndex,endTokenNativeIndex] */
-	    if (manageBuf_createp((void ***) &featureAndVersionpp, &featureAndVersionLengthl, featureAndVersionLengthNumberl, sizeof(marpaXml_featureAndVersion_t)) == NULL) {
-	      MARPAXML_ERRORX("manageBuf_createp(): %s", strerror(errno));
-	      manageBuf_freev((void ***) &featureAndVersionpp, &featureAndVersionLengthl, &featureAndVersionLengthNumberl);
-	      rcb = marpaXml_false;
-	      break;
-	    } else {
-	      featureAndVersionLengthNumberl++;
-	    }
-	    inTokenb = marpaXml_false;
-	  }
-	  if (uchar32 == U_SENTINEL) {
-	    break;
-	  } else {
-	    continue;
-	  }
-	}
+	    if (isVersionb == marpaXml_false) {
+              if (manageBuf_createp((void ***) &featureAndVersionpp, &featureAndVersionSizel, featureAndVersionWantedSizel + 1, sizeof(marpaXml_featureAndVersion_t *)) == NULL) {
+                MARPAXML_ERRORX("manageBuf_createp(): %s", strerror(errno));
+                manageBuf_freev((void ***) &featureAndVersionpp, &featureAndVersionSizel, &featureAndVersionWantedSizel);
+                rcb = marpaXml_false;
+                break;
+              } else {
+                featureAndVersionWantedSizel++;
+                featureAndVersionpp[featureAndVersionWantedSizel-1] = malloc(sizeof(marpaXml_featureAndVersion_t));
+                if (featureAndVersionpp[featureAndVersionWantedSizel-1] == NULL) {
+                  MARPAXML_ERRORX("malloc(): %s", strerror(errno));
+                  manageBuf_freev((void ***) &featureAndVersionpp, &featureAndVersionSizel, &featureAndVersionWantedSizel);
+                  rcb = marpaXml_false;
+                  break;
+                }
+                featureAndVersionpp[featureAndVersionWantedSizel-1]->featurep = NULL;
+                featureAndVersionpp[featureAndVersionWantedSizel-1]->versionp = NULL;
+              }
+
+              /* Next token can be a version number */
+              canBeVersionb = marpaXml_true;
+
+            } else {
+
+              /* Next token cannot be a version number */
+              canBeVersionb = marpaXml_false;
+            }
+
+            if (isVersionb == marpaXml_true) {
+              stringpp = &(featureAndVersionpp[featureAndVersionWantedSizel-1]->versionp);
+            } else {
+              stringpp = &(featureAndVersionpp[featureAndVersionWantedSizel-1]->featurep);
+            }
+
+            uErrorCode = U_ZERO_ERROR;
+            uCharSizei = utext_extract(utextp, startTokenNativeIndex, endTokenNativeIndex, NULL, 0, &uErrorCode);
+            if ((uCharSizei <= 0) || uErrorCode != U_BUFFER_OVERFLOW_ERROR) {
+              if (U_FAILURE(uErrorCode)) {
+                MARPAXML_ERRORX("UTextExtract(): %s", u_errorName(uErrorCode));
+              } else {
+                MARPAXML_ERROR0("UTextExtract(): returned a number <= 0");
+              }
+              rcb = marpaXml_false;
+              break;
+            }
+            uCharByteLengthi = uCharSizei * sizeof(UChar);
+            if ((uCharp = malloc(uCharByteLengthi)) == NULL) {
+              MARPAXML_ERRORX("malloc(): %s", strerror(errno));
+              rcb = marpaXml_false;
+              break;
+            }
+            uErrorCode = U_ZERO_ERROR;
+            uCharSizei = utext_extract(utextp, startTokenNativeIndex, endTokenNativeIndex, uCharp, uCharSizei, &uErrorCode);
+            if ((uCharSizei <= 0) || U_FAILURE(uErrorCode)) {
+              if (U_FAILURE(uErrorCode)) {
+                MARPAXML_ERRORX("UTextExtract(): %s", u_errorName(uErrorCode));
+              } else {
+                MARPAXML_ERROR0("UTextExtract(): returned a number <= 0");
+              }
+              free(uCharp);
+              rcb = marpaXml_false;
+              break;
+            }
+            *stringpp = marpaXml_String_newFromAnyAndByteLengthAndCharset((char *) uCharp, uCharByteLengthi, NULL, &marpaXml_String_Option); 
+            free(uCharp);
+            if (*stringpp == NULL) {
+              free(uCharp);
+              rcb = marpaXml_false;
+              break;
+            } else {
+              MARPAXML_TRACEX("[%s] Requested %s: %s\n", fcts, (isVersionb == marpaXml_true) ? "version" : "feature", marpaXml_String_getUtf8(*stringpp));
+            }
+          }
+          inTokenb = marpaXml_false;
+          if (uChar32 == U_SENTINEL) {
+            break;
+          } else {
+            continue;
+          }
+        }
 	/* Here we expect a feature or a version */
-	else if (uchar32 == '+') {
+	else if (uChar32 == '+') {
 	  /* + is meaningful only if it is followed by a feature */
 	  canBeVersionb = marpaXml_false;
 	}
-	else if (u_isdigit(uchar32)) {
-	  if (canBeVersionb == marpaXml_false) {
-	    MARPAXML_ERROR0("Malformed input: digit not expected");
-	    rcb = marpaXml_false;
-	    break;
-	  }
-	}
-	if (inTokenb == marpaXml_false) {
-	  inTokenb = marpaXml_true;
-	  startTokenNativeIndex = currentNativeIndex;
-	}
-	currentNativeIndex = UTEXT_GETNATIVEINDEX(utextp);
-	if (inTokenb == marpaXml_true) {
-	  endTokenNativeIndex = currentNativeIndex;
-	}
+	else if (u_isdigit(uChar32)) {
+          if (inTokenb == marpaXml_false) {
+            if (canBeVersionb == marpaXml_false) {
+              MARPAXML_ERROR0("Malformed input: digit not expected");
+              rcb = marpaXml_false;
+              break;
+            } else {
+              inTokenb = marpaXml_true;
+              isVersionb = marpaXml_true;
+              startTokenNativeIndex = currentNativeIndex;
+            }
+          }
+	} else {
+          if (inTokenb == marpaXml_false) {
+            inTokenb = marpaXml_true;
+            isVersionb = marpaXml_false;
+            startTokenNativeIndex = currentNativeIndex;
+          }
+        }
       }
     }
   }
 
   if (utextp != NULL) {
     utext_close(utextp);
+  }
+
+  if (rcb == marpaXml_true) {
+    /* We construct on-the-fly the WHERE statement of the temporary view */
+    wherel = 0;
+    for (i = 0; i < featureAndVersionWantedSizel; i++) {
+      if (featureAndVersionpp[i]->featurep != NULL) {
+        if (wherel > 0) { wherel += strlen(_MARPAXML_AND); }
+        wherel += strlen(_MARPAXML_FEATURE_LIKE) - 2 + strlen(marpaXml_String_getUtf8(featureAndVersionpp[i]->featurep));
+      }
+      if (featureAndVersionpp[i]->versionp != NULL) {
+        if (wherel > 0) { wherel += strlen(_MARPAXML_AND); }
+        wherel += strlen(_MARPAXML_VERSION_EQ) - 2 + strlen(marpaXml_String_getUtf8(featureAndVersionpp[i]->versionp));
+      }
+    }
+    wherel++;
+    if ((wheres = malloc(sizeof(char) * wherel)) == NULL) {
+      MARPAXML_ERRORX("malloc(): %s", strerror(errno));
+      rcb = marpaXml_false;
+    } else {
+      wheres[0] = '\0';
+      for (i = 0; i < featureAndVersionWantedSizel; i++) {
+        if (featureAndVersionpp[i]->featurep != NULL) {
+          if (strlen(wheres) > 0) {
+            _marpaXml_snprintf(wheres + strlen(wheres), sizeof(char) * (wherel - strlen(wheres)), _MARPAXML_AND);
+          }
+          _marpaXml_snprintf(wheres + strlen(wheres), sizeof(char) * (wherel - strlen(wheres)), _MARPAXML_FEATURE_LIKE, marpaXml_String_getUtf8(featureAndVersionpp[i]->featurep));
+        }
+        if (featureAndVersionpp[i]->versionp != NULL) {
+          if (strlen(wheres) > 0) {
+            _marpaXml_snprintf(wheres + strlen(wheres), sizeof(char) * (wherel - strlen(wheres)), _MARPAXML_AND);
+          }
+          _marpaXml_snprintf(wheres + strlen(wheres), sizeof(char) * (wherel - strlen(wheres)), _MARPAXML_VERSION_EQ, marpaXml_String_getUtf8(featureAndVersionpp[i]->versionp));
+        }
+      }
+      MARPAXML_TRACEX("[%s] Where clause: %s\n", fcts, wheres);
+    }
+  }
+
+  for (i = 0; i < featureAndVersionWantedSizel; i++) {
+    if (featureAndVersionpp[i]->featurep != NULL) {
+      marpaXml_String_free(&(featureAndVersionpp[i]->featurep));
+    }
+    if (featureAndVersionpp[i]->versionp != NULL) {
+      marpaXml_String_free(&(featureAndVersionpp[i]->versionp));
+    }
+  }
+
+  manageBuf_freev((void ***) &featureAndVersionpp, &featureAndVersionSizel, &featureAndVersionWantedSizel);
+
+  if (rcb == marpaXml_true) {
+    *wheresp = wheres;
   }
 
   return rcb;

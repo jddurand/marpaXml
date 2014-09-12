@@ -10,6 +10,7 @@ int main(int argc, char **argv) {
     marpaXml_String_t        *feature1p = NULL, *version1p = NULL;
     marpaXml_String_t        *feature2p = NULL, *version2p = NULL;
     marpaXml_String_t        *feature3p = NULL, *version3p = NULL;
+    marpaXml_String_t        *features1p = NULL;
     marpaXml_DOMException_t  *exceptionp;
     marpaXml_DOMStringList_t *DOMStringList1p = NULL, *DOMStringList2p = NULL, *DOMStringList3p = NULL;
     marpaXml_NameList_t      *NameList1p = NULL, *NameList2p = NULL, *NameList3p = NULL;
@@ -21,6 +22,7 @@ int main(int argc, char **argv) {
     unsigned long             rcl;
     marpaXml_String_t        *rcString = NULL;
     marpaXml_DOMImplementation_t *DOMImplementationp = NULL, *DOMImplementation2p = NULL;
+    marpaXml_DOMImplementationSource_t *DOMImplementationSourcep = NULL;
 
 #ifdef _WIN32
     marpaXml_DOM_Option_t marpaXml_DOM_Option = {"C:\\Windows\\Temp\\test.sqlite", NULL, -1, { NULL, NULL, MARPAXML_LOGLEVEL_TRACE} };
@@ -38,6 +40,7 @@ int main(int argc, char **argv) {
   version3p = marpaXml_String_newFromUTF8((char *) "xxx", NULL);
   contains1p = marpaXml_String_newFromUTF8((char *) "String for contains(1)", NULL);
   contains2p = marpaXml_String_newFromUTF8((char *) "String for contains(2)", NULL);
+  features1p = marpaXml_String_newFromUTF8((char *) "XML 3.0 Traversal +Events 2.0", NULL);
 
   /*************************************/
   /*                Init               */
@@ -340,6 +343,24 @@ int main(int argc, char **argv) {
   }
 
   /*************************************/
+  /*      DOMImplementationSource      */
+  /*************************************/
+  ;
+  if ((DOMImplementationSourcep = marpaXml_DOMImplementationSource_new()) == NULL) {
+    fprintf(stderr, "marpaXml_DOMImplementationSource_new failure\n");
+    return 1;
+  }
+  if (marpaXml_DOMImplementationSource_getDOMImplementation(DOMImplementationSourcep, features1p, &DOMImplementationp) == marpaXml_false) {
+    fprintf(stderr, "marpaXml_DOMImplementationSource_getDOMImplementation failure\n");
+    return 1;
+  }
+  ;
+  if (marpaXml_DOMImplementationSource_free(&DOMImplementationSourcep) == marpaXml_false) {
+    fprintf(stderr, "marpaXml_DOMImplementationSource_free failure\n");
+    return 1;
+  }
+
+  /*************************************/
   /*                 Node              */
   /*************************************/
   nodep = marpaXml_Node_new();
@@ -373,6 +394,7 @@ int main(int argc, char **argv) {
   marpaXml_String_free(&version1p);
   marpaXml_String_free(&version2p);
   marpaXml_String_free(&version3p);
+  marpaXml_String_free(&features1p);
 
   fprintf(stderr, "All tests returned OK\n");
   return 0;
