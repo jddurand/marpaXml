@@ -174,6 +174,9 @@ typedef struct marpaXml_featureAndVersion {
 #else
 #define _marpaXml_snprintf(p, s, fmt, ...)  snprintf(p, s, fmt, __VA_ARGS__)
 #endif
+/* Endianness detection - reference: http://www.ibm.com/developerworks/aix/library/au-endianc/ */
+#define _MARPAXML_LITTLE_ENDIAN 0
+#define _MARPAXML_BIG_ENDIAN    1
 
 static C_INLINE void *sqlite3_column_ptr(sqlite3_stmt*, int iCol);
 
@@ -328,7 +331,7 @@ static C_INLINE void *sqlite3_column_ptr(sqlite3_stmt*, int iCol);
       }                                                                 \
     }                                                                   \
     if ((_marpaXml_stmt[_marpaXml_##class##_##method##_e].insertb == marpaXml_true) && (changeId == marpaXml_true)) { \
-      id = sqlite3_last_insert_rowid(_dbp);                             \
+      id = sqlite3_last_insert_rowid(_marpaXml_dbp);                             \
       if (id <= 0) {                                                    \
 	MARPAXML_ERRORX("[%s] id <= 0 at %s:%d\n", sqls, __FILE__, __LINE__); \
 	_marpaXml_freeStmt(thisp, _marpaXml_##class##_new_e, &sqls, &sqliteStmtp); \
@@ -470,7 +473,7 @@ static C_INLINE void *sqlite3_column_ptr(sqlite3_stmt*, int iCol);
 	if (_marpaXml_##class##_free(&rcp) == marpaXml_false) { free(rcp); } \
 	return NULL;							\
       }									\
-      rcp->id = sqlite3_last_insert_rowid(_dbp);				\
+      rcp->id = sqlite3_last_insert_rowid(_marpaXml_dbp);				\
       if (rcp->id <= 0) {						\
 	MARPAXML_ERRORX("[%s] id <= 0 at %s:%d\n", sqls, __FILE__, __LINE__); \
 	_marpaXml_freeStmt(rcp, _marpaXml_##class##_new_e, &sqls, &sqliteStmtp); \
@@ -611,14 +614,19 @@ static const char *_MARPAXML_SQLITE_MISUSE     = "SQLITE_MISUSE";
 static const char *_MARPAXML_SQLITE_CONSTRAINT = "SQLITE_CONSTRAINT";
 static const char *_MARPAXML_FALSE             = "marpaXml_false";
 static const char *_MARPAXML_TRUE              = "marpaXml_true";
+static const char *_MARPAXML_UTF16LE           = "UTF-16LE";
+static const char *_MARPAXML_UTF16BE           = "UTF-16BE";
 
 /********************************************************************************/
 /*                           Static variables                                   */
 /********************************************************************************/
-static sqlite3              *_dbp = NULL;
-static marpaXml_boolean_t    _initialized = marpaXml_false;
-static marpaXmlLog_t        *marpaXmlLogp = NULL;  /* Intentionnaly without s_ prefix because of MARPAXML log macros */
-static marpaXml_String_Option_t marpaXml_String_Option;
+static sqlite3                 *_marpaXml_dbp = NULL;
+static marpaXml_boolean_t       _marpaXml_isInitialized = marpaXml_false;
+static marpaXmlLog_t           *marpaXmlLogp = NULL;  /* Intentionnaly without s_ prefix because of MARPAXML log macros */
+static marpaXml_String_Option_t _marpaXml_String_globalOption;
+static marpaXml_boolean_t       _marpaXml_isLittleEndianb = marpaXml_false;
+static marpaXml_boolean_t       _marpaXml_isBigEndianb = marpaXml_false;
+static char                    *_marpaXml_UTF16_Encodings = NULL;
 
 static _marpaXml_stmt_t _marpaXml_stmt[] = {
 
@@ -898,7 +906,7 @@ static C_INLINE marpaXml_boolean_t _marpaXml_finalize(const char *sqls, sqlite3_
 static C_INLINE marpaXml_boolean_t _marpaXml_changes(void) {
   int changes;
 
-  changes = sqlite3_changes(_dbp);
+  changes = sqlite3_changes(_marpaXml_dbp);
 
   if (changes != 1) {
     MARPAXML_ERRORX("sqlite3_changes(): %d\n", changes);
@@ -1110,7 +1118,7 @@ marpaXml_boolean_t marpaXml_DOM_release(void) {
   marpaXml_boolean_t rc = marpaXml_true;
 
   /* Not thread-safe */
-  if (_initialized == marpaXml_false || _dbp == NULL) {
+  if (_marpaXml_isInitialized == marpaXml_false || _marpaXml_dbp == NULL) {
     return marpaXml_false;
   }
 
@@ -1125,7 +1133,7 @@ marpaXml_boolean_t marpaXml_DOM_release(void) {
 
   /* Close connection to the DB - this will call destructors for created functions */
   MARPAXML_TRACE0("Closing database\n");
-  if ((sqliteRc = sqlite3_close_v2(_dbp)) != SQLITE_OK) {
+  if ((sqliteRc = sqlite3_close_v2(_marpaXml_dbp)) != SQLITE_OK) {
     MARPAXML_ERRORX("sqlite3_close_v2(): %s at %s:%d\n", sqlite3_errstr(sqliteRc), __FILE__, __LINE__);
     rc = marpaXml_false;
   }
@@ -1146,8 +1154,8 @@ marpaXml_boolean_t marpaXml_DOM_release(void) {
   u_cleanup();
 #endif
 
-  /* Pretend we were not _initialized */
-  _initialized = marpaXml_false;
+  /* Pretend we were not _marpaXml_isInitialized */
+  _marpaXml_isInitialized = marpaXml_false;
 
   return rc;
 }
@@ -1275,7 +1283,7 @@ MARPAXML_GENERIC_GET_API(marpaXml_String_t *,                       /* rcType */
                          getMessage,                                /* method */
                          text,                                      /* dbType */
                          const unsigned char *,                     /* dbMapType */
-                         (rcDb != NULL) ? marpaXml_String_newFromUTF8((char *)rcDb, &marpaXml_String_Option) : NULL /* rcDb2Rc */
+                         (rcDb != NULL) ? marpaXml_String_newFromUTF8((char *)rcDb, &_marpaXml_String_globalOption) : NULL /* rcDb2Rc */
 			 )
 
 /* --------------------------------------------------------------- */
@@ -1403,7 +1411,7 @@ MARPAXML_GENERIC_METHOD_API(DOMStringList,                          /* class */
                             (_marpaXml_bind_int64(sqliteStmtp, 1, (sqlite3_int64) index) == marpaXml_true) ? marpaXml_true : marpaXml_false, /* bindingResult */
                             text,                                   /* dbType */
                             const unsigned char *,                  /* dbMapType */
-                            {*rcp = (rcDb != NULL) ? marpaXml_String_newFromUTF8((char *)rcDb, &marpaXml_String_Option) : NULL;}, /* rcDb2Rc */
+                            {*rcp = (rcDb != NULL) ? marpaXml_String_newFromUTF8((char *)rcDb, &_marpaXml_String_globalOption) : NULL;}, /* rcDb2Rc */
                             {*rcp = NULL;},                         /* defaultRc */
                             marpaXml_false,                         /* changeId */
                                                                     /* epilog */
@@ -1487,7 +1495,7 @@ MARPAXML_GENERIC_METHOD_API(NameList,                               /* class */
                             (_marpaXml_bind_int64(sqliteStmtp, 1, (sqlite3_int64) index) == marpaXml_true) ? marpaXml_true : marpaXml_false, /* bindingResult */
                             text,                                   /* dbType */
                             const unsigned char *,                  /* dbMapType */
-                            {*rcp = (rcDb != NULL) ? marpaXml_String_newFromUTF8((char *)rcDb, &marpaXml_String_Option) : NULL;}, /* rcDb2Rc */
+                            {*rcp = (rcDb != NULL) ? marpaXml_String_newFromUTF8((char *)rcDb, &_marpaXml_String_globalOption) : NULL;}, /* rcDb2Rc */
                             {*rcp = NULL;},                         /* defaultRc */
                             marpaXml_false,                         /* changeId */
                                                                     /* epilog */
@@ -1504,7 +1512,7 @@ MARPAXML_GENERIC_METHOD_API(NameList,                               /* class */
                             (_marpaXml_bind_int64(sqliteStmtp, 1, (sqlite3_int64) index) == marpaXml_true) ? marpaXml_true : marpaXml_false, /* bindingResult */
                             text,                                   /* dbType */
                             const unsigned char *,                  /* dbMapType */
-                            {*rcp = (rcDb != NULL) ? marpaXml_String_newFromUTF8((char *)rcDb, &marpaXml_String_Option) : NULL;}, /* rcDb2Rc */
+                            {*rcp = (rcDb != NULL) ? marpaXml_String_newFromUTF8((char *)rcDb, &_marpaXml_String_globalOption) : NULL;}, /* rcDb2Rc */
                             {*rcp = NULL;},                         /* defaultRc */
                             marpaXml_false,                         /* changeId */
                                                                     /* epilog */
@@ -1917,7 +1925,7 @@ static C_INLINE marpaXml_boolean_t _marpaXml_generateStmt(void *objp, _marpaXml_
       _marpaXml_DOMObjects_free(&DOMObjectsp);
       break;
     }
-    if (_marpaXml_prepare(_dbp, sqls, sqliteStmtpp) == marpaXml_false) {
+    if (_marpaXml_prepare(_marpaXml_dbp, sqls, sqliteStmtpp) == marpaXml_false) {
       free(sqls);
       _marpaXml_DOMObjects_free(&DOMObjectsp);
       break;
@@ -1958,7 +1966,7 @@ static C_INLINE marpaXml_boolean_t _marpaXml_generateStmt(void *objp, _marpaXml_
       _marpaXml_DOMObjects_free(&DOMObjectsp);
       break;
     }
-    if (_marpaXml_prepare(_dbp, sqls, sqliteStmtpp) == marpaXml_false) {
+    if (_marpaXml_prepare(_marpaXml_dbp, sqls, sqliteStmtpp) == marpaXml_false) {
       free(sqls);
       /* Free at least DOMObjectsp */
       _marpaXml_DOMObjects_free(&DOMObjectsp);
@@ -2007,7 +2015,7 @@ static C_INLINE marpaXml_boolean_t _marpaXml_generateStmt(void *objp, _marpaXml_
 	cachedUntilFreeSqlsp[stmt] = NULL;
 	break;
       }
-      if (_marpaXml_prepare(_dbp, cachedUntilFreeSqlsp[stmt], &(cachedUntilFreeStmtp[stmt])) == marpaXml_false) {
+      if (_marpaXml_prepare(_marpaXml_dbp, cachedUntilFreeSqlsp[stmt], &(cachedUntilFreeStmtp[stmt])) == marpaXml_false) {
 	free(cachedUntilFreeSqlsp[stmt]);
 	cachedUntilFreeSqlsp[stmt] = NULL;
 	break;
@@ -2030,18 +2038,20 @@ static C_INLINE marpaXml_boolean_t _marpaXml_generateStmt(void *objp, _marpaXml_
 /* marpaXml_DOM_init                                               */
 /*******************************************************************/
 marpaXml_boolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Optionp) {
-  UErrorCode          uErrorCode = U_ZERO_ERROR;
-  sqlite3_mutex       *master_mutexp = NULL;
-  sqlite3_mutex       *mutexp = NULL;
+  UErrorCode            uErrorCode = U_ZERO_ERROR;
+  sqlite3_mutex        *master_mutexp = NULL;
+  sqlite3_mutex        *mutexp = NULL;
   sqlite3_stmt         *loadcollation_stmt = NULL;
   static sqlite3       *dbp = NULL;
   marpaXml_DOM_Option_t marpaXml_DOM_Option = {":memory", NULL, -1, { NULL, NULL, MARPAXML_LOGLEVEL_WARNING }};
-  int                  sqliteRc;
-  int                  i;
+  int                   sqliteRc;
+  int                   i;
+  int                   iConstantForEndiannessDetection = 1;
   void                 *xxhp;
+  char                 *pForEndiannessDetection = (char *)&iConstantForEndiannessDetection;
 
-  /* We first check _initialized in a non thread-safe way for quick return */
-  if (_initialized == marpaXml_true) {
+  /* We first check _marpaXml_isInitialized in a non thread-safe way for quick return */
+  if (_marpaXml_isInitialized == marpaXml_true) {
     return marpaXml_true;
   }
 
@@ -2065,8 +2075,8 @@ marpaXml_boolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Optionp
   }
 
   sqlite3_mutex_enter(master_mutexp);
-  /* From now on we are sure we are in a synchronized call: we can recheck _initialized */
-  if (_initialized == marpaXml_true) {
+  /* From now on we are sure we are in a synchronized call: we can recheck _marpaXml_isInitialized */
+  if (_marpaXml_isInitialized == marpaXml_true) {
     sqlite3_mutex_leave(mutexp);
     return marpaXml_true;
   }
@@ -2083,9 +2093,21 @@ marpaXml_boolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Optionp
     }
   }
 
-  marpaXml_String_Option.marpaXml_String_Option_ICU = MARPAXML_STRING_OPTION_ICU_DEFAULT;
-  marpaXml_String_Option.fallback                   = marpaXml_true;
-  marpaXml_String_Option.logOption                  = marpaXml_DOM_Option.logOption;
+  /* Determine endiannes */
+  if (pForEndiannessDetection[0] == 1) {
+    _marpaXml_isLittleEndianb = marpaXml_true;
+    _marpaXml_isBigEndianb = marpaXml_false;
+    _marpaXml_UTF16_Encodings = (char*) _MARPAXML_UTF16LE;
+  } else {
+    _marpaXml_isLittleEndianb = marpaXml_false;
+    _marpaXml_isBigEndianb = marpaXml_true;
+    _marpaXml_UTF16_Encodings = (char *) _MARPAXML_UTF16BE;
+  }
+  MARPAXML_TRACEX("Platform UTF16 encoding is \"%s\"\n", _marpaXml_UTF16_Encodings);
+
+  _marpaXml_String_globalOption.marpaXml_String_Option_ICU = MARPAXML_STRING_OPTION_ICU_DEFAULT;
+  _marpaXml_String_globalOption.fallback                   = marpaXml_true;
+  _marpaXml_String_globalOption.logOption                  = marpaXml_DOM_Option.logOption;
 
   mutexp = sqlite3_mutex_alloc(SQLITE_MUTEX_FAST);
   if (mutexp == NULL) {
@@ -2217,8 +2239,8 @@ marpaXml_boolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Optionp
 */
 
   /* OK */
-  _initialized = marpaXml_true;
-  _dbp = dbp;
+  _marpaXml_isInitialized = marpaXml_true;
+  _marpaXml_dbp = dbp;
 
   sqlite3_mutex_leave(mutexp);
   sqlite3_mutex_free(mutexp);
@@ -2260,7 +2282,7 @@ static C_INLINE marpaXml_boolean_t _marpaXml_featuresWhereClause(marpaXml_String
   marpaXml_boolean_t             isVersionb = marpaXml_false;
   marpaXml_boolean_t             inTokenb = marpaXml_false;
   int64_t                        currentNativeIndex;
-  int64_t                        startTokenNativeIndex;
+  int64_t                        startTokenNativeIndex = 0;
   int64_t                        endTokenNativeIndex;
   marpaXml_featureAndVersion_t **featureAndVersionpp = NULL;
   size_t                         featureAndVersionSizel = 0;
@@ -2270,7 +2292,7 @@ static C_INLINE marpaXml_boolean_t _marpaXml_featuresWhereClause(marpaXml_String
   UChar                         *uCharp;
   marpaXml_String_t            **stringpp;
   size_t                         i;
-  char                          *fcts = "_marpaXml_featuresWhereClause";
+  const char                    *fcts = "_marpaXml_featuresWhereClause";
   char                          *wheres;
   size_t                         wherel;
 
@@ -2352,7 +2374,8 @@ static C_INLINE marpaXml_boolean_t _marpaXml_featuresWhereClause(marpaXml_String
               rcb = marpaXml_false;
               break;
             }
-            *stringpp = marpaXml_String_newFromAnyAndByteLengthAndCharset((char *) uCharp, uCharByteLengthi, NULL, &marpaXml_String_Option); 
+	    /* ICU's UChar is using machine native endianness. */
+            *stringpp = marpaXml_String_newFromAnyAndByteLengthAndCharset((char *) uCharp, uCharByteLengthi, _marpaXml_UTF16_Encodings, &_marpaXml_String_globalOption); 
             free(uCharp);
             if (*stringpp == NULL) {
               free(uCharp);
@@ -2423,13 +2446,13 @@ static C_INLINE marpaXml_boolean_t _marpaXml_featuresWhereClause(marpaXml_String
       for (i = 0; i < featureAndVersionWantedSizel; i++) {
         if (featureAndVersionpp[i]->featurep != NULL) {
           if (strlen(wheres) > 0) {
-            _marpaXml_snprintf(wheres + strlen(wheres), sizeof(char) * (wherel - strlen(wheres)), _MARPAXML_AND);
+            _marpaXml_snprintf(wheres + strlen(wheres), sizeof(char) * (wherel - strlen(wheres)), "%s", _MARPAXML_AND);
           }
           _marpaXml_snprintf(wheres + strlen(wheres), sizeof(char) * (wherel - strlen(wheres)), _MARPAXML_FEATURE_LIKE, marpaXml_String_getUtf8(featureAndVersionpp[i]->featurep));
         }
         if (featureAndVersionpp[i]->versionp != NULL) {
           if (strlen(wheres) > 0) {
-            _marpaXml_snprintf(wheres + strlen(wheres), sizeof(char) * (wherel - strlen(wheres)), _MARPAXML_AND);
+            _marpaXml_snprintf(wheres + strlen(wheres), sizeof(char) * (wherel - strlen(wheres)), "%s", _MARPAXML_AND);
           }
           _marpaXml_snprintf(wheres + strlen(wheres), sizeof(char) * (wherel - strlen(wheres)), _MARPAXML_VERSION_EQ, marpaXml_String_getUtf8(featureAndVersionpp[i]->versionp));
         }
