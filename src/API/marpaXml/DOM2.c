@@ -2293,7 +2293,7 @@ static C_INLINE marpaXml_boolean_t _marpaXml_featuresWhereClause(marpaXml_String
   marpaXml_String_t            **stringpp;
   size_t                         i;
   const char                    *fcts = "_marpaXml_featuresWhereClause";
-  char                          *wheres;
+  char                          *wheres = NULL;
   size_t                         wherel;
 
   /* Spec says this is a space-separated list of: [+]feature [version] */
@@ -2474,6 +2474,10 @@ static C_INLINE marpaXml_boolean_t _marpaXml_featuresWhereClause(marpaXml_String
 
   if (rcb == marpaXml_true) {
     *wheresp = wheres;
+  } else {
+    if (wheres != NULL) {
+      free(wheres);
+    }
   }
 
   return rcb;
