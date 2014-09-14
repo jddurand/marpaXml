@@ -42,6 +42,10 @@ typedef enum {
   _marpaXml_DOMObjects_new_e,
   _marpaXml_DOMObjects_free_e,
 
+  _marpaXml_DOMUtils_new_e,
+  _marpaXml_DOMUtils_vacuum_e,
+  _marpaXml_DOMUtils_free_e,
+
   _marpaXml_DOMStringList_new_e,
   _marpaXml_DOMStringList_item_e,
   _marpaXml_DOMStringList_getLength_e,
@@ -70,6 +74,8 @@ typedef enum {
   _marpaXml_DOMImplementationSource_free_e,
 
   _marpaXml_DOMImplementation_new_e,
+  _marpaXml_DOMImplementation_newFromFeatureAndVersion_e,
+  _marpaXml_DOMImplementation_newFromImplementationName_e,
   _marpaXml_DOMImplementation_hasFeature_e,
   _marpaXml_DOMImplementation_createDocumentType_e,
   _marpaXml_DOMImplementation_createDocument_e,
@@ -122,12 +128,23 @@ typedef int (*_marpaXml_SQLiteExecCallback_t)(void *, int, char **, char **);
 /* DOMObjects should be internal only */
 typedef struct marpaXml_DOMObjects marpaXml_DOMObjects_t;
 marpaXml_DOMObjects_t *marpaXml_DOMObjects_new(char *objectName);
-marpaXml_boolean_t      marpaXml_DOMObjects_free(marpaXml_DOMObjects_t **thisp);
+marpaXml_boolean_t     marpaXml_DOMObjects_free(marpaXml_DOMObjects_t **thisp);
+
+/* DOMUtils should be internal only */
+typedef struct marpaXml_DOMUtils marpaXml_DOMUtils_t;
+marpaXml_DOMUtils_t *marpaXml_DOMUtils_new(void);
+marpaXml_boolean_t   marpaXml_DOMUtils_free(marpaXml_DOMUtils_t **thisp);
+
+/* DOMImplementation constructor and desctructor should be internal only */
+marpaXml_DOMImplementation_t *marpaXml_DOMImplementation_new(void);
+marpaXml_boolean_t            marpaXml_DOMImplementation_newFromFeatureAndVersion(marpaXml_String_t *featurep, marpaXml_String_t *versionp, marpaXml_DOMImplementation_t **rcp);
+marpaXml_boolean_t            marpaXml_DOMImplementation_newFromImplementationName(marpaXml_String_t *implementationNamep, marpaXml_DOMImplementation_t **rcp);
 
 /* For the API */
 struct marpaXml_DOMException  { sqlite3_int64 id; };
 struct marpaXml_DOMError      { sqlite3_int64 id; };
 struct marpaXml_DOMObjects    { sqlite3_int64 id; };
+struct marpaXml_DOMUtils      { sqlite3_int64 id; };
 struct marpaXml_DOMStringList {
   sqlite3_int64          id;
   marpaXml_DOMObjects_t *DOMObjectsp;
@@ -148,11 +165,8 @@ struct marpaXml_DOMImplementationList {
   char                  *cachedUntilFreeSqls[__marpaXml_stmt_max_e];  /* Ditto */
 };
 
-struct marpaXml_DOMImplementationSource {
-  sqlite3_int64 id;
-  char         *whereStatement;
-};
-struct marpaXml_DOMImplementation         { sqlite3_int64 id; };
+struct marpaXml_DOMImplementationSource   { sqlite3_int64 id; };
+struct marpaXml_DOMImplementation         { sqlite3_int64 id; const char *implementationNames; };
 
 typedef struct marpaXml_featureAndVersion {
   marpaXml_String_t *featurep;
@@ -169,6 +183,7 @@ typedef struct marpaXml_featureAndVersion {
 #define _MARPAXML_FEATURE_LIKE         " (feature LIKE '%s') "
 #define _MARPAXML_AND                  " AND "
 #define _MARPAXML_VERSION_EQ           " (version = '%s') "
+#define _MARPAXML_INTERSECT            " INTERSECT "
 #ifdef _WIN32
 #define _marpaXml_snprintf(p, s, fmt, ...)  _snprintf_s(p, s, _TRUNCATE, fmt, __VA_ARGS__)
 #else
@@ -177,7 +192,8 @@ typedef struct marpaXml_featureAndVersion {
 /* Endianness detection - reference: http://www.ibm.com/developerworks/aix/library/au-endianc/ */
 #define _MARPAXML_LITTLE_ENDIAN 0
 #define _MARPAXML_BIG_ENDIAN    1
-
+#define _MARPAXML_VACUUM_FREQUENCY 10000
+#define _MARPAXML_SELECT_DISTINCT_implementationName_FROM_DOMImplementation_WHERE " SELECT DISTINCT implementationName FROM DOMImplementation WHERE "
 static C_INLINE void *sqlite3_column_ptr(sqlite3_stmt*, int iCol);
 
 /* Any API call must have these macros surrounding database access */
@@ -660,19 +676,22 @@ static _marpaXml_stmt_t _marpaXml_stmt[] = {
   { NULL, marpaXml_false, marpaXml_true,  marpaXml_false, marpaXml_true,  _marpaXml_DOMObjects_new_e,             "INSERT INTO DOMObjects (objectName) VALUES (?1)" },
   { NULL, marpaXml_false, marpaXml_true,  marpaXml_false, marpaXml_false, _marpaXml_DOMObjects_free_e,            "DELETE FROM DOMObjects WHERE (id = ?1)" },
 
+  /* DOMUtils: SQLite oriented statements */
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMUtils_new_e,               "PRAGMA _marpaXml_DOMUtils_new_e; /* No op */" },
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMUtils_vacuum_e,            "VACUUM" },
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMUtils_free_e,              "PRAGMA _marpaXml_DOMUtils_free_e; /* No op */" },
+
   /* DOMStringList : we use the temp namespace so that main is not changed */
-  { NULL, marpaXml_true,  marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMStringList_new_e,          "CREATE TEMPORARY VIEW DOMStringList%lld AS "
-                                                                                                                  "  SELECT item, (SELECT COUNT(*) FROM DOMString b WHERE a.id >= b.id) AS _order FROM DOMString a" },
-  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMStringList_item_e,         "SELECT COALESCE((SELECT item FROM DOMStringList%lld WHERE (_order = ?1 + 1)), NULL)" },
+  { NULL, marpaXml_true,  marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMStringList_new_e,          "CREATE TEMPORARY VIEW DOMStringList%lld AS SELECT item FROM DOMString" },
+  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMStringList_item_e,         "SELECT COALESCE((SELECT item FROM DOMStringList%lld LIMIT 1 OFFSET ?1), NULL)" },
   { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMStringList_getLength_e,    "SELECT COUNT(*) FROM DOMStringList%lld" },
   { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMStringList_contains_e,     "SELECT COALESCE((SELECT 1 FROM DOMStringList%lld WHERE (item = ?1)), 0)" },
   { NULL, marpaXml_true,  marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMStringList_free_e,         "DROP VIEW DOMStringList%lld" },
 
   /* NameList : we use the temp namespace so that main is not changed */
-  { NULL, marpaXml_true,  marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_NameList_new_e,               "CREATE TEMPORARY VIEW NameList%lld AS "
-                                                                                                                  "  SELECT name, namespaceURI, (SELECT COUNT(*) FROM Node b WHERE a.id >= b.id) AS _order FROM Node a" },
-  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_NameList_getName_e,           "SELECT COALESCE((SELECT name FROM NameList%lld WHERE (_order = ?1 + 1)), NULL)" },
-  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_NameList_getNamespaceURI_e,   "SELECT COALESCE((SELECT namespaceURI FROM NameList%lld WHERE (_order = ?1 + 1)), NULL)" },
+  { NULL, marpaXml_true,  marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_NameList_new_e,               "CREATE TEMPORARY VIEW NameList%lld AS SELECT name, namespaceURI FROM Node" },
+  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_NameList_getName_e,           "SELECT COALESCE((SELECT name FROM NameList%lld LIMIT 1 OFFSET ?1), NULL)" },
+  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_NameList_getNamespaceURI_e,   "SELECT COALESCE((SELECT namespaceURI FROM NameList%lld LIMIT 1 OFFSET ?1), NULL)" },
   { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_NameList_getLength_e,         "SELECT COUNT(*) FROM NameList%lld" },
   { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_NameList_contains_e,          "SELECT COALESCE((SELECT 1 FROM NameList%lld WHERE (name = ?1)), 0)" },
   { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_NameList_containsNS_e,        "SELECT COALESCE((SELECT 1 FROM NameList%lld WHERE (namespaceURI = ?1 AND name = ?2)), 0)" },
@@ -683,20 +702,21 @@ static _marpaXml_stmt_t _marpaXml_stmt[] = {
   { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_Node_free_e,                  "PRAGMA _marpaXml_Node_free_e; /* No op */" },
 
   /* DOMImplementationList */
-  { NULL, marpaXml_true,  marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementationList_new_e,  "CREATE TEMPORARY VIEW DOMImplementationList%lld AS "
-                                                                                                                  "  SELECT id, (SELECT COUNT(*) FROM DOMImplementation b WHERE a.id >= b.id) AS _order FROM DOMImplementation a" },
-  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMImplementationList_item_e, "SELECT COALESCE((SELECT id FROM DOMImplementationList%lld WHERE (_order = ?1 + 1)), NULL)" },
+  { NULL, marpaXml_true,  marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementationList_new_e,  "CREATE TEMPORARY VIEW DOMImplementationList%lld AS SELECT DISTINCT implementationName FROM DOMImplementation" },
+  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMImplementationList_item_e, "SELECT COALESCE((SELECT implementationName FROM DOMImplementationList%lld LIMIT 1 OFFSET ?1), NULL)" },
   { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMImplementationList_getLength_e,    "SELECT COUNT(*) FROM DOMImplementationList%lld" },
   { NULL, marpaXml_true,  marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementationList_free_e, "DROP VIEW DOMImplementationList%lld" },
 
   /* DOMImplementationSource */
   { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementationSource_new_e,  "PRAGMA _marpaXml_DOMImplementationSource_new_e; /* No op */" },
-  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementationSource_getDOMImplementation_e,  "PRAGMA _marpaXml_DOMImplementationSource_getDOMImplementation_e; /* TO DO */" },
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMImplementationSource_getDOMImplementation_e,  "PRAGMA _marpaXml_DOMImplementationSource_getDOMImplementation_e; /* Implemented as an exec() */" },
   { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementationSource_getDOMImplementationList_e,  "PRAGMA _marpaXml_DOMImplementationSource_getDOMImplementationList_e; /* TO DO */" },
   { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementationSource_free_e, "PRAGMA _marpaXml_DOMImplementationSource_free_e; /* No op */" },
 
   /* DOMImplementation */
-  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementation_new_e,  "PRAGMA _marpaXml_DOMImplementation_new_e; /* No op */" },
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementation_new_e,        "PRAGMA _marpaXml_DOMImplementation_new_e; /* No op */" },
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMImplementation_newFromFeatureAndVersion_e,  "SELECT id FROM DOMImplementation WHERE ((feature LIKE ?1) AND ((version IS NULL) OR (version = ?2))) LIMIT 1; /* Internal */" },
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMImplementation_newFromImplementationName_e,  "SELECT id FROM DOMImplementation WHERE (implementationName = ?1) LIMIT 1; /* Internal */" },
   { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementation_hasFeature_e,  "SELECT COALESCE((SELECT 1 FROM DOMImplementation WHERE ((feature LIKE ?1) AND ((version IS NULL) OR (version = ?2)))), 0)" },
   { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementation_createDocumentType_e,  "PRAGMA _marpaXml_DOMImplementation_createDocumentType_e; /* TO DO */" },
   { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementation_createDocument_e,  "PRAGMA _marpaXml_DOMImplementation_createDocument_e; /* TO DO */" },
@@ -729,16 +749,16 @@ static _marpaXml_init_t _marpaXml_init[] = {
   {
     /* The DOM Level 3 Core module is backward compatible with the DOM Level 2 Core [DOM Level 2 Core] module, */
     "DELETE FROM DOMImplementation; "
-    "INSERT INTO DOMImplementation (feature, version) VALUES ('Core', '3.0'); "
-    "INSERT INTO DOMImplementation (feature, version) VALUES ('Core', '2.0'); "
-    "INSERT INTO DOMImplementation (feature, version) VALUES ('Core', ''); "
-    "INSERT INTO DOMImplementation (feature, version) VALUES ('Core', NULL); "
+    "INSERT INTO DOMImplementation (feature, version, implementationName) VALUES ('Core', '3.0', 'marpaXml'); "
+    "INSERT INTO DOMImplementation (feature, version, implementationName) VALUES ('Core', '2.0', 'marpaXml'); "
+    "INSERT INTO DOMImplementation (feature, version, implementationName) VALUES ('Core', '', 'marpaXml'); "
+    "INSERT INTO DOMImplementation (feature, version, implementationName) VALUES ('Core', NULL, 'marpaXml'); "
     /* The DOM Level 3 XML module is backward compatible with the DOM Level 2 XML [DOM Level 2 Core] and DOM Level 1 XML [DOM Level 1] modules */
-    "INSERT INTO DOMImplementation (feature, version) VALUES ('XML', '3.0'); "
-    "INSERT INTO DOMImplementation (feature, version) VALUES ('XML', '2.0'); "
-    "INSERT INTO DOMImplementation (feature, version) VALUES ('XML', '1.0'); "
-    "INSERT INTO DOMImplementation (feature, version) VALUES ('XML', ''); "
-    "INSERT INTO DOMImplementation (feature, version) VALUES ('XML', NULL); "
+    "INSERT INTO DOMImplementation (feature, version, implementationName) VALUES ('XML', '3.0', 'marpaXml'); "
+    "INSERT INTO DOMImplementation (feature, version, implementationName) VALUES ('XML', '2.0', 'marpaXml'); "
+    "INSERT INTO DOMImplementation (feature, version, implementationName) VALUES ('XML', '1.0', 'marpaXml'); "
+    "INSERT INTO DOMImplementation (feature, version, implementationName) VALUES ('XML', '', 'marpaXml'); "
+    "INSERT INTO DOMImplementation (feature, version, implementationName) VALUES ('XML', NULL, 'marpaXml'); "
   },
   {
     "PRAGMA integrity_check;"
@@ -1651,24 +1671,77 @@ MARPAXML_GENERIC_NEW_API(DOMImplementationSource,                   /* class */
 /* --------------------------------------------------------------- */
 /* marpaXml_DOMImplementationSource_getDOMImplementation           */
 /* --------------------------------------------------------------- */
+static C_INLINE marpaXml_boolean_t _marpaXml_DOMImplementation_newFromImplementationName(marpaXml_String_t *implementationNamep, marpaXml_DOMImplementation_t **rcp);
+static C_INLINE marpaXml_boolean_t _marpaXml_DOMImplementation_free(marpaXml_DOMImplementation_t **thispp);
+typedef struct _marpaXml_DOMImplementationSource_getDOMImplementation_callback {
+  unsigned short *nbRowsp;
+  marpaXml_String_t *implementationNamep;
+} _marpaXml_DOMImplementationSource_getDOMImplementation_callback_t;
+static C_INLINE int                _marpaXml_DOMImplementationSource_getDOMImplementation_callback(void *datap, int nbColumnsi, char **stringsp, char **columnNamesp) {
+  const char *fcts = "_marpaXml_DOMImplementationSource_getDOMImplementation_callback";
+  _marpaXml_DOMImplementationSource_getDOMImplementation_callback_t *_marpaXml_DOMImplementationSource_getDOMImplementation_callbackp = (_marpaXml_DOMImplementationSource_getDOMImplementation_callback_t *) datap;
+  int rc = 0;
+
+  if (nbColumnsi != 1) {
+    MARPAXML_ERRORX("[%s] Too many columns: %d\n", fcts, nbColumnsi);
+    rc = 1;
+  } else {
+    MARPAXML_TRACEX("[%s] Got column \"%s\"\n", fcts, columnNamesp[0]);
+    if (++(*(_marpaXml_DOMImplementationSource_getDOMImplementation_callbackp->nbRowsp)) > 1) {
+      rc = 1;
+    } else {
+      _marpaXml_DOMImplementationSource_getDOMImplementation_callbackp->implementationNamep = marpaXml_String_newFromUTF8(stringsp[0], &_marpaXml_String_globalOption);
+      if (_marpaXml_DOMImplementationSource_getDOMImplementation_callbackp->implementationNamep == NULL) {
+	rc = 1;
+      }
+    }
+  }
+
+  return rc;
+}
+
 MARPAXML_GENERIC_METHOD_API(DOMImplementationSource,                /* class */
                             getDOMImplementation,                   /* method */
                             marpaXml_DOMImplementationSource_t *thisp MARPAXML_ARG(marpaXml_String_t *featuresp) MARPAXML_ARG(marpaXml_DOMImplementation_t **rcp), /* decl */
                             thisp MARPAXML_ARG(featuresp) MARPAXML_ARG(rcp),   /* args */
 
-			    char *wheres;
-			    if (_marpaXml_featuresWhereClause(featuresp, &wheres) == marpaXml_false) {
-			      return marpaXml_false;
+			    char *execStatement = NULL;
+			    _marpaXml_DOMImplementationSource_getDOMImplementation_callback_t data;
+			    data.nbRowsp = &nbRows;
+			    data.implementationNamep = NULL;
+			    {
+			      if (_marpaXml_featuresWhereClause(featuresp, &(execStatement)) == marpaXml_false) {
+				return marpaXml_false;
+			      }
 			    }, /* prolog */
 
-                            marpaXml_true,                          /* bindingResult */
-                            int,                                    /* dbType - no op */
-                            int,                                    /* dbMapType - no op */
-                            {rcDb = rcDb;},                         /* rcDb2rc */
-                            {*rcp = NULL;},                         /* defaultRc */
+                            _marpaXml_exec(_marpaXml_dbp, execStatement, &_marpaXml_DOMImplementationSource_getDOMImplementation_callback, &data) == marpaXml_true, /* bindingResult */
+                            text,                                   /* dbType */
+                            const unsigned char *,                  /* dbMapType */
+			    {
+			      rcDb = rcDb;                 /* No op */
+			    },                         /* rcDb2rc */
+			    {
+			      *rcp = NULL;
+			    },                         /* defaultRc */
                             marpaXml_false,                         /* changeId */
-                                                                    /* epilog */
-                            )
+			    {
+			      if (rcb == marpaXml_true) {
+				marpaXml_DOMImplementation_t *DOMImplementationp;
+				if (_marpaXml_DOMImplementation_newFromImplementationName(data.implementationNamep, &DOMImplementationp) == marpaXml_false) {
+				  rcb = marpaXml_false;
+				} else {
+				  *rcp = DOMImplementationp;
+				}
+			      }
+			      if (data.implementationNamep != NULL) {
+				marpaXml_String_free(&(data.implementationNamep));
+			      }
+			      if (execStatement != NULL) {
+				free(execStatement);
+			      }
+			    }                                        /* epilog */
+			    )
 
 /* --------------------------------------------------------------- */
 /* marpaXml_DOMImplementationSource_getDOMImplementationList       */
@@ -1697,6 +1770,67 @@ MARPAXML_GENERIC_NEW_API(DOMImplementation,                         /* class */
 			 ,                                          /* extraInit */
 			 marpaXml_true                              /* bindingResult */
 			 )
+
+/* --------------------------------------------------------------- */
+/* marpaXml_DOMImplementation_newFromImplementationName            */
+/* --------------------------------------------------------------- */
+MARPAXML_GENERIC_METHOD_API(DOMImplementation,                       /* class */
+                            newFromImplementationName,               /* method */
+                            marpaXml_String_t *implementationNamep MARPAXML_ARG(marpaXml_DOMImplementation_t **rcp), /* decl */
+                            implementationNamep MARPAXML_ARG(rcp),   /* args */
+			    marpaXml_DOMImplementation_t *thisp = _marpaXml_DOMImplementation_new();
+			    {
+			      if (thisp == NULL) {
+				return marpaXml_false;
+			      }
+			    },   /* prolog */
+                            _marpaXml_bind_string(sqliteStmtp, 1, implementationNamep), /* bindingResult */
+                            int64,                                   /* dbType */
+                            sqlite3_int64,                           /* dbMapType */
+			    {
+			      thisp->id = rcDb;
+			    },                         /* rcDb2rc */
+                            {*rcp = thisp;},                         /* defaultRc */
+                            marpaXml_false,                         /* changeId */
+			    {
+			      if (rcb == marpaXml_false) {
+				if (thisp != NULL) {
+				  _marpaXml_DOMImplementation_free(&thisp);
+				}
+			      }
+			    }                                        /* epilog */
+                            )
+
+/* --------------------------------------------------------------- */
+/* marpaXml_DOMImplementation_newFromFeatureAndVersion             */
+/* --------------------------------------------------------------- */
+MARPAXML_GENERIC_METHOD_API(DOMImplementation,                       /* class */
+                            newFromFeatureAndVersion,               /* method */
+                            marpaXml_String_t *featurep MARPAXML_ARG(marpaXml_String_t *versionp) MARPAXML_ARG(marpaXml_DOMImplementation_t **rcp), /* decl */
+                            featurep MARPAXML_ARG(versionp) MARPAXML_ARG(rcp),   /* args */
+			    marpaXml_DOMImplementation_t *thisp = _marpaXml_DOMImplementation_new();
+			    {
+			      if (thisp == NULL) {
+				return marpaXml_false;
+			      }
+			    },   /* prolog */
+                            ((_marpaXml_bind_string(sqliteStmtp, 1, featurep) == marpaXml_true) &&
+			     (_marpaXml_bind_string(sqliteStmtp, 2, versionp) == marpaXml_true)) ? marpaXml_true : marpaXml_false, /* bindingResult */
+                            int64,                                   /* dbType */
+                            sqlite3_int64,                           /* dbMapType */
+			    {
+			      thisp->id = rcDb;
+			    },                         /* rcDb2rc */
+                            {*rcp = thisp;},                         /* defaultRc */
+                            marpaXml_false,                         /* changeId */
+			    {
+			      if (rcb == marpaXml_false) {
+				if (thisp != NULL) {
+				  _marpaXml_DOMImplementation_free(&thisp);
+				}
+			      }
+			    }                                        /* epilog */
+                            )
 
 /* --------------------------------------------------------------- */
 /* marpaXml_DOMImplementation_hasFeature                           */
@@ -1752,7 +1886,7 @@ MARPAXML_GENERIC_METHOD_API(DOMImplementation,                      /* class */
                             )
 
 /* --------------------------------------------------------------- */
-/* marpaXml_DOMImplementation_createDocument                       */
+/* marpaXml_DOMImplementation_free                                 */
 /* --------------------------------------------------------------- */
 MARPAXML_GENERIC_FREE_API(DOMImplementation,                        /* class */
                           marpaXml_false                            /* impactOnDb */
@@ -1779,6 +1913,30 @@ MARPAXML_GENERIC_NEW_API(Node,                                      /* class */
 /* Note: Node deletion does not mean delete from the DB            */
 /* --------------------------------------------------------------- */
 MARPAXML_GENERIC_FREE_API(Node,                                     /* class */
+                          marpaXml_false                            /* impactOnDb */
+			  )
+
+
+/*******************************************************************/
+/*                                                                 */
+/*                         DOMUtils                                */
+/*                                                                 */
+/*******************************************************************/
+/* --------------------------------------------------------------- */
+/* marpaXml_DOMUtils_new                                           */
+/* --------------------------------------------------------------- */
+MARPAXML_GENERIC_NEW_API(DOMUtils,                                  /* class */
+                         void,                                      /* decl */
+                         ,                                          /* args */
+			 ,                                          /* extraInit */
+			 marpaXml_true                              /* bindingResult */
+			 )
+
+/* --------------------------------------------------------------- */
+/* marpaXml_DOMUtils_free                                              */
+/* Note: DOMUtils deletion does not mean delete from the DB            */
+/* --------------------------------------------------------------- */
+MARPAXML_GENERIC_FREE_API(DOMUtils,                                 /* class */
                           marpaXml_false                            /* impactOnDb */
 			  )
 
@@ -2428,30 +2586,37 @@ static C_INLINE marpaXml_boolean_t _marpaXml_featuresWhereClause(marpaXml_String
     /* We construct on-the-fly the WHERE statement of the temporary view */
     wherel = 0;
     for (i = 0; i < featureAndVersionWantedSizel; i++) {
+      if (i > 0) {
+	wherel += strlen(_MARPAXML_INTERSECT);
+      }
+      wherel += strlen(_MARPAXML_SELECT_DISTINCT_implementationName_FROM_DOMImplementation_WHERE);
       if (featureAndVersionpp[i]->featurep != NULL) {
-        if (wherel > 0) { wherel += strlen(_MARPAXML_AND); }
         wherel += strlen(_MARPAXML_FEATURE_LIKE) - 2 + strlen(marpaXml_String_getUtf8(featureAndVersionpp[i]->featurep));
       }
       if (featureAndVersionpp[i]->versionp != NULL) {
-        if (wherel > 0) { wherel += strlen(_MARPAXML_AND); }
+	if (featureAndVersionpp[i]->featurep != NULL) {
+	  wherel += strlen(_MARPAXML_AND);;
+	}
         wherel += strlen(_MARPAXML_VERSION_EQ) - 2 + strlen(marpaXml_String_getUtf8(featureAndVersionpp[i]->versionp));
       }
     }
-    wherel++;
+    wherel++; /* For the null byte */
+
     if ((wheres = malloc(sizeof(char) * wherel)) == NULL) {
       MARPAXML_ERRORX("malloc(): %s", strerror(errno));
       rcb = marpaXml_false;
     } else {
       wheres[0] = '\0';
       for (i = 0; i < featureAndVersionWantedSizel; i++) {
+	if (i > 0) {
+	  _marpaXml_snprintf(wheres + strlen(wheres), sizeof(char) * (wherel - strlen(wheres)), "%s", _MARPAXML_INTERSECT);
+	}
+	_marpaXml_snprintf(wheres + strlen(wheres), sizeof(char) * (wherel - strlen(wheres)), "%s", _MARPAXML_SELECT_DISTINCT_implementationName_FROM_DOMImplementation_WHERE);
         if (featureAndVersionpp[i]->featurep != NULL) {
-          if (strlen(wheres) > 0) {
-            _marpaXml_snprintf(wheres + strlen(wheres), sizeof(char) * (wherel - strlen(wheres)), "%s", _MARPAXML_AND);
-          }
           _marpaXml_snprintf(wheres + strlen(wheres), sizeof(char) * (wherel - strlen(wheres)), _MARPAXML_FEATURE_LIKE, marpaXml_String_getUtf8(featureAndVersionpp[i]->featurep));
         }
         if (featureAndVersionpp[i]->versionp != NULL) {
-          if (strlen(wheres) > 0) {
+	  if (featureAndVersionpp[i]->featurep != NULL) {
             _marpaXml_snprintf(wheres + strlen(wheres), sizeof(char) * (wherel - strlen(wheres)), "%s", _MARPAXML_AND);
           }
           _marpaXml_snprintf(wheres + strlen(wheres), sizeof(char) * (wherel - strlen(wheres)), _MARPAXML_VERSION_EQ, marpaXml_String_getUtf8(featureAndVersionpp[i]->versionp));
