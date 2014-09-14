@@ -47,7 +47,7 @@ char *messageBuilder(const char *fmts, ...) {
 /*********************/
 char *messageBuilder_ap(const char *fmts, va_list ap) {
   int     n;
-  size_t  size = 100;     /* Guess we need no more than 100 bytes */
+  size_t  size = 4096;     /* Guess we need no more than 4096 bytes */
   char   *p, *np;
 #ifdef VA_COPY
   va_list ap2;

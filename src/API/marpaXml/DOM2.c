@@ -759,13 +759,11 @@ static _marpaXml_init_t _marpaXml_init[] = {
   {
     /* The DOM Level 3 Core module is backward compatible with the DOM Level 2 Core [DOM Level 2 Core] module, */
     "DELETE FROM DOMImplementation; "
-    "INSERT INTO DOMImplementation (feature, version, implementationName) SELECT 'Core', '3.0', 'marpaXml2' WHERE NOT EXISTS (SELECT 1 FROM DOMImplementation WHERE ((feature LIKE 'Core') AND (version = '3.0') AND (implementationName LIKE 'marpaXml2'))); "
     "INSERT INTO DOMImplementation (feature, version, implementationName) SELECT 'Core', '3.0', 'marpaXml' WHERE NOT EXISTS (SELECT 1 FROM DOMImplementation WHERE ((feature LIKE 'Core') AND (version = '3.0') AND (implementationName LIKE 'marpaXml'))); "
     "INSERT INTO DOMImplementation (feature, version, implementationName) SELECT 'Core', '2.0', 'marpaXml' WHERE NOT EXISTS (SELECT 1 FROM DOMImplementation WHERE ((feature LIKE 'Core') AND (version = '2.0') AND (implementationName LIKE 'marpaXml'))); "
     "INSERT INTO DOMImplementation (feature, version, implementationName) SELECT 'Core', '', 'marpaXml' WHERE NOT EXISTS (SELECT 1 FROM DOMImplementation WHERE ((feature LIKE 'Core') AND (version = '') AND (implementationName LIKE 'marpaXml'))); "
     "INSERT INTO DOMImplementation (feature, version, implementationName) SELECT 'Core', NULL, 'marpaXml' WHERE NOT EXISTS (SELECT 1 FROM DOMImplementation WHERE ((feature LIKE 'Core') AND (version IS NULL) AND (implementationName LIKE 'marpaXml'))); "
     /* The DOM Level 3 XML module is backward compatible with the DOM Level 2 XML [DOM Level 2 Core] and DOM Level 1 XML [DOM Level 1] modules */
-    "INSERT INTO DOMImplementation (feature, version, implementationName) SELECT 'XML', '3.0', 'marpaXml2' WHERE NOT EXISTS (SELECT 1 FROM DOMImplementation WHERE ((feature LIKE 'XML') AND (version = '3.0') AND (implementationName LIKE 'marpaXml2'))); "
     "INSERT INTO DOMImplementation (feature, version, implementationName) SELECT 'XML', '3.0', 'marpaXml' WHERE NOT EXISTS (SELECT 1 FROM DOMImplementation WHERE ((feature LIKE 'XML') AND (version = '3.0') AND (implementationName LIKE 'marpaXml'))); "
     "INSERT INTO DOMImplementation (feature, version, implementationName) SELECT 'XML', '2.0', 'marpaXml' WHERE NOT EXISTS (SELECT 1 FROM DOMImplementation WHERE ((feature LIKE 'XML') AND (version = '2.0') AND (implementationName LIKE 'marpaXml'))); "
     "INSERT INTO DOMImplementation (feature, version, implementationName) SELECT 'XML', '1.0', 'marpaXml' WHERE NOT EXISTS (SELECT 1 FROM DOMImplementation WHERE ((feature LIKE 'XML') AND (version = '1.0') AND (implementationName LIKE 'marpaXml'))); "
@@ -808,10 +806,10 @@ static C_INLINE marpaXml_boolean_t _marpaXml_bind_null(sqlite3_stmt* stmtp, int 
 static C_INLINE marpaXml_boolean_t _marpaXml_step(sqlite3_stmt* stmtp);
 static C_INLINE void               _marpaXml_xxhash_xFunc(sqlite3_context *pCtx, int nArg, sqlite3_value **apArg);
 static C_INLINE void               _marpaXml_xxhash_xDestroy(void *p);
-static C_INLINE marpaXml_boolean_t _marpaXml_getStmt(void *objp, _marpaXml_stmt_e stmt, char **sqlsp, sqlite3_stmt **sqliteStmtpp);
-static C_INLINE void               _marpaXml_freeStmt(void *obj, _marpaXml_stmt_e stmt, char **sqlsp, sqlite3_stmt **sqliteStmtpp);
+static C_INLINE marpaXml_boolean_t _marpaXml_getStmt(void *objp, _marpaXml_stmt_e stmte, char **sqlsp, sqlite3_stmt **sqliteStmtpp);
+static C_INLINE void               _marpaXml_freeStmt(void *obj, _marpaXml_stmt_e stmte, char **sqlsp, sqlite3_stmt **sqliteStmtpp);
 static C_INLINE void               _marpaXml_freeDynamicCachedStmt(void *obj, char **sqlsp, sqlite3_stmt **sqliteStmtpp);
-static C_INLINE marpaXml_boolean_t _marpaXml_generateStmt(void *objp, _marpaXml_stmt_e stmt, char **sqlsp, sqlite3_stmt **sqliteStmtpp);
+static C_INLINE marpaXml_boolean_t _marpaXml_generateStmt(void *objp, _marpaXml_stmt_e stmte, char **sqlsp, sqlite3_stmt **sqliteStmtpp);
 static C_INLINE marpaXml_boolean_t _marpaXml_featuresWhereClause(_marpaXml_stmt_e stmte, marpaXml_String_t *requestp, char **wheresp);
 
 /*******************************************************************/
@@ -2048,13 +2046,13 @@ MARPAXML_GENERIC_FREE_API(DOMUtils,                                 /* class */
 /*******************************************************************/
 /* _marpaXml_getStmt                                               */
 /*******************************************************************/
-static C_INLINE marpaXml_boolean_t _marpaXml_getStmt(void *objp, _marpaXml_stmt_e stmt, char **sqlsp, sqlite3_stmt **sqliteStmtpp) {
-  if (_marpaXml_stmt[stmt].generatedb == marpaXml_false) {
-    *sqlsp = (char *) _marpaXml_stmt[stmt].sql;
-    *sqliteStmtpp = _marpaXml_stmt[stmt].stmt;
+static C_INLINE marpaXml_boolean_t _marpaXml_getStmt(void *objp, _marpaXml_stmt_e stmte, char **sqlsp, sqlite3_stmt **sqliteStmtpp) {
+  if (_marpaXml_stmt[stmte].generatedb == marpaXml_false) {
+    *sqlsp = (char *) _marpaXml_stmt[stmte].sql;
+    *sqliteStmtpp = _marpaXml_stmt[stmte].stmt;
     return marpaXml_true;
   } else {
-    return _marpaXml_generateStmt(objp, stmt, sqlsp, sqliteStmtpp);
+    return _marpaXml_generateStmt(objp, stmte, sqlsp, sqliteStmtpp);
   }
 }
 
@@ -2072,7 +2070,7 @@ static C_INLINE void _marpaXml_freeDynamicCachedStmt(void *obj, char **sqlsp, sq
 /*******************************************************************/
 /* _marpaXml_freeStmt                                              */
 /*******************************************************************/
-static C_INLINE void _marpaXml_freeStmt(void *objp, _marpaXml_stmt_e stmt, char **sqlsp, sqlite3_stmt **sqliteStmtpp) {
+static C_INLINE void _marpaXml_freeStmt(void *objp, _marpaXml_stmt_e stmte, char **sqlsp, sqlite3_stmt **sqliteStmtpp) {
   marpaXml_DOMStringList_t             *DOMStringListp;
   marpaXml_NameList_t                  *NameListp;
   marpaXml_DOMImplementationList_t     *DOMImplementationListp;
@@ -2081,16 +2079,16 @@ static C_INLINE void _marpaXml_freeStmt(void *objp, _marpaXml_stmt_e stmt, char 
   _marpaXml_cachedStmtExclusiveRange_t *cachedStmtp;
   int                                   i;
 
-  if (_marpaXml_stmt[stmt].generatedb == marpaXml_true) {
+  if (_marpaXml_stmt[stmte].generatedb == marpaXml_true) {
 
     if (
-	((stmt > _marpaXml_DOMStringList_new_e) && (stmt < _marpaXml_DOMStringList_free_e)) ||
-        ((stmt > _marpaXml_NameList_new_e) && (stmt < _marpaXml_NameList_free_e)) ||
-        ((stmt > _marpaXml_DOMImplementationList_new_e) && (stmt < _marpaXml_DOMImplementationList_free_e))
+	((stmte > _marpaXml_DOMStringList_new_e)         && (stmte < _marpaXml_DOMStringList_free_e)) ||
+        ((stmte > _marpaXml_NameList_new_e)              && (stmte < _marpaXml_NameList_free_e)) ||
+        ((stmte > _marpaXml_DOMImplementationList_new_e) && (stmte < _marpaXml_DOMImplementationList_free_e))
 	) {
       /* Delayed until free */
     } else {
-      switch (stmt) {
+      switch (stmte) {
       case _marpaXml_DOMStringList_free_e:
         /* Cached dynamic statements */
         DOMStringListp = (marpaXml_DOMStringList_t *) objp;
@@ -2133,7 +2131,7 @@ static C_INLINE void _marpaXml_freeStmt(void *objp, _marpaXml_stmt_e stmt, char 
 /*       stuff: it is using the internal marpaXml_DOMObjects_xxx   */
 /*       whose prototypes are defined by the GENERIC macros upper. */
 /*******************************************************************/
-static C_INLINE marpaXml_boolean_t _marpaXml_generateStmt(void *objp, _marpaXml_stmt_e stmt, char **sqlsp, sqlite3_stmt **sqliteStmtpp) {
+static C_INLINE marpaXml_boolean_t _marpaXml_generateStmt(void *objp, _marpaXml_stmt_e stmte, char **sqlsp, sqlite3_stmt **sqliteStmtpp) {
   marpaXml_boolean_t                    rcb = marpaXml_false;
   char                                 *sqls;
   marpaXml_DOMObjects_t                *DOMObjectsp;
@@ -2146,35 +2144,35 @@ static C_INLINE marpaXml_boolean_t _marpaXml_generateStmt(void *objp, _marpaXml_
   marpaXml_NameList_t                   *NameListp;
   marpaXml_DOMImplementationList_t      *DOMImplementationListp;
 
-  switch (stmt) {
+  switch (stmte) {
   case _marpaXml_DOMStringList_new_e:
   case _marpaXml_NameList_new_e:
   case _marpaXml_DOMImplementationList_new_e:
 
-    if (stmt == _marpaXml_DOMStringList_new_e) {
+    if (stmte == _marpaXml_DOMStringList_new_e) {
       DOMStringListp = (marpaXml_DOMStringList_t *) objp;
       DOMStringListp->DOMObjectsp = DOMObjectsp = _marpaXml_DOMObjects_new((char *) "DOMStringList");
       cachedStmtp = &DOMStringListCachedStmt;
       cachedUntilFreeStmtp = DOMStringListp->cachedUntilFreeStmt;
       cachedUntilFreeSqlsp = DOMStringListp->cachedUntilFreeSqls;
-      sqls = messageBuilder(_marpaXml_stmt[stmt].sql, DOMObjectsp->id);
-    } else if (stmt == _marpaXml_NameList_new_e) {
+      sqls = messageBuilder(_marpaXml_stmt[stmte].sql, DOMObjectsp->id);
+    } else if (stmte == _marpaXml_NameList_new_e) {
       NameListp = (marpaXml_NameList_t *) objp;
       NameListp->DOMObjectsp = DOMObjectsp = _marpaXml_DOMObjects_new((char *) "NameList");
       cachedStmtp = &NameListCachedStmt;
       cachedUntilFreeStmtp = NameListp->cachedUntilFreeStmt;
       cachedUntilFreeSqlsp = NameListp->cachedUntilFreeSqls;
-      sqls = messageBuilder(_marpaXml_stmt[stmt].sql, DOMObjectsp->id);
-    } else if (stmt == _marpaXml_DOMImplementationList_new_e) {
+      sqls = messageBuilder(_marpaXml_stmt[stmte].sql, DOMObjectsp->id);
+    } else if (stmte == _marpaXml_DOMImplementationList_new_e) {
       DOMImplementationListp = (marpaXml_DOMImplementationList_t *) objp;
       DOMImplementationListp->DOMObjectsp = DOMObjectsp = _marpaXml_DOMObjects_new((char *) "DOMImplementationList");
       cachedStmtp = &DOMImplementationListCachedStmt;
       cachedUntilFreeStmtp = DOMImplementationListp->cachedUntilFreeStmt;
       cachedUntilFreeSqlsp = DOMImplementationListp->cachedUntilFreeSqls;
-      sqls = messageBuilder(_marpaXml_stmt[stmt].sql, DOMObjectsp->id, DOMImplementationListp->wheres);
+      sqls = messageBuilder(_marpaXml_stmt[stmte].sql, DOMObjectsp->id, DOMImplementationListp->wheres);
     } else {
       /* Simply impossible */
-      MARPAXML_ERRORX("_marpaXml_generateStmt internal error, stmt=%d, at %s:%d\n", stmt, __FILE__, __LINE__);
+      MARPAXML_ERRORX("_marpaXml_generateStmt internal error, stmt=%d, at %s:%d\n", stmte, __FILE__, __LINE__);
       break;
     }
 
@@ -2207,22 +2205,22 @@ static C_INLINE marpaXml_boolean_t _marpaXml_generateStmt(void *objp, _marpaXml_
   case _marpaXml_NameList_free_e:
   case _marpaXml_DOMImplementationList_free_e:
 
-    if (stmt == _marpaXml_DOMStringList_free_e) {
+    if (stmte == _marpaXml_DOMStringList_free_e) {
       DOMStringListp = (marpaXml_DOMStringList_t *) objp;
       DOMObjectsp = DOMStringListp->DOMObjectsp;
-    } else if (stmt == _marpaXml_NameList_free_e) {
+    } else if (stmte == _marpaXml_NameList_free_e) {
       NameListp = (marpaXml_NameList_t *) objp;
       DOMObjectsp = NameListp->DOMObjectsp;
-    } else if (stmt == _marpaXml_DOMImplementationList_free_e) {
+    } else if (stmte == _marpaXml_DOMImplementationList_free_e) {
       DOMImplementationListp = (marpaXml_DOMImplementationList_t *) objp;
       DOMObjectsp = DOMImplementationListp->DOMObjectsp;
     } else {
       /* Simply impossible again -; */
-      MARPAXML_ERRORX("_marpaXml_generateStmt internal error, stmt=%d, at %s:%d\n", stmt, __FILE__, __LINE__);
+      MARPAXML_ERRORX("_marpaXml_generateStmt internal error, stmt=%d, at %s:%d\n", stmte, __FILE__, __LINE__);
       break;
     }
 
-    if ((sqls = messageBuilder(_marpaXml_stmt[stmt].sql, DOMObjectsp->id)) == messageBuilder_internalErrors()) {
+    if ((sqls = messageBuilder(_marpaXml_stmt[stmte].sql, DOMObjectsp->id)) == messageBuilder_internalErrors()) {
       MARPAXML_ERRORX("%s", sqls);
       /* Free at least DOMObjectsp */
       _marpaXml_DOMObjects_free(&DOMObjectsp);
@@ -2243,50 +2241,50 @@ static C_INLINE marpaXml_boolean_t _marpaXml_generateStmt(void *objp, _marpaXml_
 
   default:
 
-    if ((stmt > _marpaXml_DOMStringList_new_e) && (stmt < _marpaXml_DOMStringList_free_e)) {
+    if ((stmte > _marpaXml_DOMStringList_new_e) && (stmte < _marpaXml_DOMStringList_free_e)) {
       DOMStringListp = (marpaXml_DOMStringList_t *) objp;
       DOMObjectsp = DOMStringListp->DOMObjectsp;
       cachedUntilFreeStmtp = DOMStringListp->cachedUntilFreeStmt;
       cachedUntilFreeSqlsp = DOMStringListp->cachedUntilFreeSqls;
-    } else if ((stmt > _marpaXml_NameList_new_e) && (stmt < _marpaXml_NameList_free_e)) {
+    } else if ((stmte > _marpaXml_NameList_new_e) && (stmte < _marpaXml_NameList_free_e)) {
       NameListp = (marpaXml_NameList_t *) objp;
       DOMObjectsp = NameListp->DOMObjectsp;
       cachedUntilFreeStmtp = NameListp->cachedUntilFreeStmt;
       cachedUntilFreeSqlsp = NameListp->cachedUntilFreeSqls;
-    } else if ((stmt > _marpaXml_DOMImplementationList_new_e) && (stmt < _marpaXml_DOMImplementationList_free_e)) {
+    } else if ((stmte > _marpaXml_DOMImplementationList_new_e) && (stmte < _marpaXml_DOMImplementationList_free_e)) {
       DOMImplementationListp = (marpaXml_DOMImplementationList_t *) objp;
       DOMObjectsp = DOMImplementationListp->DOMObjectsp;
       cachedUntilFreeStmtp = DOMImplementationListp->cachedUntilFreeStmt;
       cachedUntilFreeSqlsp = DOMImplementationListp->cachedUntilFreeSqls;
     } else {
       /* This case means the big array at the top of the file is misconfigured */
-      MARPAXML_ERRORX("_marpaXml_generateStmt internal error, stmt=%d, at %s:%d\n", stmt, __FILE__, __LINE__);
+      MARPAXML_ERRORX("_marpaXml_generateStmt internal error, stmt=%d, at %s:%d\n", stmte, __FILE__, __LINE__);
       break;
     }
 
-    if ((cachedUntilFreeStmtp[stmt] != NULL) &&	(cachedUntilFreeSqlsp[stmt] != NULL)) {
+    if ((cachedUntilFreeStmtp[stmte] != NULL) && (cachedUntilFreeSqlsp[stmte] != NULL)) {
 
-      *sqliteStmtpp = cachedUntilFreeStmtp[stmt];
-      *sqlsp        = cachedUntilFreeSqlsp[stmt];
+      *sqliteStmtpp = cachedUntilFreeStmtp[stmte];
+      *sqlsp        = cachedUntilFreeSqlsp[stmte];
       rcb = marpaXml_true;
 
     } else {
 
-      if ((cachedUntilFreeSqlsp[stmt] = messageBuilder(_marpaXml_stmt[stmt].sql, DOMObjectsp->id)) == messageBuilder_internalErrors()) {
-	MARPAXML_ERRORX("%s", cachedUntilFreeSqlsp[stmt]);
-	cachedUntilFreeSqlsp[stmt] = NULL;
+      if ((cachedUntilFreeSqlsp[stmte] = messageBuilder(_marpaXml_stmt[stmte].sql, DOMObjectsp->id)) == messageBuilder_internalErrors()) {
+	MARPAXML_ERRORX("%s", cachedUntilFreeSqlsp[stmte]);
+	cachedUntilFreeSqlsp[stmte] = NULL;
 	break;
       }
-      if (_marpaXml_prepare(_marpaXml_dbp, cachedUntilFreeSqlsp[stmt], &(cachedUntilFreeStmtp[stmt])) == marpaXml_false) {
-	free(cachedUntilFreeSqlsp[stmt]);
-	cachedUntilFreeSqlsp[stmt] = NULL;
+      if (_marpaXml_prepare(_marpaXml_dbp, cachedUntilFreeSqlsp[stmte], &(cachedUntilFreeStmtp[stmte])) == marpaXml_false) {
+	free(cachedUntilFreeSqlsp[stmte]);
+	cachedUntilFreeSqlsp[stmte] = NULL;
 	break;
       }
 
-      MARPAXML_TRACEX("[%s] %s\n", _MARPAXML_CACHE, cachedUntilFreeSqlsp[stmt]);
+      MARPAXML_TRACEX("[%s] %s\n", _MARPAXML_CACHE, cachedUntilFreeSqlsp[stmte]);
 
-      *sqliteStmtpp = cachedUntilFreeStmtp[stmt];
-      *sqlsp        = cachedUntilFreeSqlsp[stmt];
+      *sqliteStmtpp = cachedUntilFreeStmtp[stmte];
+      *sqlsp        = cachedUntilFreeSqlsp[stmte];
       rcb = marpaXml_true;
     }
 
