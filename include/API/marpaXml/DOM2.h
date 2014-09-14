@@ -34,8 +34,8 @@
   The only exceptions are the marpaXml_DOM_init(), marpaXml_DOM_done() and marpaXml_DOM_release(), that
   are not part of the IDL.
 
-  I could have played with cplus, ooc, etc... but I did not feed I would have gained so much
-  by abstracting and making code less readable, just to have the OO pattern in here.
+  I could have played with cplus, ooc, etc... but I did not feel I would have gained so much
+  by abstracting, just to have the OO pattern in here.
 
 */
 
