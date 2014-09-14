@@ -1443,7 +1443,15 @@ MARPAXML_GENERIC_METHOD_API(DOMStringList,                          /* class */
                             (_marpaXml_bind_int64(sqliteStmtp, 1, (sqlite3_int64) index) == marpaXml_true) ? marpaXml_true : marpaXml_false, /* bindingResult */
                             text,                                   /* dbType */
                             const unsigned char *,                  /* dbMapType */
-                            {*rcp = (rcDb != NULL) ? marpaXml_String_newFromUTF8((char *)rcDb, &_marpaXml_String_globalOption) : NULL;}, /* rcDb2Rc */
+                            {
+			      marpaXml_String_t *itemp;
+			      if (rcDb != NULL) {
+				if ((itemp = marpaXml_String_newFromUTF8((char *)rcDb, &_marpaXml_String_globalOption)) == NULL) {
+				  goto end;
+				}
+				*rcp = itemp;
+			      }
+			    },                                      /* rcDb2Rc */
                             {*rcp = NULL;},                         /* defaultRc */
                             marpaXml_false,                         /* changeId */
                                                                     /* epilog */
@@ -1527,7 +1535,15 @@ MARPAXML_GENERIC_METHOD_API(NameList,                               /* class */
                             (_marpaXml_bind_int64(sqliteStmtp, 1, (sqlite3_int64) index) == marpaXml_true) ? marpaXml_true : marpaXml_false, /* bindingResult */
                             text,                                   /* dbType */
                             const unsigned char *,                  /* dbMapType */
-                            {*rcp = (rcDb != NULL) ? marpaXml_String_newFromUTF8((char *)rcDb, &_marpaXml_String_globalOption) : NULL;}, /* rcDb2Rc */
+                            {
+			      marpaXml_String_t *itemp;
+			      if (rcDb != NULL) {
+				if ((itemp = marpaXml_String_newFromUTF8((char *)rcDb, &_marpaXml_String_globalOption)) == NULL) {
+				  goto end;
+				}
+				*rcp = itemp;
+			      }
+			    },                                      /* rcDb2Rc */
                             {*rcp = NULL;},                         /* defaultRc */
                             marpaXml_false,                         /* changeId */
                                                                     /* epilog */
@@ -1544,7 +1560,15 @@ MARPAXML_GENERIC_METHOD_API(NameList,                               /* class */
                             (_marpaXml_bind_int64(sqliteStmtp, 1, (sqlite3_int64) index) == marpaXml_true) ? marpaXml_true : marpaXml_false, /* bindingResult */
                             text,                                   /* dbType */
                             const unsigned char *,                  /* dbMapType */
-                            {*rcp = (rcDb != NULL) ? marpaXml_String_newFromUTF8((char *)rcDb, &_marpaXml_String_globalOption) : NULL;}, /* rcDb2Rc */
+                            {
+			      marpaXml_String_t *itemp;
+			      if (rcDb != NULL) {
+				if ((itemp = marpaXml_String_newFromUTF8((char *)rcDb, &_marpaXml_String_globalOption)) == NULL) {
+				  goto end;
+				}
+				*rcp = itemp;
+			      }
+			    },                                      /* rcDb2Rc */
                             {*rcp = NULL;},                         /* defaultRc */
                             marpaXml_false,                         /* changeId */
                                                                     /* epilog */
@@ -1639,7 +1663,34 @@ MARPAXML_GENERIC_NEW_API(DOMImplementationList,                     /* class */
 /* --------------------------------------------------------------- */
 /* marpaXml_DOMImplementationList_item                             */
 /* --------------------------------------------------------------- */
-/* TO DO */
+static C_INLINE marpaXml_boolean_t _marpaXml_DOMImplementation_newFromImplementationName(marpaXml_String_t *implementationNamep, marpaXml_DOMImplementation_t **rcp);
+MARPAXML_GENERIC_METHOD_API(DOMImplementationList,                  /* class */
+                            item,                                   /* method */
+                            marpaXml_DOMImplementationList_t *thisp MARPAXML_ARG(unsigned long index) MARPAXML_ARG(marpaXml_DOMImplementation_t **rcp), /* decl */
+                            thisp MARPAXML_ARG(index) MARPAXML_ARG(rcp), /* args */
+			    ,                                       /* prolog */
+                            (_marpaXml_bind_int64(sqliteStmtp, 1, (sqlite3_int64) index) == marpaXml_true) ? marpaXml_true : marpaXml_false, /* bindingResult */
+                            text,                                   /* dbType */
+                            const unsigned char *,                  /* dbMapType */
+                            {
+			      marpaXml_String_t *implementationNamep;
+			      marpaXml_DOMImplementation_t *DOMImplementationp;
+			      if (rcDb != NULL) {
+				if ((implementationNamep = marpaXml_String_newFromUTF8((char *)rcDb, &_marpaXml_String_globalOption)) == NULL) {
+				  goto end;
+				}
+				if (_marpaXml_DOMImplementation_newFromImplementationName(implementationNamep, &DOMImplementationp) == marpaXml_false) {
+				  marpaXml_String_free(&implementationNamep);
+				  goto end;
+				}
+				*rcp = DOMImplementationp;
+				marpaXml_String_free(&implementationNamep);
+			      }
+			    },                                      /* rcDb2Rc */
+                            {*rcp = NULL;},                         /* defaultRc */
+                            marpaXml_false,                         /* changeId */
+                                                                    /* epilog */
+                            )
 
 /* --------------------------------------------------------------- */
 /* marpaXml_DOMImplementationList_getLength                        */

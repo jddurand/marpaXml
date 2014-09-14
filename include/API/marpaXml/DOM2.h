@@ -142,7 +142,7 @@ marpaXml_boolean_t                  marpaXml_NameList_contains(marpaXml_NameList
 marpaXml_boolean_t                  marpaXml_NameList_containsNS(marpaXml_NameList_t *thisp, marpaXml_String_t *namespaceURIp, marpaXml_String_t *namep, marpaXml_boolean_t *containsNSp);
 marpaXml_boolean_t                  marpaXml_NameList_free(marpaXml_NameList_t **thispp);
 
-/* Intentionaly there is not explicit constructor for DOMImplementation : it is created via DOMImplementationSource */
+/* Intentionaly there is not explicit constructor for DOMImplementationList : it is created via DOMImplementationSource */
 marpaXml_boolean_t                  marpaXml_DOMImplementationList_item(marpaXml_DOMImplementationList_t *thisp, unsigned long index, marpaXml_DOMImplementation_t **itempp);
 marpaXml_boolean_t                  marpaXml_DOMImplementationList_getLength(marpaXml_DOMImplementationList_t *thisp, unsigned long *lengthp);
 marpaXml_boolean_t                  marpaXml_DOMImplementationList_free(marpaXml_DOMImplementationList_t **thispp);
