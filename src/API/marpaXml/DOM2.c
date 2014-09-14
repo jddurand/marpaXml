@@ -713,7 +713,7 @@ static _marpaXml_stmt_t _marpaXml_stmt[] = {
   /* DOMImplementationSource */
   { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementationSource_new_e,  "PRAGMA _marpaXml_DOMImplementationSource_new_e; /* No op */" },
   { NULL, marpaXml_false, marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMImplementationSource_getDOMImplementation_e,  "PRAGMA _marpaXml_DOMImplementationSource_getDOMImplementation_e; /* Implemented as an exec() */" },
-  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementationSource_getDOMImplementationList_e,  "PRAGMA _marpaXml_DOMImplementationSource_getDOMImplementationList_e; /* TO DO */" },
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementationSource_getDOMImplementationList_e,  "PRAGMA _marpaXml_DOMImplementationSource_getDOMImplementationList_e; /* Implemented as an exec() */" },
   { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementationSource_free_e, "PRAGMA _marpaXml_DOMImplementationSource_free_e; /* No op */" },
 
   /* DOMImplementation */
