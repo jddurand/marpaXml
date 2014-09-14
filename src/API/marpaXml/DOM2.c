@@ -194,6 +194,9 @@ typedef struct marpaXml_featureAndVersion {
 #define _MARPAXML_BIG_ENDIAN    1
 #define _MARPAXML_VACUUM_FREQUENCY 10000
 #define _MARPAXML_SELECT_DISTINCT_implementationName_FROM_DOMImplementation_WHERE " SELECT DISTINCT implementationName FROM DOMImplementation WHERE "
+#define _MARPAXML_SELECT_STAR_FROM_BEG " SELECT * FROM ( "
+#define _MARPAXML_SELECT_STAR_FROM_END " ) "
+#define _MARPAXML_LIMIT_ONE " LIMIT 1 "
 static C_INLINE void *sqlite3_column_ptr(sqlite3_stmt*, int iCol);
 
 /* Any API call must have these macros surrounding database access */
@@ -685,7 +688,7 @@ static _marpaXml_stmt_t _marpaXml_stmt[] = {
   { NULL, marpaXml_true,  marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMStringList_new_e,          "CREATE TEMPORARY VIEW DOMStringList%lld AS SELECT item FROM DOMString" },
   { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMStringList_item_e,         "SELECT COALESCE((SELECT item FROM DOMStringList%lld LIMIT 1 OFFSET ?1), NULL)" },
   { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMStringList_getLength_e,    "SELECT COUNT(*) FROM DOMStringList%lld" },
-  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMStringList_contains_e,     "SELECT COALESCE((SELECT 1 FROM DOMStringList%lld WHERE (item = ?1)), 0)" },
+  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMStringList_contains_e,     "SELECT CASE WHEN EXISTS (SELECT 1 FROM DOMStringList%lld WHERE (item = ?1) LIMIT 1) THEN 1 ELSE 0 END" },
   { NULL, marpaXml_true,  marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMStringList_free_e,         "DROP VIEW DOMStringList%lld" },
 
   /* NameList : we use the temp namespace so that main is not changed */
@@ -693,8 +696,8 @@ static _marpaXml_stmt_t _marpaXml_stmt[] = {
   { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_NameList_getName_e,           "SELECT COALESCE((SELECT name FROM NameList%lld LIMIT 1 OFFSET ?1), NULL)" },
   { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_NameList_getNamespaceURI_e,   "SELECT COALESCE((SELECT namespaceURI FROM NameList%lld LIMIT 1 OFFSET ?1), NULL)" },
   { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_NameList_getLength_e,         "SELECT COUNT(*) FROM NameList%lld" },
-  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_NameList_contains_e,          "SELECT COALESCE((SELECT 1 FROM NameList%lld WHERE (name = ?1)), 0)" },
-  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_NameList_containsNS_e,        "SELECT COALESCE((SELECT 1 FROM NameList%lld WHERE (namespaceURI = ?1 AND name = ?2)), 0)" },
+  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_NameList_contains_e,          "SELECT CASE WHEN EXISTS (SELECT 1 FROM NameList%lld WHERE (name = ?1) LIMIT 1) THEN 1 ELSE 0 END" },
+  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_NameList_containsNS_e,        "SELECT CASE WHEN EXISTS (SELECT 1 FROM NameList%lld WHERE (namespaceURI = ?1 AND name = ?2) LIMIT 1) THEN 1 ELSE 0 END" },
   { NULL, marpaXml_true,  marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_NameList_free_e,              "DROP VIEW NameList%lld" },
 
   /* Node */
@@ -715,9 +718,9 @@ static _marpaXml_stmt_t _marpaXml_stmt[] = {
 
   /* DOMImplementation */
   { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementation_new_e,        "PRAGMA _marpaXml_DOMImplementation_new_e; /* No op */" },
-  { NULL, marpaXml_false, marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMImplementation_newFromFeatureAndVersion_e,  "SELECT id FROM DOMImplementation WHERE ((feature LIKE ?1) AND ((version IS NULL) OR (version = ?2))) LIMIT 1; /* Internal */" },
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMImplementation_newFromFeatureAndVersion_e,  "SELECT id FROM DOMImplementation WHERE ((feature LIKE ?1) AND ((?3 IS NULL) OR (version = ?2))) LIMIT 1; /* Internal */" },
   { NULL, marpaXml_false, marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMImplementation_newFromImplementationName_e,  "SELECT id FROM DOMImplementation WHERE (implementationName = ?1) LIMIT 1; /* Internal */" },
-  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementation_hasFeature_e,  "SELECT COALESCE((SELECT 1 FROM DOMImplementation WHERE ((feature LIKE ?1) AND ((version IS NULL) OR (version = ?2)))), 0)" },
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementation_hasFeature_e,  "SELECT CASE WHEN EXISTS (SELECT 1 FROM DOMImplementation WHERE ((implementationName = (SELECT implementationName WHERE (id = ?1))) AND (feature LIKE ?2) AND ((?3 IS NULL) OR (version = ?3))) LIMIT 1) THEN 1 ELSE 0 END" },
   { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementation_createDocumentType_e,  "PRAGMA _marpaXml_DOMImplementation_createDocumentType_e; /* TO DO */" },
   { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementation_createDocument_e,  "PRAGMA _marpaXml_DOMImplementation_createDocument_e; /* TO DO */" },
   { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementation_getFeature_e,  "PRAGMA _marpaXml_DOMImplementation_getFeature_e; /* No op - implemented as a sw logic around hasFeature */" },
@@ -749,16 +752,18 @@ static _marpaXml_init_t _marpaXml_init[] = {
   {
     /* The DOM Level 3 Core module is backward compatible with the DOM Level 2 Core [DOM Level 2 Core] module, */
     "DELETE FROM DOMImplementation; "
-    "INSERT INTO DOMImplementation (feature, version, implementationName) VALUES ('Core', '3.0', 'marpaXml'); "
-    "INSERT INTO DOMImplementation (feature, version, implementationName) VALUES ('Core', '2.0', 'marpaXml'); "
-    "INSERT INTO DOMImplementation (feature, version, implementationName) VALUES ('Core', '', 'marpaXml'); "
-    "INSERT INTO DOMImplementation (feature, version, implementationName) VALUES ('Core', NULL, 'marpaXml'); "
+    "INSERT INTO DOMImplementation (feature, version, implementationName) SELECT 'Core', '3.0', 'marpaXml2' WHERE NOT EXISTS (SELECT 1 FROM DOMImplementation WHERE ((feature LIKE 'Core') AND (version = '3.0') AND (implementationName LIKE 'marpaXml2'))); "
+    "INSERT INTO DOMImplementation (feature, version, implementationName) SELECT 'Core', '3.0', 'marpaXml' WHERE NOT EXISTS (SELECT 1 FROM DOMImplementation WHERE ((feature LIKE 'Core') AND (version = '3.0') AND (implementationName LIKE 'marpaXml'))); "
+    "INSERT INTO DOMImplementation (feature, version, implementationName) SELECT 'Core', '2.0', 'marpaXml' WHERE NOT EXISTS (SELECT 1 FROM DOMImplementation WHERE ((feature LIKE 'Core') AND (version = '2.0') AND (implementationName LIKE 'marpaXml'))); "
+    "INSERT INTO DOMImplementation (feature, version, implementationName) SELECT 'Core', '', 'marpaXml' WHERE NOT EXISTS (SELECT 1 FROM DOMImplementation WHERE ((feature LIKE 'Core') AND (version = '') AND (implementationName LIKE 'marpaXml'))); "
+    "INSERT INTO DOMImplementation (feature, version, implementationName) SELECT 'Core', NULL, 'marpaXml' WHERE NOT EXISTS (SELECT 1 FROM DOMImplementation WHERE ((feature LIKE 'Core') AND (version IS NULL) AND (implementationName LIKE 'marpaXml'))); "
     /* The DOM Level 3 XML module is backward compatible with the DOM Level 2 XML [DOM Level 2 Core] and DOM Level 1 XML [DOM Level 1] modules */
-    "INSERT INTO DOMImplementation (feature, version, implementationName) VALUES ('XML', '3.0', 'marpaXml'); "
-    "INSERT INTO DOMImplementation (feature, version, implementationName) VALUES ('XML', '2.0', 'marpaXml'); "
-    "INSERT INTO DOMImplementation (feature, version, implementationName) VALUES ('XML', '1.0', 'marpaXml'); "
-    "INSERT INTO DOMImplementation (feature, version, implementationName) VALUES ('XML', '', 'marpaXml'); "
-    "INSERT INTO DOMImplementation (feature, version, implementationName) VALUES ('XML', NULL, 'marpaXml'); "
+    "INSERT INTO DOMImplementation (feature, version, implementationName) SELECT 'XML', '3.0', 'marpaXml2' WHERE NOT EXISTS (SELECT 1 FROM DOMImplementation WHERE ((feature LIKE 'XML') AND (version = '3.0') AND (implementationName LIKE 'marpaXml2'))); "
+    "INSERT INTO DOMImplementation (feature, version, implementationName) SELECT 'XML', '3.0', 'marpaXml' WHERE NOT EXISTS (SELECT 1 FROM DOMImplementation WHERE ((feature LIKE 'XML') AND (version = '3.0') AND (implementationName LIKE 'marpaXml'))); "
+    "INSERT INTO DOMImplementation (feature, version, implementationName) SELECT 'XML', '2.0', 'marpaXml' WHERE NOT EXISTS (SELECT 1 FROM DOMImplementation WHERE ((feature LIKE 'XML') AND (version = '2.0') AND (implementationName LIKE 'marpaXml'))); "
+    "INSERT INTO DOMImplementation (feature, version, implementationName) SELECT 'XML', '1.0', 'marpaXml' WHERE NOT EXISTS (SELECT 1 FROM DOMImplementation WHERE ((feature LIKE 'XML') AND (version = '1.0') AND (implementationName LIKE 'marpaXml'))); "
+    "INSERT INTO DOMImplementation (feature, version, implementationName) SELECT 'XML', '', 'marpaXml' WHERE NOT EXISTS (SELECT 1 FROM DOMImplementation WHERE ((feature LIKE 'XML') AND (version = '') AND (implementationName LIKE 'marpaXml'))); "
+    "INSERT INTO DOMImplementation (feature, version, implementationName) SELECT 'XML', NULL, 'marpaXml' WHERE NOT EXISTS (SELECT 1 FROM DOMImplementation WHERE ((feature LIKE 'XML') AND (version IS NULL) AND (implementationName LIKE 'marpaXml'))); "
   },
   {
     "PRAGMA integrity_check;"
@@ -1711,7 +1716,7 @@ MARPAXML_GENERIC_METHOD_API(DOMImplementationSource,                /* class */
 			    data.implementationNamep = NULL;
 			    {
 			      if (_marpaXml_featuresWhereClause(featuresp, &(execStatement)) == marpaXml_false) {
-				return marpaXml_false;
+				goto end;
 			      }
 			    }, /* prolog */
 
@@ -1840,8 +1845,9 @@ MARPAXML_GENERIC_METHOD_API(DOMImplementation,                      /* class */
                             marpaXml_DOMImplementation_t *thisp MARPAXML_ARG(marpaXml_String_t *featurep) MARPAXML_ARG(marpaXml_String_t *versionp) MARPAXML_ARG(marpaXml_boolean_t *rcp), /* decl */
                             thisp MARPAXML_ARG(featurep) MARPAXML_ARG(versionp) MARPAXML_ARG(rcp),                /* args */
 			    ,                                       /* prolog */
-                            ((_marpaXml_bind_string(sqliteStmtp, 1, featurep) == marpaXml_true) &&
-                             (_marpaXml_bind_string(sqliteStmtp, 2, versionp) == marpaXml_true)) ? marpaXml_true : marpaXml_false, /* bindingResult */
+                            ((_marpaXml_bind_int64(sqliteStmtp,  1, thisp->id) == marpaXml_true) &&
+			     (_marpaXml_bind_string(sqliteStmtp, 2, featurep ) == marpaXml_true) &&
+                             (_marpaXml_bind_string(sqliteStmtp, 3, versionp ) == marpaXml_true)) ? marpaXml_true : marpaXml_false, /* bindingResult */
                             int,                                  /* dbType */
                             int,                                  /* dbMapType */
                             {*rcp = (rcDb != 0) ? marpaXml_true : marpaXml_false;},         /* rcDb2rc */
@@ -1876,11 +1882,13 @@ MARPAXML_GENERIC_METHOD_API(DOMImplementation,                      /* class */
                             {*rcp = NULL;},                          /* defaultRc */
                             marpaXml_false,                          /* changeId */
                             {
+			      marpaXml_DOMImplementation_t *DOMImplementationp; 
                               if ((_marpaXml_DOMImplementation_hasFeature(thisp, featurep, versionp, &hasFeatureb) == marpaXml_true) &&
                                   (hasFeatureb == marpaXml_true)) {
-                                if ((*rcp = _marpaXml_DOMImplementation_new()) == NULL) {
+                                if (_marpaXml_DOMImplementation_newFromFeatureAndVersion(featurep, versionp, &DOMImplementationp) == marpaXml_false) {
                                   return marpaXml_false;
                                 }
+				*rcp = (marpaXml_DOMObject_t *) DOMImplementationp;
                               }
                             }                                        /* epilog */
                             )
@@ -2584,7 +2592,7 @@ static C_INLINE marpaXml_boolean_t _marpaXml_featuresWhereClause(marpaXml_String
 
   if (rcb == marpaXml_true) {
     /* We construct on-the-fly the WHERE statement of the temporary view */
-    wherel = 0;
+    wherel = strlen(_MARPAXML_SELECT_STAR_FROM_BEG);
     for (i = 0; i < featureAndVersionWantedSizel; i++) {
       if (i > 0) {
 	wherel += strlen(_MARPAXML_INTERSECT);
@@ -2600,6 +2608,8 @@ static C_INLINE marpaXml_boolean_t _marpaXml_featuresWhereClause(marpaXml_String
         wherel += strlen(_MARPAXML_VERSION_EQ) - 2 + strlen(marpaXml_String_getUtf8(featureAndVersionpp[i]->versionp));
       }
     }
+    wherel += strlen(_MARPAXML_SELECT_STAR_FROM_END);
+    wherel += strlen(_MARPAXML_LIMIT_ONE);
     wherel++; /* For the null byte */
 
     if ((wheres = malloc(sizeof(char) * wherel)) == NULL) {
@@ -2607,6 +2617,7 @@ static C_INLINE marpaXml_boolean_t _marpaXml_featuresWhereClause(marpaXml_String
       rcb = marpaXml_false;
     } else {
       wheres[0] = '\0';
+      _marpaXml_snprintf(wheres + strlen(wheres), sizeof(char) * (wherel - strlen(wheres)), "%s", _MARPAXML_SELECT_STAR_FROM_BEG);
       for (i = 0; i < featureAndVersionWantedSizel; i++) {
 	if (i > 0) {
 	  _marpaXml_snprintf(wheres + strlen(wheres), sizeof(char) * (wherel - strlen(wheres)), "%s", _MARPAXML_INTERSECT);
@@ -2622,6 +2633,8 @@ static C_INLINE marpaXml_boolean_t _marpaXml_featuresWhereClause(marpaXml_String
           _marpaXml_snprintf(wheres + strlen(wheres), sizeof(char) * (wherel - strlen(wheres)), _MARPAXML_VERSION_EQ, marpaXml_String_getUtf8(featureAndVersionpp[i]->versionp));
         }
       }
+      _marpaXml_snprintf(wheres + strlen(wheres), sizeof(char) * (wherel - strlen(wheres)), "%s", _MARPAXML_SELECT_STAR_FROM_END);
+      _marpaXml_snprintf(wheres + strlen(wheres), sizeof(char) * (wherel - strlen(wheres)), "%s", _MARPAXML_LIMIT_ONE);
       MARPAXML_TRACEX("[%s] Where clause: %s\n", fcts, wheres);
     }
   }

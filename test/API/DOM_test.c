@@ -288,7 +288,7 @@ int main(int argc, char **argv) {
     fprintf(stderr, "marpaXml_DOMImplementationList_getLength failure at %s:%d\n", __FILE__, __LINE__);
     return 1;
   }
-  if (rcl != 1) {
+  if (rcl <= 0) {
     fprintf(stderr, "marpaXml_DOMImplementationList_getLength returned \"%ld\" at %s:%d\n", (long) rcl, __FILE__, __LINE__);
     return 1;
   }
@@ -301,13 +301,20 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  /**************************************************/
-  /*               DOMImplementation                */
-  /**************************************************/
-  /* The reel test is to interleave creations and destructions */
-  DOMImplementationp = marpaXml_DOMImplementation_new();
-  if (DOMImplementationp == NULL) {
-    fprintf(stderr, "marpaXml_DOMImplementation_new failure at %s:%d\n", __FILE__, __LINE__);
+  /*******************************************************/
+  /*      DOMImplementationSource/DOMImplementation      */
+  /*******************************************************/
+  ;
+  if ((DOMImplementationSourcep = marpaXml_DOMImplementationSource_new()) == NULL) {
+    fprintf(stderr, "marpaXml_DOMImplementationSource_new failure at %s:%d\n", __FILE__, __LINE__);
+    return 1;
+  }
+  if (marpaXml_DOMImplementationSource_getDOMImplementation(DOMImplementationSourcep, features1p, &DOMImplementationp) == marpaXml_true) {
+    fprintf(stderr, "marpaXml_DOMImplementationSource_getDOMImplementation failure at %s:%d\n", __FILE__, __LINE__);
+    return 1;
+  }
+  if (marpaXml_DOMImplementationSource_getDOMImplementation(DOMImplementationSourcep, features2p, &DOMImplementationp) == marpaXml_false) {
+    fprintf(stderr, "marpaXml_DOMImplementationSource_getDOMImplementation failure at %s:%d\n", __FILE__, __LINE__);
     return 1;
   }
   if (marpaXml_DOMImplementation_hasFeature(DOMImplementationp, feature1p, version1p, &rcb) == marpaXml_false) {
@@ -327,7 +334,7 @@ int main(int argc, char **argv) {
     return 1;
   }
   if (marpaXml_DOMImplementation_getFeature(DOMImplementationp, feature1p, NULL, (marpaXml_DOMObject_t **) &DOMImplementation2p) == marpaXml_false) {
-    fprintf(stderr, "marpaXml_DOMImplementation_hasFeature failure at %s:%d\n", __FILE__, __LINE__);
+    fprintf(stderr, "marpaXml_DOMImplementation_getFeature failure at %s:%d\n", __FILE__, __LINE__);
     return 1;
   }
   if (DOMImplementation2p == NULL) {
@@ -336,27 +343,6 @@ int main(int argc, char **argv) {
   }
   if (marpaXml_DOMImplementation_free(&DOMImplementation2p) == marpaXml_false) {
     fprintf(stderr, "marpaXml_DOMImplementation_free failure at %s:%d\n", __FILE__, __LINE__);
-    return 1;
-  }
-  if (marpaXml_DOMImplementation_free(&DOMImplementationp) == marpaXml_false) {
-    fprintf(stderr, "marpaXml_DOMImplementation_free failure at %s:%d\n", __FILE__, __LINE__);
-    return 1;
-  }
-
-  /*************************************/
-  /*      DOMImplementationSource      */
-  /*************************************/
-  ;
-  if ((DOMImplementationSourcep = marpaXml_DOMImplementationSource_new()) == NULL) {
-    fprintf(stderr, "marpaXml_DOMImplementationSource_new failure at %s:%d\n", __FILE__, __LINE__);
-    return 1;
-  }
-  if (marpaXml_DOMImplementationSource_getDOMImplementation(DOMImplementationSourcep, features1p, &DOMImplementationp) == marpaXml_true) {
-    fprintf(stderr, "marpaXml_DOMImplementationSource_getDOMImplementation failure at %s:%d\n", __FILE__, __LINE__);
-    return 1;
-  }
-  if (marpaXml_DOMImplementationSource_getDOMImplementation(DOMImplementationSourcep, features2p, &DOMImplementationp) == marpaXml_false) {
-    fprintf(stderr, "marpaXml_DOMImplementationSource_getDOMImplementation failure at %s:%d\n", __FILE__, __LINE__);
     return 1;
   }
   if (marpaXml_DOMImplementation_free(&DOMImplementationp) == marpaXml_false) {
