@@ -142,7 +142,7 @@ marpaXml_boolean_t                  marpaXml_NameList_contains(marpaXml_NameList
 marpaXml_boolean_t                  marpaXml_NameList_containsNS(marpaXml_NameList_t *thisp, marpaXml_String_t *namespaceURIp, marpaXml_String_t *namep, marpaXml_boolean_t *containsNSp);
 marpaXml_boolean_t                  marpaXml_NameList_free(marpaXml_NameList_t **thispp);
 
-marpaXml_DOMImplementationList_t   *marpaXml_DOMImplementationList_new(void);
+/* Intentionaly there is not explicit constructor for DOMImplementation : it is created via DOMImplementationSource */
 marpaXml_boolean_t                  marpaXml_DOMImplementationList_item(marpaXml_DOMImplementationList_t *thisp, unsigned long index, marpaXml_DOMImplementation_t **itempp);
 marpaXml_boolean_t                  marpaXml_DOMImplementationList_getLength(marpaXml_DOMImplementationList_t *thisp, unsigned long *lengthp);
 marpaXml_boolean_t                  marpaXml_DOMImplementationList_free(marpaXml_DOMImplementationList_t **thispp);
@@ -152,7 +152,7 @@ marpaXml_boolean_t                  marpaXml_DOMImplementationSource_getDOMImple
 marpaXml_boolean_t                  marpaXml_DOMImplementationSource_getDOMImplementationList(marpaXml_DOMImplementationSource_t *thisp, marpaXml_String_t *featuresp, marpaXml_DOMImplementationList_t **DOMImplementationListpp);
 marpaXml_boolean_t                  marpaXml_DOMImplementationSource_free(marpaXml_DOMImplementationSource_t **thispp);
 
-/* Intentionnaly there is explicit constructor for DOMImplementation : it is created via DOMImplementationSource */
+/* Intentionaly there is not explicit constructor for DOMImplementation : it is created via DOMImplementationSource */
 marpaXml_boolean_t                  marpaXml_DOMImplementation_hasFeature(marpaXml_DOMImplementation_t *thisp, marpaXml_String_t *featurep, marpaXml_String_t *versionp, marpaXml_boolean_t *hasFeaturep);
 marpaXml_boolean_t                  marpaXml_DOMImplementation_createDocumentType(marpaXml_DOMImplementation_t *thisp, marpaXml_String_t *qualifiedNamep, marpaXml_String_t *publicIdp, marpaXml_String_t *systemIdp, marpaXml_DocumentType_t **documentTypepp, marpaXml_DOMException_t **exceptionpp);
 marpaXml_boolean_t                 *marpaXml_DOMImplementation_createDocument(marpaXml_DOMImplementation_t *thisp, marpaXml_String_t *namespaceURIp,  marpaXml_String_t *qualifiedNamep, marpaXml_DocumentType_t *doctypep, marpaXml_Document_t **documentpp, marpaXml_DOMException_t **exceptionpp);
