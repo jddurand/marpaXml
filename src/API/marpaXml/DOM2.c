@@ -137,8 +137,8 @@ static C_INLINE marpaXml_boolean_t   marpaXml_DOMUtils_free(marpaXml_DOMUtils_t 
 
 /* DOMImplementation constructor should be internal only */
 static C_INLINE marpaXml_DOMImplementation_t *marpaXml_DOMImplementation_new(void);
-marpaXml_boolean_t            marpaXml_DOMImplementation_newFromFeatureAndVersion(marpaXml_String_t *featurep, marpaXml_String_t *versionp, marpaXml_DOMImplementation_t **rcp);
-marpaXml_boolean_t            marpaXml_DOMImplementation_newFromImplementationName(marpaXml_String_t *implementationNamep, marpaXml_DOMImplementation_t **rcp);
+static C_INLINE marpaXml_boolean_t            marpaXml_DOMImplementation_newFromFeatureAndVersion(marpaXml_String_t *featurep, marpaXml_String_t *versionp, marpaXml_DOMImplementation_t **rcp);
+static C_INLINE marpaXml_boolean_t            marpaXml_DOMImplementation_newFromImplementationName(marpaXml_String_t *implementationNamep, marpaXml_DOMImplementation_t **rcp);
 
 /* DOMImplementationList constructor should be internal only */
 static C_INLINE marpaXml_DOMImplementationList_t   *marpaXml_DOMImplementationList_new(const char *wheres);
@@ -215,7 +215,7 @@ static C_INLINE void *sqlite3_column_ptr(sqlite3_stmt*, int iCol);
     return badRc;                                                       \
   }
 
-#define MARPAXML_GENERIC_GET_API(rcType, class, method, dbType, dbMapType, rcDb2Rc) \
+#define MARPAXML_GENERIC_GET_API(staticStorage, rcType, class, method, dbType, dbMapType, rcDb2Rc) \
   static C_INLINE marpaXml_boolean_t _marpaXml_##class##_##method(marpaXml_##class##_t *thisp, rcType *rcp) { \
     dbMapType rcDb;                                                     \
     int    sqliteRc;                                                    \
@@ -272,7 +272,7 @@ static C_INLINE void *sqlite3_column_ptr(sqlite3_stmt*, int iCol);
     return marpaXml_true;                                               \
   }                                                                     \
                                                                         \
-  marpaXml_boolean_t marpaXml_##class##_##method(marpaXml_##class##_t *thisp, rcType *rcp) { \
+  staticStorage marpaXml_boolean_t marpaXml_##class##_##method(marpaXml_##class##_t *thisp, rcType *rcp) { \
     marpaXml_boolean_t rc;                                                          \
                                                                         \
     MARPAXML_DOM_DB_API_HEADER("marpaXml_" #class "_" #method, 0)    \
@@ -289,7 +289,7 @@ static C_INLINE void *sqlite3_column_ptr(sqlite3_stmt*, int iCol);
 /* insertb mode requires that last inserted ID is > 0 */
 /* It is the responsability of _marpaXml_stmt_[] array to set changesb accordingly to insertb, if wanted */
 
-#define MARPAXML_GENERIC_METHOD_API(class, method, decl, args, prolog, bindingResult, dbType, dbMapType, rcDb2Rc, defaultRc, changeId, epilog) \
+#define MARPAXML_GENERIC_METHOD_API(staticStorage, class, method, decl, args, prolog, bindingResult, dbType, dbMapType, rcDb2Rc, defaultRc, changeId, epilog) \
   static C_INLINE marpaXml_boolean_t _marpaXml_##class##_##method(decl) { \
     marpaXml_boolean_t rcb = marpaXml_false;				\
     dbMapType       rcDb;                                               \
@@ -376,7 +376,7 @@ static C_INLINE void *sqlite3_column_ptr(sqlite3_stmt*, int iCol);
     return rcb;                                                         \
   }                                                                     \
                                                                         \
-  marpaXml_boolean_t marpaXml_##class##_##method(decl) { \
+  staticStorage marpaXml_boolean_t marpaXml_##class##_##method(decl) { \
     marpaXml_boolean_t rc;                                                          \
                                                                         \
     MARPAXML_DOM_DB_API_HEADER("marpaXml_" #class "_" #method, 0)    \
@@ -387,7 +387,7 @@ static C_INLINE void *sqlite3_column_ptr(sqlite3_stmt*, int iCol);
     return rc;                                                          \
   }
 
-#define MARPAXML_GENERIC_SET_API(rcType, class, method, dbType, var, var2VarDb) \
+#define MARPAXML_GENERIC_SET_API(staticStorage, rcType, class, method, dbType, var, var2VarDb) \
   static C_INLINE marpaXml_boolean_t _marpaXml_##class##_##method(marpaXml_##class##_t *thisp, rcType var) { \
     int    sqliteRc;                                                    \
     char                 *sqls;						\
@@ -429,7 +429,7 @@ static C_INLINE void *sqlite3_column_ptr(sqlite3_stmt*, int iCol);
     return marpaXml_true;                                               \
   }                                                                     \
                                                                         \
-  marpaXml_boolean_t marpaXml_##class##_##method(marpaXml_##class##_t *thisp, rcType var) { \
+  staticStorage marpaXml_boolean_t marpaXml_##class##_##method(marpaXml_##class##_t *thisp, rcType var) { \
     marpaXml_boolean_t rc;                                                          \
                                                                         \
     MARPAXML_DOM_DB_API_HEADER("marpaXml_" #class "_" #method, 0)    \
@@ -1286,7 +1286,8 @@ MARPAXML_GENERIC_NEW_API(,                                          /* staticSto
 /* --------------------------------------------------------------- */
 /* marpaXml_DOMException_getCode                                   */
 /* --------------------------------------------------------------- */
-MARPAXML_GENERIC_GET_API(unsigned short,                            /* rcType */
+MARPAXML_GENERIC_GET_API(,                                          /* staticStorage */
+                         unsigned short,                            /* rcType */
                          DOMException,                              /* class */
                          getCode,                                   /* method */
                          int,                                       /* dbType */
@@ -1297,7 +1298,8 @@ MARPAXML_GENERIC_GET_API(unsigned short,                            /* rcType */
 /* --------------------------------------------------------------- */
 /* marpaXml_DOMException_setCode                                   */
 /* --------------------------------------------------------------- */
-MARPAXML_GENERIC_SET_API(unsigned short,                            /* rcType */
+MARPAXML_GENERIC_SET_API(,                                          /* staticStorage */
+                         unsigned short,                            /* rcType */
                          DOMException,                              /* class */
                          setCode,                                   /* method */
                          int,                                       /* dbType */
@@ -1309,7 +1311,8 @@ MARPAXML_GENERIC_SET_API(unsigned short,                            /* rcType */
 /* --------------------------------------------------------------- */
 /* marpaXml_DOMException_getMessage                                */
 /* --------------------------------------------------------------- */
-MARPAXML_GENERIC_GET_API(marpaXml_String_t *,                       /* rcType */
+MARPAXML_GENERIC_GET_API(,                                          /* staticStorage */
+                         marpaXml_String_t *,                       /* rcType */
                          DOMException,                              /* class */
                          getMessage,                                /* method */
                          text,                                      /* dbType */
@@ -1320,7 +1323,8 @@ MARPAXML_GENERIC_GET_API(marpaXml_String_t *,                       /* rcType */
 /* --------------------------------------------------------------- */
 /* marpaXml_DOMException_setMessage                                */
 /* --------------------------------------------------------------- */
-MARPAXML_GENERIC_SET_API(marpaXml_String_t *,                       /* rcType */
+MARPAXML_GENERIC_SET_API(,                                          /* staticStorage */
+                         marpaXml_String_t *,                       /* rcType */
                          DOMException,                              /* class */
                          setMessage,                                /* method */
                          text,                                      /* dbType */
@@ -1357,7 +1361,8 @@ MARPAXML_GENERIC_NEW_API(,                                          /* staticSto
 /* --------------------------------------------------------------- */
 /* marpaXml_DOMError_getSeverity                                   */
 /* --------------------------------------------------------------- */
-MARPAXML_GENERIC_GET_API(unsigned short,                            /* rcType */
+MARPAXML_GENERIC_GET_API(,                                          /* staticStorage */
+                         unsigned short,                            /* rcType */
                          DOMError,                                  /* class */
                          getSeverity,                               /* method */
                          int,                                       /* dbType */
@@ -1368,7 +1373,8 @@ MARPAXML_GENERIC_GET_API(unsigned short,                            /* rcType */
 /* --------------------------------------------------------------- */
 /* marpaXml_DOMError_setSeverity                                   */
 /* --------------------------------------------------------------- */
-MARPAXML_GENERIC_SET_API(unsigned short,                            /* rcType */
+MARPAXML_GENERIC_SET_API(,                                          /* staticStorage */
+                         unsigned short,                            /* rcType */
                          DOMError,                                  /* class */
                          setSeverity,                               /* method */
                          int,                                       /* dbType */
@@ -1440,7 +1446,8 @@ MARPAXML_GENERIC_NEW_API(,                                          /* staticSto
 /* --------------------------------------------------------------- */
 /* marpaXml_DOMStringList_item                                     */
 /* --------------------------------------------------------------- */
-MARPAXML_GENERIC_METHOD_API(DOMStringList,                          /* class */
+MARPAXML_GENERIC_METHOD_API(,                                       /* staticStorage */
+                            DOMStringList,                          /* class */
                             item,                                   /* method */
                             marpaXml_DOMStringList_t *thisp MARPAXML_ARG(unsigned long index) MARPAXML_ARG(marpaXml_String_t **rcp), /* decl */
                             thisp MARPAXML_ARG(index) MARPAXML_ARG(rcp), /* args */
@@ -1465,7 +1472,8 @@ MARPAXML_GENERIC_METHOD_API(DOMStringList,                          /* class */
 /* --------------------------------------------------------------- */
 /* marpaXml_DOMStringList_getLength                                */
 /* --------------------------------------------------------------- */
-MARPAXML_GENERIC_METHOD_API(DOMStringList,                          /* class */
+MARPAXML_GENERIC_METHOD_API(,                                       /* staticStorage */
+                            DOMStringList,                          /* class */
                             getLength,                              /* method */
                             marpaXml_DOMStringList_t *thisp MARPAXML_ARG(unsigned long *rcp), /* decl */
                             thisp MARPAXML_ARG(rcp),                /* args */
@@ -1482,7 +1490,8 @@ MARPAXML_GENERIC_METHOD_API(DOMStringList,                          /* class */
 /* --------------------------------------------------------------- */
 /* marpaXml_DOMStringList_contains                                 */
 /* --------------------------------------------------------------- */
-MARPAXML_GENERIC_METHOD_API(DOMStringList,                          /* class */
+MARPAXML_GENERIC_METHOD_API(,                                       /* staticStorage */
+                            DOMStringList,                          /* class */
                             contains,                               /* method */
                             marpaXml_DOMStringList_t *thisp MARPAXML_ARG(marpaXml_String_t *strp) MARPAXML_ARG(marpaXml_boolean_t *rcp), /* decl */
                             thisp MARPAXML_ARG(strp) MARPAXML_ARG(rcp), /* args */
@@ -1534,7 +1543,8 @@ MARPAXML_GENERIC_NEW_API(,                                          /* staticSto
 /* --------------------------------------------------------------- */
 /* marpaXml_NameList_getName                                       */
 /* --------------------------------------------------------------- */
-MARPAXML_GENERIC_METHOD_API(NameList,                               /* class */
+MARPAXML_GENERIC_METHOD_API(,                                       /* staticStorage */
+                            NameList,                               /* class */
                             getName,                                /* method */
                             marpaXml_NameList_t *thisp MARPAXML_ARG(unsigned long index) MARPAXML_ARG(marpaXml_String_t **rcp), /* decl */
                             thisp MARPAXML_ARG(index) MARPAXML_ARG(rcp), /* args */
@@ -1559,7 +1569,8 @@ MARPAXML_GENERIC_METHOD_API(NameList,                               /* class */
 /* --------------------------------------------------------------- */
 /* marpaXml_NameList_getNamespaceURI                               */
 /* --------------------------------------------------------------- */
-MARPAXML_GENERIC_METHOD_API(NameList,                               /* class */
+MARPAXML_GENERIC_METHOD_API(,                                       /* staticStorage */
+                            NameList,                               /* class */
                             getNamespaceURI,                        /* method */
                             marpaXml_NameList_t *thisp MARPAXML_ARG(unsigned long index) MARPAXML_ARG(marpaXml_String_t **rcp), /* decl */
                             thisp MARPAXML_ARG(index) MARPAXML_ARG(rcp), /* args */
@@ -1584,7 +1595,8 @@ MARPAXML_GENERIC_METHOD_API(NameList,                               /* class */
 /* --------------------------------------------------------------- */
 /* marpaXml_NameList_getLength                                     */
 /* --------------------------------------------------------------- */
-MARPAXML_GENERIC_METHOD_API(NameList,                               /* class */
+MARPAXML_GENERIC_METHOD_API(,                                       /* staticStorage */
+                            NameList,                               /* class */
                             getLength,                              /* method */
                             marpaXml_NameList_t *thisp MARPAXML_ARG(unsigned long *rcp), /* decl */
                             thisp MARPAXML_ARG(rcp),                /* args */
@@ -1601,7 +1613,8 @@ MARPAXML_GENERIC_METHOD_API(NameList,                               /* class */
 /* --------------------------------------------------------------- */
 /* marpaXml_NameList_contains                                      */
 /* --------------------------------------------------------------- */
-MARPAXML_GENERIC_METHOD_API(NameList,                               /* class */
+MARPAXML_GENERIC_METHOD_API(,                                       /* staticStorage */
+                            NameList,                               /* class */
                             contains,                               /* method */
                             marpaXml_NameList_t *thisp MARPAXML_ARG(marpaXml_String_t *strp) MARPAXML_ARG(marpaXml_boolean_t *rcp), /* decl */
                             thisp MARPAXML_ARG(strp) MARPAXML_ARG(rcp), /* args */
@@ -1618,7 +1631,8 @@ MARPAXML_GENERIC_METHOD_API(NameList,                               /* class */
 /* --------------------------------------------------------------- */
 /* marpaXml_NameList_containsNS                                    */
 /* --------------------------------------------------------------- */
-MARPAXML_GENERIC_METHOD_API(NameList,                               /* class */
+MARPAXML_GENERIC_METHOD_API(,                                       /* staticStorage */
+                            NameList,                               /* class */
                             containsNS,                             /* method */
                             marpaXml_NameList_t *thisp MARPAXML_ARG(marpaXml_String_t *namespaceURIp) MARPAXML_ARG(marpaXml_String_t *namep) MARPAXML_ARG(marpaXml_boolean_t *rcp), /* decl */
                             thisp MARPAXML_ARG(namespaceURIp) MARPAXML_ARG(namep) MARPAXML_ARG(rcp), /* args */
@@ -1673,7 +1687,8 @@ MARPAXML_GENERIC_NEW_API(static C_INLINE,                           /* staticSto
 /* marpaXml_DOMImplementationList_item                             */
 /* --------------------------------------------------------------- */
 static C_INLINE marpaXml_boolean_t _marpaXml_DOMImplementation_newFromImplementationName(marpaXml_String_t *implementationNamep, marpaXml_DOMImplementation_t **rcp);
-MARPAXML_GENERIC_METHOD_API(DOMImplementationList,                  /* class */
+MARPAXML_GENERIC_METHOD_API(,                                       /* staticStorage */
+                            DOMImplementationList,                  /* class */
                             item,                                   /* method */
                             marpaXml_DOMImplementationList_t *thisp MARPAXML_ARG(unsigned long index) MARPAXML_ARG(marpaXml_DOMImplementation_t **rcp), /* decl */
                             thisp MARPAXML_ARG(index) MARPAXML_ARG(rcp), /* args */
@@ -1704,7 +1719,8 @@ MARPAXML_GENERIC_METHOD_API(DOMImplementationList,                  /* class */
 /* --------------------------------------------------------------- */
 /* marpaXml_DOMImplementationList_getLength                        */
 /* --------------------------------------------------------------- */
-MARPAXML_GENERIC_METHOD_API(DOMImplementationList,                  /* class */
+MARPAXML_GENERIC_METHOD_API(,                                       /* staticStorage */
+                            DOMImplementationList,                  /* class */
                             getLength,                              /* method */
                             marpaXml_DOMImplementationList_t *thisp MARPAXML_ARG(unsigned long *rcp), /* decl */
                             thisp MARPAXML_ARG(rcp),                /* args */
@@ -1775,7 +1791,8 @@ static C_INLINE int                _marpaXml_DOMImplementationSource_getDOMImple
   return rc;
 }
 
-MARPAXML_GENERIC_METHOD_API(DOMImplementationSource,                /* class */
+MARPAXML_GENERIC_METHOD_API(,                                       /* staticStorage */
+                            DOMImplementationSource,                /* class */
                             getDOMImplementation,                   /* method */
                             marpaXml_DOMImplementationSource_t *thisp MARPAXML_ARG(marpaXml_String_t *featuresp) MARPAXML_ARG(marpaXml_DOMImplementation_t **rcp), /* decl */
                             thisp MARPAXML_ARG(featuresp) MARPAXML_ARG(rcp),   /* args */
@@ -1821,7 +1838,8 @@ MARPAXML_GENERIC_METHOD_API(DOMImplementationSource,                /* class */
 /* --------------------------------------------------------------- */
 /* marpaXml_DOMImplementationSource_getDOMImplementationList       */
 /* --------------------------------------------------------------- */
-MARPAXML_GENERIC_METHOD_API(DOMImplementationSource,                /* class */
+MARPAXML_GENERIC_METHOD_API(,                                       /* staticStorage */
+                            DOMImplementationSource,                /* class */
                             getDOMImplementationList,               /* method */
                             marpaXml_DOMImplementationSource_t *thisp MARPAXML_ARG(marpaXml_String_t *featuresp) MARPAXML_ARG(marpaXml_DOMImplementationList_t **rcp), /* decl */
                             thisp MARPAXML_ARG(featuresp) MARPAXML_ARG(rcp),   /* args */
@@ -1888,7 +1906,8 @@ MARPAXML_GENERIC_NEW_API(static C_INLINE,                           /* staticSto
 /* --------------------------------------------------------------- */
 /* marpaXml_DOMImplementation_newFromImplementationName            */
 /* --------------------------------------------------------------- */
-MARPAXML_GENERIC_METHOD_API(DOMImplementation,                       /* class */
+MARPAXML_GENERIC_METHOD_API(static C_INLINE,                         /* staticStorage */
+                            DOMImplementation,                       /* class */
                             newFromImplementationName,               /* method */
                             marpaXml_String_t *implementationNamep MARPAXML_ARG(marpaXml_DOMImplementation_t **rcp), /* decl */
                             implementationNamep MARPAXML_ARG(rcp),   /* args */
@@ -1918,7 +1937,8 @@ MARPAXML_GENERIC_METHOD_API(DOMImplementation,                       /* class */
 /* --------------------------------------------------------------- */
 /* marpaXml_DOMImplementation_newFromFeatureAndVersion             */
 /* --------------------------------------------------------------- */
-MARPAXML_GENERIC_METHOD_API(DOMImplementation,                       /* class */
+MARPAXML_GENERIC_METHOD_API(static C_INLINE,                        /* staticStorage */
+                            DOMImplementation,                      /* class */
                             newFromFeatureAndVersion,               /* method */
                             marpaXml_String_t *featurep MARPAXML_ARG(marpaXml_String_t *versionp) MARPAXML_ARG(marpaXml_DOMImplementation_t **rcp), /* decl */
                             featurep MARPAXML_ARG(versionp) MARPAXML_ARG(rcp),   /* args */
@@ -1949,8 +1969,9 @@ MARPAXML_GENERIC_METHOD_API(DOMImplementation,                       /* class */
 /* --------------------------------------------------------------- */
 /* marpaXml_DOMImplementation_hasFeature                           */
 /* --------------------------------------------------------------- */
-MARPAXML_GENERIC_METHOD_API(DOMImplementation,                      /* class */
-                            hasFeature,                              /* method */
+MARPAXML_GENERIC_METHOD_API(,                                       /* staticStorage */
+                            DOMImplementation,                      /* class */
+                            hasFeature,                             /* method */
                             marpaXml_DOMImplementation_t *thisp MARPAXML_ARG(marpaXml_String_t *featurep) MARPAXML_ARG(marpaXml_String_t *versionp) MARPAXML_ARG(marpaXml_boolean_t *rcp), /* decl */
                             thisp MARPAXML_ARG(featurep) MARPAXML_ARG(versionp) MARPAXML_ARG(rcp),                /* args */
 			    ,                                       /* prolog */
@@ -1979,17 +2000,18 @@ MARPAXML_GENERIC_METHOD_API(DOMImplementation,                      /* class */
 /* --------------------------------------------------------------- */
 /* marpaXml_DOMImplementation_getFeature                           */
 /* --------------------------------------------------------------- */
-MARPAXML_GENERIC_METHOD_API(DOMImplementation,                      /* class */
-                            getFeature,                              /* method */
+MARPAXML_GENERIC_METHOD_API(,                                       /* staticStorage */
+                            DOMImplementation,                      /* class */
+                            getFeature,                             /* method */
                             marpaXml_DOMImplementation_t *thisp MARPAXML_ARG(marpaXml_String_t *featurep) MARPAXML_ARG(marpaXml_String_t *versionp) MARPAXML_ARG(marpaXml_DOMObject_t **rcp), /* decl */
                             thisp MARPAXML_ARG(featurep) MARPAXML_ARG(versionp) MARPAXML_ARG(rcp),                /* args */
 			    marpaXml_boolean_t hasFeatureb = marpaXml_false;,         /* prolog */
-                            marpaXml_true,                           /* bindingResult */
-                            int,                                     /* dbType - No op */
-                            int,                                     /* dbMapType - No op */
-                            {rcDb = rcDb; *rcp = NULL;},             /* rcDb2rc - No op */
-                            {*rcp = NULL;},                          /* defaultRc */
-                            marpaXml_false,                          /* changeId */
+                            marpaXml_true,                          /* bindingResult */
+                            int,                                    /* dbType - No op */
+                            int,                                    /* dbMapType - No op */
+                            {rcDb = rcDb; *rcp = NULL;},            /* rcDb2rc - No op */
+                            {*rcp = NULL;},                         /* defaultRc */
+                            marpaXml_false,                         /* changeId */
                             {
 			      marpaXml_DOMImplementation_t *DOMImplementationp; 
                               if ((_marpaXml_DOMImplementation_hasFeature(thisp, featurep, versionp, &hasFeatureb) == marpaXml_true) &&
