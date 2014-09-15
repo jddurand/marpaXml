@@ -111,7 +111,7 @@
 			</connections>
 			<display>false</display>
 			<creation_date>2014-08-10 12:15:25</creation_date>
-			<updated_date>2014-09-15 14:45:47</updated_date>
+			<updated_date>2014-09-15 17:54:55</updated_date>
 			<model_property>
 				<name>Project Name</name>
 				<value></value>
@@ -6406,8 +6406,8 @@
 					<referenced_complex_unique_key>null</referenced_complex_unique_key>
 				</relation>
 			</connections>
-			<physical_name>DOMNode</physical_name>
-			<logical_name>DOMNode</logical_name>
+			<physical_name>Node</physical_name>
+			<logical_name>Node</logical_name>
 			<description></description>
 			<constraint></constraint>
 			<primary_key_name></primary_key_name>

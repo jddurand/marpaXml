@@ -341,7 +341,7 @@ ADD_EXECUTABLE        (log_test ${PROJECT_SOURCE_DIR}/test/API/log_test.c)
 TARGET_LINK_LIBRARIES (log_test marpaXml)
 
 ADD_EXECUTABLE        (DOM_test ${PROJECT_SOURCE_DIR}/test/API/DOM_test.c)
-TARGET_LINK_LIBRARIES (DOM_test marpaXml sqlite ${CMAKE_THREAD_LIBS_INIT})
+TARGET_LINK_LIBRARIES (DOM_test marpaXml marpa sqlite ${CMAKE_THREAD_LIBS_INIT})
 
 ADD_EXECUTABLE        (String_test ${PROJECT_SOURCE_DIR}/test/API/String_test.c)
 TARGET_LINK_LIBRARIES (String_test marpaXml)

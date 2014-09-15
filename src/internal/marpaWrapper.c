@@ -249,7 +249,6 @@ void marpaWrapper_destroyv(marpaWrapper_t **marpaWrapperpp) {
   if (marpaWrapperpp != NULL) {
     marpaWrapperp = *marpaWrapperpp;
     if (marpaWrapperp != NULL) {
-      marpaXmlLog_freev(&(marpaWrapperp->marpaXmlLogp));
       if (marpaWrapperp->marpaRecognizerp != NULL) {
         MARPAWRAPPER_LOG_TRACEX("marpa_r_unref(%p)", marpaWrapperp->marpaRecognizerp);
         marpa_r_unref(marpaWrapperp->marpaRecognizerp);
@@ -269,6 +268,7 @@ void marpaWrapper_destroyv(marpaWrapper_t **marpaWrapperpp) {
       if (marpaWrapperp->expectedMarpaWrapperSymbolArraypp != NULL) {
         free(marpaWrapperp->expectedMarpaWrapperSymbolArraypp);
       }
+      marpaXmlLog_freev(&(marpaWrapperp->marpaXmlLogp));
       free(marpaWrapperp);
     }
     *marpaWrapperpp = NULL;

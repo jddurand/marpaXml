@@ -15,6 +15,8 @@
 #include "internal/messageBuilder.h"
 #include "internal/hash.h"
 #include "internal/manageBuf.h"
+#include "internal/grammar/qname_1_0.h"
+#include "internal/grammar/qname_1_1.h"
 #include "../db/Dom Level 3 Core.h"
 
 /********************************************************************************/
@@ -660,6 +662,8 @@ static marpaXml_String_Option_t _marpaXml_String_globalOption;
 static marpaXml_boolean_t       _marpaXml_isLittleEndianb = marpaXml_false;
 static marpaXml_boolean_t       _marpaXml_isBigEndianb = marpaXml_false;
 static char                    *_marpaXml_UTF16_Encodings = NULL;
+static qname_1_0_t             *qname_1_0p = NULL;
+static qname_1_1_t             *qname_1_1p = NULL;
 
 static _marpaXml_stmt_t _marpaXml_stmt[] = {
 
@@ -1214,6 +1218,11 @@ marpaXml_boolean_t marpaXml_DOM_release(void) {
   if ((sqliteRc = sqlite3_close_v2(_marpaXml_dbp)) != SQLITE_OK) {
     MARPAXML_ERRORX("sqlite3_close_v2(): %s at %s:%d\n", sqlite3_errstr(sqliteRc), __FILE__, __LINE__);
     rc = marpaXml_false;
+  }
+
+  if (qname_1_0p != NULL) {
+    MARPAXML_TRACE0("Destroying qname XML 1.0 grammar\n");
+    qname_1_0_destroyv(&qname_1_0p);
   }
 
   /* Free logging */
@@ -2425,6 +2434,7 @@ marpaXml_boolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Optionp
   int                   iConstantForEndiannessDetection = 1;
   void                 *xxhp;
   char                 *pForEndiannessDetection = (char *)&iConstantForEndiannessDetection;
+  marpaWrapperOption_t  marpaWrapperOption;
 
   /* We first check _marpaXml_isInitialized in a non thread-safe way for quick return */
   if (_marpaXml_isInitialized == marpaXml_true) {
@@ -2468,6 +2478,18 @@ marpaXml_boolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Optionp
       goto error;
     }
   }
+
+  /* Precompute grammars */
+  MARPAXML_TRACE0("Precomputing qname XML 1.0 grammar\n");
+  marpaWrapper_optionDefaultb(&marpaWrapperOption);
+  marpaWrapperOption.logLevelWantedi = marpaXml_DOM_Option.logOption.logLevelWantedi;
+  marpaWrapperOption.logCallbackp = marpaXml_DOM_Option.logOption.logCallbackp;
+  marpaWrapperOption.logCallbackDatavp = marpaXml_DOM_Option.logOption.logCallbackDatavp;
+  qname_1_0p = qname_1_0_newp(&marpaWrapperOption);
+  if (qname_1_0p == NULL) {
+    goto error;
+  }
+
 
   /* Determine endiannes */
   if (pForEndiannessDetection[0] == 1) {
@@ -2641,6 +2663,9 @@ marpaXml_boolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Optionp
   }
   if (loadcollation_stmt != NULL) {
     _marpaXml_finalize(_MARPAXML_LOADCOLLATION, &loadcollation_stmt);
+  }
+  if (qname_1_0p != NULL) {
+    qname_1_0_destroyv(&qname_1_0p);
   }
 
   return marpaXml_false;
