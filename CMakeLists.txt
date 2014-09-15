@@ -131,7 +131,7 @@ ADD_LIBRARY (avl ${avl_lib_src})
 # --------------
 # SQLITE library
 # --------------
-SET (SQLITE_VERSION "3080500")
+SET (SQLITE_VERSION "3080600")
 SET (SQLITE_DIR "${PROJECT_SOURCE_DIR}/sqlite-amalgamation-${SQLITE_VERSION}")
 IF (NOT EXISTS "${SQLITE_DIR}" OR NOT IS_DIRECTORY "${SQLITE_DIR}")
   MESSAGE (STATUS "Preparing ${SQLITE_DIR}")
