@@ -89,15 +89,6 @@ FIND_PROGRAM (PERL perl)
 # -----------------------------------------
 # Transliterate DOM Level 3 Core.sql into C
 # -----------------------------------------
-SET (DOM3SQL "${PROJECT_SOURCE_DIR}/db/Dom Level 3 Core.sql")
-SET (DOM3H "${PROJECT_SOURCE_DIR}/db/Dom Level 3 Core.h")
-IF (NOT EXISTS "${DOM3H}")
-  MESSAGE (STATUS "Preparing ${DOM3H}")
-  EXECUTE_PROCESS (
-    COMMAND "${PERL}" tools/prepare_dom3.pl "${DOM3SQL}" "${DOM3H}"
-    )
-ENDIF ()
-
 
 # -------------
 # Marpa library
@@ -194,23 +185,26 @@ SET_PROPERTY (TARGET sqlite APPEND_STRING PROPERTY COMPILE_FLAGS " -DSQLITE_THRE
 # marpaXmlInternal library
 # ------------------------
 ADD_LIBRARY (marpaXml
-  ${PROJECT_SOURCE_DIR}/src/internal/genericStack.c
-  ${PROJECT_SOURCE_DIR}/src/internal/marpaWrapper.c
-  ${PROJECT_SOURCE_DIR}/src/internal/manageBuf.c
-  ${PROJECT_SOURCE_DIR}/src/internal/messageBuilder.c
-  ${PROJECT_SOURCE_DIR}/src/internal/dateBuilder.c
-  ${PROJECT_SOURCE_DIR}/src/internal/streamIn.c
-  ${PROJECT_SOURCE_DIR}/src/internal/hash.c
-  ${PROJECT_SOURCE_DIR}/src/internal/grammar/xml_common.c
-  ${PROJECT_SOURCE_DIR}/src/internal/grammar/xml_1_0.c
-  ${PROJECT_SOURCE_DIR}/src/internal/grammar/xml_1_1.c
-  ${PROJECT_SOURCE_DIR}/src/API/marpaXml/String.c
-  ${PROJECT_SOURCE_DIR}/src/API/marpaXml/DOM2.c
-  ${PROJECT_SOURCE_DIR}/src/API/marpaXml/cplus.c
-  ${PROJECT_SOURCE_DIR}/src/API/marpaXml/log.c
-  ${PROJECT_SOURCE_DIR}/xxhash-read-only/xxhash.c
+  src/internal/genericStack.c
+  src/internal/marpaWrapper.c
+  src/internal/manageBuf.c
+  src/internal/messageBuilder.c
+  src/internal/dateBuilder.c
+  src/internal/streamIn.c
+  src/internal/hash.c
+  src/internal/grammar/xml_common.c
+  src/internal/grammar/xml_1_0.c
+  src/internal/grammar/xml_1_1.c
+  src/internal/grammar/qname_1_0.c
+  src/internal/grammar/qname_1_1.c
+  src/API/marpaXml/String.c
+  src/API/marpaXml/DOM2.c
+  src/API/marpaXml/cplus.c
+  src/API/marpaXml/log.c
+  xxhash-read-only/xxhash.c
+  "db/Dom Level 3 Core.h"
   )
-SET_PROPERTY (TARGET marpaXml APPEND PROPERTY INCLUDE_DIRECTORIES ${MARPA_DIR}/core/read_only ${SQLITE_DIR} ${PROJECT_SOURCE_DIR})
+SET_PROPERTY (TARGET marpaXml APPEND PROPERTY INCLUDE_DIRECTORIES "${MARPA_DIR}/core/read_only" "${SQLITE_DIR}" "${PROJECT_SOURCE_DIR}")
 ADD_DEPENDENCIES (marpaXml marpa)
 
 # -----------------------
@@ -223,10 +217,17 @@ SET(DISTCLEANED
   CMakeCache.txt
   Makefile
   cmake_install.cmake
-  ${MARPA_DIR}
-  ${AVL_DIR}
-  ${SQLITE_DIR}
+  "${MARPA_DIR}"
+  "${AVL_DIR}"
+  "${SQLITE_DIR}"
   include/internal/config.h
+  src/internal/grammar/xml_1_0.c
+  src/internal/grammar/xml_1_1.c
+  src/internal/grammar/qname_1_0.c
+  src/internal/grammar/qname_1_1.c
+  "db/Dom Level 3 Core.h"
+  GLOB *vcxproj*
+  GLOB *sln
   )
 ADD_CUSTOM_COMMAND (
   DEPENDS clean
@@ -236,6 +237,49 @@ ADD_CUSTOM_COMMAND (
   TARGET  distclean
   )
 
+# ------------------------------
+# Generated files custom targets
+# ------------------------------
+ADD_CUSTOM_COMMAND(
+    PRE_BUILD
+    COMMENT "Generating xml_1_0.c"
+    OUTPUT src/internal/grammar/xml_1_0.c
+    COMMAND "${PERL}"
+    ARGS tools/generateMarpaWrapperCode.pl --bnf bnf/xml_1_0.bnf --output src/internal/grammar/xml_1_0.c
+    DEPENDS bnf/xml_1_0.bnf
+)
+ADD_CUSTOM_COMMAND(
+    PRE_BUILD
+    COMMENT "Generating xml_1_1.c"
+    OUTPUT src/internal/grammar/xml_1_1.c
+    COMMAND "${PERL}"
+    ARGS tools/generateMarpaWrapperCode.pl --bnf bnf/xml_1_1.bnf --output src/internal/grammar/xml_1_1.c
+    DEPENDS bnf/xml_1_1.bnf
+)
+ADD_CUSTOM_COMMAND(
+    PRE_BUILD
+    COMMENT "Generating qname_1_0.c"
+    OUTPUT src/internal/grammar/qname_1_0.c
+    COMMAND "${PERL}"
+    ARGS tools/generateMarpaWrapperCode.pl --bnf bnf/qname_1_0.bnf --output src/internal/grammar/qname_1_0.c
+    DEPENDS bnf/qname_1_0.bnf
+)
+ADD_CUSTOM_COMMAND(
+    PRE_BUILD
+    COMMENT "Generating qname_1_1.c"
+    OUTPUT src/internal/grammar/qname_1_1.c
+    COMMAND "${PERL}"
+    ARGS tools/generateMarpaWrapperCode.pl --bnf bnf/qname_1_1.bnf --output src/internal/grammar/qname_1_1.c
+    DEPENDS bnf/qname_1_1.bnf
+)
+ADD_CUSTOM_COMMAND(
+    PRE_BUILD
+    COMMENT "Generating Dom Level 3 Core.h"
+    OUTPUT "db/Dom Level 3 Core.h"
+    COMMAND "${PERL}"
+    ARGS tools/prepare_dom3.pl "db/Dom Level 3 Core.sql" "db/Dom Level 3 Core.h"
+    DEPENDS "db/Dom Level 3 Core.sql"
+)
 # ----------------------
 # va_copy implementation
 # ----------------------

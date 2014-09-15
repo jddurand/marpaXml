@@ -499,20 +499,24 @@ if ($nbvalue != 1) {
     my $withoutExclusions = $value->{grammar};
     foreach (sort keys %{$value->{lexemesWithExclusion}}) {
 	my ($key, $keyValue) = ($_, $value->{lexemesWithExclusion}->{$_});
-	print STDERR "[TEST] Bypassing $key ~ '$keyValue'\n";
+	# print STDERR "[TEST] Bypassing $key ~ '$keyValue'\n";
 	my $newKeyValue = $keyValue;
 	$newKeyValue =~ /(\w+)/;
 	$newKeyValue = $1;
 	my $quotedKeyValue = quotemeta("'$keyValue'");
 	$withoutExclusions =~ s/\s*~\s*$quotedKeyValue/ ::= $newKeyValue/g;
     }
-    print STDERR "[TEST] Marpa grammar: $withoutExclusions\n";
+    # print STDERR "[TEST] Marpa grammar: $withoutExclusions\n";
     my $grammar = Marpa::R2::Scanless::G->new( { source => \$withoutExclusions } );
     if (1) {
-	foreach (grep {$_ ne 'bnf'} __PACKAGE__->section_data_names) {
+	foreach (grep {$_ ne 'bnf'} grep {$_ =~ /$namespace/i} __PACKAGE__->section_data_names) {
 	    my $dataSection = $_;
 	    my $testDatap = __PACKAGE__->section_data($dataSection);
-	    my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar, trace_terminals => 1 } );
+            $$testDatap =~ s/^\s*//;
+            $$testDatap =~ s/\s*$//;
+	    my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar,
+                                                       # trace_terminals => 1
+                                                     } );
 	    if (! eval { $recce->read($testDatap) }) {
 		print STDERR "Test fail with data section $dataSection:\n$@\n";
 		print STDERR "Progress::\n" . $recce->show_progress() . "\n";
@@ -526,9 +530,9 @@ if ($nbvalue != 1) {
     #
     my $c = generateC($value, $namespace);
     print $c;
-    print STDERR "Symbols: " . join(' ', sort keys %{$value->{symbols}} ) . "\n";
+    # print STDERR "Symbols: " . join(' ', sort keys %{$value->{symbols}} ) . "\n";
 }
-
+# print STDERR "\nOK\n";
 exit(EXIT_SUCCESS);
 
 sub generateC {
@@ -547,9 +551,18 @@ INCLUDES
 
   $c .= generateTypedef(@_);
 
+  if ($namespace =~ /^xml/) {
   $c .= <<DECLARATIONS;
 static C_INLINE marpaWrapperBool_t _${namespace}_buildGrammarb(${namespace}_t *${namespace}p, marpaWrapperOption_t *marpaWrapperOptionp, xml_common_option_t *xml_common_optionp);
 static C_INLINE marpaWrapperBool_t _${namespace}_buildSymbolsb(${namespace}_t *${namespace}p, marpaWrapperOption_t *marpaWrapperOptionp, xml_common_option_t *xml_common_optionp);
+DECLARATIONS
+  } else {
+  $c .= <<DECLARATIONS;
+static C_INLINE marpaWrapperBool_t _${namespace}_buildGrammarb(${namespace}_t *${namespace}p, marpaWrapperOption_t *marpaWrapperOptionp);
+static C_INLINE marpaWrapperBool_t _${namespace}_buildSymbolsb(${namespace}_t *${namespace}p, marpaWrapperOption_t *marpaWrapperOptionp_optionp);
+DECLARATIONS
+  }
+  $c .= <<DECLARATIONS;
 static C_INLINE marpaWrapperBool_t _${namespace}_buildRulesb(${namespace}_t *${namespace}p);
 static C_INLINE marpaWrapperBool_t _${namespace}_isLexemeb(void *p, signed int currenti, streamIn_t *streamInp, size_t *sizelp);
 DECLARATIONS
@@ -687,7 +700,11 @@ STRUCTURE
 sub generateNewp {
   my ($value, $namespace) = @_;
 
-  my $newp = <<NEWP;
+  my $newp = '';
+
+  if ($namespace =~ /^xml/) {
+
+  $newp .= <<NEWPWITHOPTION;
 
 /*******************/
 /* ${namespace}_newp  */
@@ -728,7 +745,46 @@ ${namespace}_t *${namespace}_newp(marpaWrapperOption_t *marpaWrapperOptionp, xml
 
   return ${namespace}p;
 }
-NEWP
+NEWPWITHOPTION
+  } else {
+
+  $newp .= <<NEWPWITHOUTOPTION;
+
+/*******************/
+/* ${namespace}_newp  */
+/*******************/
+${namespace}_t *${namespace}_newp(marpaWrapperOption_t *marpaWrapperOptionp) {
+  ${namespace}_t           *${namespace}p;
+  marpaWrapperOption_t marpaWrapperOption;
+
+  /* Fill the defaults */
+  if (marpaWrapperOptionp == NULL) {
+    marpaWrapper_optionDefaultb(&marpaWrapperOption);
+  } else {
+    marpaWrapperOption = *marpaWrapperOptionp;
+  }
+
+  ${namespace}p = malloc(sizeof(${namespace}_t));
+  if (${namespace}p == NULL) {
+    return NULL;
+  }
+
+  ${namespace}p->marpaWrapperp = NULL;
+  ${namespace}p->marpaWrapperSymbolArrayp = NULL;
+  ${namespace}p->marpaWrapperSymbolArrayLengthi = 0;
+  ${namespace}p->marpaWrapperRuleArrayp = NULL;
+  ${namespace}p->marpaWrapperRuleArrayLengthi = 0;
+  ${namespace}p->marpaWrapperSymbolCallbackArrayp = NULL;
+  ${namespace}p->marpaWrapperSymbolCallbackArrayLengthi = 0;
+
+  if (_${namespace}_buildGrammarb(${namespace}p, &marpaWrapperOption) == MARPAWRAPPER_BOOL_FALSE) {
+    ${namespace}_destroyv(&${namespace}p);
+  }
+
+  return ${namespace}p;
+}
+NEWPWITHOUTOPTION
+}
 
   return $newp;
 }
@@ -770,7 +826,10 @@ DESTROYV
 sub generateBuildGrammarb {
   my ($value, $namespace) = @_;
 
-  my $buildGrammarb = <<BUILDGRAMMARB;
+  my $buildGrammarb = '';
+  if ($namespace =~ /^xml/) {
+
+    $buildGrammarb .= <<BUILDGRAMMARBWITHOPTION;
 
 /**************************/
 /* _${namespace}_buildGrammarb */
@@ -796,7 +855,37 @@ static C_INLINE marpaWrapperBool_t _${namespace}_buildGrammarb(${namespace}_t *$
 
   return MARPAWRAPPER_BOOL_TRUE;
 }
-BUILDGRAMMARB
+BUILDGRAMMARBWITHOPTION
+  } else {
+
+    $buildGrammarb .= <<BUILDGRAMMARBWITHOUTOPTION;
+
+/**************************/
+/* _${namespace}_buildGrammarb */
+/**************************/
+static C_INLINE marpaWrapperBool_t _${namespace}_buildGrammarb(${namespace}_t *${namespace}p, marpaWrapperOption_t *marpaWrapperOptionp) {
+
+  ${namespace}p->marpaWrapperp = marpaWrapper_newp(marpaWrapperOptionp);
+  if (${namespace}p->marpaWrapperp == NULL) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+
+  if (_${namespace}_buildSymbolsb(${namespace}p, marpaWrapperOptionp) == MARPAWRAPPER_BOOL_FALSE) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+
+  if (_${namespace}_buildRulesb(${namespace}p) == MARPAWRAPPER_BOOL_FALSE) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+
+  if (marpaWrapper_g_precomputeb(${namespace}p->marpaWrapperp) == MARPAWRAPPER_BOOL_FALSE) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+
+  return MARPAWRAPPER_BOOL_TRUE;
+}
+BUILDGRAMMARBWITHOUTOPTION
+  }
   return $buildGrammarb;
 }
 
@@ -805,7 +894,11 @@ sub generateBuildSymbolsb {
 
   my $NAMESPACE = uc($namespace);
 
-  my $buildSymbolsb = <<BUILDSYMBOLSB;
+  my $buildSymbolsb = '';
+
+  if ($namespace =~ /^xml/) {
+
+    $buildSymbolsb .= <<BUILDSYMBOLSBWITHOPTION;
 
 /**************************/
 /* _${namespace}_buildSymbolsb */
@@ -868,7 +961,58 @@ static C_INLINE marpaWrapperBool_t _${namespace}_buildSymbolsb(${namespace}_t *$
 
   return MARPAWRAPPER_BOOL_TRUE;
 }
-BUILDSYMBOLSB
+BUILDSYMBOLSBWITHOPTION
+  } else {
+
+    $buildSymbolsb .= <<BUILDSYMBOLSBWITHOPTION;
+
+/**************************/
+/* _${namespace}_buildSymbolsb */
+/**************************/
+static C_INLINE marpaWrapperBool_t _${namespace}_buildSymbolsb(${namespace}_t *${namespace}p, marpaWrapperOption_t *marpaWrapperOptionp) {
+  int                        i;
+  marpaWrapperSymbolOption_t marpaWrapperSymbolOption;
+
+  ${namespace}p->marpaWrapperSymbolArrayp = malloc(${NAMESPACE}_SYMBOL_MAX * sizeof(marpaWrapperSymbol_t *));
+  if (${namespace}p->marpaWrapperSymbolArrayp == NULL) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+  ${namespace}p->marpaWrapperSymbolCallbackArrayp = malloc(${NAMESPACE}_SYMBOL_MAX * sizeof(${namespace}_callback_t));
+  if (${namespace}p->marpaWrapperSymbolCallbackArrayp == NULL) {
+    free(${namespace}p->marpaWrapperSymbolArrayp);
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+ 
+  ${namespace}p->marpaWrapperSymbolArrayLengthi = ${NAMESPACE}_SYMBOL_MAX;
+  ${namespace}p->marpaWrapperSymbolCallbackArrayLengthi = ${NAMESPACE}_SYMBOL_MAX;
+
+  for (i = 0; i < ${NAMESPACE}_SYMBOL_MAX; i++) {
+
+    /* Fill default options */
+    if (marpaWrapper_symbolOptionDefaultb(&marpaWrapperSymbolOption) == MARPAWRAPPER_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+
+    /* Opaque data associated to symbol will be the symbol enum */
+    ${namespace}p->marpaWrapperSymbolCallbackArrayp[i].${namespace}p = ${namespace}p;
+    ${namespace}p->marpaWrapperSymbolCallbackArrayp[i].${namespace}_symboli = i;
+    marpaWrapperSymbolOption.datavp = (void *) &(${namespace}p->marpaWrapperSymbolCallbackArrayp[i]);
+
+    /* Optional, but we can make ourself the terminals */
+    marpaWrapperSymbolOption.terminalb = (i <= ${NAMESPACE}_TERMINAL_MAX) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
+
+    /* Create the symbol */
+    ${namespace}p->marpaWrapperSymbolArrayp[i] = marpaWrapper_g_addSymbolp(${namespace}p->marpaWrapperp, &marpaWrapperSymbolOption);
+    if (${namespace}p->marpaWrapperSymbolArrayp[i] == NULL) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+
+  }
+
+  return MARPAWRAPPER_BOOL_TRUE;
+}
+BUILDSYMBOLSBWITHOPTION
+  }
 
   return $buildSymbolsb;
 }
@@ -918,7 +1062,7 @@ COMMENT
       my $byHand = File::Spec->catfile('src', 'internal', 'grammar', $namespace, $func . '.c');
       if (-s $byHand) {
         $pushLexemeb .= read_file($byHand);
-	print STDERR "[WARN] Inserted $byHand\n";
+	print STDERR "[INFO] Inserted $byHand\n";
       } else {
 	print STDERR "[WARN] Routine $func to be writen by hand\n";
         $pushLexemeb .= <<ISLEXEMEB;
@@ -1253,7 +1397,21 @@ __HEX_END            ~ [0-9A-Fa-f]+
 #################
 __SPACE_ANY ~ [\s]+
 :discard ~ __SPACE_ANY
-__[ test01 ]__
+__[ xml_1_0_test01 ]__
+<?xml version="1.0" standalone="no" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+  "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
+<TITLE>A typical HTML file</TITLE>
+</HEAD>
+<BODY>
+  This is the typical structure of an HTML file. It follows
+  the notation of the HTML 4.0 specification, including tags
+  that have been deprecated (hence the "transitional" label).
+</BODY>
+</HTML>
+__[ xml_1_1_test01 ]__
 <?xml version="1.1" standalone="no" ?>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
   "http://www.w3.org/TR/REC-html40/loose.dtd">
@@ -1267,3 +1425,7 @@ __[ test01 ]__
   that have been deprecated (hence the "transitional" label).
 </BODY>
 </HTML>
+__[ qname_1_0_test01 ]__
+prefix:localpart
+__[ qname_1_1_test01 ]__
+prefix:localpart
