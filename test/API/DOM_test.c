@@ -369,6 +369,7 @@ int main(int argc, char **argv) {
   /*************************************/
   /*                 Node              */
   /*************************************/
+  /*
   nodep = marpaXml_Node_new();
   if (nodep == NULL) {
     fprintf(stderr, "marpaXml_Node_new failure at %s:%d\n", __FILE__, __LINE__);
@@ -378,6 +379,7 @@ int main(int argc, char **argv) {
     fprintf(stderr, "marpaXml_Node_free failure at %s:%d\n", __FILE__, __LINE__);
     return 1;
   }
+  */
 
   /*************************************/
   /*                End                */
