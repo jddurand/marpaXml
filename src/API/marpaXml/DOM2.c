@@ -127,21 +127,21 @@ typedef int (*_marpaXml_SQLiteExecCallback_t)(void *, int, char **, char **);
 
 /* DOMObjects should be internal only */
 typedef struct marpaXml_DOMObjects marpaXml_DOMObjects_t;
-marpaXml_DOMObjects_t *marpaXml_DOMObjects_new(char *objectName);
-marpaXml_boolean_t     marpaXml_DOMObjects_free(marpaXml_DOMObjects_t **thisp);
+static C_INLINE marpaXml_DOMObjects_t *marpaXml_DOMObjects_new(char *objectName);
+static C_INLINE marpaXml_boolean_t     marpaXml_DOMObjects_free(marpaXml_DOMObjects_t **thisp);
 
 /* DOMUtils should be internal only */
 typedef struct marpaXml_DOMUtils marpaXml_DOMUtils_t;
-marpaXml_DOMUtils_t *marpaXml_DOMUtils_new(void);
-marpaXml_boolean_t   marpaXml_DOMUtils_free(marpaXml_DOMUtils_t **thisp);
+static C_INLINE marpaXml_DOMUtils_t *marpaXml_DOMUtils_new(void);
+static C_INLINE marpaXml_boolean_t   marpaXml_DOMUtils_free(marpaXml_DOMUtils_t **thisp);
 
 /* DOMImplementation constructor should be internal only */
-marpaXml_DOMImplementation_t *marpaXml_DOMImplementation_new(void);
+static C_INLINE marpaXml_DOMImplementation_t *marpaXml_DOMImplementation_new(void);
 marpaXml_boolean_t            marpaXml_DOMImplementation_newFromFeatureAndVersion(marpaXml_String_t *featurep, marpaXml_String_t *versionp, marpaXml_DOMImplementation_t **rcp);
 marpaXml_boolean_t            marpaXml_DOMImplementation_newFromImplementationName(marpaXml_String_t *implementationNamep, marpaXml_DOMImplementation_t **rcp);
 
 /* DOMImplementationList constructor should be internal only */
-marpaXml_DOMImplementationList_t   *marpaXml_DOMImplementationList_new(const char *wheres);
+static C_INLINE marpaXml_DOMImplementationList_t   *marpaXml_DOMImplementationList_new(const char *wheres);
 
 /* For the API */
 struct marpaXml_DOMException  { sqlite3_int64 id; };
@@ -443,7 +443,7 @@ static C_INLINE void *sqlite3_column_ptr(sqlite3_stmt*, int iCol);
 /* Hack to make the preprocessor believe a concatenation is a single argument */
 #define MARPAXML_ARG(x) ,x
 
-#define MARPAXML_GENERIC_NEW_API(class, decl, args, extraInit, bindingResult) \
+#define MARPAXML_GENERIC_NEW_API(staticStorage, class, decl, args, extraInit, bindingResult) \
   static C_INLINE marpaXml_boolean_t _marpaXml_##class##_free(marpaXml_##class##_t **thispp); \
   static C_INLINE marpaXml_##class##_t *_marpaXml_##class##_new(decl) { \
     char                 *sqls;						\
@@ -536,7 +536,7 @@ static C_INLINE void *sqlite3_column_ptr(sqlite3_stmt*, int iCol);
     return rcp;                                                          \
   }                                                                     \
                                                                         \
-  marpaXml_##class##_t *marpaXml_##class##_new(decl) {                  \
+  staticStorage marpaXml_##class##_t *marpaXml_##class##_new(decl) {	\
     marpaXml_##class##_t *rc;                                           \
                                                                         \
     MARPAXML_DOM_DB_API_HEADER("marpaXml_" #class "_new", NULL)         \
@@ -548,7 +548,7 @@ static C_INLINE void *sqlite3_column_ptr(sqlite3_stmt*, int iCol);
     return rc;                                                          \
   }
 
-#define MARPAXML_GENERIC_FREE_API(class, impactOnDb)			\
+#define MARPAXML_GENERIC_FREE_API(staticStorage, class, impactOnDb)	\
   static C_INLINE marpaXml_boolean_t _marpaXml_##class##_free(marpaXml_##class##_t **thispp) { \
     marpaXml_##class##_t *thisp;                                        \
     int                  sqliteRc;                                      \
@@ -605,7 +605,7 @@ static C_INLINE void *sqlite3_column_ptr(sqlite3_stmt*, int iCol);
     return rc;                                                          \
   }                                                                     \
                                                                         \
-  marpaXml_boolean_t marpaXml_##class##_free(marpaXml_##class##_t **thispp) { \
+  staticStorage marpaXml_boolean_t marpaXml_##class##_free(marpaXml_##class##_t **thispp) { \
     marpaXml_boolean_t rc;                                              \
     MARPAXML_DOM_DB_API_HEADER("marpaXml_" #class "_free", marpaXml_false) \
     rc = _marpaXml_##class##_free(thispp);                              \
@@ -1273,7 +1273,8 @@ static C_INLINE marpaXml_boolean_t _marpaXml_Transaction_Rollback() {
 /* --------------------------------------------------------------- */
 /* marpaXml_DOMException_new                                       */
 /* --------------------------------------------------------------- */
-MARPAXML_GENERIC_NEW_API(DOMException,                              /* class */
+MARPAXML_GENERIC_NEW_API(,                                          /* staticStorage */
+                         DOMException,                              /* class */
                          short code MARPAXML_ARG(marpaXml_String_t *messagep),    /* decl */
                          code MARPAXML_ARG(messagep),               /* args */
 			 ,                                          /* extraInit */
@@ -1332,7 +1333,8 @@ MARPAXML_GENERIC_SET_API(marpaXml_String_t *,                       /* rcType */
 /* marpaXml_DOMException_free                                      */
 /* Note: the lifetime of a DOMException in the DB is the object    */
 /* --------------------------------------------------------------- */
-MARPAXML_GENERIC_FREE_API(DOMException,                             /* class */
+MARPAXML_GENERIC_FREE_API(,                                         /* staticStorage */
+                          DOMException,                             /* class */
                           marpaXml_true                             /* impactOnDb */
 			  )
 
@@ -1344,7 +1346,8 @@ MARPAXML_GENERIC_FREE_API(DOMException,                             /* class */
 /* --------------------------------------------------------------- */
 /* marpaXml_DOMError_new                                           */
 /* --------------------------------------------------------------- */
-MARPAXML_GENERIC_NEW_API(DOMError,                                  /* class */
+MARPAXML_GENERIC_NEW_API(,                                          /* staticStorage */
+                         DOMError,                                  /* class */
                          void,                                      /* decl */
                          ,                                          /* args */
 			 ,                                          /* extraInit */
@@ -1377,7 +1380,8 @@ MARPAXML_GENERIC_SET_API(unsigned short,                            /* rcType */
 /* marpaXml_DOMError_free                                          */
 /* Note: the lifetime of a DOMError in the DB is the object        */
 /* --------------------------------------------------------------- */
-MARPAXML_GENERIC_FREE_API(DOMError,                                 /* class */
+MARPAXML_GENERIC_FREE_API(,                                         /* staticStorage */
+                          DOMError,                                 /* class */
                           marpaXml_true                             /* impactOnDb */
 			  )
 
@@ -1389,7 +1393,8 @@ MARPAXML_GENERIC_FREE_API(DOMError,                                 /* class */
 /* --------------------------------------------------------------- */
 /* marpaXml_DOMObjects_new                                         */
 /* --------------------------------------------------------------- */
-MARPAXML_GENERIC_NEW_API(DOMObjects,                                /* class */
+MARPAXML_GENERIC_NEW_API(static C_INLINE,                           /* staticStorage */
+                         DOMObjects,                                /* class */
                          char *objectName,                          /* decl */
                          objectName,                                /* args */
 			 ,                                          /* extraInit */
@@ -1401,7 +1406,8 @@ MARPAXML_GENERIC_NEW_API(DOMObjects,                                /* class */
 /* marpaXml_DOMObjects_free                                        */
 /* The lifetime of a DOMObject in the DB is the object             */
 /* --------------------------------------------------------------- */
-MARPAXML_GENERIC_FREE_API(DOMObjects,                               /* class */
+MARPAXML_GENERIC_FREE_API(static C_INLINE,                          /* staticStorage */
+                          DOMObjects,                               /* class */
                           marpaXml_true                             /* impactOnDb */
 			  )
 
@@ -1413,7 +1419,8 @@ MARPAXML_GENERIC_FREE_API(DOMObjects,                               /* class */
 /* --------------------------------------------------------------- */
 /* marpaXml_DOMStringList_new                                      */
 /* --------------------------------------------------------------- */
-MARPAXML_GENERIC_NEW_API(DOMStringList,                             /* class */
+MARPAXML_GENERIC_NEW_API(,                                          /* staticStorage */
+                         DOMStringList,                             /* class */
                          void,                                      /* decl */
                          ,                                          /* args */
 			 /* extraInit */
@@ -1493,7 +1500,8 @@ MARPAXML_GENERIC_METHOD_API(DOMStringList,                          /* class */
 /* marpaXml_DOMStringList_free                                     */
 /* The lifetime of a DOMStringList in the DB is the object         */
 /* --------------------------------------------------------------- */
-MARPAXML_GENERIC_FREE_API(DOMStringList,                            /* class */
+MARPAXML_GENERIC_FREE_API(,                                         /* staticStorage */
+                          DOMStringList,                            /* class */
                           marpaXml_true                             /* impactOnDb */
 			  )
 
@@ -1505,7 +1513,8 @@ MARPAXML_GENERIC_FREE_API(DOMStringList,                            /* class */
 /* --------------------------------------------------------------- */
 /* marpaXml_NameList_new                                           */
 /* --------------------------------------------------------------- */
-MARPAXML_GENERIC_NEW_API(NameList,                                  /* class */
+MARPAXML_GENERIC_NEW_API(,                                          /* staticStorage */
+                         NameList,                                  /* class */
                          void,                                      /* decl */
                          ,                                          /* args */
 			 /* extraInit */
@@ -1628,7 +1637,8 @@ MARPAXML_GENERIC_METHOD_API(NameList,                               /* class */
 /* marpaXml_NameList_free                                          */
 /* The lifetime of a NameList in the DB is the object              */
 /* --------------------------------------------------------------- */
-MARPAXML_GENERIC_FREE_API(NameList,                                 /* class */
+MARPAXML_GENERIC_FREE_API(,                                         /* staticStorage */
+                          NameList,                                 /* class */
                           marpaXml_true                             /* impactOnDb */
 			  )
 
@@ -1640,7 +1650,8 @@ MARPAXML_GENERIC_FREE_API(NameList,                                 /* class */
 /* --------------------------------------------------------------- */
 /* marpaXml_DOMImplementationList_new                              */
 /* --------------------------------------------------------------- */
-MARPAXML_GENERIC_NEW_API(DOMImplementationList,                     /* class */
+MARPAXML_GENERIC_NEW_API(static C_INLINE,                           /* staticStorage */
+                         DOMImplementationList,                     /* class */
                          const char *wheres,                        /* decl */
                          wheres,                                    /* args */
 			 /* extraInit */
@@ -1711,7 +1722,8 @@ MARPAXML_GENERIC_METHOD_API(DOMImplementationList,                  /* class */
 /* marpaXml_DOMImplementationList_free                             */
 /* The lifetime of a NameList in the DB is the object              */
 /* --------------------------------------------------------------- */
-MARPAXML_GENERIC_FREE_API(DOMImplementationList,                    /* class */
+MARPAXML_GENERIC_FREE_API(,                                         /* staticStorage */
+                          DOMImplementationList,                    /* class */
                           marpaXml_true                             /* impactOnDb */
 			  )
 
@@ -1723,7 +1735,8 @@ MARPAXML_GENERIC_FREE_API(DOMImplementationList,                    /* class */
 /* --------------------------------------------------------------- */
 /* marpaXml_DOMImplementationSource_new                            */
 /* --------------------------------------------------------------- */
-MARPAXML_GENERIC_NEW_API(DOMImplementationSource,                   /* class */
+MARPAXML_GENERIC_NEW_API(,                                          /* staticStorage */
+                         DOMImplementationSource,                   /* class */
                          void,                                      /* decl */
                          ,                                          /* args */
 			 ,                                          /* extraInit */
@@ -1850,7 +1863,8 @@ MARPAXML_GENERIC_METHOD_API(DOMImplementationSource,                /* class */
 /* --------------------------------------------------------------- */
 /* marpaXml_DOMImplementationSource_free                           */
 /* --------------------------------------------------------------- */
-MARPAXML_GENERIC_FREE_API(DOMImplementationSource,                  /* class */
+MARPAXML_GENERIC_FREE_API(,                                         /* staticStorage */
+                          DOMImplementationSource,                  /* class */
                           marpaXml_false                            /* impactOnDb */
 			  )
 
@@ -1863,7 +1877,8 @@ MARPAXML_GENERIC_FREE_API(DOMImplementationSource,                  /* class */
 /* --------------------------------------------------------------- */
 /* marpaXml_DOMImplementation_new                                  */
 /* --------------------------------------------------------------- */
-MARPAXML_GENERIC_NEW_API(DOMImplementation,                         /* class */
+MARPAXML_GENERIC_NEW_API(static C_INLINE,                           /* staticStorage */
+                         DOMImplementation,                         /* class */
                          void,                                      /* decl */
                          ,                                          /* args */
 			 ,                                          /* extraInit */
@@ -1990,7 +2005,8 @@ MARPAXML_GENERIC_METHOD_API(DOMImplementation,                      /* class */
 /* --------------------------------------------------------------- */
 /* marpaXml_DOMImplementation_free                                 */
 /* --------------------------------------------------------------- */
-MARPAXML_GENERIC_FREE_API(DOMImplementation,                        /* class */
+MARPAXML_GENERIC_FREE_API(,                                         /* staticStorage */
+                          DOMImplementation,                        /* class */
                           marpaXml_false                            /* impactOnDb */
 			  )
 
@@ -2003,7 +2019,8 @@ MARPAXML_GENERIC_FREE_API(DOMImplementation,                        /* class */
 /* --------------------------------------------------------------- */
 /* marpaXml_Node_new                                               */
 /* --------------------------------------------------------------- */
-MARPAXML_GENERIC_NEW_API(Node,                                      /* class */
+MARPAXML_GENERIC_NEW_API(,                                          /* staticStorage */
+                         Node,                                      /* class */
                          void,                                      /* decl */
                          ,                                          /* args */
 			 ,                                          /* extraInit */
@@ -2014,7 +2031,8 @@ MARPAXML_GENERIC_NEW_API(Node,                                      /* class */
 /* marpaXml_Node_free                                              */
 /* Note: Node deletion does not mean delete from the DB            */
 /* --------------------------------------------------------------- */
-MARPAXML_GENERIC_FREE_API(Node,                                     /* class */
+MARPAXML_GENERIC_FREE_API(,                                         /* staticStorage */
+                          Node,                                     /* class */
                           marpaXml_false                            /* impactOnDb */
 			  )
 
@@ -2027,7 +2045,8 @@ MARPAXML_GENERIC_FREE_API(Node,                                     /* class */
 /* --------------------------------------------------------------- */
 /* marpaXml_DOMUtils_new                                           */
 /* --------------------------------------------------------------- */
-MARPAXML_GENERIC_NEW_API(DOMUtils,                                  /* class */
+MARPAXML_GENERIC_NEW_API(static C_INLINE,                           /* staticStorage */
+                         DOMUtils,                                  /* class */
                          void,                                      /* decl */
                          ,                                          /* args */
 			 ,                                          /* extraInit */
@@ -2035,10 +2054,11 @@ MARPAXML_GENERIC_NEW_API(DOMUtils,                                  /* class */
 			 )
 
 /* --------------------------------------------------------------- */
-/* marpaXml_DOMUtils_free                                              */
-/* Note: DOMUtils deletion does not mean delete from the DB            */
+/* marpaXml_DOMUtils_free                                          */
+/* Note: DOMUtils deletion does not mean delete from the DB        */
 /* --------------------------------------------------------------- */
-MARPAXML_GENERIC_FREE_API(DOMUtils,                                 /* class */
+MARPAXML_GENERIC_FREE_API(static C_INLINE,                          /* staticStorage */
+                          DOMUtils,                                 /* class */
                           marpaXml_false                            /* impactOnDb */
 			  )
 
