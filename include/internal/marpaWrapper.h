@@ -54,7 +54,11 @@ typedef struct marpaWrapperEvent {
 } marpaWrapperEvent_t;
 
 /* Callbacks */
+
+/* marpaWrapperEventCallback_t happen during lexing phase only */
 typedef marpaWrapperBool_t      (*marpaWrapperEventCallback_t)           (void *datavp, marpaWrapper_t *marpaWrapperp, size_t nEventi, marpaWrapperEvent_t *marpaWrapperEventp);
+
+/* Rule, symbol, nulling and result callbacks happen during value phase only. In this phase there is the notion of generic stack as well. */
 typedef marpaWrapperBool_t      (*marpaWrapperValueRuleCallback_t)       (void *datavp, marpaWrapper_t *marpaWrapperp, marpaWrapperRule_t *marpaWrapperRulep, size_t nValueInputi, void **valueInputArraypp, void **valueOutputpp);
 typedef marpaWrapperBool_t      (*marpaWrapperValueSymbolCallback_t)     (void *datavp, marpaWrapper_t *marpaWrapperp, marpaWrapperSymbol_t *marpaWrapperSymbolp, int value, void **valueOutputpp);
 typedef marpaWrapperBool_t      (*marpaWrapperValueNullingCallback_t)    (void *datavp, marpaWrapper_t *marpaWrapperp, marpaWrapperSymbol_t *marpaWrapperSymbolp, void **valueOutputpp);

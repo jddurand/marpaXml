@@ -60,6 +60,7 @@ sub _pushG1 {
       push(@{$rcp}, $content = join(' ', $_->{lhs}, $_->{rulesep}, "@{$_->{rhs}}", $_->{quantifier}));
       $self->{symbols}->{$_->{lhs}} = {terminal => 0, content => $content};
     }
+
 }
 
 sub _rules {
@@ -179,7 +180,7 @@ sub _rules {
 }
 
 sub _rule {
-  my ($self, $rulenumber, $symbol, $rulesep, $expressions, $lhscontraints, $quantifier) = @_;
+  my ($self, $rulenumber, $symbol, $rulesep, $expressions, $quantifier) = @_;
 
   #
   # Ignore rulesep "~"
@@ -206,10 +207,14 @@ sub _rule {
 }
 
 sub _concatenation {
-  my ($self, $exceptions, $RHSconstraints) = @_;
+  my ($self, $exceptions, $constraints) = @_;
 
-  foreach (@{$RHSconstraints}) {
-    $self->{constraints}->{$_} //= undef;
+  foreach (@{$constraints}) {
+    my $constraint = $_;
+    $self->{constraints}->{$constraint} //= {};
+    foreach (@{$exceptions}) {
+      $self->{constraints}->{$constraint}->{$_} = 1;
+    }
   }
 
   return $exceptions;
@@ -305,7 +310,7 @@ sub _factorExpressions {
   my ($self, $lparen, $expressions, $rparen) = @_;
 
   my $symbol = sprintf('_Gen%03d', 1 + (scalar @{$self->{rules}}));
-  $self->_rule(undef, $symbol, '::=', $expressions, []);
+  $self->_rule(undef, $symbol, '::=', $expressions);
   return $symbol;
 }
 
@@ -342,7 +347,7 @@ sub _factorString {
   my @range1 = map {$self->_factor($self->_printable($self->_char(sprintf("#x%x", ord($_)))), $LEXEME_HEXMANY, [ $_ ])} @real;
 
   my $symbol = sprintf('_Gen%03d', 1 + (scalar @{$self->{rules}}));
-  $self->_rule(undef, $symbol, '::=', [ [ @range1 ] ], []);
+  $self->_rule(undef, $symbol, '::=', [ [ @range1 ] ]);
 
   return $symbol;
 }
@@ -377,25 +382,27 @@ sub _termFactorQuantifier {
   if ($quantifier eq '*') {
     $symbol = sprintf('%s_any', $factor);
     if (! exists($self->{quantifier}->{$symbol})) {
-      $self->_rule(undef, $symbol, '::=', [ [ $factor ] ], [], $quantifier);
+      $self->_rule(undef, $symbol, '::=', [ [ $factor ] ], $quantifier);
       $self->{quantifier}->{$symbol}++;
     }
   } elsif ($quantifier eq '+') {
     $symbol = sprintf('%s_many', $factor);
     if (! exists($self->{quantifier}->{$symbol})) {
-      $self->_rule(undef, $symbol, '::=', [ [ $factor ] ], [], $quantifier);
+      $self->_rule(undef, $symbol, '::=', [ [ $factor ] ], $quantifier);
       $self->{quantifier}->{$symbol}++;
     }
   } elsif ($quantifier eq '?') {
     $symbol = sprintf('%s_maybe', $factor);
     if (! exists($self->{quantifier}->{$symbol})) {
-      $self->_rule(undef, $symbol, '::=', [ [ "$factor" ] ], []);
-      $self->_rule(undef, $symbol, '::=', [ [] ], []);
+      $self->_rule(undef, $symbol, '::=', [ [ "$factor" ] ]);
+      $self->_rule(undef, $symbol, '::=', [ [] ]);
       $self->{quantifier}->{$symbol}++;
     }
   } else {
     die "Unsupported quantifier '$quantifier'";
   }
+
+
   return $symbol;
 }
 
@@ -415,20 +422,20 @@ sub _exceptionTermMinusTerm {
 	$name = $name[0];
     }
     my $symbol = sprintf('_Gen%03d', 1 + (scalar @{$self->{rules}}));
-    $self->_rule(undef, $symbol, '~', [ [ $name ] ], []);
+    $self->_rule(undef, $symbol, '~', [ [ $name ] ]);
     #
     # hHis is ASSUMING that none of the original symbols already end with _any or _many.
     # If this would the case this is ASSUMING that xxx_any is a nullable, and xxx_many is not
     #
     if ($term1 =~ /_any/) {
 	print STDERR "[INFO] Lexeme with exclusion: $name ::= $value appears to be nullable\n";
-	$self->_rule(undef, $symbol, '~', [ [] ], []);
+	$self->_rule(undef, $symbol, '~', [ [] ]);
     } elsif ($term1 =~ /_many/) {
 	print STDERR "[INFO] Lexeme with exclusion: $name ::= $value appears to be not nullable\n";
     } else {
 	print STDERR "[WARN] Lexeme with exclusion: $name ::= $value : cannot determine its nullability - ASSUMING NOT\n";
     }
-    # $self->_rule(undef, $symbol, '~', [ [ $term1 ] ], []);
+    # $self->_rule(undef, $symbol, '~', [ [ $term1 ] ]);
     return $symbol;
 }
 
@@ -491,6 +498,8 @@ if ($nbvalue != 1) {
   print STDERR "Oups, \$nbvalue != 1\n";
   exit(EXIT_FAILURE);
 } else {
+  use Data::Dumper;
+  print STDERR Dumper($value);
     #
     # These calls are to make sure:
     # - this is a valid Marpa grammar
@@ -514,8 +523,8 @@ if ($nbvalue != 1) {
 	    my $testDatap = __PACKAGE__->section_data($dataSection);
             $$testDatap =~ s/^\s*//;
             $$testDatap =~ s/\s*$//;
-	    my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar,
-                                                       # trace_terminals => 1
+	    my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar
+                                                       # , trace_terminals => 1
                                                      } );
 	    if (! eval { $recce->read($testDatap) }) {
 		print STDERR "Test fail with data section $dataSection:\n$@\n";
@@ -1294,22 +1303,52 @@ lexeme default = latm => 1
 #
 # Inspired by ebnf-ebx.el from Emacs's ebnf2ps package
 #
-# The XML Spec seems to apply [WFC:] and [VC:] constraints to all rule that are on the
-# same line.
-# This would have complicated too much the grammar given that almost all contraints
-# apply on all RHSs of a given LHS.
-# The exceptions are marked with [RWFC:] and [RCV:], i.e. when the contraint is on a
-# specific RHS member.
+# The XML Spec seems to apply [WFC:] and [VC:] constraints.
+# Take care: if the LHS contains alternatives, you will have to enclose the whole with (), or repeat the conditions for every altenative.
 #
-# We add lexeme actions as a WFC constraint, with the following naming convention:
-# - _completionEventXXX         for a completion event on XXX
-# - _nulledEventXXX             for a nulled     event on XXX
-# - _predictedEventXXX          for a predicted  event on XXX
+# Content of [WFC] is translated systematically to a call to a function of the same name, using a MARPA_EVENT_SYMBOL_COMPLETED event during lexing phase.
+# * The symbolID with the one of the current LHS
+# Content of [VC]  is translated systematically to a call to a function of the same name, using a MARPA_STEP_RULE event during value phase.
+# * The ruleID with the one of the current rule
+#
+# The data associated with any lexeme, with no exception is always a marpaXml_String_t pointer. This is done during recognition phase, using calls to:
+# marpaWrapper_r_alternativeb() and marpaWrapper_r_completeb().
+#
+# In addition explicit marpa oriented constraints are possible, with the following averbs:
+# * Lexing phase
+# event_predicted => functionName
+# event_nulled    => functionName
+# event_completed => functionName
+# * Value phase
+# value_rule      => functionName
+# value_symbol    => functionName
+# value_null      => functionName
+#
+# If any function is to be called, it is expected that the caller provides an 'actions.c' source code containing functions prototyped like this:
+# static C_INLINE marpaWrapperBool_t _${namespace}_<content>(${namespace}_callback_t *${namespace}_callbackp, int subscribedEventi, marpaWrapperEvent_t *marpaWrapperEventp)
+# where content is the function name, with every non-alphabetic character replaced by a '_'.
+#
+# It is guaranteed that ${namespace}_callbackp is a valid pointer whose content is:
+# ${namespace}_callbackp->${namespace}p : pointer to the grammar context
+# ${namespace}_callbackp->${namespace}_symboli : enum of the symbol
+#
+# It is also guaranteed that marpaWrapperEventp is a valid pointer to an array of size subscribedEventi, with content:
+# marpaWrapperEventp[].eventType = type of event (MARPAWRAPPER_EVENTTYPE_COMPLETED, MARPAWRAPPER_EVENTTYPE_NULLED, MARPAWRAPPER_EVENTTYPE_PREDICTED)
+# marpaWrapperEventp[].marpaWrapperSymbolp = pointer to a marpaWrapperSymbol.
+#
+# Note: opaque data associated with a marpaWrapperSymbol can be obtained using marpaWrapperSymbol_datavp_get(marpaWrapperSymbol_t *marpaWrapperSymbolp, void **datavpp),
+# and if successful, *datavp can be typecasted to a (${namespace}_callback_t *${namespace}_callbackp).
+#
+# For example, for the xml_1_0 namespace, [VC: Proper Declaration/PE Nesting] would translate to:
+# static C_INLINE marpaWrapperBool_t _xml_1_0_Proper_Declaration(xml_1_0_callback_t *xml_1_0_callbackp, int subscribedEventi, marpaWrapperEvent_t *marpaWrapperEventp)
+# and
+# static C_INLINE marpaWrapperBool_t _${namespace}_PE_Nesting(xml_1_0_callback_t *xml_1_0_callbackp, int subscribedEventi, marpaWrapperEvent_t *marpaWrapperEventp)
+#
 #
 rules          ::= rule+                                                action => _rules
-rule           ::= RULENUMBER SYMBOL RULESEP expressions LHSconstraints action => _rule
+rule           ::= RULENUMBER SYMBOL RULESEP expressions                action => _rule
 expressions    ::= concatenation+ separator => PIPE                     action => [values]
-concatenation  ::= exceptions RHSconstraints                            action => _concatenation
+concatenation  ::= exceptions constraints                               action => _concatenation
 exceptions     ::= exception+                                           action => [values]
 exception      ::= term
                |   term MINUS term                                      action => _exceptionTermMinusTerm
@@ -1326,16 +1365,11 @@ factor         ::= hexMany
 ranges         ::= range+                                               action => _ranges
 range          ::= CHAR                                                 action => _range1
                |   CHAR MINUS CHAR                                      action => _range2
-LHSconstraint  ::= LHSWfcConstraint
-               |   LHSVcConstraint
-LHSconstraints ::= LHSconstraint*                                       action => [values]
-LHSWfcConstraint ::= LHSWFCSTART CONSTRAINTBODY RBRACKET                action => _constraint
-LHSVcConstraint  ::= LHSVCSTART CONSTRAINTBODY RBRACKET                 action => _constraint
-RHSconstraint  ::= RHSWfcConstraint
-               |   RHSVcConstraint
-RHSconstraints ::= RHSconstraint*                                       action => [values]
-RHSWfcConstraint ::= RHSWFCSTART CONSTRAINTBODY RBRACKET                action => _constraint
-RHSVcConstraint  ::= RHSVCSTART CONSTRAINTBODY RBRACKET                 action => _constraint
+constraint     ::= WfcConstraint
+               |   VcConstraint
+constraints    ::= constraint*                                          action => [values]
+WfcConstraint  ::= WFCSTART CONSTRAINTBODY RBRACKET                     action => _constraint
+VcConstraint   ::= VCSTART CONSTRAINTBODY RBRACKET                      action => _constraint
 
 RULESEP       ~ '::=' |'~'
 PIPE          ~ '|'
@@ -1353,10 +1387,10 @@ SQUOTE        ~ [']
 STRINGDQUOTE  ~ _STRING_DQUOTE_UNIT*
 STRINGSQUOTE  ~ _STRING_SQUOTE_UNIT*
 SYMBOL        ~ _SYMBOL_START _SYMBOL_END
-LHSWFCSTART   ~ '[wfc:':i
-LHSVCSTART    ~ '[vc:':i
-RHSWFCSTART   ~ '[rhs_wfc:':i
-RHSVCSTART    ~ '[rhs_vc:':i
+:lexeme ~ WFCSTART priority => 1
+WFCSTART      ~ '[wfc:':i
+:lexeme ~ VCSTART priority => 1
+VCSTART       ~ '[vc:':i
 RULENUMBER    ~ '[' _RULE_NUMBER_START _RULE_NUMBER_END ']'
 
 _STRING_DQUOTE_UNIT    ~ [^"] | '\"'

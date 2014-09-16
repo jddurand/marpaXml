@@ -121,10 +121,15 @@
 [27]   	Misc	   ::=   	Comment | PI | S 
 [28]   	doctypedecl	   ::=   	'<!DOCTYPE' S Name (S ExternalID)? S? ('[' intSubset ']' S?)? '>'	[VC: Root Element Type]
 				[WFC: External Subset]
-[28a]   	DeclSep	   ::=   	PEReference | S 	[WFC: PE Between Declarations]
+[28a]   	DeclSep	   ::= PEReference 	[WFC: PE Between Declarations]
+                             | S
 [28b]   	intSubset	   ::=   	(markupdecl | DeclSep)*
-[29]   	markupdecl	   ::=   	elementdecl | AttlistDecl | EntityDecl | NotationDecl | PI | Comment 	[VC: Proper Declaration/PE Nesting]
-				[WFC: PEs in Internal Subset]
+[29]   	markupdecl	   ::=   elementdecl 	[VC: Proper Declaration/PE Nesting] [WFC: PEs in Internal Subset]
+                             | AttlistDecl 	[VC: Proper Declaration/PE Nesting] [WFC: PEs in Internal Subset]
+                             | EntityDecl 	[VC: Proper Declaration/PE Nesting] [WFC: PEs in Internal Subset]
+                             | NotationDecl 	[VC: Proper Declaration/PE Nesting] [WFC: PEs in Internal Subset]
+                             | PI 	[VC: Proper Declaration/PE Nesting] [WFC: PEs in Internal Subset]
+                             | Comment 	[VC: Proper Declaration/PE Nesting] [WFC: PEs in Internal Subset]
 [30]   	extSubset	   ::=   	TextDecl? extSubsetDecl
 [31]   	extSubsetDecl	   ::=   	( markupdecl | conditionalSect | DeclSep)*
 [32]   	SDDecl	   ::=   	S 'standalone' Eq (("'" ('yes' | 'no') "'") | ('"' ('yes' | 'no') '"')) 	[VC: Standalone Document Declaration]
@@ -151,15 +156,15 @@
 [53]   	AttDef	   ::=   	S Name S AttType S DefaultDecl 
 [54]   	AttType	   ::=   	StringType | TokenizedType | EnumeratedType
 [55]   	StringType	   ::=   	'CDATA'
-[56]   	TokenizedType	   ::=   	'ID'	[RHS_VC: ID]
-				[RHS_VC: One ID per Element Type]
-				[RHS_VC: ID Attribute Default]
-			| 'IDREF'	[RHS_VC: IDREF]
-			| 'IDREFS'	[RHS_VC: IDREF]
-			| 'ENTITY'	[RHS_VC: Entity Name]
-			| 'ENTITIES'	[RHS_VC: Entity Name]
-			| 'NMTOKEN'	[RHS_VC: Name Token]
-			| 'NMTOKENS'	[RHS_VC: Name Token]
+[56]   	TokenizedType	   ::=   	'ID'	[VC: ID]
+				[VC: One ID per Element Type]
+				[VC: ID Attribute Default]
+			| 'IDREF'	[VC: IDREF]
+			| 'IDREFS'	[VC: IDREF]
+			| 'ENTITY'	[VC: Entity Name]
+			| 'ENTITIES'	[VC: Entity Name]
+			| 'NMTOKEN'	[VC: Name Token]
+			| 'NMTOKENS'	[VC: Name Token]
 [57]   	EnumeratedType	   ::=   	NotationType | Enumeration
 [58]   	NotationType	   ::=   	'NOTATION' S '(' S? Name (S? '|' S? Name)* S? ')' 	[VC: Notation Attributes]
 				[VC: One Notation Per Element Type]
