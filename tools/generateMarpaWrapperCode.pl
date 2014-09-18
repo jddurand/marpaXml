@@ -719,10 +719,10 @@ sub generateTypedef {
   $typedef .=<<STRUCTURE;
 
 /* Callback structure for symbols */
-typedef struct ${namespace}_callback {
+typedef struct ${namespace}_symbol_callback {
   ${namespace}_t *${namespace}p;
   ${namespace}_symbol_t ${namespace}_symboli;
-} ${namespace}_callback_t;
+} ${namespace}_symbol_callback_t;
 
 /* Work structure */
 struct $namespace {
@@ -731,7 +731,7 @@ struct $namespace {
   size_t                   marpaWrapperSymbolArrayLengthi;
   marpaWrapperRule_t     **marpaWrapperRuleArrayp;
   size_t                   marpaWrapperRuleArrayLengthi;
-  ${namespace}_callback_t *marpaWrapperSymbolCallbackArrayp;
+  ${namespace}_symbol_callback_t *marpaWrapperSymbolCallbackArrayp;
   size_t                   marpaWrapperSymbolCallbackArrayLengthi;
 };
 
@@ -964,7 +964,7 @@ static C_INLINE marpaWrapperBool_t _${namespace}_buildSymbolsb(${namespace}_t *$
   if (${namespace}p->marpaWrapperSymbolArrayp == NULL) {
     return MARPAWRAPPER_BOOL_FALSE;
   }
-  ${namespace}p->marpaWrapperSymbolCallbackArrayp = malloc(${NAMESPACE}_SYMBOL_MAX * sizeof(${namespace}_callback_t));
+  ${namespace}p->marpaWrapperSymbolCallbackArrayp = malloc(${NAMESPACE}_SYMBOL_MAX * sizeof(${namespace}_symbol_callback_t));
   if (${namespace}p->marpaWrapperSymbolCallbackArrayp == NULL) {
     free(${namespace}p->marpaWrapperSymbolArrayp);
     return MARPAWRAPPER_BOOL_FALSE;
@@ -1030,7 +1030,7 @@ static C_INLINE marpaWrapperBool_t _${namespace}_buildSymbolsb(${namespace}_t *$
   if (${namespace}p->marpaWrapperSymbolArrayp == NULL) {
     return MARPAWRAPPER_BOOL_FALSE;
   }
-  ${namespace}p->marpaWrapperSymbolCallbackArrayp = malloc(${NAMESPACE}_SYMBOL_MAX * sizeof(${namespace}_callback_t));
+  ${namespace}p->marpaWrapperSymbolCallbackArrayp = malloc(${NAMESPACE}_SYMBOL_MAX * sizeof(${namespace}_symbol_callback_t));
   if (${namespace}p->marpaWrapperSymbolCallbackArrayp == NULL) {
     free(${namespace}p->marpaWrapperSymbolArrayp);
     return MARPAWRAPPER_BOOL_FALSE;
@@ -1084,14 +1084,14 @@ sub generatePushLexemeb {
 
 static C_INLINE marpaWrapperBool_t _${namespace}_isLexemeb(void *p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
   marpaWrapperBool_t rcb;
-  ${namespace}_callback_t *${namespace}_callbackp = (${namespace}_callback_t *) p;
+  ${namespace}_symbol_callback_t *${namespace}_symbol_callbackp = (${namespace}_symbol_callback_t *) p;
 
-  switch (${namespace}_callbackp->${namespace}_symboli) {
+  switch (${namespace}_symbol_callbackp->${namespace}_symboli) {
 ISLEXEMEB_HEADER
   foreach (sort {$a cmp $b} grep {$value->{symbols}->{$_}->{terminal} == 1} keys %{$value->{symbols}}) {
       $pushLexemeb .= <<ISLEXEMEB;
     case ${namespace}_${_}:
-      rcb = _${namespace}_${_}b(${namespace}_callbackp->${namespace}p, currenti, streamInp, sizelp);
+      rcb = _${namespace}_${_}b(${namespace}_symbol_callbackp->${namespace}p, currenti, streamInp, sizelp);
       break;
 ISLEXEMEB
     }
