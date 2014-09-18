@@ -724,6 +724,12 @@ typedef struct ${namespace}_symbol_callback {
   ${namespace}_symbol_t ${namespace}_symboli;
 } ${namespace}_symbol_callback_t;
 
+/* Callback structure for rules */
+typedef struct ${namespace}_rule_callback {
+  ${namespace}_t *${namespace}p;
+  ${namespace}_rule_t ${namespace}_rulei;
+} ${namespace}_rule_callback_t;
+
 /* Work structure */
 struct $namespace {
   marpaWrapper_t          *marpaWrapperp;
@@ -733,6 +739,8 @@ struct $namespace {
   size_t                   marpaWrapperRuleArrayLengthi;
   ${namespace}_symbol_callback_t *marpaWrapperSymbolCallbackArrayp;
   size_t                   marpaWrapperSymbolCallbackArrayLengthi;
+  ${namespace}_rule_callback_t *marpaWrapperRuleCallbackArrayp;
+  size_t                   marpaWrapperRuleCallbackArrayLengthi;
 };
 
 /* Terminals to string - indexed by ${namespace}_symbol_t */
@@ -791,6 +799,8 @@ ${namespace}_t *${namespace}_newp(marpaWrapperOption_t *marpaWrapperOptionp, xml
   ${namespace}p->marpaWrapperRuleArrayLengthi = 0;
   ${namespace}p->marpaWrapperSymbolCallbackArrayp = NULL;
   ${namespace}p->marpaWrapperSymbolCallbackArrayLengthi = 0;
+  ${namespace}p->marpaWrapperRuleCallbackArrayp = NULL;
+  ${namespace}p->marpaWrapperRuleCallbackArrayLengthi = 0;
 
   if (_${namespace}_buildGrammarb(${namespace}p, &marpaWrapperOption, xml_common_optionp) == MARPAWRAPPER_BOOL_FALSE) {
     ${namespace}_destroyv(&${namespace}p);
@@ -829,6 +839,8 @@ ${namespace}_t *${namespace}_newp(marpaWrapperOption_t *marpaWrapperOptionp) {
   ${namespace}p->marpaWrapperRuleArrayLengthi = 0;
   ${namespace}p->marpaWrapperSymbolCallbackArrayp = NULL;
   ${namespace}p->marpaWrapperSymbolCallbackArrayLengthi = 0;
+  ${namespace}p->marpaWrapperRuleCallbackArrayp = NULL;
+  ${namespace}p->marpaWrapperRuleCallbackArrayLengthi = 0;
 
   if (_${namespace}_buildGrammarb(${namespace}p, &marpaWrapperOption) == MARPAWRAPPER_BOOL_FALSE) {
     ${namespace}_destroyv(&${namespace}p);
@@ -980,7 +992,7 @@ static C_INLINE marpaWrapperBool_t _${namespace}_buildSymbolsb(${namespace}_t *$
       return MARPAWRAPPER_BOOL_FALSE;
     }
 
-    /* Opaque data associated to symbol will be the symbol enum */
+    /* Opaque data associated to symbol will be a pointer to a ${namespace}_symbol_callback_t  */
     ${namespace}p->marpaWrapperSymbolCallbackArrayp[i].${namespace}p = ${namespace}p;
     ${namespace}p->marpaWrapperSymbolCallbackArrayp[i].${namespace}_symboli = i;
     marpaWrapperSymbolOption.datavp = (void *) &(${namespace}p->marpaWrapperSymbolCallbackArrayp[i]);
@@ -1046,7 +1058,7 @@ static C_INLINE marpaWrapperBool_t _${namespace}_buildSymbolsb(${namespace}_t *$
       return MARPAWRAPPER_BOOL_FALSE;
     }
 
-    /* Opaque data associated to symbol will be the symbol enum */
+    /* Opaque data associated to symbol will be a pointer to a ${namespace}_symbol_callback_t  */
     ${namespace}p->marpaWrapperSymbolCallbackArrayp[i].${namespace}p = ${namespace}p;
     ${namespace}p->marpaWrapperSymbolCallbackArrayp[i].${namespace}_symboli = i;
     marpaWrapperSymbolOption.datavp = (void *) &(${namespace}p->marpaWrapperSymbolCallbackArrayp[i]);
@@ -1269,7 +1281,13 @@ static C_INLINE marpaWrapperBool_t _${namespace}_buildRulesb(${namespace}_t *${n
   if (${namespace}p->marpaWrapperRuleArrayp == NULL) {
     return MARPAWRAPPER_BOOL_FALSE;
   }
+  ${namespace}p->marpaWrapperRuleCallbackArrayp = malloc(${NAMESPACE}_RULE_MAX * sizeof(${namespace}_rule_callback_t));
+  if (${namespace}p->marpaWrapperRuleCallbackArrayp == NULL) {
+    free(${namespace}p->marpaWrapperRuleArrayp);
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
   ${namespace}p->marpaWrapperRuleArrayLengthi = ${NAMESPACE}_RULE_MAX;
+  ${namespace}p->marpaWrapperRuleCallbackArrayLengthi = ${NAMESPACE}_RULE_MAX;
 
 BUILDRULESB_HEADER
   foreach (@{$value->{rules}}) {
@@ -1300,8 +1318,11 @@ BUILDRULESB_HEADER
     if (marpaWrapper_ruleOptionDefaultb(&marpaWrapperRuleOption) == MARPAWRAPPER_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
     }
-    /* Opaque data associated to rule will be the lhs symbol enum */
-    marpaWrapperRuleOption.datavp = (void *) $enumed;
+    /* Opaque data associated to rule will be a pointer to a ${namespace}_rule_callback_t  */
+    ${namespace}p->marpaWrapperRuleCallbackArrayp[$enumed].${namespace}p = ${namespace}p;
+    ${namespace}p->marpaWrapperRuleCallbackArrayp[$enumed].${namespace}_rulei = $enumed;
+    marpaWrapperRuleOption.datavp = (void *) &(${namespace}p->marpaWrapperRuleCallbackArrayp[$enumed]);
+
     marpaWrapperRuleOption.lhsSymbolp = ${namespace}p->marpaWrapperSymbolArrayp[${namespace}_$rule->{lhs}];
 BUILDRULESB_INNER1
     if ($nbRhs > 0) {
