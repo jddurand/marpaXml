@@ -28,7 +28,8 @@ sub new() {
               lexemesWithExclusion => {},
 	      symbols => {},
               start => {number => undef, rule => ''},
-	      grammar => ''
+	      grammar => '',
+	      nbConstraintsByType => {}
              };
   return bless $self, shift;
 }
@@ -246,7 +247,7 @@ sub _wfcConstraint {
 sub _vcConstraint {
   my ($self, undef, $name, $end) = @_;
   $name =~ s/[^\w]/_/g;
-  return {'step_rule' => "$&_$name" };
+  return {'step_token' => "$&_$name" };
 }
 
 sub _constraints {
@@ -261,6 +262,16 @@ sub _constraints {
     my ($functionName) = values %{$_};
     $hash{$type} //= [];
     push(@{$hash{$type}}, $functionName);
+    my $category = $type;
+    $category = '';
+    if ($type =~ /^event_/) {
+	$category = 'parseEvent';
+    } elsif ($type =~ /^step/) {
+	$category = 'valueStep';
+    }
+    if ($category) {
+	$self->{nbConstraintsByType}->{$category}++;
+    }
   }
   return \%hash;
 }
@@ -391,7 +402,7 @@ sub _factorString {
   my @range1 = map {$self->_factor($self->_printable($self->_char(sprintf("#x%x", ord($_)))), $LEXEME_HEXMANY, [ $_ ])} @real;
 
   my $symbol = sprintf('_Gen%03d', 1 + (scalar @{$self->{rules}}));
-  $self->_rule(undef, $symbol, '::=', [ [ [ @range1 ] , [] ] ]);
+  $self->_rule(undef, $symbol, '::=', [ [ [ @range1 ] , {} ] ]);
 
   return $symbol;
 }
@@ -426,20 +437,20 @@ sub _termFactorQuantifier {
   if ($quantifier eq '*') {
     $symbol = sprintf('%s_any', $factor);
     if (! exists($self->{quantifier}->{$symbol})) {
-      $self->_rule(undef, $symbol, '::=', [ [ [ $factor ] , [] ] ], $quantifier);
+      $self->_rule(undef, $symbol, '::=', [ [ [ $factor ] , {} ] ], $quantifier);
       $self->{quantifier}->{$symbol}++;
     }
   } elsif ($quantifier eq '+') {
     $symbol = sprintf('%s_many', $factor);
     if (! exists($self->{quantifier}->{$symbol})) {
-      $self->_rule(undef, $symbol, '::=', [ [ [ $factor ] , [] ] ], $quantifier);
+      $self->_rule(undef, $symbol, '::=', [ [ [ $factor ] , {} ] ], $quantifier);
       $self->{quantifier}->{$symbol}++;
     }
   } elsif ($quantifier eq '?') {
     $symbol = sprintf('%s_maybe', $factor);
     if (! exists($self->{quantifier}->{$symbol})) {
-      $self->_rule(undef, $symbol, '::=', [ [ [ "$factor" ] , [] ] ]);
-      $self->_rule(undef, $symbol, '::=', [ [ [] , [] ] ]);
+      $self->_rule(undef, $symbol, '::=', [ [ [ "$factor" ] , {} ] ]);
+      $self->_rule(undef, $symbol, '::=', [ [ [] , {} ] ]);
       $self->{quantifier}->{$symbol}++;
     }
   } else {
@@ -466,20 +477,20 @@ sub _exceptionTermMinusTerm {
 	$name = $name[0];
     }
     my $symbol = sprintf('_Gen%03d', 1 + (scalar @{$self->{rules}}));
-    $self->_rule(undef, $symbol, '~', [ [ [ $name ], [] ] ]);
+    $self->_rule(undef, $symbol, '~', [ [ [ $name ], {} ] ]);
     #
     # hHis is ASSUMING that none of the original symbols already end with _any or _many.
     # If this would the case this is ASSUMING that xxx_any is a nullable, and xxx_many is not
     #
     if ($term1 =~ /_any/) {
 	print STDERR "[INFO] Lexeme with exclusion: $name ::= $value appears to be nullable\n";
-	$self->_rule(undef, $symbol, '~', [ [ [] , [] ] ]);
+	$self->_rule(undef, $symbol, '~', [ [ [] , {} ] ]);
     } elsif ($term1 =~ /_many/) {
 	print STDERR "[INFO] Lexeme with exclusion: $name ::= $value appears to be not nullable\n";
     } else {
 	print STDERR "[WARN] Lexeme with exclusion: $name ::= $value : cannot determine its nullability - ASSUMING NOT\n";
     }
-    # $self->_rule(undef, $symbol, '~', [ [ [ $term1 ] , [] ] ]);
+    # $self->_rule(undef, $symbol, '~', [ [ [ $term1 ] , {} ] ]);
     return $symbol;
 }
 
@@ -626,11 +637,20 @@ DECLARATIONS
   $c .= generateNewp(@_);
   $c .= generateDestroyv(@_);
   $c .= generateBuildGrammarb(@_);
+  $c .= generateBuildSymbolEventsb(@_);
   $c .= generateBuildSymbolsb(@_);
   $c .= generateBuildRulesb(@_);
   $c .= generatePushLexemeb(@_);
 
   return $c;
+}
+
+sub ruleToString {
+    my $content = join(' ', $_->{lhs}, $_->{rulesep}, "@{$_->{rhs}}", $_->{quantifier});
+    $content =~ s/\\/\\\\/g;
+    $content =~ s/"/\\"/g;
+
+    return "\"$content\"";
 }
 
 sub generateTypedef {
@@ -685,12 +705,8 @@ sub generateTypedef {
   my $prevlhs = '';
   my $ilhs;
   $i = 0;
-  my @rulesToString = map {
-      my $content = join(' ', $_->{lhs}, $_->{rulesep}, "@{$_->{rhs}}", $_->{quantifier});
-      $content =~ s/\\/\\\\/g;
-      $content =~ s/"/\\"/g;
-      "\"$content\"";
-  } @{$value->{rules}};
+  $value->{ruleToEnum} = {};
+  my @rulesToString = map {ruleToString($_)} @{$value->{rules}};
   my @rules = map {
     my $content = join(' ', $_->{lhs}, $_->{rulesep}, "@{$_->{rhs}}", $_->{quantifier});
     my $enumed;
@@ -701,6 +717,7 @@ sub generateTypedef {
       ++$ilhs;
     }
     $enumed = sprintf('%s_%03d', "${namespace}_" . ${_}->{lhs}, $ilhs);
+    $value->{ruleToEnum}->{ruleToString($_)} = $enumed;
     if ($i++ == 0) {
       sprintf('  %-30s, /* %s */', "$enumed = 0", $content);
     } else {
@@ -741,6 +758,7 @@ struct $namespace {
   size_t                   marpaWrapperSymbolCallbackArrayLengthi;
   ${namespace}_rule_callback_t *marpaWrapperRuleCallbackArrayp;
   size_t                   marpaWrapperRuleCallbackArrayLengthi;
+  marpaXmlLog_t           *marpaXmlLogp;
 };
 
 /* Terminals to string - indexed by ${namespace}_symbol_t */
@@ -906,6 +924,8 @@ static C_INLINE marpaWrapperBool_t _${namespace}_buildGrammarb(${namespace}_t *$
     return MARPAWRAPPER_BOOL_FALSE;
   }
 
+  ${namespace}p->marpaXmlLogp = marpaWrapper_marpaXmlLogp(${namespace}p->marpaWrapperp);
+
   if (_${namespace}_buildSymbolsb(${namespace}p, marpaWrapperOptionp, xml_common_optionp) == MARPAWRAPPER_BOOL_FALSE) {
     return MARPAWRAPPER_BOOL_FALSE;
   }
@@ -952,6 +972,144 @@ static C_INLINE marpaWrapperBool_t _${namespace}_buildGrammarb(${namespace}_t *$
 BUILDGRAMMARBWITHOUTOPTION
   }
   return $buildGrammarb;
+}
+
+sub generateBuildSymbolEventsb {
+  my ($value, $namespace) = @_;
+
+  my $NAMESPACE = uc($namespace);
+
+  my $buildSymbolEventsb = '';
+
+  if (exists($value->{nbConstraintsByType}->{parseEvent}) &&
+      $value->{nbConstraintsByType}->{parseEvent}) {
+
+      $buildSymbolEventsb .= <<BUILDSYMBOLEVENTS;
+
+static C_INLINE marpaWrapperBool_t _${namespace}_parseEventsb(void *datavp, marpaWrapper_t *marpaWrapperp, size_t nEventi, marpaWrapperEvent_t *marpaWrapperEventp) {
+  marpaWrapperBool_t              rcb = MARPAWRAPPER_BOOL_TRUE;
+  ${namespace}_t                 *${namespace}p;
+  marpaXmlLog_t                  *marpaXmlLogp = NULL;
+  int                             i;
+
+  for (i = 0; i < nEventi; i++) {
+    marpaWrapperEventType_t eventTypei = marpaWrapperEventp[i].eventType;
+    marpaWrapperSymbol_t *marpaWrapperSymbolp = marpaWrapperEventp[i].marpaWrapperSymbolp;
+    ${namespace}_symbol_callback_t *marpaWrapperSymbolCallbackp;
+    ${namespace}_symbol_t ${namespace}_symboli;
+    ${namespace}_rule_t ${namespace}_rulei;
+
+    if (marpaWrapperSymbol_datavp_getb(marpaWrapperSymbolp, (void **) &marpaWrapperSymbolCallbackp) == MARPAWRAPPER_BOOL_FALSE) {
+      /* This should never happen, unless marpaWrapperSymbolp is NULL, impossible here */
+       continue;
+    }
+    /* No need to get more than once our namespace pointer */
+    if (i == 0) {
+      ${namespace}p = marpaWrapperSymbolCallbackp->${namespace}p;
+      marpaXmlLogp = ${namespace}p->marpaXmlLogp;
+    }
+    ${namespace}_symboli = marpaWrapperSymbolCallbackp->${namespace}_symboli;
+
+    switch (eventTypei) {
+      case MARPAWRAPPER_EVENTTYPE_COMPLETED:
+        MARPAXML_TRACEX("Completion event on symbol %s\\n", symbolsToString[${namespace}_symboli]);
+        break;
+      case MARPAWRAPPER_EVENTTYPE_NULLED:
+        MARPAXML_TRACEX("Null event on symbol %s\\n", symbolsToString[${namespace}_symboli]);
+        break;
+      case MARPAWRAPPER_EVENTTYPE_PREDICTED:
+        MARPAXML_TRACEX("Prediction event on symbol %s\\n", symbolsToString[${namespace}_symboli]);
+        break;
+      default:
+        MARPAXML_TRACEX("Unknown event %d on symbol %s\\n", eventTypei, symbolsToString[${namespace}_symboli]);
+        return MARPAWRAPPER_BOOL_FALSE;
+    }
+
+    ${namespace}_rulei = ${NAMESPACE}_RULE_MAX;
+    switch (${namespace}_symboli) {
+BUILDSYMBOLEVENTS
+      my %doneSymbol = ();
+      foreach (sort keys %{$value->{symbols}}) {
+	  my $symbol = $_;
+	  next if ($doneSymbol{$symbol});
+	  foreach (@{$value->{rules}}) {
+	      my $rule = $_;
+	      next if ($rule->{lhs} ne $symbol);
+	      #
+	      # Either $symbol is the LHS of a single rule, either of more than one rule...
+	      #
+	      my @nLhs = grep {$_->{lhs} eq $symbol} @{$value->{rules}};
+	      if ((exists($rule->{constraints}->{event_completed}) && @{$rule->{constraints}->{event_completed}}) ||
+		  (exists($rule->{constraints}->{event_predicted}) && @{$rule->{constraints}->{event_predicted}}) ||
+		  (exists($rule->{constraints}->{event_nulled}) && @{$rule->{constraints}->{event_nulled}})) {
+		  if ($#nLhs == 0) {
+		      my $ruleToString = ruleToString($rule);
+		      my $ruleToEnum = $value->{ruleToEnum}->{$ruleToString};
+		      $buildSymbolEventsb .= <<BUILDSYMBOLEVENTS;
+      case ${namespace}_$symbol:
+        {
+          /*
+            Symbol $symbol is the LHS of the single rule:
+            $rule->{lhs} $rule->{rulesep} @{$rule->{rhs}} $rule->{quantifier}
+          */
+          ${namespace}_rulei = $ruleToEnum;
+        }
+        break;
+BUILDSYMBOLEVENTS
+		  } else {
+		      my $nRules = scalar(@nLhs);
+                      my @rules = ();
+		      foreach (grep {$_->{lhs} eq $symbol} @{$value->{rules}}) {
+			  push(@rules, "$_->{lhs} $_->{rulesep} @{$_->{rhs}} $_->{quantifier}");
+		      }
+		      my $rules = join("\n            ", @rules);
+		      $buildSymbolEventsb .= <<BUILDSYMBOLEVENTS;
+      case ${namespace}_$symbol:
+        {
+          /*
+            Symbol $symbol is the LHS of $nRules rules:
+
+            $rules
+          */
+	  size_t                   nmarpaWrapperProgressi;
+	  marpaWrapperProgress_t **marpaWrapperProgresspp;
+
+	  if ((marpaWrapper_r_progressb(marpaWrapperp, -1 /* starti */, 1 /* endi */, &nmarpaWrapperProgressi, &marpaWrapperProgresspp) == MARPAWRAPPER_BOOL_TRUE) && (nmarpaWrapperProgressi > 0)) {
+            marpaWrapperRule_t *marpaWrapperRulep = marpaWrapperProgresspp[0]->marpaWrapperRulep;
+            ${namespace}_rule_callback_t *marpaWrapperRuleCallbackp;
+
+            if (marpaWrapperRule_datavp_getb(marpaWrapperRulep, (void **) &marpaWrapperRuleCallbackp) == MARPAWRAPPER_BOOL_TRUE) {
+              ${namespace}_rulei = marpaWrapperRuleCallbackp->${namespace}_rulei;
+            }
+	  }
+	}
+        break;
+BUILDSYMBOLEVENTS
+	          }
+	      }
+	      last;
+	  }
+	  $doneSymbol{$symbol} = 1;
+      }
+
+      $buildSymbolEventsb .= <<BUILDSYMBOLEVENTS;
+      default:
+        break;
+    }
+
+    if (${namespace}_rulei < ${NAMESPACE}_RULE_MAX) {
+      MARPAXML_TRACEX("Rule: %s\\n", rulesToString[${namespace}_rulei]);
+    }
+BUILDSYMBOLEVENTS
+      $buildSymbolEventsb .= <<BUILDSYMBOLEVENTS;
+  }
+
+  return rcb;
+}
+BUILDSYMBOLEVENTS
+  }
+
+  return $buildSymbolEventsb;
 }
 
 sub generateBuildSymbolsb {

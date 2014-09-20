@@ -1836,3 +1836,12 @@ marpaWrapperBool_t marpaWrapper_r_progressb(marpaWrapper_t *marpaWrapperp, int s
   }
   return rcb; 
 }
+
+marpaXmlLog_t *marpaWrapper_marpaXmlLogp(marpaWrapper_t *marpaWrapperp) {
+  if (marpaWrapperp == NULL) {
+    return NULL;
+  }
+
+  return marpaWrapperp->marpaXmlLogp;
+}
+

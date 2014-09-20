@@ -181,6 +181,11 @@ marpaWrapperBool_t        marpaWrapper_ruleOptionDefaultb  (marpaWrapperRuleOpti
 marpaWrapperBool_t        marpaWrapper_valueOptionDefaultb (marpaWrapperValueOption_t *marpaWrapperValueOptionp);
 marpaWrapperBool_t        marpaWrapper_stackOptionDefaultb (marpaWrapperStackOption_t *marpaWrapperStackOptionp);
 
+/*****************/
+/* Top accessors */
+/*****************/
+marpaXmlLog_t *marpaWrapper_marpaXmlLogp(marpaWrapper_t *marpaWrapperp);
+
 /* Generic getter definition */
 #define MARPAWRAPPER_GENERATE_GETTER_DECLARATION(prefix, externalType, externalName) \
   marpaWrapperBool_t prefix##_##externalName##_getb(prefix##_t * prefix##p, externalType *externalName##p)
