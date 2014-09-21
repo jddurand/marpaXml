@@ -1290,8 +1290,12 @@ ISLEXEMEB
     default:
       rcb = $funcDiscardb(${namespace}_symbol_callbackp->${namespace}p, currenti, streamInp, sizelp);
       if (rcb == MARPAWRAPPER_BOOL_TRUE) {
+        ${namespace}_t *${namespace}p = ${namespace}_symbol_callbackp->${namespace}p;
+        marpaXmlLog_t *marpaXmlLogp = ${namespace}p->marpaXmlLogp;
+
         /* Special case: if return is MARPAWRAPPER_BOOL_TRUE and *sizelp is 0, then this is a :discard */
         /* Nevertheless streamInp will have have progressed */
+        MARPAXML_TRACEX("Discarding, length %lld\\n", (unsigned long) *sizelp);
         *sizelp = 0;
       }
       break;
@@ -1338,7 +1342,12 @@ ISLEXEMEB
       if ($value->{lexemesExact}->{$_}->{type} == $LEXEME_RANGES ||
 	  $value->{lexemesExact}->{$_}->{type} == $LEXEME_CARET_RANGES) {
 	  my $rcIfMatch = ($value->{lexemesExact}->{$_}->{type} == $LEXEME_RANGES) ? 'MARPAWRAPPER_BOOL_TRUE' : 'MARPAWRAPPER_BOOL_FALSE';
-	  my $rcIfNoMatch = ($value->{lexemesExact}->{$_}->{type} == $LEXEME_RANGES) ? 'MARPAWRAPPER_BOOL_FALSE' : 'MARPAWRAPPER_BOOL_TRUE';
+	  my $rcIfCaretMatch = ($value->{lexemesExact}->{$_}->{type} == $LEXEME_RANGES) ? 'MARPAWRAPPER_BOOL_FALSE' : 'MARPAWRAPPER_BOOL_TRUE';
+	  my $sizelpMatch = ($rcIfMatch eq 'MARPAWRAPPER_BOOL_TRUE') ? "*sizelp = 1;\n    " : '    ';
+	  my $sizelpCaretMatch = ($rcIfCaretMatch eq 'MARPAWRAPPER_BOOL_TRUE') ? "*sizelp = 1;\n    " : '    ';
+	  my $traceMatch = ($rcIfMatch eq 'MARPAWRAPPER_BOOL_TRUE') ? "    marpaXmlLog_t *marpaXmlLogp = ${namespace}p->marpaXmlLogp;\n    MARPAXML_TRACEX(\"Accepted lexeme %s, length 1\\n\", symbolsToString[${namespace}_${_}]);\n    " : '';
+	  my $traceCaretMatch = ($rcIfCaretMatch eq 'MARPAWRAPPER_BOOL_TRUE') ? "    marpaXmlLog_t *marpaXmlLogp = ${namespace}p->marpaXmlLogp;\n    MARPAXML_TRACEX(\"Accepted lexeme %s, length 1\\n\", symbolsToString[${namespace}_${_}]);\n    " : '';
+
         my @wanted = ();
         my $n = scalar(@{$value->{lexemesExact}->{$_}->{value}});
         foreach (@{$value->{lexemesExact}->{$_}->{value}}) {
@@ -1353,10 +1362,9 @@ ISLEXEMEB
 	$pushLexemeb .= <<ISLEXEMEB;
 static C_INLINE marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
   if ($wanted) {
-    *sizelp = 1;
-    return $rcIfMatch;
+${traceMatch}${sizelpMatch}return $rcIfMatch;
   } else {
-    return $rcIfNoMatch;
+${traceCaretMatch}${sizelpCaretMatch}return $rcIfCaretMatch;
   }
 }
 ISLEXEMEB
@@ -1375,7 +1383,10 @@ ISLEXEMEB
           $pushLexemeb .= <<ISLEXEMEB;
 static C_INLINE marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
   if (currenti == $wanted) {
+     marpaXmlLog_t *marpaXmlLogp = ${namespace}p->marpaXmlLogp;
+
     *sizelp = 1;
+    MARPAXML_TRACEX("Accepted lexeme %s, length 1\\n", symbolsToString[${namespace}_${_}]);
     return MARPAWRAPPER_BOOL_TRUE;
   } else {
     return MARPAWRAPPER_BOOL_FALSE;
@@ -1386,7 +1397,10 @@ ISLEXEMEB
 	$pushLexemeb .= <<ISLEXEMEB;
 static C_INLINE marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, signed int currenti, streamIn_t *streamInP, size_t *sizelp) {
   if ($wanted) {
+    marpaXmlLog_t *marpaXmlLogp = ${namespace}p->marpaXmlLogp;
+
     *sizelp = 1;
+    MARPAXML_TRACEX("Accepted lexeme %s, length 1\\n", symbolsToString[${namespace}_${_}]);
     return MARPAWRAPPER_BOOL_TRUE;
   } else {
     return MARPAWRAPPER_BOOL_FALSE;
@@ -1402,7 +1416,10 @@ ISLEXEMEB
           $pushLexemeb .= <<ISLEXEMEB;
 static C_INLINE marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
   if (currenti == $wanted) {
+    marpaXmlLog_t *marpaXmlLogp = ${namespace}p->marpaXmlLogp;
+
     *sizelp = 1;
+    MARPAXML_TRACEX("Accepted lexeme %s, length 1\\n", symbolsToString[${namespace}_${_}]);
     return MARPAWRAPPER_BOOL_TRUE;
   } else {
     return MARPAWRAPPER_BOOL_FALSE;
@@ -1437,7 +1454,10 @@ static C_INLINE marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespa
   }
 
   if (rcb == MARPAWRAPPER_BOOL_TRUE) {
+    marpaXmlLog_t *marpaXmlLogp = ${namespace}p->marpaXmlLogp;
+
     *sizelp = $length;
+    MARPAXML_TRACEX("Accepted lexeme %s, length $length\\n", symbolsToString[${namespace}_${_}]);
   }
 
   return rcb;
