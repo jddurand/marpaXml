@@ -11,7 +11,7 @@
 static C_INLINE marpaWrapperBool_t _xml_1_0__Exclusion003b(xml_1_0_t *xml_1_0p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
   size_t             sizeCharl;
   size_t             sizel;
-  signed int         lasttwoi[2];
+  signed int         lasttwoi[2] = {0, 0};
 
   /* We will move current character, so we want to restore it */
   if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_FALSE) {

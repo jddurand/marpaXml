@@ -29,7 +29,8 @@ sub new() {
 	      symbols => {},
               start => {number => undef, rule => ''},
 	      grammar => '',
-	      nbConstraintsByType => {}
+	      nbConstraintsByType => {},
+	      nullablesForParseEvents => {}
              };
   return bless $self, shift;
 }
@@ -53,8 +54,31 @@ sub _pushLexemes {
   }
 }
 
+sub _addNullablesForParseEvents {
+    my ($self) = @_;
+    #
+    # Loop on all rule and insert nullable symbols as soon as there is lexing event
+    #
+    foreach (0..$#{$self->{rules}}) {
+	my $irule = $_;
+	my $rule = $self->{rules}->[$irule];
+	my $lhs = $rule->{lhs};
+	if ((exists($rule->{constraints}->{event_completed}) && @{$rule->{constraints}->{event_completed}}) ||
+	    (exists($rule->{constraints}->{event_predicted}) && @{$rule->{constraints}->{event_predicted}}) ||
+	    (exists($rule->{constraints}->{event_nulled}) && @{$rule->{constraints}->{event_nulled}})) {
+	    my $nullableName = sprintf('_nullableForParseEvent%03d', 1 + (keys %{$self->{nullablesForParseEvents}}));
+	    $self->{nullablesForParseEvents}->{$nullableName} = $irule;
+	    print STDERR "[INFO] Inserting nullable symbol $nullableName for rule No $irule: " . main::ruleToString($rule) . "\n";
+	    $self->_rule(undef, $nullableName, '::=',  [ [ [] , {} ] ]);
+	    push(@{$rule->{rhs}}, $nullableName);
+	}
+    }
+}
+
 sub _pushG1 {
     my ($self, $rcp) = @_;
+    
+    $self->_addNullablesForParseEvents();
 
     foreach (@{$self->{rules}}) {
       my $content;
@@ -175,13 +199,18 @@ sub _rules {
 		  delete($self->{lexemesExact}->{$rhs});
 	      }
 	      $replaced = 1;
+	      #
+	      # Since we maintained a mapping giving $irule, we check the impact of its removal
+	      #
+	      foreach (keys %{$self->{nullablesForParseEvents}}) {
+		  my $nullableName = $_;
+		  if ($self->{nullablesForParseEvents}->{$nullableName} > $irule) {
+		      $self->{nullablesForParseEvents}->{$nullableName}--;
+		  }
+	      }
 	  }
       }
   } while ($replaced);
-
-  #
-  # Loop on all rule and insert nulled symbols
-  #
 
   $self->{grammar} = join("\n", @rc) . "\n";
 
@@ -558,8 +587,8 @@ if ($nbvalue != 1) {
     # - this is a valid Marpa grammar
     # - this is an unambiguous grammar
     #
-  use Data::Dumper;
-  print STDERR Dumper($value);
+    # use Data::Dumper;
+    # print STDERR Dumper($value);
     my $withoutExclusions = $value->{grammar};
     foreach (sort keys %{$value->{lexemesWithExclusion}}) {
 	my ($key, $keyValue) = ($_, $value->{lexemesWithExclusion}->{$_});
@@ -628,7 +657,6 @@ DECLARATIONS
   }
   $c .= <<DECLARATIONS;
 static C_INLINE marpaWrapperBool_t _${namespace}_buildRulesb(${namespace}_t *${namespace}p);
-static C_INLINE marpaWrapperBool_t _${namespace}_isLexemeb(void *p, signed int currenti, streamIn_t *streamInp, size_t *sizelp);
 DECLARATIONS
   foreach (sort {$a cmp $b} grep {$value->{symbols}->{$_}->{terminal} == 1} keys %{$value->{symbols}}) {
     $c .= "static C_INLINE marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, signed int currenti, streamIn_t *streamInp, size_t *sizelp);\n";
@@ -637,7 +665,7 @@ DECLARATIONS
   $c .= generateNewp(@_);
   $c .= generateDestroyv(@_);
   $c .= generateBuildGrammarb(@_);
-  $c .= generateBuildSymbolEventsb(@_);
+  $c .= generateParseEventsb(@_);
   $c .= generateBuildSymbolsb(@_);
   $c .= generateBuildRulesb(@_);
   $c .= generatePushLexemeb(@_);
@@ -646,7 +674,8 @@ DECLARATIONS
 }
 
 sub ruleToString {
-    my $content = join(' ', $_->{lhs}, $_->{rulesep}, "@{$_->{rhs}}", $_->{quantifier});
+    my ($rule) = @_;
+    my $content = join(' ', $rule->{lhs}, $rule->{rulesep}, "@{$rule->{rhs}}", $rule->{quantifier});
     $content =~ s/\\/\\\\/g;
     $content =~ s/"/\\"/g;
 
@@ -675,11 +704,14 @@ sub generateTypedef {
     $terminal_max = "${namespace}_${_}";
     my $content = $value->{symbols}->{$_}->{content};
     my $fullname = "${namespace}_${_}";
-    if ($i++ == 0) {
-      sprintf('  %-30s, /* %s */', "$fullname = 0", $content);
-    } else {
-      sprintf('  %-30s, /* %s */', $fullname, $content);
-    }} @sortedTerminals;
+    my $rc = ($i == 0) ?
+	sprintf('  %-30s, /* [Symbol No %3d] %s */', "$fullname = 0", $i, $content)
+	:
+	sprintf('  %-30s, /* [Symbol No %3d] %s */', $fullname, $i, $content)
+	;
+    $i++;
+    $rc;
+  } @sortedTerminals;
   my @sortedNonTerminals = sort {$a cmp $b} grep {$value->{symbols}->{$_}->{terminal} != 1} keys %{$value->{symbols}};
   my @nonTerminalsToString = map {
       my $content = $_;
@@ -688,14 +720,14 @@ sub generateTypedef {
       "\"$content\"";
   } @sortedNonTerminals;
   my @g1 = map {
-    sprintf('  %-30s,', "${namespace}_${_}");
+    sprintf('  %-30s, /* [Symbol No %3d] */', "${namespace}_${_}", $i++);
   } @sortedNonTerminals;
 
   $typedef .= "  /* Terminals */\n";
   $typedef .= join("\n", @terminals) . "\n";
   $typedef .= "  /* Non-terminals */\n";
   $typedef .= join("\n", @g1) . "\n";
-  $typedef .= "  ${NAMESPACE}_SYMBOL_MAX\n";
+  $typedef .= "  ${NAMESPACE}_SYMBOL_MAX /* $i ! */\n";
   $typedef .= "} ${namespace}_symbol_t;\n";
   $typedef .= "\n";
   $typedef .= "#define ${NAMESPACE}_TERMINAL_MAX $terminal_max\n";
@@ -718,13 +750,16 @@ sub generateTypedef {
     }
     $enumed = sprintf('%s_%03d', "${namespace}_" . ${_}->{lhs}, $ilhs);
     $value->{ruleToEnum}->{ruleToString($_)} = $enumed;
-    if ($i++ == 0) {
-      sprintf('  %-30s, /* %s */', "$enumed = 0", $content);
-    } else {
-      sprintf('  %-30s, /* %s */', $enumed, $content);
-    }} @{$value->{rules}};
+    my $rc = ($i == 0) ?
+	sprintf('  %-30s, /* [Rule No %3d] %s */', "$enumed = 0", $i, $content)
+	:
+	sprintf('  %-30s, /* [Rule No %3d] %s */', $enumed, $i, $content)
+	;
+    $i++;
+    $rc;
+  } @{$value->{rules}};
   $typedef .= join("\n", @rules) . "\n";
-  $typedef .= "  ${NAMESPACE}_RULE_MAX\n";
+  $typedef .= "  ${NAMESPACE}_RULE_MAX /* $i ! */\n";
   $typedef .= "} ${namespace}_rule_t;\n";
   $typedef .= "\n";
   my $symbolsToString =
@@ -761,12 +796,12 @@ struct $namespace {
   marpaXmlLog_t           *marpaXmlLogp;
 };
 
-/* Terminals to string - indexed by ${namespace}_symbol_t */
+/* From symbol to string - indexed by ${namespace}_symbol_t */
 static const char *symbolsToString[] = {
   $symbolsToString
 };
 
-/* Rules to string indexed by ${namespace}_rule_t */
+/* From rule to string - indexed by ${namespace}_rule_t */
 static const char *rulesToString[] = {
   $rulesToString
 };
@@ -915,6 +950,20 @@ sub generateBuildGrammarb {
     $buildGrammarb .= <<BUILDGRAMMARBWITHOPTION;
 
 /**************************/
+/* ${namespace}_getMarpaWrapperb */
+/**************************/
+marpaWrapperBool_t ${namespace}_getMarpaWrapperb(${namespace}_t *${namespace}p, marpaWrapper_t **marpaWrapperpp) {
+  if (${namespace}p == NULL) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+  if (marpaWrapperpp != NULL) {
+      *marpaWrapperpp = ${namespace}p->marpaWrapperp;
+  }
+
+  return MARPAWRAPPER_BOOL_TRUE;
+}
+
+/**************************/
 /* _${namespace}_buildGrammarb */
 /**************************/
 static C_INLINE marpaWrapperBool_t _${namespace}_buildGrammarb(${namespace}_t *${namespace}p, marpaWrapperOption_t *marpaWrapperOptionp, xml_common_option_t *xml_common_optionp) {
@@ -974,131 +1023,63 @@ BUILDGRAMMARBWITHOUTOPTION
   return $buildGrammarb;
 }
 
-sub generateBuildSymbolEventsb {
+sub generateParseEventsb {
   my ($value, $namespace) = @_;
 
   my $NAMESPACE = uc($namespace);
 
   my $buildSymbolEventsb = '';
 
-  if (exists($value->{nbConstraintsByType}->{parseEvent}) &&
-      $value->{nbConstraintsByType}->{parseEvent}) {
+  if (exists($value->{nbConstraintsByType}->{parseEvent}) && $value->{nbConstraintsByType}->{parseEvent}) {
 
       $buildSymbolEventsb .= <<BUILDSYMBOLEVENTS;
+
+/**************************/
+/* _${namespace}_parseEventsb */
+/**************************/
 
 static C_INLINE marpaWrapperBool_t _${namespace}_parseEventsb(void *datavp, marpaWrapper_t *marpaWrapperp, size_t nEventi, marpaWrapperEvent_t *marpaWrapperEventp) {
   marpaWrapperBool_t              rcb = MARPAWRAPPER_BOOL_TRUE;
   ${namespace}_t                 *${namespace}p;
   marpaXmlLog_t                  *marpaXmlLogp = NULL;
+  ${namespace}_symbol_t           symboli;
   int                             i;
 
   for (i = 0; i < nEventi; i++) {
-    marpaWrapperEventType_t eventTypei = marpaWrapperEventp[i].eventType;
+    /* Per definition all parse events are based on nulling symbols. No need to check marpaWrapperEventp[i].eventTypei */
     marpaWrapperSymbol_t *marpaWrapperSymbolp = marpaWrapperEventp[i].marpaWrapperSymbolp;
     ${namespace}_symbol_callback_t *marpaWrapperSymbolCallbackp;
-    ${namespace}_symbol_t ${namespace}_symboli;
-    ${namespace}_rule_t ${namespace}_rulei;
 
     if (marpaWrapperSymbol_datavp_getb(marpaWrapperSymbolp, (void **) &marpaWrapperSymbolCallbackp) == MARPAWRAPPER_BOOL_FALSE) {
-      /* This should never happen, unless marpaWrapperSymbolp is NULL, impossible here */
+      /* This should never happen, unless marpaWrapperSymbolp is NULL */
        continue;
     }
+
     /* No need to get more than once our namespace pointer */
     if (i == 0) {
       ${namespace}p = marpaWrapperSymbolCallbackp->${namespace}p;
       marpaXmlLogp = ${namespace}p->marpaXmlLogp;
     }
-    ${namespace}_symboli = marpaWrapperSymbolCallbackp->${namespace}_symboli;
 
-    switch (eventTypei) {
-      case MARPAWRAPPER_EVENTTYPE_COMPLETED:
-        MARPAXML_TRACEX("Completion event on symbol %s\\n", symbolsToString[${namespace}_symboli]);
-        break;
-      case MARPAWRAPPER_EVENTTYPE_NULLED:
-        MARPAXML_TRACEX("Null event on symbol %s\\n", symbolsToString[${namespace}_symboli]);
-        break;
-      case MARPAWRAPPER_EVENTTYPE_PREDICTED:
-        MARPAXML_TRACEX("Prediction event on symbol %s\\n", symbolsToString[${namespace}_symboli]);
-        break;
-      default:
-        MARPAXML_TRACEX("Unknown event %d on symbol %s\\n", eventTypei, symbolsToString[${namespace}_symboli]);
-        return MARPAWRAPPER_BOOL_FALSE;
-    }
-
-    ${namespace}_rulei = ${NAMESPACE}_RULE_MAX;
-    switch (${namespace}_symboli) {
+    switch (symboli = marpaWrapperSymbolCallbackp->${namespace}_symboli) {
 BUILDSYMBOLEVENTS
-      my %doneSymbol = ();
-      foreach (sort keys %{$value->{symbols}}) {
-	  my $symbol = $_;
-	  next if ($doneSymbol{$symbol});
-	  foreach (@{$value->{rules}}) {
-	      my $rule = $_;
-	      next if ($rule->{lhs} ne $symbol);
-	      #
-	      # Either $symbol is the LHS of a single rule, either of more than one rule...
-	      #
-	      my @nLhs = grep {$_->{lhs} eq $symbol} @{$value->{rules}};
-	      if ((exists($rule->{constraints}->{event_completed}) && @{$rule->{constraints}->{event_completed}}) ||
-		  (exists($rule->{constraints}->{event_predicted}) && @{$rule->{constraints}->{event_predicted}}) ||
-		  (exists($rule->{constraints}->{event_nulled}) && @{$rule->{constraints}->{event_nulled}})) {
-		  if ($#nLhs == 0) {
-		      my $ruleToString = ruleToString($rule);
-		      my $ruleToEnum = $value->{ruleToEnum}->{$ruleToString};
-		      $buildSymbolEventsb .= <<BUILDSYMBOLEVENTS;
-      case ${namespace}_$symbol:
-        {
-          /*
-            Symbol $symbol is the LHS of the single rule:
-            $rule->{lhs} $rule->{rulesep} @{$rule->{rhs}} $rule->{quantifier}
-          */
-          ${namespace}_rulei = $ruleToEnum;
+        foreach (sort keys %{$value->{nullablesForParseEvents}}) {
+	    my $nullableName = $_;
+	    my $irule = $value->{nullablesForParseEvents}->{$nullableName};
+	    my $iruleFormatted = sprintf("%3d", $irule);
+	    my $ruleToString = ruleToString($value->{rules}->[$irule]);
+	    $buildSymbolEventsb .= <<BUILDSYMBOLEVENTS;
+      case ${namespace}_${nullableName}:
+        /* [Rule No $iruleFormatted] $ruleToString */
+        MARPAXML_TRACEX("Event on symbol %s for rule \\\"%s\\\"\\n", symbolsToString[${namespace}_${nullableName}], rulesToString[$irule]);
+BUILDSYMBOLEVENTS
+          $buildSymbolEventsb .= <<BUILDSYMBOLEVENTS;
+        break;
+BUILDSYMBOLEVENTS
         }
-        break;
-BUILDSYMBOLEVENTS
-		  } else {
-		      my $nRules = scalar(@nLhs);
-                      my @rules = ();
-		      foreach (grep {$_->{lhs} eq $symbol} @{$value->{rules}}) {
-			  push(@rules, "$_->{lhs} $_->{rulesep} @{$_->{rhs}} $_->{quantifier}");
-		      }
-		      my $rules = join("\n            ", @rules);
-		      $buildSymbolEventsb .= <<BUILDSYMBOLEVENTS;
-      case ${namespace}_$symbol:
-        {
-          /*
-            Symbol $symbol is the LHS of $nRules rules:
-
-            $rules
-          */
-	  size_t                   nmarpaWrapperProgressi;
-	  marpaWrapperProgress_t **marpaWrapperProgresspp;
-
-	  if ((marpaWrapper_r_progressb(marpaWrapperp, -1 /* starti */, 1 /* endi */, &nmarpaWrapperProgressi, &marpaWrapperProgresspp) == MARPAWRAPPER_BOOL_TRUE) && (nmarpaWrapperProgressi > 0)) {
-            marpaWrapperRule_t *marpaWrapperRulep = marpaWrapperProgresspp[0]->marpaWrapperRulep;
-            ${namespace}_rule_callback_t *marpaWrapperRuleCallbackp;
-
-            if (marpaWrapperRule_datavp_getb(marpaWrapperRulep, (void **) &marpaWrapperRuleCallbackp) == MARPAWRAPPER_BOOL_TRUE) {
-              ${namespace}_rulei = marpaWrapperRuleCallbackp->${namespace}_rulei;
-            }
-	  }
-	}
-        break;
-BUILDSYMBOLEVENTS
-	          }
-	      }
-	      last;
-	  }
-	  $doneSymbol{$symbol} = 1;
-      }
-
-      $buildSymbolEventsb .= <<BUILDSYMBOLEVENTS;
+        $buildSymbolEventsb .= <<BUILDSYMBOLEVENTS;
       default:
         break;
-    }
-
-    if (${namespace}_rulei < ${NAMESPACE}_RULE_MAX) {
-      MARPAXML_TRACEX("Rule: %s\\n", rulesToString[${namespace}_rulei]);
     }
 BUILDSYMBOLEVENTS
       $buildSymbolEventsb .= <<BUILDSYMBOLEVENTS;
@@ -1107,6 +1088,7 @@ BUILDSYMBOLEVENTS
   return rcb;
 }
 BUILDSYMBOLEVENTS
+
   }
 
   return $buildSymbolEventsb;
@@ -1116,6 +1098,28 @@ sub generateBuildSymbolsb {
   my ($value, $namespace) = @_;
 
   my $NAMESPACE = uc($namespace);
+
+  my $caseNullingSymbols = '';
+  if (%{$value->{nullablesForParseEvents}}) {
+      $caseNullingSymbols .= <<CASENULLINGSYMBOLS;
+    /* Parse events are all based on nulling symbols */
+    switch (i) {
+CASENULLINGSYMBOLS
+    foreach (sort keys %{$value->{nullablesForParseEvents}}) {
+	my $nullableName = $_;
+	$caseNullingSymbols .= <<CASENULLINGSYMBOLS;
+      case ${namespace}_${nullableName}:
+CASENULLINGSYMBOLS
+    }
+    $caseNullingSymbols .= <<CASENULLINGSYMBOLS;
+        marpaWrapperSymbolOption.eventSeti = MARPAWRAPPER_EVENTTYPE_NULLED;
+        break;
+      default:
+        break;
+    }
+
+CASENULLINGSYMBOLS
+  }
 
   my $buildSymbolsb = '';
 
@@ -1155,9 +1159,9 @@ static C_INLINE marpaWrapperBool_t _${namespace}_buildSymbolsb(${namespace}_t *$
     ${namespace}p->marpaWrapperSymbolCallbackArrayp[i].${namespace}_symboli = i;
     marpaWrapperSymbolOption.datavp = (void *) &(${namespace}p->marpaWrapperSymbolCallbackArrayp[i]);
 
-    /* Optional, but we can make ourself the terminals */
+    /* Optional, but we can make ourself an explicit terminal */
     marpaWrapperSymbolOption.terminalb = (i <= ${NAMESPACE}_TERMINAL_MAX) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
-
+$caseNullingSymbols
     /* Start rule ? */
     switch (xml_common_optionp->xml_common_topi) {
       case XML_COMMON_TOP_DOCUMENT:
@@ -1249,10 +1253,10 @@ sub generatePushLexemeb {
   my $pushLexemeb = <<ISLEXEMEB_HEADER;
 
 /************************/
-/* _${namespace}_isLexemeb */
+/* ${namespace}_isLexemeb */
 /************************/
 
-static C_INLINE marpaWrapperBool_t _${namespace}_isLexemeb(void *p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
+marpaWrapperBool_t ${namespace}_isLexemeb(void *p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
   marpaWrapperBool_t rcb;
   ${namespace}_symbol_callback_t *${namespace}_symbol_callbackp = (${namespace}_symbol_callback_t *) p;
 

@@ -246,7 +246,7 @@ ADD_CUSTOM_COMMAND(
     OUTPUT src/internal/grammar/xml_1_0.c
     COMMAND "${PERL}"
     ARGS tools/generateMarpaWrapperCode.pl --bnf bnf/xml_1_0.bnf --output src/internal/grammar/xml_1_0.c
-    DEPENDS tools/generateMarpaWrapperCode.pl bnf/xml_1_0.bnf
+    DEPENDS tools/generateMarpaWrapperCode.pl bnf/xml_1_0.bnf src/internal/grammar/xml_1_0/*.c
 )
 ADD_CUSTOM_COMMAND(
     PRE_BUILD
