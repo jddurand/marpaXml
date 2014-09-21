@@ -1250,11 +1250,27 @@ sub generatePushLexemeb {
 
   my $NAMESPACE = uc($namespace);
 
-  my $pushLexemeb = <<ISLEXEMEB_HEADER;
+  my $pushLexemeb = '';
+  #
+  # Special inclusion for :discard
+  #
+  my $haveDiscardb = 0;
+  my $funcDiscardb = "_${namespace}__discardb";
+  {
+      my $byHand = File::Spec->catfile('src', 'internal', 'grammar', $namespace, $funcDiscardb . '.c');
+      if (-s $byHand) {
+	  $pushLexemeb .= read_file($byHand);
+	  print STDERR "[INFO] Inserted $byHand\n";
+	  $haveDiscardb = 1;
+      }
+  }
 
-/************************/
-/* ${namespace}_isLexemeb */
-/************************/
+  $pushLexemeb .= <<ISLEXEMEB_HEADER;
+
+/*********************************************************************************/
+/* ${namespace}_isLexemeb                                                        */
+/* Note: MARPAWRAPPER_BOOL_TRUE and *sizelp == 0 means this is a discarded input */
+/*********************************************************************************/
 
 marpaWrapperBool_t ${namespace}_isLexemeb(void *p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
   marpaWrapperBool_t rcb;
@@ -1269,7 +1285,23 @@ ISLEXEMEB_HEADER
       break;
 ISLEXEMEB
     }
-  $pushLexemeb .= <<ISLEXEMEB_TRAILER;
+  if ($haveDiscardb) {
+      $pushLexemeb .= <<ISLEXEMEB_TRAILER;
+    default:
+      rcb = $funcDiscardb(${namespace}_symbol_callbackp->${namespace}p, currenti, streamInp, sizelp);
+      if (rcb == MARPAWRAPPER_BOOL_TRUE) {
+        /* Special case: if return is MARPAWRAPPER_BOOL_TRUE and *sizelp is 0, then this is a :discard */
+        /* Nevertheless streamInp will have have progressed */
+        *sizelp = 0;
+      }
+      break;
+  }
+
+  return rcb;
+}
+ISLEXEMEB_TRAILER
+  } else {
+      $pushLexemeb .= <<ISLEXEMEB_TRAILER;
     default:
       rcb = MARPAWRAPPER_BOOL_FALSE;
       break;
@@ -1278,6 +1310,7 @@ ISLEXEMEB
   return rcb;
 }
 ISLEXEMEB_TRAILER
+  }
 
   foreach (sort {$a cmp $b} grep {$value->{symbols}->{$_}->{terminal} == 1} keys %{$value->{symbols}}) {
     $pushLexemeb .= <<COMMENT;
