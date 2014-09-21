@@ -950,9 +950,9 @@ sub generateBuildGrammarb {
     $buildGrammarb .= <<BUILDGRAMMARBWITHOPTION;
 
 /**************************/
-/* ${namespace}_getMarpaWrapperb */
+/* ${namespace}_getMarpaWrapperpb */
 /**************************/
-marpaWrapperBool_t ${namespace}_getMarpaWrapperb(${namespace}_t *${namespace}p, marpaWrapper_t **marpaWrapperpp) {
+marpaWrapperBool_t ${namespace}_getMarpaWrapperpb(${namespace}_t *${namespace}p, marpaWrapper_t **marpaWrapperpp) {
   if (${namespace}p == NULL) {
     return MARPAWRAPPER_BOOL_FALSE;
   }
