@@ -76,8 +76,8 @@ typedef struct marpaWrapperSymbolOption {
 
 /* Recognizer options */
 typedef struct marpaWrapperRecognizerOption {
-  marpaWrapperBool_t useTerminalsExpectedb; /* Use Marpa's terminals_expected and asks user                                         */
-  marpaWrapperBool_t latmModeb;             /* Automatically work in Longest Acceptable Token Match (implies useTerminalsExpectedb) */
+  marpaWrapperBool_t useTerminalsExpectedb; /* Default: MARPAWRAPPER_BOOL_TRUE. Use Marpa's terminals_expected and asks user                                         */
+  marpaWrapperBool_t useLatmb;              /* Default: MARPAWRAPPER_BOOL_TRUE. Automatically work in Longest Acceptable Token Match (implies useTerminalsExpectedb) */
 } marpaWrapperRecognizerOption_t;
 
 /* Rule options - this is a required parameter, so the user is EXPECTED to overwrite some members */
@@ -175,11 +175,12 @@ marpaWrapperBool_t        marpaWrapper_vb(marpaWrapper_t *marpaWrapperp, marpaWr
 /*************************/
 /* Default options helper */
 /*************************/
-marpaWrapperBool_t        marpaWrapper_optionDefaultb      (marpaWrapperOption_t *marpaWrapperOptionp);
-marpaWrapperBool_t        marpaWrapper_symbolOptionDefaultb(marpaWrapperSymbolOption_t *marpaWrapperSymbolOptionp);
-marpaWrapperBool_t        marpaWrapper_ruleOptionDefaultb  (marpaWrapperRuleOption_t *marpaWrapperRuleOptionp);
-marpaWrapperBool_t        marpaWrapper_valueOptionDefaultb (marpaWrapperValueOption_t *marpaWrapperValueOptionp);
-marpaWrapperBool_t        marpaWrapper_stackOptionDefaultb (marpaWrapperStackOption_t *marpaWrapperStackOptionp);
+marpaWrapperBool_t        marpaWrapper_optionDefaultb          (marpaWrapperOption_t *marpaWrapperOptionp);
+marpaWrapperBool_t        marpaWrapper_symbolOptionDefaultb    (marpaWrapperSymbolOption_t *marpaWrapperSymbolOptionp);
+marpaWrapperBool_t        marpaWrapper_ruleOptionDefaultb      (marpaWrapperRuleOption_t *marpaWrapperRuleOptionp);
+marpaWrapperBool_t        marpaWrapper_valueOptionDefaultb     (marpaWrapperValueOption_t *marpaWrapperValueOptionp);
+marpaWrapperBool_t        marpaWrapper_stackOptionDefaultb     (marpaWrapperStackOption_t *marpaWrapperStackOptionp);
+marpaWrapperBool_t        marpaWrapper_RecognizerOptionDefaultb(marpaWrapperRecognizerOption_t *marpaWrapperRecognizerOptionp);
 
 /*****************/
 /* Top accessors */

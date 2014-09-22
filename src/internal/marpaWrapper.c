@@ -1618,6 +1618,21 @@ marpaWrapperBool_t marpaWrapper_optionDefaultb(marpaWrapperOption_t *marpaWrappe
   return MARPAWRAPPER_BOOL_TRUE;
 }
 
+/*****************************************/
+/* marpaWrapper_RecognizerOptionDefaultb */
+/*****************************************/
+marpaWrapperBool_t marpaWrapper_RecognizerOptionDefaultb(marpaWrapperRecognizerOption_t *marpaWrapperRecognizerOptionp) {
+
+  if (marpaWrapperRecognizerOptionp == NULL) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+
+  marpaWrapperRecognizerOptionp->useTerminalsExpectedb = MARPAWRAPPER_BOOL_TRUE;
+  marpaWrapperRecognizerOptionp->useLatmb              = MARPAWRAPPER_BOOL_TRUE;
+
+  return MARPAWRAPPER_BOOL_TRUE;
+}
+
 /*************************************/
 /* marpaWrapper_symbolOptionDefaultb */
 /*************************************/
