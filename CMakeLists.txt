@@ -240,13 +240,17 @@ ADD_CUSTOM_COMMAND (
 # ------------------------------
 # Generated files custom targets
 # ------------------------------
+FILE(GLOB xml_1_0_include_src src/internal/grammar/xml_1_0/*.c)
+FILE(GLOB xml_1_1_include_src src/internal/grammar/xml_1_1/*.c)
+FILE(GLOB qname_1_0_include_src src/internal/grammar/qname_1_0/*.c)
+FILE(GLOB qname_1_1_include_src src/internal/grammar/qname_1_1/*.c)
 ADD_CUSTOM_COMMAND(
     PRE_BUILD
     COMMENT "Generating xml_1_0.c"
     OUTPUT src/internal/grammar/xml_1_0.c
     COMMAND "${PERL}"
     ARGS tools/generateMarpaWrapperCode.pl --bnf bnf/xml_1_0.bnf --output src/internal/grammar/xml_1_0.c
-    DEPENDS tools/generateMarpaWrapperCode.pl bnf/xml_1_0.bnf src/internal/grammar/xml_1_0/*.c
+    DEPENDS tools/generateMarpaWrapperCode.pl bnf/xml_1_0.bnf ${xml_1_0_include_src}
 )
 ADD_CUSTOM_COMMAND(
     PRE_BUILD
@@ -254,7 +258,7 @@ ADD_CUSTOM_COMMAND(
     OUTPUT src/internal/grammar/xml_1_1.c
     COMMAND "${PERL}"
     ARGS tools/generateMarpaWrapperCode.pl --bnf bnf/xml_1_1.bnf --output src/internal/grammar/xml_1_1.c
-    DEPENDS tools/generateMarpaWrapperCode.pl bnf/xml_1_1.bnf src/internal/grammar/xml_1_1/*.c
+    DEPENDS tools/generateMarpaWrapperCode.pl bnf/xml_1_1.bnf ${xml_1_1_include_src}
 )
 ADD_CUSTOM_COMMAND(
     PRE_BUILD
@@ -262,7 +266,7 @@ ADD_CUSTOM_COMMAND(
     OUTPUT src/internal/grammar/qname_1_0.c
     COMMAND "${PERL}"
     ARGS tools/generateMarpaWrapperCode.pl --bnf bnf/qname_1_0.bnf --output src/internal/grammar/qname_1_0.c
-    DEPENDS tools/generateMarpaWrapperCode.pl bnf/qname_1_0.bnf src/internal/grammar/qname_1_0/*.c
+    DEPENDS tools/generateMarpaWrapperCode.pl bnf/qname_1_0.bnf ${qname_1_0_include_src}
 )
 ADD_CUSTOM_COMMAND(
     PRE_BUILD
@@ -270,7 +274,7 @@ ADD_CUSTOM_COMMAND(
     OUTPUT src/internal/grammar/qname_1_1.c
     COMMAND "${PERL}"
     ARGS tools/generateMarpaWrapperCode.pl --bnf bnf/qname_1_1.bnf --output src/internal/grammar/qname_1_1.c
-    DEPENDS tools/generateMarpaWrapperCode.pl bnf/qname_1_1.bnf src/internal/grammar/qname_1_1/*.c
+    DEPENDS tools/generateMarpaWrapperCode.pl bnf/qname_1_1.bnf ${qname_1_1_include_src}
 )
 ADD_CUSTOM_COMMAND(
     PRE_BUILD

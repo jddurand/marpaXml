@@ -99,6 +99,9 @@ struct marpaWrapperSymbol {
   Marpa_Symbol_ID            marpaSymbolIdi;
   marpaWrapper_t            *marpaWrapperp;
   marpaWrapperSymbolOption_t marpaWrapperSymbolOption;
+  /* Internal work area */
+  marpaWrapperBool_t         isLexemeb;
+  size_t                     sizel;
 };
 
 MARPAWRAPPER_GENERATE_GETTER_DEFINITION(marpaWrapperSymbol, void *, datavp, , marpaWrapperSymbolOption.datavp)
@@ -1618,19 +1621,61 @@ marpaWrapperBool_t marpaWrapper_optionDefaultb(marpaWrapperOption_t *marpaWrappe
   return MARPAWRAPPER_BOOL_TRUE;
 }
 
-/*****************************************/
-/* marpaWrapper_RecognizerOptionDefaultb */
-/*****************************************/
-marpaWrapperBool_t marpaWrapper_RecognizerOptionDefaultb(marpaWrapperRecognizerOption_t *marpaWrapperRecognizerOptionp) {
+/***************************/
+/* marpaWrapper_recognizeb */
+/***************************/
+marpaWrapperBool_t marpaWrapper_r_recognizeb(marpaWrapper_t *marpaWrapperp, streamIn_t *streamInp, marpaWrapper_isLexemebCallback_t marpaWrapper_isLexemebCallbackp) {
+  signed int             nexti;
+  size_t                 nMarpaWrapperSymboli = 0;
+  marpaWrapperSymbol_t **marpaWrapperSymbolpp = NULL;
+  size_t                 i;
+  size_t                 sizel, maxSizel;
+  marpaWrapperBool_t     rcb = MARPAWRAPPER_BOOL_TRUE;
 
-  if (marpaWrapperRecognizerOptionp == NULL) {
+  if (marpaWrapper_isLexemebCallbackp == NULL) {
+    MARPAWRAPPER_LOG_ERROR0("marpaWrapper_isLexemebCallbackp must be non-NULL");
     return MARPAWRAPPER_BOOL_FALSE;
   }
 
-  marpaWrapperRecognizerOptionp->useTerminalsExpectedb = MARPAWRAPPER_BOOL_TRUE;
-  marpaWrapperRecognizerOptionp->useLatmb              = MARPAWRAPPER_BOOL_TRUE;
+  if (marpaWrapper_r_startb(marpaWrapperp) == MARPAWRAPPER_BOOL_FALSE) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
 
-  return MARPAWRAPPER_BOOL_TRUE;
+  while (streamInUtf8_nexti(streamInp, &nexti) == STREAMIN_BOOL_TRUE) {
+    if (marpaWrapper_r_terminals_expectedb(marpaWrapperp, &nMarpaWrapperSymboli, &marpaWrapperSymbolpp) == MARPAWRAPPER_BOOL_FALSE) {
+      rcb = MARPAWRAPPER_BOOL_FALSE;
+      goto recognizebEnd;
+    }
+    maxSizel = 0;
+    for (i = 0; i < nMarpaWrapperSymboli; i++) {
+      if ((marpaWrapperSymbolpp[i]->isLexemeb = marpaWrapper_isLexemebCallbackp(marpaWrapperSymbolpp[i]->marpaWrapperSymbolOption.datavp, nexti, streamInp, &sizel)) == MARPAWRAPPER_BOOL_FALSE) {
+        if ((marpaWrapperSymbolpp[i]->sizel = sizel) > maxSizel) {
+          maxSizel = sizel;
+        }
+      }
+    }
+    if (maxSizel > 0) {
+      /* I believe this is quicker than doing qsort */
+      for (i = 0; i < nMarpaWrapperSymboli; i++) {
+        if (marpaWrapperSymbolpp[i]->sizel == maxSizel) {
+          if (marpaWrapper_r_alternativeb(marpaWrapperp, marpaWrapperSymbolpp[i], 0 /* TO DO */, (int) maxSizel) == MARPAWRAPPER_BOOL_FALSE) {
+            /* Because we did a terminal_expected(), this should never happen */
+            rcb = MARPAWRAPPER_BOOL_FALSE;
+            goto recognizebEnd;
+          }
+        }
+      }
+    }
+  }
+
+ recognizebEnd:
+
+  if (marpaWrapperSymbolpp != NULL) {
+    free(marpaWrapperSymbolpp);
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+
+  return rcb;
 }
 
 /*************************************/

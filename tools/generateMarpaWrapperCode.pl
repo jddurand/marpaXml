@@ -1042,7 +1042,7 @@ static C_INLINE marpaWrapperBool_t _${namespace}_parseEventsb(void *datavp, marp
   marpaWrapperBool_t              rcb = MARPAWRAPPER_BOOL_TRUE;
   ${namespace}_t                 *${namespace}p;
   ${namespace}_symbol_t           symboli;
-  int                             i;
+  size_t                          i;
 #ifndef MARPAXML_NTRACE
   marpaXmlLog_t                  *marpaXmlLogp = NULL;
 #endif

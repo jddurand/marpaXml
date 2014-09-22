@@ -3,6 +3,8 @@
 
 #include <stddef.h>                  /* size_t definition */
 
+#include "internal/streamIn.h"
+
 /* Convention is:
    - all pointer symbols end with 'p'
    - all number  symbols end with 'i'
@@ -74,12 +76,6 @@ typedef struct marpaWrapperSymbolOption {
   int                eventSeti;   /* Default: 0.                                                                      */
 } marpaWrapperSymbolOption_t;
 
-/* Recognizer options */
-typedef struct marpaWrapperRecognizerOption {
-  marpaWrapperBool_t useTerminalsExpectedb; /* Default: MARPAWRAPPER_BOOL_TRUE. Use Marpa's terminals_expected and asks user                                         */
-  marpaWrapperBool_t useLatmb;              /* Default: MARPAWRAPPER_BOOL_TRUE. Automatically work in Longest Acceptable Token Match (implies useTerminalsExpectedb) */
-} marpaWrapperRecognizerOption_t;
-
 /* Rule options - this is a required parameter, so the user is EXPECTED to overwrite some members */
 /* with meaningful values. In particular:                                                         */
 /* - lhsSymbolp                                                                                   */
@@ -144,6 +140,10 @@ marpaWrapperBool_t        marpaWrapper_r_terminal_is_expectedb(marpaWrapper_t *m
 marpaWrapperBool_t        marpaWrapper_r_progressb            (marpaWrapper_t *marpaWrapperp, int starti, int endi, size_t *nmarpaWrapperProgressip, marpaWrapperProgress_t ***marpaWrapperProgressppp);
 
 /* Generic routine using all of the above */
+/* streamInp is supposed to have been opened in UTF-8 mode */
+typedef marpaWrapperBool_t (*marpaWrapper_isLexemebCallback_t)(void *p, signed int currenti, streamIn_t *streamInp, size_t *sizelp);
+
+marpaWrapperBool_t        marpaWrapper_r_recognizeb           (marpaWrapper_t *marpaWrapperp, streamIn_t *streamInp, marpaWrapper_isLexemebCallback_t marpaWrapper_isLexemebCallbackp);
 
 /******************/
 /* Phase 3: Value */
@@ -183,7 +183,6 @@ marpaWrapperBool_t        marpaWrapper_symbolOptionDefaultb    (marpaWrapperSymb
 marpaWrapperBool_t        marpaWrapper_ruleOptionDefaultb      (marpaWrapperRuleOption_t *marpaWrapperRuleOptionp);
 marpaWrapperBool_t        marpaWrapper_valueOptionDefaultb     (marpaWrapperValueOption_t *marpaWrapperValueOptionp);
 marpaWrapperBool_t        marpaWrapper_stackOptionDefaultb     (marpaWrapperStackOption_t *marpaWrapperStackOptionp);
-marpaWrapperBool_t        marpaWrapper_RecognizerOptionDefaultb(marpaWrapperRecognizerOption_t *marpaWrapperRecognizerOptionp);
 
 /*****************/
 /* Top accessors */
@@ -202,9 +201,9 @@ MARPAWRAPPER_GENERATE_GETTER_DECLARATION(marpaWrapper, marpaWrapperSymbol_t **, 
 MARPAWRAPPER_GENERATE_GETTER_DECLARATION(marpaWrapper,                  size_t, sizeMarpaWrapperRulei);
 MARPAWRAPPER_GENERATE_GETTER_DECLARATION(marpaWrapper,   marpaWrapperRule_t **, marpaWrapperRulepp);
 
-/******************************************************/
-/* From a symbol opaque pointer, get opaque user data */
-/******************************************************/
+/******************************************************************/
+/* From a symbol opaque pointer, get opaque user data, work flags */
+/******************************************************************/
 MARPAWRAPPER_GENERATE_GETTER_DECLARATION(marpaWrapperSymbol, void *, datavp);
 
 /****************************************************/
