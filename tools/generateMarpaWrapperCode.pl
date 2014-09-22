@@ -1290,18 +1290,9 @@ ISLEXEMEB
   if ($haveDiscardb) {
       $pushLexemeb .= <<ISLEXEMEB_TRAILER;
     default:
+      /* Special case: if return is MARPAWRAPPER_BOOL_TRUE and *sizelp is 0, then this is a :discard */
+      /* Nevertheless streamInp will have have progressed */
       rcb = $funcDiscardb(${namespace}_symbol_callbackp->${namespace}p, currenti, streamInp, sizelp);
-      if (rcb == MARPAWRAPPER_BOOL_TRUE) {
-#ifndef MARPAXML_NTRACE
-        ${namespace}_t *${namespace}p = ${namespace}_symbol_callbackp->${namespace}p;
-        marpaXmlLog_t *marpaXmlLogp = ${namespace}p->marpaXmlLogp;
-#endif
-
-        /* Special case: if return is MARPAWRAPPER_BOOL_TRUE and *sizelp is 0, then this is a :discard */
-        /* Nevertheless streamInp will have have progressed */
-        MARPAXML_TRACEX("Discarding, length %lld\\n", (unsigned long) *sizelp);
-        *sizelp = 0;
-      }
       break;
   }
 
