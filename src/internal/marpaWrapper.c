@@ -1681,6 +1681,8 @@ marpaWrapperBool_t marpaWrapper_r_recognizeb(marpaWrapper_t *marpaWrapperp, stre
           }
         }
       }
+    } else {
+      /* Perhaps a discarded thing then */
     }
   }
 
