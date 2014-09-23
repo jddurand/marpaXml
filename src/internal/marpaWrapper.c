@@ -1653,7 +1653,7 @@ marpaWrapperBool_t marpaWrapper_r_recognizeb(marpaWrapper_t *marpaWrapperp, stre
     }
     maxSizel = 0;
     for (i = 0; i < nMarpaWrapperSymboli; i++) {
-      if ((marpaWrapperSymbolpp[i]->isLexemeb = marpaWrapper_isLexemebCallbackp(marpaWrapperSymbolpp[i]->marpaWrapperSymbolOption.datavp, nexti, streamInp, &sizel)) == MARPAWRAPPER_BOOL_FALSE) {
+      if ((marpaWrapperSymbolpp[i]->isLexemeb = marpaWrapper_isLexemebCallbackp(marpaWrapperSymbolpp[i]->marpaWrapperSymbolOption.datavp, nexti, streamInp, &sizel)) == MARPAWRAPPER_BOOL_TRUE) {
         if ((marpaWrapperSymbolpp[i]->sizel = sizel) > maxSizel) {
           maxSizel = sizel;
         }
