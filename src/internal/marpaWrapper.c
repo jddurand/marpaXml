@@ -10,6 +10,7 @@
 #include "internal/genericStack.h"
 #include "internal/messageBuilder.h"
 #include "internal/manageBuf.h"
+#include "marpaXml/String.h"
 #include "marpa.h"
 
 #include "API/marpaXml/log.h"
@@ -101,7 +102,7 @@ struct marpaWrapperSymbol {
   marpaWrapperSymbolOption_t marpaWrapperSymbolOption;
   /* Internal work area */
   marpaWrapperBool_t         isLexemeb;
-  size_t                     sizel;
+  size_t                     lengthl;
 };
 
 MARPAWRAPPER_GENERATE_GETTER_DEFINITION(marpaWrapperSymbol, void *, datavp, , marpaWrapperSymbolOption.datavp)
@@ -1624,21 +1625,19 @@ marpaWrapperBool_t marpaWrapper_optionDefaultb(marpaWrapperOption_t *marpaWrappe
 /***************************/
 /* marpaWrapper_recognizeb */
 /***************************/
-marpaWrapperBool_t marpaWrapper_r_recognizeb(marpaWrapper_t *marpaWrapperp, streamIn_t *streamInp, marpaWrapper_isLexemebCallback_t marpaWrapper_isLexemebCallbackp, marpaWrapper_lexemeValueiCallback_t marpaWrapper_lexemeValueiCallbackp) {
+marpaWrapperBool_t marpaWrapper_r_recognizeb(marpaWrapper_t *marpaWrapperp, streamIn_t *streamInp, marpaWrapper_isLexemebCallback_t marpaWrapper_isLexemebCallbackp) {
   signed int             nexti;
   size_t                 nMarpaWrapperSymboli = 0;
   marpaWrapperSymbol_t **marpaWrapperSymbolpp = NULL;
   size_t                 i;
-  size_t                 sizel, maxSizel;
+  size_t                 lengthl, maxLengthl, curLengthl;
   marpaWrapperBool_t     rcb = MARPAWRAPPER_BOOL_TRUE;
   int                    valuei;
+  marpaXml_String_t     *stringp;
+  signed int            *bufp;
 
   if (marpaWrapper_isLexemebCallbackp == NULL) {
     MARPAWRAPPER_LOG_ERROR0("marpaWrapper_isLexemebCallbackp must be non-NULL");
-    return MARPAWRAPPER_BOOL_FALSE;
-  }
-  if (marpaWrapper_lexemeValueiCallbackp == NULL) {
-    MARPAWRAPPER_LOG_ERROR0("marpaWrapper_lexemeValueiCallbackp must be non-NULL");
     return MARPAWRAPPER_BOOL_FALSE;
   }
 
@@ -1651,30 +1650,41 @@ marpaWrapperBool_t marpaWrapper_r_recognizeb(marpaWrapper_t *marpaWrapperp, stre
       rcb = MARPAWRAPPER_BOOL_FALSE;
       goto recognizebEnd;
     }
-    maxSizel = 0;
+    maxLengthl = 0;
     for (i = 0; i < nMarpaWrapperSymboli; i++) {
-      if ((marpaWrapperSymbolpp[i]->isLexemeb = marpaWrapper_isLexemebCallbackp(marpaWrapperSymbolpp[i]->marpaWrapperSymbolOption.datavp, nexti, streamInp, &sizel)) == MARPAWRAPPER_BOOL_TRUE) {
-        if ((marpaWrapperSymbolpp[i]->sizel = sizel) > maxSizel) {
-          maxSizel = sizel;
+      if ((marpaWrapperSymbolpp[i]->isLexemeb = marpaWrapper_isLexemebCallbackp(marpaWrapperSymbolpp[i]->marpaWrapperSymbolOption.datavp, nexti, streamInp, &lengthl)) == MARPAWRAPPER_BOOL_TRUE) {
+        if ((marpaWrapperSymbolpp[i]->lengthl = lengthl) > maxLengthl) {
+          maxLengthl = lengthl;
         }
       }
     }
-    if (maxSizel > 0) {
+    if (maxLengthl > 0) {
+      /* Make a marpaXml_String_t out of it */
+      bufp = malloc(maxLengthl * sizeof(signed int));
+      if (bufp == NULL) {
+        MARPAWRAPPER_LOG_SYS_ERROR(errno, "malloc()");
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        goto recognizebEnd;
+      }
+
+      i = 0;
+      curLengthl = 1; /* This is current character in nexti */
+      while (curLengthl++ < maxLengthl) {
+        streamInUtf8_nexti(streamInp, &nexti);
+        bufp[i++] = nexti;
+      }
+      
       /* I believe this is quicker than doing qsort */
       for (i = 0; i < nMarpaWrapperSymboli; i++) {
-        if (marpaWrapperSymbolpp[i]->sizel == maxSizel) {
-	  if (marpaWrapper_lexemeValueiCallbackp(marpaWrapperSymbolpp[i]->marpaWrapperSymbolOption.datavp, streamInp, sizel, &valuei) == MARPAWRAPPER_BOOL_FALSE) {
-	    /* value is application specific, represented by an int */
-            rcb = MARPAWRAPPER_BOOL_FALSE;
-            goto recognizebEnd;
-	  }
+        if (marpaWrapperSymbolpp[i]->lengthl == maxLengthl) {
+          /* The value of a lexeme is fixed to a marpaXml_String_t pointer */
 	  if (valuei == 0) {
 	    /* From the doc: "A value of 0 is reserved for a now-deprecated feature. Do not use it" */
 	    MARPAWRAPPER_LOG_ERROR0("A value of 0 is reserved for a now-deprecated feature. Do not use it");
             rcb = MARPAWRAPPER_BOOL_FALSE;
             goto recognizebEnd;
 	  }
-          if (marpaWrapper_r_alternativeb(marpaWrapperp, marpaWrapperSymbolpp[i], valuei, (int) maxSizel) == MARPAWRAPPER_BOOL_FALSE) {
+          if (marpaWrapper_r_alternativeb(marpaWrapperp, marpaWrapperSymbolpp[i], valuei, (int) maxLengthl) == MARPAWRAPPER_BOOL_FALSE) {
             /* Because we did a terminal_expected(), this should never happen */
             rcb = MARPAWRAPPER_BOOL_FALSE;
             goto recognizebEnd;
