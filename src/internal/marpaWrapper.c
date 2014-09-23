@@ -1668,7 +1668,13 @@ marpaWrapperBool_t marpaWrapper_r_recognizeb(marpaWrapper_t *marpaWrapperp, stre
             rcb = MARPAWRAPPER_BOOL_FALSE;
             goto recognizebEnd;
 	  }
-          if (marpaWrapper_r_alternativeb(marpaWrapperp, marpaWrapperSymbolpp[i], 0 /* TO DO */, (int) maxSizel) == MARPAWRAPPER_BOOL_FALSE) {
+	  if (valuei == 0) {
+	    /* From the doc: "A value of 0 is reserved for a now-deprecated feature. Do not use it" */
+	    MARPAWRAPPER_LOG_ERROR0("A value of 0 is reserved for a now-deprecated feature. Do not use it");
+            rcb = MARPAWRAPPER_BOOL_FALSE;
+            goto recognizebEnd;
+	  }
+          if (marpaWrapper_r_alternativeb(marpaWrapperp, marpaWrapperSymbolpp[i], valuei, (int) maxSizel) == MARPAWRAPPER_BOOL_FALSE) {
             /* Because we did a terminal_expected(), this should never happen */
             rcb = MARPAWRAPPER_BOOL_FALSE;
             goto recognizebEnd;
