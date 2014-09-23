@@ -142,8 +142,9 @@ marpaWrapperBool_t        marpaWrapper_r_progressb            (marpaWrapper_t *m
 /* Generic routine using all of the above */
 /* streamInp is supposed to have been opened in UTF-8 mode */
 typedef marpaWrapperBool_t (*marpaWrapper_isLexemebCallback_t)(void *p, signed int currenti, streamIn_t *streamInp, size_t *sizelp);
+typedef marpaWrapperBool_t (*marpaWrapper_lexemeValueiCallback_t)(void *p, streamIn_t *streamInp, size_t sizel, int *valueip);
 
-marpaWrapperBool_t        marpaWrapper_r_recognizeb           (marpaWrapper_t *marpaWrapperp, streamIn_t *streamInp, marpaWrapper_isLexemebCallback_t marpaWrapper_isLexemebCallbackp);
+marpaWrapperBool_t        marpaWrapper_r_recognizeb           (marpaWrapper_t *marpaWrapperp, streamIn_t *streamInp, marpaWrapper_isLexemebCallback_t marpaWrapper_isLexemebCallbackp, marpaWrapper_lexemeValueiCallback_t marpaWrapper_lexemeValueiCallbackp);
 
 /******************/
 /* Phase 3: Value */

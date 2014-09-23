@@ -1624,16 +1624,21 @@ marpaWrapperBool_t marpaWrapper_optionDefaultb(marpaWrapperOption_t *marpaWrappe
 /***************************/
 /* marpaWrapper_recognizeb */
 /***************************/
-marpaWrapperBool_t marpaWrapper_r_recognizeb(marpaWrapper_t *marpaWrapperp, streamIn_t *streamInp, marpaWrapper_isLexemebCallback_t marpaWrapper_isLexemebCallbackp) {
+marpaWrapperBool_t marpaWrapper_r_recognizeb(marpaWrapper_t *marpaWrapperp, streamIn_t *streamInp, marpaWrapper_isLexemebCallback_t marpaWrapper_isLexemebCallbackp, marpaWrapper_lexemeValueiCallback_t marpaWrapper_lexemeValueiCallbackp) {
   signed int             nexti;
   size_t                 nMarpaWrapperSymboli = 0;
   marpaWrapperSymbol_t **marpaWrapperSymbolpp = NULL;
   size_t                 i;
   size_t                 sizel, maxSizel;
   marpaWrapperBool_t     rcb = MARPAWRAPPER_BOOL_TRUE;
+  int                    valuei;
 
   if (marpaWrapper_isLexemebCallbackp == NULL) {
     MARPAWRAPPER_LOG_ERROR0("marpaWrapper_isLexemebCallbackp must be non-NULL");
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+  if (marpaWrapper_lexemeValueiCallbackp == NULL) {
+    MARPAWRAPPER_LOG_ERROR0("marpaWrapper_lexemeValueiCallbackp must be non-NULL");
     return MARPAWRAPPER_BOOL_FALSE;
   }
 
@@ -1658,6 +1663,11 @@ marpaWrapperBool_t marpaWrapper_r_recognizeb(marpaWrapper_t *marpaWrapperp, stre
       /* I believe this is quicker than doing qsort */
       for (i = 0; i < nMarpaWrapperSymboli; i++) {
         if (marpaWrapperSymbolpp[i]->sizel == maxSizel) {
+	  if (marpaWrapper_lexemeValueiCallbackp(marpaWrapperSymbolpp[i]->marpaWrapperSymbolOption.datavp, streamInp, sizel, &valuei) == MARPAWRAPPER_BOOL_FALSE) {
+	    /* value is application specific, represented by an int */
+            rcb = MARPAWRAPPER_BOOL_FALSE;
+            goto recognizebEnd;
+	  }
           if (marpaWrapper_r_alternativeb(marpaWrapperp, marpaWrapperSymbolpp[i], 0 /* TO DO */, (int) maxSizel) == MARPAWRAPPER_BOOL_FALSE) {
             /* Because we did a terminal_expected(), this should never happen */
             rcb = MARPAWRAPPER_BOOL_FALSE;

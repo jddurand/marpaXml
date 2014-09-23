@@ -11,6 +11,7 @@ typedef struct qname_1_0 qname_1_0_t;
 qname_1_0_t        *qname_1_0_newp(marpaWrapperOption_t *marpaWrapperOptionp);
 marpaWrapperBool_t  qname_1_0_getMarpaWrapperpb(qname_1_0_t *qname_1_0p, marpaWrapper_t **marpaWrapperpp);
 marpaWrapperBool_t  qname_1_0_isLexemeb(void *p, signed int currenti, streamIn_t *streamInp, size_t *sizelp);
+marpaWrapperBool_t  qname_1_0_lexemeValuei(void *p, streamIn_t *streamInp, size_t sizel, int *valueip);
 void                qname_1_0_destroyv(qname_1_0_t **qname_1_0pp);
 
 #endif /* MARPAQNAME_INTERNAL_GRAMMAR_QNAME_1_0_H */
