@@ -2759,9 +2759,9 @@ static C_INLINE marpaXml_boolean_t _marpaXml_featuresWhereClause(_marpaXml_stmt_
             uCharSizei = utext_extract(utextp, startTokenNativeIndex, endTokenNativeIndex, NULL, 0, &uErrorCode);
             if ((uCharSizei <= 0) || uErrorCode != U_BUFFER_OVERFLOW_ERROR) {
               if (U_FAILURE(uErrorCode)) {
-                MARPAXML_ERRORX("UTextExtract(): %s", u_errorName(uErrorCode));
+                MARPAXML_ERRORX("utext_extract(): %s", u_errorName(uErrorCode));
               } else {
-                MARPAXML_ERROR0("UTextExtract(): returned a number <= 0");
+                MARPAXML_ERROR0("utext_extract(): returned a number <= 0");
               }
               rcb = marpaXml_false;
               break;
@@ -2776,9 +2776,9 @@ static C_INLINE marpaXml_boolean_t _marpaXml_featuresWhereClause(_marpaXml_stmt_
             uCharSizei = utext_extract(utextp, startTokenNativeIndex, endTokenNativeIndex, uCharp, uCharSizei, &uErrorCode);
             if ((uCharSizei <= 0) || U_FAILURE(uErrorCode)) {
               if (U_FAILURE(uErrorCode)) {
-                MARPAXML_ERRORX("UTextExtract(): %s", u_errorName(uErrorCode));
+                MARPAXML_ERRORX("utext_extract(): %s", u_errorName(uErrorCode));
               } else {
-                MARPAXML_ERROR0("UTextExtract(): returned a number <= 0");
+                MARPAXML_ERROR0("utext_extract(): returned a number <= 0");
               }
               free(uCharp);
               rcb = marpaXml_false;
