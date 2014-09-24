@@ -2711,7 +2711,7 @@ static C_INLINE marpaXml_boolean_t _marpaXml_featuresWhereClause(_marpaXml_stmt_
   if (requestp != NULL) {
     utextp = utext_openUTF8(NULL, (const char *) marpaXml_String_getUtf8(requestp), -1, &uErrorCode);
     if (U_FAILURE(uErrorCode)) {
-      MARPAXML_ERRORX("utext_openUChars(): %s", u_errorName(uErrorCode));
+      MARPAXML_ERRORX("utext_openUTF8(): %s", u_errorName(uErrorCode));
       rcb = marpaXml_false;
     } else {
       while (1) {

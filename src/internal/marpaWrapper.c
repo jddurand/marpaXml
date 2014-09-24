@@ -1635,6 +1635,9 @@ marpaWrapperBool_t marpaWrapper_r_recognizeb(marpaWrapper_t *marpaWrapperp, stre
   int                    valuei;
   marpaXml_String_t     *stringp;
   signed int            *bufp;
+  int                    endiannessi = 1;
+  char                  *endiannessp = (char *)&endiannessi;
+  const char            *ucharEncodings;
 
   if (marpaWrapper_isLexemebCallbackp == NULL) {
     MARPAWRAPPER_LOG_ERROR0("marpaWrapper_isLexemebCallbackp must be non-NULL");
@@ -1645,6 +1648,9 @@ marpaWrapperBool_t marpaWrapper_r_recognizeb(marpaWrapper_t *marpaWrapperp, stre
     return MARPAWRAPPER_BOOL_FALSE;
   }
 
+  /* Determine UChar endianness */
+  ucharEncodings = (endiannessp[0] == 1) ? "UTF-16LE" : "UTF-16BE";
+
   while (streamInUtf8_nexti(streamInp, &nexti) == STREAMIN_BOOL_TRUE) {
     if (marpaWrapper_r_terminals_expectedb(marpaWrapperp, &nMarpaWrapperSymboli, &marpaWrapperSymbolpp) == MARPAWRAPPER_BOOL_FALSE) {
       rcb = MARPAWRAPPER_BOOL_FALSE;
@@ -1652,6 +1658,7 @@ marpaWrapperBool_t marpaWrapper_r_recognizeb(marpaWrapper_t *marpaWrapperp, stre
     }
     maxLengthl = 0;
     for (i = 0; i < nMarpaWrapperSymboli; i++) {
+      /* Every lexeme callback has to make sure index in stream is unchanged when they return */
       if ((marpaWrapperSymbolpp[i]->isLexemeb = marpaWrapper_isLexemebCallbackp(marpaWrapperSymbolpp[i]->marpaWrapperSymbolOption.datavp, nexti, streamInp, &lengthl)) == MARPAWRAPPER_BOOL_TRUE) {
         if ((marpaWrapperSymbolpp[i]->lengthl = lengthl) > maxLengthl) {
           maxLengthl = lengthl;
