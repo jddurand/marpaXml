@@ -1625,31 +1625,27 @@ marpaWrapperBool_t marpaWrapper_optionDefaultb(marpaWrapperOption_t *marpaWrappe
 /***************************/
 /* marpaWrapper_recognizeb */
 /***************************/
-marpaWrapperBool_t marpaWrapper_r_recognizeb(marpaWrapper_t *marpaWrapperp, streamIn_t *streamInp, marpaWrapper_isLexemebCallback_t marpaWrapper_isLexemebCallbackp) {
+marpaWrapperBool_t marpaWrapper_r_recognizeb(marpaWrapper_t *marpaWrapperp, void *lexemeValueiCallbackDatavp, streamIn_t *streamInp, marpaWrapper_isLexemebCallback_t marpaWrapper_isLexemebCallbackp, marpaWrapper_lexemeValueiCallback_t marpaWrapper_lexemeValueiCallbackp) {
   signed int             nexti;
   size_t                 nMarpaWrapperSymboli = 0;
   marpaWrapperSymbol_t **marpaWrapperSymbolpp = NULL;
   size_t                 i;
-  size_t                 lengthl, maxLengthl, curLengthl;
+  size_t                 lengthl, maxLengthl;
   marpaWrapperBool_t     rcb = MARPAWRAPPER_BOOL_TRUE;
-  int                    valuei;
-  marpaXml_String_t     *stringp;
-  signed int            *bufp;
-  int                    endiannessi = 1;
-  char                  *endiannessp = (char *)&endiannessi;
-  const char            *ucharEncodings;
+  int                    lexemeValuei;
 
   if (marpaWrapper_isLexemebCallbackp == NULL) {
     MARPAWRAPPER_LOG_ERROR0("marpaWrapper_isLexemebCallbackp must be non-NULL");
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+  if (marpaWrapper_lexemeValueiCallbackp == NULL) {
+    MARPAWRAPPER_LOG_ERROR0("marpaWrapper_lexemeValueiCallbackp be non-NULL");
     return MARPAWRAPPER_BOOL_FALSE;
   }
 
   if (marpaWrapper_r_startb(marpaWrapperp) == MARPAWRAPPER_BOOL_FALSE) {
     return MARPAWRAPPER_BOOL_FALSE;
   }
-
-  /* Determine UChar endianness */
-  ucharEncodings = (endiannessp[0] == 1) ? "UTF-16LE" : "UTF-16BE";
 
   while (streamInUtf8_nexti(streamInp, &nexti) == STREAMIN_BOOL_TRUE) {
     if (marpaWrapper_r_terminals_expectedb(marpaWrapperp, &nMarpaWrapperSymboli, &marpaWrapperSymbolpp) == MARPAWRAPPER_BOOL_FALSE) {
@@ -1666,40 +1662,32 @@ marpaWrapperBool_t marpaWrapper_r_recognizeb(marpaWrapper_t *marpaWrapperp, stre
       }
     }
     if (maxLengthl > 0) {
-      /* Make a marpaXml_String_t out of it */
-      bufp = malloc(maxLengthl * sizeof(signed int));
-      if (bufp == NULL) {
-        MARPAWRAPPER_LOG_SYS_ERROR(errno, "malloc()");
+      /* Go back by one character ./.. */
+      if ((streamInUtf8_markPreviousb(streamInp) == MARPAWRAPPER_BOOL_FALSE) ||
+          (streamInUtf8_currentFromMarkedb(streamInp) == MARPAWRAPPER_BOOL_FALSE)) {
         rcb = MARPAWRAPPER_BOOL_FALSE;
         goto recognizebEnd;
       }
-
-      i = 0;
-      curLengthl = 1; /* This is current character in nexti */
-      while (curLengthl++ < maxLengthl) {
-        streamInUtf8_nexti(streamInp, &nexti);
-        bufp[i++] = nexti;
+      /* ../. i.e. we guarantee to our caller that the stream is positionned where the the lexeme is starting */
+      if (marpaWrapper_lexemeValueiCallbackp(lexemeValueiCallbackDatavp, streamInp, maxLengthl, &lexemeValuei) == MARPAWRAPPER_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        goto recognizebEnd;
       }
-      
-      /* I believe this is quicker than doing qsort */
-      for (i = 0; i < nMarpaWrapperSymboli; i++) {
-        if (marpaWrapperSymbolpp[i]->lengthl == maxLengthl) {
-          /* The value of a lexeme is fixed to a marpaXml_String_t pointer */
-	  if (valuei == 0) {
-	    /* From the doc: "A value of 0 is reserved for a now-deprecated feature. Do not use it" */
-	    MARPAWRAPPER_LOG_ERROR0("A value of 0 is reserved for a now-deprecated feature. Do not use it");
-            rcb = MARPAWRAPPER_BOOL_FALSE;
-            goto recognizebEnd;
-	  }
-          if (marpaWrapper_r_alternativeb(marpaWrapperp, marpaWrapperSymbolpp[i], valuei, (int) maxLengthl) == MARPAWRAPPER_BOOL_FALSE) {
-            /* Because we did a terminal_expected(), this should never happen */
-            rcb = MARPAWRAPPER_BOOL_FALSE;
-            goto recognizebEnd;
-          }
+      if (marpaWrapper_r_alternativeb(marpaWrapperp, marpaWrapperSymbolpp[i], lexemeValuei, (int) maxLengthl) == MARPAWRAPPER_BOOL_FALSE) {
+        /* Because we did a terminal_expected(), this should never happen */
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        goto recognizebEnd;
+      }
+      /* Move the stream forward */
+      lengthl = 0;
+      while (lengthl++ < maxLengthl) {
+        if (streamInUtf8_nexti(streamInp, &nexti) == STREAMIN_BOOL_FALSE) {
+          rcb = MARPAWRAPPER_BOOL_FALSE;
+          goto recognizebEnd;
         }
       }
     } else {
-      /* Perhaps a discarded thing then */
+      /* A discarded thing then, the marpaWrapper_isLexemebCallbackp have returned MARPAWRAPPER_BOOL_TRUE, but maxLengthl <= 0: it has in the meantime moved the pointer in the stream */
     }
   }
 

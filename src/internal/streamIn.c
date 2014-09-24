@@ -8,6 +8,7 @@
 #include <unicode/uclean.h>
 #include <unicode/ucnv.h>
 #include <unicode/utext.h>
+#include <unicode/ustring.h>
 
 #include "internal/config.h"
 #include "internal/streamIn.h"
@@ -28,7 +29,8 @@ typedef struct streamIn_ICU {
   /* With ICU we do a single conversion Native => UChar                */
   /* into a SINGLE buffer. We maintain a mapping byteBufpp[] -> offset */
   int64_t                    *byteBuf2UCharByteLengthlp;/* mapping end of char buffers => offset in ucharBufp */
-  int64_t                     ucharMarkedOffsetl;       /* Pointer location just after the marked uchar */
+  int64_t                     ucharMarkedNativeIndexl;  /* Index just after the marked utext */
+  int64_t                     ucharMarkedOffsetl;       /* Pointer location just after the marked utext. Per def our utext is a (UChar *), so this is just ucharMarkedNativeIndexl * sizeof(UChar). */
   size_t                      ucharBufMulSizei;         /* A heuristic guess of the utf16 takes maximum twice more space than native bytes */
   UChar                      *ucharBufp;                /* UChar buffer */
   int64_t                     ucharBufSizel;            /* Current size of allocated memory */
@@ -49,10 +51,14 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_detectb(streamIn_t *streamInp);
 static C_INLINE streamInBool_t _streamInUtf8_ICU_fromConvertb(streamIn_t *streamInp, size_t bufIndexi);
 static C_INLINE streamInBool_t _streamInUtf8_ICU_toConvertb(streamIn_t *streamInp, size_t bufIndexi, char **byteArraypp, size_t *bytesInBufferp, size_t *lengthInBufferp);
 static C_INLINE streamInBool_t _streamInUtf8_ICU_currenti(streamIn_t *streamInp, signed int *currentip);
-static C_INLINE streamInBool_t  _streamInUtf8_ICU_nexti(streamIn_t *streamInp, signed int *nextip);
+static C_INLINE streamInBool_t _streamInUtf8_ICU_nexti(streamIn_t *streamInp, signed int *nextip);
 static C_INLINE streamInBool_t _streamInUtf8_ICU_markb(streamIn_t *streamInp);
 static C_INLINE streamInBool_t _streamInUtf8_ICU_markPreviousb(streamIn_t *streamInp);
 static C_INLINE streamInBool_t _streamInUtf8_ICU_currentFromMarkedb(streamIn_t *streamInp);
+static C_INLINE streamInBool_t _streamInUtf8_ICU_extractFromMarkedb(streamIn_t *streamInp, char **destsp, size_t *lengthlp, size_t lengthl);
+static C_INLINE streamInBool_t _streamInUtf8_ICU_extractFromCurrentb(streamIn_t *streamInp, char **destsp, size_t *lengthlp, size_t lengthl);
+static C_INLINE streamInBool_t _streamInUtf8_ICU_extractFromPreviousb(streamIn_t *streamInp, char **destsp, size_t *lengthlp, size_t lengthl);
+static C_INLINE streamInBool_t _streamInUtf8_ICU_extractFromPositionb(streamIn_t *streamInp, char **destsp, size_t *lengthlp, size_t lengthl, int64_t positionl);
 static C_INLINE streamInBool_t _streamInUtf8_ICU_doneb(streamIn_t *streamInp);
 static C_INLINE void           _streamInUtf8_ICU_destroyv(streamIn_t *streamInp);
 static C_INLINE unsigned char  _streaminUtf8_ICU_nibbleToHex(uint8_t n);
@@ -315,6 +321,7 @@ streamIn_t *streamInUtf8_newp(streamInOption_t *streamInOptionp, streamInUtf8Opt
 
   streamInp->utf8b                                  = STREAMIN_BOOL_TRUE;
   streamInp->streamIn_ICU.byteBuf2UCharByteLengthlp = NULL;
+  streamInp->streamIn_ICU.ucharMarkedNativeIndexl   = 0;
   streamInp->streamIn_ICU.ucharMarkedOffsetl        = 0;
   streamInp->streamIn_ICU.ucharBufMulSizei          = 2;
   streamInp->streamIn_ICU.ucharBufp                 = NULL;
@@ -363,6 +370,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_doneBufferb(streamIn_t *streamI
     if (streamInp->streamIn_ICU.byteBuf2UCharByteLengthlp != NULL) {
       STREAMIN_FREE(streamInp->streamIn_ICU.byteBuf2UCharByteLengthlp);
     }
+    streamInp->streamIn_ICU.ucharMarkedNativeIndexl = 0;
     streamInp->streamIn_ICU.ucharMarkedOffsetl = 0;
     if (streamInp->streamIn_ICU.ucharBufp != NULL) {
       STREAMIN_FREE(streamInp->streamIn_ICU.ucharBufp);
@@ -1701,8 +1709,9 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_markb(streamIn_t *streamInp) {
     return rcb;
   } else {
     /* This give the index in the native format of the text below - we know this is UChar */
-    streamInp->streamIn_ICU.ucharMarkedOffsetl = UTEXT_GETNATIVEINDEX(streamInp->streamIn_ICU.utextp) * sizeof(UChar);
-    /* STREAMIN_LOGX(MARPAXML_LOGLEVEL_TRACE, "Marking offset %ld", streamInp->streamIn_ICU.ucharMarkedOffsetl); */
+    streamInp->streamIn_ICU.ucharMarkedNativeIndexl = UTEXT_GETNATIVEINDEX(streamInp->streamIn_ICU.utextp);
+    streamInp->streamIn_ICU.ucharMarkedOffsetl = streamInp->streamIn_ICU.ucharMarkedNativeIndexl * sizeof(UChar);
+    /* STREAMIN_LOGX(MARPAXML_LOGLEVEL_TRACE, "Marking index %lld, offset %lld", (long) streamInp->streamIn_ICU.ucharMarkedNativeIndexl, (long) streamInp->streamIn_ICU.ucharMarkedOffsetl); */
     rcb = STREAMIN_BOOL_TRUE;
   }
 
@@ -1734,17 +1743,18 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_markPreviousb(streamIn_t *strea
     return rcb;
   } else {
     /* This give the index in the native format of the text below - we know this is UChar */
-    streamInp->streamIn_ICU.ucharMarkedOffsetl = utext_getPreviousNativeIndex(streamInp->streamIn_ICU.utextp) * sizeof(UChar);
-    /* STREAMIN_LOGX(MARPAXML_LOGLEVEL_TRACE, "Marking offset %ld", streamInp->streamIn_ICU.ucharMarkedOffsetl); */
+    streamInp->streamIn_ICU.ucharMarkedNativeIndexl = utext_getPreviousNativeIndex(streamInp->streamIn_ICU.utextp);
+    streamInp->streamIn_ICU.ucharMarkedOffsetl = streamInp->streamIn_ICU.ucharMarkedNativeIndexl * sizeof(UChar);
+    /* STREAMIN_LOGX(MARPAXML_LOGLEVEL_TRACE, "Marking index %lld, offset %ld", (long) streamInp->streamIn_ICU.ucharMarkedNativeIndexl, (long) streamInp->streamIn_ICU.ucharMarkedOffsetl); */
     rcb = STREAMIN_BOOL_TRUE;
   }
 
   return rcb;
 }
 
-/********************************/
+/************************************/
 /* _streamInUtf8_currentFromMarkedb */
-/********************************/
+/************************************/
 streamInBool_t streamInUtf8_currentFromMarkedb(streamIn_t *streamInp) {
   streamInBool_t rcb = STREAMIN_BOOL_FALSE;
 
@@ -1767,9 +1777,135 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_currentFromMarkedb(streamIn_t *
     return rcb;
   } else {
     /* This makes the marked character the current character */
-    UTEXT_SETNATIVEINDEX(streamInp->streamIn_ICU.utextp, streamInp->streamIn_ICU.ucharMarkedOffsetl);
-    /* STREAMIN_LOGX(MARPAXML_LOGLEVEL_TRACE, "Making offset %ld as current", streamInp->streamIn_ICU.ucharMarkedOffsetl); */
+    UTEXT_SETNATIVEINDEX(streamInp->streamIn_ICU.utextp, streamInp->streamIn_ICU.ucharMarkedNativeIndexl);
+    /* STREAMIN_LOGX(MARPAXML_LOGLEVEL_TRACE, "Making index %lld, offset %lld as current", (long) streamInp->streamIn_ICU.ucharMarkedNativeIndexl, (long) streamInp->streamIn_ICU.ucharMarkedOffsetl); */
     rcb = STREAMIN_BOOL_TRUE;
+  }
+
+  return rcb;
+}
+
+/************************************/
+/* _streamInUtf8_extractFromMarkedb */
+/************************************/
+streamInBool_t streamInUtf8_extractFromMarkedb(streamIn_t *streamInp, char **destsp, size_t *lengthlp, size_t lengthl) {
+  streamInBool_t rcb = STREAMIN_BOOL_FALSE;
+
+  if (streamInp == NULL || streamInp->utf8b == STREAMIN_BOOL_FALSE) {
+    return rcb;
+  }
+
+  rcb = _streamInUtf8_ICU_extractFromMarkedb(streamInp, destsp, lengthlp, lengthl);
+
+  return rcb;
+}
+
+/****************************************/
+/* _streamInUtf8_ICU_extractFromMarkedb */
+/****************************************/
+static C_INLINE streamInBool_t _streamInUtf8_ICU_extractFromMarkedb(streamIn_t *streamInp, char **destsp, size_t *lengthlp, size_t lengthl) {
+
+  return
+    (streamInp->streamIn_ICU.utextp == NULL)
+    ?
+    STREAMIN_BOOL_FALSE
+    :
+    _streamInUtf8_ICU_extractFromPositionb(streamInp, destsp, lengthlp, lengthl, streamInp->streamIn_ICU.ucharMarkedNativeIndexl);
+}
+
+/************************************/
+/* _streamInUtf8_extractFromCurrentb */
+/************************************/
+streamInBool_t streamInUtf8_extractFromCurrentb(streamIn_t *streamInp, char **destsp, size_t *lengthlp, size_t lengthl) {
+  streamInBool_t rcb = STREAMIN_BOOL_FALSE;
+
+  if (streamInp == NULL || streamInp->utf8b == STREAMIN_BOOL_FALSE) {
+    return rcb;
+  }
+
+  rcb = _streamInUtf8_ICU_extractFromCurrentb(streamInp, destsp, lengthlp, lengthl);
+
+  return rcb;
+}
+
+/****************************************/
+/* _streamInUtf8_ICU_extractFromCurrentb */
+/****************************************/
+static C_INLINE streamInBool_t _streamInUtf8_ICU_extractFromCurrentb(streamIn_t *streamInp, char **destsp, size_t *lengthlp, size_t lengthl) {
+
+  return
+    (streamInp->streamIn_ICU.utextp == NULL)
+    ?
+    STREAMIN_BOOL_FALSE
+    :
+    _streamInUtf8_ICU_extractFromPositionb(streamInp, destsp, lengthlp, lengthl, UTEXT_GETNATIVEINDEX(streamInp->streamIn_ICU.utextp));
+}
+
+/************************************/
+/* _streamInUtf8_extractFromPreviousb */
+/************************************/
+streamInBool_t streamInUtf8_extractFromPreviousb(streamIn_t *streamInp, char **destsp, size_t *lengthlp, size_t lengthl) {
+  streamInBool_t rcb = STREAMIN_BOOL_FALSE;
+
+  if (streamInp == NULL || streamInp->utf8b == STREAMIN_BOOL_FALSE) {
+    return rcb;
+  }
+
+  rcb = _streamInUtf8_ICU_extractFromPreviousb(streamInp, destsp, lengthlp, lengthl);
+
+  return rcb;
+}
+
+/****************************************/
+/* _streamInUtf8_ICU_extractFromPreviousb */
+/****************************************/
+static C_INLINE streamInBool_t _streamInUtf8_ICU_extractFromPreviousb(streamIn_t *streamInp, char **destsp, size_t *lengthlp, size_t lengthl) {
+
+  return
+    (streamInp->streamIn_ICU.utextp == NULL)
+    ?
+    STREAMIN_BOOL_FALSE
+    :
+    _streamInUtf8_ICU_extractFromPositionb(streamInp, destsp, lengthlp, lengthl, utext_getPreviousNativeIndex(streamInp->streamIn_ICU.utextp));
+}
+
+/******************************************/
+/* _streamInUtf8_ICU_extractFromPositionb */
+/******************************************/
+static C_INLINE streamInBool_t _streamInUtf8_ICU_extractFromPositionb(streamIn_t *streamInp, char **destsp, size_t *lengthlp, size_t lengthl, int64_t positionl) {
+  streamInBool_t rcb = STREAMIN_BOOL_FALSE;
+  char          *dests;
+  int32_t        destLengthl;
+  UChar         *ucharBufp;
+  UErrorCode     uErrorCode;
+
+  if (streamInp->streamIn_ICU.utextp == NULL) {
+    return rcb;
+  } else {
+    ucharBufp = streamInp->streamIn_ICU.ucharBufp + positionl;  /* positionl is in units of UChar */
+    /* Per-def our utext is a (UChar *). So there is no need to pass via utext_extract to get UChars. We can use native indexes * sizeof(Uchar) directly */
+    /* Pre-figthing */
+    uErrorCode = U_ZERO_ERROR;
+    u_strToUTF8(NULL, 0, &destLengthl, ucharBufp, lengthl, &uErrorCode);
+    if ((uErrorCode != U_BUFFER_OVERFLOW_ERROR) && U_FAILURE(uErrorCode)) {
+      STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "u_strToUTF8(): %s at %s:%d", u_errorName(uErrorCode), __FILE__, __LINE__);
+    } else {
+      destLengthl++;   /* For the null byte */
+      dests = malloc(destLengthl * sizeof(char));
+      if (dests == NULL) {
+        STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "malloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
+      } else {
+        uErrorCode = U_ZERO_ERROR;
+        u_strToUTF8(dests, destLengthl, lengthlp, ucharBufp, lengthl, &uErrorCode);
+        if (U_FAILURE(uErrorCode)) {
+          STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "u_strToUTF8(): %s at %s:%d", u_errorName(uErrorCode), __FILE__, __LINE__);
+          free(dests);
+        } else {
+          *destsp = dests;
+          rcb = STREAMIN_BOOL_TRUE;
+        }
+      }
+    }
   }
 
   return rcb;
