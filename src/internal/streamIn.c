@@ -1878,6 +1878,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_extractFromPositionb(streamIn_t
   int32_t        destLengthl;
   UChar         *ucharBufp;
   UErrorCode     uErrorCode;
+  int32_t        finalLengthl;
 
   if (streamInp->streamIn_ICU.utextp == NULL) {
     return rcb;
@@ -1896,11 +1897,12 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_extractFromPositionb(streamIn_t
         STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "malloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
       } else {
         uErrorCode = U_ZERO_ERROR;
-        u_strToUTF8(dests, destLengthl, lengthlp, ucharBufp, lengthl, &uErrorCode);
+        u_strToUTF8(dests, destLengthl, &finalLengthl, ucharBufp, lengthl, &uErrorCode);
         if (U_FAILURE(uErrorCode)) {
           STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "u_strToUTF8(): %s at %s:%d", u_errorName(uErrorCode), __FILE__, __LINE__);
           free(dests);
         } else {
+	  *lengthlp = (size_t) finalLengthl;
           *destsp = dests;
           rcb = STREAMIN_BOOL_TRUE;
         }

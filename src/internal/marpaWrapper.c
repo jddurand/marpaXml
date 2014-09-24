@@ -1663,8 +1663,8 @@ marpaWrapperBool_t marpaWrapper_r_recognizeb(marpaWrapper_t *marpaWrapperp, void
     }
     if (maxLengthl > 0) {
       /* Go back by one character ./.. */
-      if ((streamInUtf8_markPreviousb(streamInp) == MARPAWRAPPER_BOOL_FALSE) ||
-          (streamInUtf8_currentFromMarkedb(streamInp) == MARPAWRAPPER_BOOL_FALSE)) {
+      if ((streamInUtf8_markPreviousb(streamInp) == STREAMIN_BOOL_FALSE) ||
+          (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE)) {
         rcb = MARPAWRAPPER_BOOL_FALSE;
         goto recognizebEnd;
       }
