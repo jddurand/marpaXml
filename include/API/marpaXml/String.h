@@ -49,6 +49,9 @@ marpaXml_boolean_t  marpaXml_String_getNullByteAddedb(marpaXml_String_t *thisp);
 /* ... Convert to any charset: user will have to free it. If input did NOT have a null character at the end, neither will the output */
 char               *marpaXml_String_encode(marpaXml_String_t *thisp, size_t *byteLengthp, size_t *lengthp, char *charset, marpaXml_String_Option_t *optionp);
 
+/* Tools */
+marpaXml_String_t  *marpaXml_String_clone(marpaXml_String_t *stringp);               /* Clone */
+
 /* Destructor */
 void                marpaXml_String_free(marpaXml_String_t **thispp);
 

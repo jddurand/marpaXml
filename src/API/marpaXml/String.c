@@ -72,6 +72,9 @@ marpaXml_String_t *marpaXml_String_newFromAnyAndByteLengthAndCharset(char *bytes
 
   if (optionp != NULL) {
     marpaXmlLogp = marpaXmlLog_newp(optionp->logOption.logCallbackp, optionp->logOption.logCallbackDatavp, optionp->logOption.logLevelWantedi);
+    if (marpaXmlLogp == NULL) {
+      return NULL;
+    }
   }
 
   if (bytes == NULL || byteLength <= 0) {
@@ -202,6 +205,56 @@ marpaXml_String_t *marpaXml_String_newFromAnyAndByteLengthAndCharset(char *bytes
   }
 
   streamIn_destroyv(&streamInp);
+
+  return thisp;
+}
+
+/*********************************************/
+/* marpaXml_String_clone                     */
+/*********************************************/
+marpaXml_String_t *marpaXml_String_clone(marpaXml_String_t *stringp) {
+  marpaXml_String_t      *thisp;
+  marpaXmlLog_t          *marpaXmlLogp;
+
+  if (stringp == NULL) {
+    return NULL;
+  }
+
+  marpaXmlLogp = stringp->marpaXmlLogp;
+
+  if ((thisp = malloc(sizeof(marpaXml_String_t))) == NULL) {
+    MARPAXML_ERRORX("malloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
+    marpaXml_String_free(&thisp);
+    return NULL;
+  }
+
+  thisp->utf8 = NULL;
+  thisp->utf8ByteLength = 0;
+  thisp->length = 0;
+  thisp->nullByteAddedb = marpaXml_false;
+  thisp->marpaXmlLogp = marpaXmlLogp;
+  thisp->origUtf8ByteLength = 0;
+
+  thisp->marpaXmlLogp = marpaXmlLog_clonep(marpaXmlLogp);
+  if ((marpaXmlLogp != NULL) && (thisp->marpaXmlLogp == NULL)) {
+    marpaXml_String_free(&thisp);
+    return NULL;
+  }
+
+  marpaXmlLogp = thisp->marpaXmlLogp;
+
+  if ((thisp->utf8 = malloc(thisp->utf8ByteLength)) == NULL) {
+    MARPAXML_ERRORX("malloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
+    marpaXml_String_free(&thisp);
+    return NULL;
+  }
+
+  memcpy(thisp->utf8, stringp->utf8, stringp->utf8ByteLength);
+
+  thisp->utf8ByteLength     = stringp->utf8ByteLength;
+  thisp->length             = stringp->length;
+  thisp->nullByteAddedb     = stringp->nullByteAddedb;
+  thisp->origUtf8ByteLength = stringp->origUtf8ByteLength;
 
   return thisp;
 }

@@ -124,6 +124,27 @@ marpaXmlLog_t *marpaXmlLog_newp(marpaXmlLogCallback_t logCallbackp, void *userDa
   return marpaXmlLogp;
 }
 
+/**********************/
+/* marpaXmlLog_clonep */
+/**********************/
+marpaXmlLog_t *marpaXmlLog_clonep(marpaXmlLog_t *marpaXmlLogp) {
+  marpaXmlLog_t *newMarpaXmlLogp;
+
+  if (marpaXmlLogp == NULL) {
+    return NULL;
+  }
+
+  newMarpaXmlLogp = malloc(sizeof(marpaXmlLog_t));
+  if (newMarpaXmlLogp == NULL) {
+    return NULL;
+  }
+
+  /* We have no inner malloced stuff */
+  *newMarpaXmlLogp = *marpaXmlLogp;
+
+  return newMarpaXmlLogp;
+}
+
 /*********************/
 /* marpaXmlLog_freev */
 /*********************/
