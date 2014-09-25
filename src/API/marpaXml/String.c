@@ -334,7 +334,7 @@ char *marpaXml_String_encode(marpaXml_String_t *thisp, size_t *byteLengthp, size
   size_t                  bytesInBuffer;
   size_t                  lengthInBuffer;
   marpaXml_boolean_t      firstCallToNextBufferb;
-  char                   *tmpAny;
+  char                   *tmpMore;
   size_t                  tmpByteLength;
   size_t                  tmpLength;
   char                   *rc = NULL;
@@ -386,7 +386,7 @@ char *marpaXml_String_encode(marpaXml_String_t *thisp, size_t *byteLengthp, size
       firstCallToNextBufferb = marpaXml_false;
     } else {
       /* Argh, bad luck */
-      tmpAny        = rc;
+      tmpMore        = rc;
       tmpByteLength = byteLength + bytesInBuffer;
       tmpLength     = length + lengthInBuffer;
 
@@ -398,15 +398,15 @@ char *marpaXml_String_encode(marpaXml_String_t *thisp, size_t *byteLengthp, size
         return NULL;
       }
 
-      if ((tmpAny = realloc(rc, tmpByteLength)) == NULL) {
+      if ((tmpMore = realloc(rc, tmpByteLength)) == NULL) {
         MARPAXML_ERRORX("realloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
         free(rc);
         streamIn_destroyv(&streamInp);
         return NULL;
       }
 
-      memcpy(tmpAny + byteLength, byteArrayp, bytesInBuffer);
-      rc = tmpAny;
+      memcpy(tmpMore + byteLength, byteArrayp, bytesInBuffer);
+      rc = tmpMore;
       byteLength = tmpByteLength;
       length = tmpLength;
     }
