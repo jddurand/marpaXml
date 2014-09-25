@@ -5,6 +5,8 @@
 #include "internal/config.h"
 #include "internal/streamIn.h"
 #include "marpaXml/String.h"
+#include <unicode/uchar.h>
+#include <unicode/ustring.h>
 
 struct marpaXml_String {
   char              *utf8;                /* Internal representation: null terminated UTF-8 */
@@ -78,12 +80,13 @@ marpaXml_String_t *marpaXml_String_newFromAnyAndByteLengthAndCharset(char *bytes
   }
 
   if (bytes == NULL || byteLength <= 0) {
+    marpaXmlLog_freev(&(marpaXmlLogp));
     return NULL;
   }
 
   if ((thisp = malloc(sizeof(marpaXml_String_t))) == NULL) {
     MARPAXML_ERRORX("malloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
-    marpaXml_String_free(&thisp);
+    marpaXmlLog_freev(&(marpaXmlLogp));
     return NULL;
   }
 
@@ -205,6 +208,103 @@ marpaXml_String_t *marpaXml_String_newFromAnyAndByteLengthAndCharset(char *bytes
   }
 
   streamIn_destroyv(&streamInp);
+
+  return thisp;
+}
+
+/*********************************************/
+/* marpaXml_String_newFromValidUTF8          */
+/*********************************************/
+marpaXml_String_t *marpaXml_String_newFromValidUTF8(char *utf8, size_t byteLength, size_t length, marpaXml_String_Option_t *optionp) {
+  marpaXml_String_t      *thisp;
+  marpaXmlLog_t          *marpaXmlLogp = NULL;
+  UChar                  *ucharp;
+  int32_t                 destCapacity;
+  UErrorCode              uErrorCode;
+
+  if (optionp != NULL) {
+    marpaXmlLogp = marpaXmlLog_newp(optionp->logOption.logCallbackp, optionp->logOption.logCallbackDatavp, optionp->logOption.logLevelWantedi);
+    if (marpaXmlLogp == NULL) {
+      return NULL;
+    }
+  }
+
+  if (utf8 == NULL || byteLength <= 0) {
+    marpaXmlLog_freev(&(marpaXmlLogp));
+    return NULL;
+  }
+
+  if ((thisp = malloc(sizeof(marpaXml_String_t))) == NULL) {
+    marpaXmlLog_freev(&(marpaXmlLogp));
+    return NULL;
+  }
+
+  thisp->utf8 = NULL;
+  thisp->marpaXmlLogp = marpaXmlLogp;
+  if (utf8[byteLength - 1] == '\0') {
+      thisp->nullByteAddedb = marpaXml_false;
+      thisp->utf8ByteLength = byteLength;
+  } else {
+      thisp->nullByteAddedb = marpaXml_true;
+      thisp->utf8ByteLength = byteLength + 1;
+      if (thisp->utf8ByteLength < byteLength) {
+	/* Overflow */
+	MARPAXML_ERRORX("overflow() at %s:%d", __FILE__, __LINE__);
+	marpaXml_String_free(&thisp);
+	return NULL;
+      }
+  }
+  thisp->length = length;
+  thisp->origUtf8ByteLength = byteLength;
+
+  thisp->utf8 = malloc(thisp->utf8ByteLength);
+  if (thisp->utf8 == NULL) {
+    MARPAXML_ERRORX("malloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
+    marpaXml_String_free(&thisp);
+    return NULL;
+  }
+
+  memcpy(thisp->utf8, utf8, byteLength);
+  if (thisp->nullByteAddedb == marpaXml_true) {
+    thisp->utf8[byteLength] = '\0';
+  }
+
+  if (length > 0) {
+    /* NO CHECK */
+    thisp->length = length;
+  } else {
+    uErrorCode = U_ZERO_ERROR;
+    ucharp = u_strFromUTF8(NULL, 0, &destCapacity, thisp->utf8, thisp->utf8ByteLength, &uErrorCode);
+    if (uErrorCode != U_BUFFER_OVERFLOW_ERROR) {
+      if (U_FAILURE(uErrorCode)) {
+	MARPAXML_ERRORX("u_strFromUTF8(): %s at %s:%d", u_errorName(uErrorCode), __FILE__, __LINE__);
+      } else {
+	MARPAXML_ERRORX("u_strToUTF8(): uErrorCode != U_BUFFER_OVERFLOW_ERROR at %s:%d", __FILE__, __LINE__);
+      }
+      marpaXml_String_free(&thisp);
+      return NULL;
+    } else {
+      destCapacity++;
+      ucharp = malloc(destCapacity * sizeof(UChar));
+      if (ucharp == NULL) {
+	MARPAXML_ERRORX("malloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
+	marpaXml_String_free(&thisp);
+	return NULL;
+      } else {
+	uErrorCode = U_ZERO_ERROR;
+	u_strFromUTF8(ucharp, destCapacity, NULL, thisp->utf8, thisp->utf8ByteLength, &uErrorCode);
+	if (U_FAILURE(uErrorCode)) {
+	  MARPAXML_ERRORX("u_strFromUTF8(): %s at %s:%d", u_errorName(uErrorCode), __FILE__, __LINE__);
+	  free(ucharp);
+	  marpaXml_String_free(&thisp);
+	  return NULL;
+	} else {
+	  thisp->length = u_strlen(ucharp);
+	  free(ucharp);
+	}
+      }
+    }
+  }
 
   return thisp;
 }

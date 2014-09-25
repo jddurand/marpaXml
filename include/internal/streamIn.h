@@ -117,9 +117,7 @@ streamInBool_t streamInUtf8_doneb             (streamIn_t *streamInp);          
 /* Behaviour is undefined if you use streamInUtf8_doneb() between calls to mark and markToCurrent. Let's say it will very likely crash */
 streamInBool_t streamInUtf8_currentFromMarkedb(streamIn_t *streamInp);                                                  /* Set marked utf8 as current */
 /* extract an UTF-8 string from marked position. *destsp is guaranteed to be NULL terminated. */
-streamInBool_t streamInUtf8_extractFromMarkedb(streamIn_t *streamInp, char **destsp, size_t *lengthlp, size_t lengthl);
-streamInBool_t streamInUtf8_extractFromCurrentb(streamIn_t *streamInp, char **destsp, size_t *lengthlp, size_t lengthl);
-streamInBool_t streamInUtf8_extractFromPreviousb(streamIn_t *streamInp, char **destsp, size_t *lengthlp, size_t lengthl);
+streamInBool_t streamInUtf8_extractFromMarkedb(streamIn_t *streamInp, char **destsp, size_t *byteLengthlp, size_t *lengthlp);
 
 /* These methods are the only way to get output using another encoding but the original. The caller WILL HAVE TO CALL free(byteArrayp) himself. */
 /* It is very important to remember that, here, buffer indexes in output map EXACTLY buffer indexes in input. */

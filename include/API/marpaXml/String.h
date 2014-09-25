@@ -37,9 +37,10 @@ typedef struct marpaXml_String marpaXml_String_t;
 
 /* Constructors */
 marpaXml_String_t  *marpaXml_String_new(marpaXml_String_Option_t *optionp);       /* Creates an empty string */
-marpaXml_String_t  *marpaXml_String_newFromUTF8(char *utf8, marpaXml_String_Option_t *optionp);  /* Assumes a VALID UTF-8 null terminated string */
+marpaXml_String_t  *marpaXml_String_newFromUTF8(char *utf8, marpaXml_String_Option_t *optionp);  /* Assumes a maybe valid UTF-8 null terminated string */
 marpaXml_String_t  *marpaXml_String_newFromUTF8AndByteLength(char *utf8, size_t byteLength, marpaXml_String_Option_t *optionp); /* May not end with a null byte */
 marpaXml_String_t  *marpaXml_String_newFromAnyAndByteLengthAndCharset(char *bytes, size_t byteLength, char *charset, marpaXml_String_Option_t *optionp); /* Ditto with charset's null */
+marpaXml_String_t  *marpaXml_String_newFromValidUTF8(char *utf8, size_t byteLength, size_t length, marpaXml_String_Option_t *optionp); /* Assumes a VALID UTF-8, not necessarly null terminated. quickest but unsafe call. Caller have to be 100% sure. byteLength must be > 0. Size will be computed it argument length is <= 0. */
 
 /* Methods */
 char               *marpaXml_String_getUtf8(marpaXml_String_t *thisp);               /* Always a null terminated UTF-8 string */
