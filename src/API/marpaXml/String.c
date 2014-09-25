@@ -213,8 +213,8 @@ marpaXml_String_t *marpaXml_String_newFromAnyAndByteLengthAndCharset(char *bytes
 /* marpaXml_String_clone                     */
 /*********************************************/
 marpaXml_String_t *marpaXml_String_clone(marpaXml_String_t *stringp) {
-  marpaXml_String_t      *thisp;
-  marpaXmlLog_t          *marpaXmlLogp;
+  marpaXml_String_t *thisp;
+  marpaXmlLog_t     *marpaXmlLogp;
 
   if (stringp == NULL) {
     return NULL;
@@ -257,6 +257,41 @@ marpaXml_String_t *marpaXml_String_clone(marpaXml_String_t *stringp) {
   thisp->origUtf8ByteLength = stringp->origUtf8ByteLength;
 
   return thisp;
+}
+
+/*********************************************/
+/* marpaXml_String_cat                       */
+/*********************************************/
+marpaXml_String_t *marpaXml_String_cat(marpaXml_String_t *dstp, marpaXml_String_t *srcp) {
+  marpaXmlLog_t *marpaXmlLogp;
+  char           *utf8;                /* Internal representation: null terminated UTF-8 */
+  size_t          utf8ByteLength;      /* Internal representation: byte length, including eventual forced null byte */
+
+  if (dstp == NULL) {
+    return NULL;
+  }
+  marpaXmlLogp = dstp->marpaXmlLogp;
+
+  if (srcp == NULL) {
+    return dstp;
+  }
+
+  utf8ByteLength = dstp->utf8ByteLength + srcp->utf8ByteLength - 1; /* Both internal representations are null terminated UTF-8 */
+  utf8 = realloc(dstp->utf8, utf8ByteLength);
+  if (utf8 == NULL) {
+    MARPAXML_ERRORX("realloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
+    return NULL;
+  }
+
+  dstp->utf8                = utf8;
+  memcpy(dstp->utf8 + dstp->utf8ByteLength - 1, srcp->utf8, srcp->utf8ByteLength);
+
+  dstp->utf8ByteLength      = utf8ByteLength;
+  dstp->length             += srcp->length;
+  dstp->nullByteAddedb      = srcp->nullByteAddedb;
+  dstp->origUtf8ByteLength += srcp->origUtf8ByteLength;
+
+  return dstp;
 }
 
 /*********************************************/

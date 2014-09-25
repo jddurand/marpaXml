@@ -50,7 +50,8 @@ marpaXml_boolean_t  marpaXml_String_getNullByteAddedb(marpaXml_String_t *thisp);
 char               *marpaXml_String_encode(marpaXml_String_t *thisp, size_t *byteLengthp, size_t *lengthp, char *charset, marpaXml_String_Option_t *optionp);
 
 /* Tools */
-marpaXml_String_t  *marpaXml_String_clone(marpaXml_String_t *stringp);               /* Clone */
+marpaXml_String_t  *marpaXml_String_clone(marpaXml_String_t *stringp);                     /* clone */
+marpaXml_String_t  *marpaXml_String_cat(marpaXml_String_t *dstp, marpaXml_String_t *srcp); /* cat */
 
 /* Destructor */
 void                marpaXml_String_free(marpaXml_String_t **thispp);
