@@ -243,7 +243,7 @@ marpaXml_String_t *marpaXml_String_clone(marpaXml_String_t *stringp) {
 
   marpaXmlLogp = thisp->marpaXmlLogp;
 
-  if ((thisp->utf8 = malloc(thisp->utf8ByteLength)) == NULL) {
+  if ((thisp->utf8 = malloc(stringp->utf8ByteLength)) == NULL) {
     MARPAXML_ERRORX("malloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
     marpaXml_String_free(&thisp);
     return NULL;

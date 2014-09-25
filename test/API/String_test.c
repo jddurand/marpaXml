@@ -25,6 +25,7 @@ void test(char *origBytes, size_t origByteLength, char *origCharset, marpaXml_St
   size_t             byteLength;
   size_t             length;
   marpaXml_String_t *s;
+  marpaXml_String_t *s2;
 
   /* First with the null byte added */
   s = marpaXml_String_newFromAnyAndByteLengthAndCharset(origBytes, origByteLength, origCharset, &option);  /* Null byte volontarily ommited */
@@ -52,7 +53,16 @@ void test(char *origBytes, size_t origByteLength, char *origCharset, marpaXml_St
   hexdump(p, byteLength);
   free(p);
 
+  s2 = marpaXml_String_clone(s);
+  fprintf(stdout, "\n   Clone : %ld characters, %ld bytes, null byte added: %s\n", (unsigned long) marpaXml_String_getLength(s2), (unsigned long) marpaXml_String_getUtf8ByteLength(s2), (marpaXml_String_getNullByteAddedb(s2) == marpaXml_true) ? "yes" : "no");
+  hexdump(marpaXml_String_getUtf8(s2), marpaXml_String_getUtf8ByteLength(s2));
+
+  marpaXml_String_cat(s, s2);
+  fprintf(stdout, "\n   Cat : %ld characters, %ld bytes, null byte added: %s\n", (unsigned long) marpaXml_String_getLength(s), (unsigned long) marpaXml_String_getUtf8ByteLength(s), (marpaXml_String_getNullByteAddedb(s) == marpaXml_true) ? "yes" : "no");
+  hexdump(marpaXml_String_getUtf8(s), marpaXml_String_getUtf8ByteLength(s));
+
   marpaXml_String_free(&s);
+  marpaXml_String_free(&s2);
 }
 
 int main(int argc, char **argv) {
