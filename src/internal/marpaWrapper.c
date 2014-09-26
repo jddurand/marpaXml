@@ -1625,7 +1625,7 @@ marpaWrapperBool_t marpaWrapper_optionDefaultb(marpaWrapperOption_t *marpaWrappe
 /***************************/
 /* marpaWrapper_recognizeb */
 /***************************/
-marpaWrapperBool_t marpaWrapper_r_recognizeb(marpaWrapper_t *marpaWrapperp, void *lexemeValueiCallbackDatavp, streamIn_t *streamInp, marpaWrapper_isLexemebCallback_t marpaWrapper_isLexemebCallbackp, marpaWrapper_lexemeValueiCallback_t marpaWrapper_lexemeValueiCallbackp) {
+marpaWrapperBool_t marpaWrapper_r_recognizeb(marpaWrapper_t *marpaWrapperp, void *lexemeValuebCallbackDatavp, streamIn_t *streamInp, marpaWrapper_isLexemebCallback_t marpaWrapper_isLexemebCallbackp, marpaWrapper_lexemeValuebCallback_t marpaWrapper_lexemeValuebCallbackp) {
   signed int             nexti;
   size_t                 nMarpaWrapperSymboli = 0;
   marpaWrapperSymbol_t **marpaWrapperSymbolpp = NULL;
@@ -1638,8 +1638,8 @@ marpaWrapperBool_t marpaWrapper_r_recognizeb(marpaWrapper_t *marpaWrapperp, void
     MARPAWRAPPER_LOG_ERROR0("marpaWrapper_isLexemebCallbackp must be non-NULL");
     return MARPAWRAPPER_BOOL_FALSE;
   }
-  if (marpaWrapper_lexemeValueiCallbackp == NULL) {
-    MARPAWRAPPER_LOG_ERROR0("marpaWrapper_lexemeValueiCallbackp be non-NULL");
+  if (marpaWrapper_lexemeValuebCallbackp == NULL) {
+    MARPAWRAPPER_LOG_ERROR0("marpaWrapper_lexemeValuebCallbackp be non-NULL");
     return MARPAWRAPPER_BOOL_FALSE;
   }
 
@@ -1669,7 +1669,7 @@ marpaWrapperBool_t marpaWrapper_r_recognizeb(marpaWrapper_t *marpaWrapperp, void
         goto recognizebEnd;
       }
       /* ../. i.e. we guarantee to our caller that the stream is positionned where the the lexeme is starting */
-      if (marpaWrapper_lexemeValueiCallbackp(lexemeValueiCallbackDatavp, streamInp, maxLengthl, &lexemeValuei) == MARPAWRAPPER_BOOL_FALSE) {
+      if (marpaWrapper_lexemeValuebCallbackp(lexemeValuebCallbackDatavp, streamInp, maxLengthl, &lexemeValuei) == MARPAWRAPPER_BOOL_FALSE) {
         rcb = MARPAWRAPPER_BOOL_FALSE;
         goto recognizebEnd;
       }

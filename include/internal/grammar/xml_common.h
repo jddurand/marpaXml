@@ -4,6 +4,7 @@
 #include <stddef.h>
 
 #include "internal/marpaWrapper.h"
+#include "internal/streamIn.h"
 
 /* There are always three top-level grammars: document, extParsedEnt and extSubset */
 typedef enum xml_common_top {
@@ -30,6 +31,7 @@ typedef struct xml_common_option {
 } xml_common_option_t;
 
 marpaWrapperBool_t xml_common_optionDefaultb(xml_common_option_t *xml_common_optionp);
+marpaWrapperBool_t xml_common_lexemeValueb(void *lexemeValuebCallbackDatavp, streamIn_t *streamInp, size_t lengthl, int *lexemeValueip);
 
 #endif /* MARPAXML_INTERNAL_GRAMMAR_XML_COMMON_H */
 

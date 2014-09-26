@@ -15,3 +15,10 @@ marpaWrapperBool_t xml_common_optionDefaultb(xml_common_option_t *xml_common_opt
   return MARPAWRAPPER_BOOL_TRUE;
 }
 
+/*****************************/
+/* xml_common_lexemeValueb */
+/*****************************/
+marpaWrapperBool_t xml_common_lexemeValueb(void *lexemeValuebCallbackDatavp, streamIn_t *streamInp, size_t lengthl, int *lexemeValueip) {
+  /* We use SQLite for store strings. Internal storage is optimized so that equivalent strings are not stored twice, via an internal relational table */
+}
+
