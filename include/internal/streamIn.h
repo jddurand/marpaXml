@@ -116,7 +116,8 @@ streamInBool_t streamInUtf8_markPreviousb     (streamIn_t *streamInp);          
 streamInBool_t streamInUtf8_doneb             (streamIn_t *streamInp);                                                  /* Say marked utf8 is done */
 /* Behaviour is undefined if you use streamInUtf8_doneb() between calls to mark and markToCurrent. Let's say it will very likely crash */
 streamInBool_t streamInUtf8_currentFromMarkedb(streamIn_t *streamInp);                                                  /* Set marked utf8 as current */
-/* extract an UTF-8 string from marked position. *destsp is guaranteed to be NULL terminated. */
+/* extract an UTF-8 string from marked position. All parameters but streamInp can be NULL. If destsp is non-NULL, *destsp string is guaranteed to be NULL terminated */
+/* If destsp is non-NULL and output is ok, caller is responsible to call free() on *destsp */
 streamInBool_t streamInUtf8_extractFromMarkedb(streamIn_t *streamInp, char **destsp, size_t *byteLengthlp, size_t *lengthlp);
 
 /* These methods are the only way to get output using another encoding but the original. The caller WILL HAVE TO CALL free(byteArrayp) himself. */

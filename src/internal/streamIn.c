@@ -1851,9 +1851,17 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_extractFromIndexesb(streamIn_t 
 	    STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "u_strToUTF8(): %s at %s:%d", u_errorName(uErrorCode), __FILE__, __LINE__);
 	    free(dests);
 	  } else {
-	    *byteLengthlp = (size_t) destLengthl;
-	    *lengthlp = u_countChar32(ucharBufp, srcLength);
-	    *destsp = dests;
+            if (byteLengthlp != NULL) {
+              *byteLengthlp = (size_t) destLengthl;
+            }
+            if (lengthlp == NULL) {
+              *lengthlp = u_countChar32(ucharBufp, srcLength);
+            }
+            if (destsp != NULL) {
+              *destsp = dests;
+            } else {
+              free(dests);
+            }
 	    rcb = STREAMIN_BOOL_TRUE;
 	  }
         }
