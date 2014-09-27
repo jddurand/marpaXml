@@ -4,7 +4,7 @@
 /*
  * DOM external functions for lexeme storage are putted here because they are not supposed
  * to be visible in the DOM API.
- * This is also why we include sqlite3.h, that is not supposed to be included in the API.
+ * This is also why we are allowed to include sqlite3.h.
  */
 #include "marpaXml/boolean.h"
 #include "marpaXml/String.h"
