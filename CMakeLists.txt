@@ -114,20 +114,6 @@ ENDIF ()
 FILE(GLOB marpa_lib_src Marpa-R2-${MARPA_VERSION}/core/read_only/*.c)
 ADD_LIBRARY (marpa ${marpa_lib_src})
 
-# -----------
-# AVL library
-# -----------
-SET (AVL_VERSION "2.0.3")
-SET (AVL_DIR "${PROJECT_SOURCE_DIR}/avl-${AVL_VERSION}")
-IF (NOT EXISTS "${AVL_DIR}" OR NOT IS_DIRECTORY "${AVL_DIR}")
-  MESSAGE (STATUS "Preparing ${AVL_DIR}")
-  EXECUTE_PROCESS (
-    COMMAND "${PERL}" tools/prepare_libavl.pl "${AVL_VERSION}"
-    )
-ENDIF ()
-FILE(GLOB avl_lib_src ${AVL_DIR}/*avl.c)
-ADD_LIBRARY (avl ${avl_lib_src})
-
 # --------------
 # SQLITE library
 # --------------
@@ -218,7 +204,6 @@ SET(DISTCLEANED
   Makefile
   cmake_install.cmake
   "${MARPA_DIR}"
-  "${AVL_DIR}"
   "${SQLITE_DIR}"
   include/internal/config.h
   src/internal/grammar/xml_1_0.c
