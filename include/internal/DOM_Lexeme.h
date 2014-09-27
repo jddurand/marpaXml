@@ -14,12 +14,10 @@
 /* Internal storage during parsing */
 /***********************************/
 typedef struct marpaXml_Lexeme marpaXml_Lexeme_t;
-marpaXml_Lexeme_t  *marpaXml_Lexeme_new(void);
-marpaXml_boolean_t  marpaXml_Lexeme_upsert(marpaXml_Lexeme_t *thisp, marpaXml_String_t *stringp);
-/* delete will also free thisp */
-marpaXml_boolean_t  marpaXml_Lexeme_delete(marpaXml_Lexeme_t **thispp);
+marpaXml_Lexeme_t  *marpaXml_Lexeme_new(marpaXml_String_t *stringp);
 marpaXml_boolean_t  marpaXml_Lexeme_getId(marpaXml_Lexeme_t *thisp, sqlite3_int64 *idlp);
 marpaXml_boolean_t  marpaXml_Lexeme_getString(marpaXml_Lexeme_t *thisp, marpaXml_String_t **stringpp);
+marpaXml_boolean_t  marpaXml_Lexeme_getCounter(marpaXml_Lexeme_t *thisp, sqlite3_int64 *counterp);
 marpaXml_boolean_t  marpaXml_Lexeme_free(marpaXml_Lexeme_t **thispp);
 
 #endif /* MARPAXML_DOM_LEXEME_H_ */

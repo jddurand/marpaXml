@@ -346,6 +346,7 @@ CREATE TABLE [Lexeme]
 	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
 	[hash] integer,
 	[string] text,
+	[counter] integer DEFAULT 1,
 	PRIMARY KEY ([id])
 );
 

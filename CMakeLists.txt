@@ -326,6 +326,9 @@ TARGET_LINK_LIBRARIES (marpaWrapper_test marpaXml marpa)
 ADD_EXECUTABLE        (streamIn_test ${PROJECT_SOURCE_DIR}/test/internal/streamIn_test.c)
 TARGET_LINK_LIBRARIES (streamIn_test marpaXml)
 
+ADD_EXECUTABLE        (DOM_Lexeme_test ${PROJECT_SOURCE_DIR}/test/internal/DOM_Lexeme_test.c)
+TARGET_LINK_LIBRARIES (DOM_Lexeme_test marpaXml marpa sqlite ${CMAKE_THREAD_LIBS_INIT})
+
 ADD_EXECUTABLE        (log_test ${PROJECT_SOURCE_DIR}/test/API/log_test.c)
 TARGET_LINK_LIBRARIES (log_test marpaXml)
 
