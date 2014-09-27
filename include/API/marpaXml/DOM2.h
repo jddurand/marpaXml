@@ -379,7 +379,7 @@ marpaXml_boolean_t       marpaXml_DocumentType_getNotations(marpaXml_DocumentTyp
 marpaXml_boolean_t       marpaXml_DocumentType_getPublicId(marpaXml_DocumentType_t *thisp, marpaXml_String_t **publicIdpp);
 marpaXml_boolean_t       marpaXml_DocumentType_getSystemId(marpaXml_DocumentType_t *thisp, marpaXml_String_t **systemIdpp);
 marpaXml_boolean_t       marpaXml_DocumentType_getInternalSubset(marpaXml_DocumentType_t *thisp, marpaXml_String_t **internalSubsetpp);
-marpaXml_boolean_t       marpaXml_DocumentType_marpaXml_DocumentType_free(marpaXml_DocumentType_t **thispp);
+marpaXml_boolean_t       marpaXml_DocumentType_free(marpaXml_DocumentType_t **thispp);
 
 marpaXml_Notation_t *marpaXml_Notation_new(void);
 MARPAXML_NODE_METHODS(Notation)

@@ -17,11 +17,11 @@ CREATE TABLE [Node]
 	[prevId] integer,
 	[nextId] integer,
 	PRIMARY KEY ([id]),
-	FOREIGN KEY ([parent_id])
-	REFERENCES [Node] ([id]),
 	FOREIGN KEY ([prevId])
 	REFERENCES [Node] ([id]),
 	FOREIGN KEY ([nextId])
+	REFERENCES [Node] ([id]),
+	FOREIGN KEY ([parent_id])
 	REFERENCES [Node] ([id])
 );
 
@@ -41,15 +41,6 @@ CREATE TABLE [DocumentType]
 );
 
 
-CREATE TABLE [DOMTypeInfo]
-(
-	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
-	[typeName] text,
-	[typeNamespace] text,
-	PRIMARY KEY ([id])
-);
-
-
 -- getElementsByTagName is a view on top of DOMNode
 -- getElementsByTagNameNS is a view on top of DOMNode
 CREATE TABLE [DOMElement]
@@ -60,6 +51,15 @@ CREATE TABLE [DOMElement]
 	PRIMARY KEY ([id]),
 	FOREIGN KEY ([DOMNode_id])
 	REFERENCES [Node] ([id])
+);
+
+
+CREATE TABLE [DOMTypeInfo]
+(
+	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
+	[typeName] text,
+	[typeNamespace] text,
+	PRIMARY KEY ([id])
 );
 
 
@@ -74,12 +74,12 @@ CREATE TABLE [DOMAttr]
 	[isId] integer,
 	[schemaTypeInfo_id] integer NOT NULL UNIQUE,
 	PRIMARY KEY ([id]),
-	FOREIGN KEY ([schemaTypeInfo_id])
-	REFERENCES [DOMTypeInfo] ([id]),
 	FOREIGN KEY ([DOMNode_id])
 	REFERENCES [Node] ([id]),
 	FOREIGN KEY ([ownerElement_id])
-	REFERENCES [DOMElement] ([id])
+	REFERENCES [DOMElement] ([id]),
+	FOREIGN KEY ([schemaTypeInfo_id])
+	REFERENCES [DOMTypeInfo] ([id])
 );
 
 
@@ -175,16 +175,16 @@ CREATE TABLE [DOMDocument]
 	[documentURI] text,
 	[domConfig_id] integer NOT NULL UNIQUE,
 	PRIMARY KEY ([id]),
+	FOREIGN KEY ([domConfig_id])
+	REFERENCES [DOMConfiguration] ([id]),
+	FOREIGN KEY ([documentElement_id])
+	REFERENCES [DOMElement] ([id]),
 	FOREIGN KEY ([DOMNode_id])
 	REFERENCES [Node] ([id]),
 	FOREIGN KEY ([doctype_id])
 	REFERENCES [DocumentType] ([id]),
-	FOREIGN KEY ([documentElement_id])
-	REFERENCES [DOMElement] ([id]),
 	FOREIGN KEY ([implementation_id])
-	REFERENCES [DOMImplementation] ([id]),
-	FOREIGN KEY ([domConfig_id])
-	REFERENCES [DOMConfiguration] ([id])
+	REFERENCES [DOMImplementation] ([id])
 );
 
 
@@ -260,10 +260,10 @@ CREATE TABLE [DOMError]
 	PRIMARY KEY ([id]),
 	FOREIGN KEY ([location_id])
 	REFERENCES [DOMLocator] ([id]),
-	FOREIGN KEY ([relatedData_id])
-	REFERENCES [Node] ([id]),
 	FOREIGN KEY ([relatedException_id])
-	REFERENCES [DOMException] ([id])
+	REFERENCES [DOMException] ([id]),
+	FOREIGN KEY ([relatedData_id])
+	REFERENCES [Node] ([id])
 );
 
 
@@ -340,14 +340,24 @@ CREATE TABLE [DomUserDataParameter]
 );
 
 
+-- Internal table used to store lexeme during parsing
+CREATE TABLE [Lexeme]
+(
+	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
+	[hash] integer,
+	[string] text,
+	PRIMARY KEY ([id])
+);
+
+
 CREATE TABLE [RDOMConfigurationUserDataParameter]
 (
 	[DOMUserDataParameter_id] integer NOT NULL UNIQUE,
 	[DOMConfiguration_id] integer NOT NULL UNIQUE,
-	FOREIGN KEY ([DOMUserDataParameter_id])
-	REFERENCES [DomUserDataParameter] ([id]),
 	FOREIGN KEY ([DOMConfiguration_id])
-	REFERENCES [DOMConfiguration] ([id])
+	REFERENCES [DOMConfiguration] ([id]),
+	FOREIGN KEY ([DOMUserDataParameter_id])
+	REFERENCES [DomUserDataParameter] ([id])
 );
 
 
@@ -360,6 +370,12 @@ CREATE TABLE [RDOMNodeUserDataKey]
 	FOREIGN KEY ([DOMNode_id])
 	REFERENCES [Node] ([id])
 );
+
+
+
+/* Create Indexes */
+
+CREATE INDEX [Lexeme_hash_idx] ON [Lexeme] ([hash]);
 
 
 
