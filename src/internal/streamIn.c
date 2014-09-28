@@ -14,6 +14,43 @@
 #include "internal/streamIn.h"
 #include "internal/messageBuilder.h"
 
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#ifdef HAVE_SYS_STAT_H
+#include <sys/stat.h>
+#endif
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>
+#endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+#ifdef _WIN32
+#include <io.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#define STREAMIN_OPEN _open
+#define STREAMIN_CLOSE _close
+#define STREAMIN_READ _read
+#define STREAMIN_LSEEK _lseek
+#define STREAMIN_STRDUP _strdup
+#include <windows.h>
+#else
+#include <unistd.h>
+#define STREAMIN_OPEN open
+#define STREAMIN_CLOSE close
+#define STREAMIN_READ read
+#define STREAMIN_LSEEK lseek
+#define STREAMIN_STRDUP strdup
+#endif
+
 #include "API/marpaXml/log.h"
 
 const static char *_streamIn_defaultEncodings = "UTF-8";
@@ -43,6 +80,7 @@ typedef struct streamIn_ICU {
   const void                 *uConverterToUCallbackCtxp;
   UText                      *utextp;
 } streamIn_ICU_t;
+
 static C_INLINE streamInBool_t _streamInUtf8_ICU_newb(streamIn_t *streamInp);
 static C_INLINE streamInBool_t _streamInUtf8_ICU_optionb(streamIn_t *streamInp, streamInUtf8Option_t *streamInUtf8Optionp);
 static C_INLINE streamInBool_t _streamInUtf8_ICU_doneBufferb(streamIn_t *streamInp, size_t bufIndexi);
@@ -61,6 +99,11 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_doneb(streamIn_t *streamInp);
 static C_INLINE void           _streamInUtf8_ICU_destroyv(streamIn_t *streamInp);
 static C_INLINE unsigned char  _streaminUtf8_ICU_nibbleToHex(uint8_t n);
 static C_INLINE streamInBool_t _streamInUnicode_getBufferb(streamIn_t *streamInp, size_t wantedIndexi, size_t *indexBufferip, char **byteArraypp, size_t *bytesInBufferp, size_t *lengthInBufferp);
+
+static C_INLINE streamInBool_t _streamIn_readFromFileDescriptorCallback(void *datavp, size_t wantedBytesi, size_t *gotBytesip, char *byteArrayp, char **charManagedArrayp);
+static C_INLINE streamInBool_t _streamIn_readFromFILECallback(void *datavp, size_t wantedBytesi, size_t *gotBytesip, char *byteArrayp, char **charManagedArrayp);
+static C_INLINE streamInBool_t _streamIn_readFromBufferCallback(void *datavp, size_t wantedBytesi, size_t *gotBytesip, char *byteArrayp, char **charManagedArrayp);
+static C_INLINE streamInBool_t _streamIn_readFromSocketCallback(void *datavp, size_t wantedBytesi, size_t *gotBytesip, char *byteArrayp, char **charManagedArrayp);
 
 /*****************************************************************************/
 /* Generic class handling read-only streaming on buffers that can ONLY go on */
@@ -1543,7 +1586,7 @@ static C_INLINE streamInBool_t _streamInUtf8_optionb(streamIn_t *streamInp, stre
       }
       toEncodings = streamInUtf8Optionp->toEncodings != NULL ? streamInUtf8Optionp->toEncodings : streamInp->streamInUtf8Option.fromEncodings;
       /* Keep a copy of wanted output encoding, which default to input's encoding */
-      if (toEncodings != _streamIn_defaultEncodings) {
+      if ((toEncodings != NULL) && (toEncodings != _streamIn_defaultEncodings)) {
 	streamInp->streamInUtf8Option.toEncodings = malloc(sizeof(char) * (strlen(toEncodings) + 1));
 	if (streamInp->streamInUtf8Option.toEncodings == NULL) {
 	  STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "malloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
@@ -1669,14 +1712,16 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_currenti(streamIn_t *streamInp,
 /* _streamInUtf8_ICU_nexti */
 /***************************/
 static C_INLINE streamInBool_t _streamInUtf8_ICU_nexti(streamIn_t *streamInp, signed int *nextip) {
-  streamInBool_t rcb = STREAMIN_BOOL_FALSE;
+  streamInBool_t rcb = STREAMIN_BOOL_TRUE;
 
   if (streamInp->streamIn_ICU.utextp == NULL) {
-    return rcb;
+    return STREAMIN_BOOL_FALSE;
   } else {
     /* A trace here would hog the output */
     /* STREAMIN_TRACEX("UTEXT_NEXT32(%p)", streamInp->streamIn_ICU.utextp); */
-    *nextip = UTEXT_NEXT32(streamInp->streamIn_ICU.utextp);
+    if ((*nextip = UTEXT_NEXT32(streamInp->streamIn_ICU.utextp)) == U_SENTINEL) {
+      rcb = STREAMIN_BOOL_FALSE;
+    }
   }
 
   return rcb;
@@ -1817,7 +1862,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_extractFromMarkedb(streamIn_t *
 static C_INLINE streamInBool_t _streamInUtf8_ICU_extractFromIndexesb(streamIn_t *streamInp, char **destsp, size_t *byteLengthlp, size_t *lengthlp, int64_t index1l, int64_t index2l) {
   streamInBool_t rcb = STREAMIN_BOOL_FALSE;
   char          *dests;
-  int32_t        destLengthl;
+  int32_t        destLengthl = 0;
   UChar         *ucharBufp;
   UErrorCode     uErrorCode;
   int32_t        srcLength;
@@ -1837,7 +1882,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_extractFromIndexesb(streamIn_t 
 	if (U_FAILURE(uErrorCode)) {
 	  STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "u_strToUTF8(): %s at %s:%d", u_errorName(uErrorCode), __FILE__, __LINE__);
 	} else {
-	  STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "u_strToUTF8(): uErrorCode != U_BUFFER_OVERFLOW_ERROR at %s:%d", __FILE__, __LINE__);
+	  STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "u_strToUTF8(): uErrorCode is %lld != U_BUFFER_OVERFLOW_ERROR at %s:%d", (long long) uErrorCode, __FILE__, __LINE__);
 	}
       } else {
 	destLengthl++;   /* For the null byte */
@@ -1854,7 +1899,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_extractFromIndexesb(streamIn_t 
             if (byteLengthlp != NULL) {
               *byteLengthlp = (size_t) destLengthl;
             }
-            if (lengthlp == NULL) {
+            if (lengthlp != NULL) {
               *lengthlp = u_countChar32(ucharBufp, srcLength);
             }
             if (destsp != NULL) {
@@ -1891,11 +1936,11 @@ streamInBool_t streamInUtf8_doneb(streamIn_t *streamInp) {
 /* _streamInUtf8_ICU_doneb */
 /***************************/
 static C_INLINE streamInBool_t _streamInUtf8_ICU_doneb(streamIn_t *streamInp) {
-  streamInBool_t rcb = STREAMIN_BOOL_FALSE;
+  streamInBool_t rcb = STREAMIN_BOOL_TRUE;
   size_t         i;
 
   if (streamInp->streamIn_ICU.utextp == NULL) {
-    return rcb;
+    return STREAMIN_BOOL_FALSE;
   } else {
     /* We search for a byte buffer that maps exactly to ucharMarkedOffsetl */
     /* STREAMIN_LOGX(MARPAXML_LOGLEVEL_TRACE, "Searching for marked offset %ld", streamInp->streamIn_ICU.ucharMarkedOffsetl); */
@@ -1912,3 +1957,417 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_doneb(streamIn_t *streamInp) {
 
   return rcb;
 }
+
+/***************************************/
+/* streamInUtf8_newFromFileNamep */
+/***************************************/
+streamInFromFileName_t *streamInUtf8_newFromFileNamep(streamInOption_t *streamInOptionp, streamInUtf8Option_t *streamInUtf8Optionp, const char *filename) {
+  int fd;
+
+  if (filename == NULL) {
+    return NULL;
+  }
+
+  fd = STREAMIN_OPEN(filename, O_RDONLY
+#ifdef O_BINARY
+	    |O_BINARY
+#endif
+	    );
+  if (fd < 0) {
+    return NULL;
+  }
+
+  return streamInUtf8_newFromFileDescriptorp(streamInOptionp, streamInUtf8Optionp, fd);
+}
+
+/**********************************************/
+/* streamInUtf8_streamInFromFileName_destroyv */
+/**********************************************/
+void streamInUtf8_streamInFromFileName_destroyv(streamInFromFileName_t **streamInFromFileNamepp) {
+  streamInUtf8_streamInFromFileDescriptor_destroyv(streamInFromFileNamepp);
+}
+
+/***************************************/
+/* streamInUtf8_newFromFileDescriptorp */
+/***************************************/
+streamInFromFileDescriptor_t *streamInUtf8_newFromFileDescriptorp(streamInOption_t *streamInOptionp, streamInUtf8Option_t *streamInUtf8Optionp, int fd) {
+  streamInUtf8Option_t          streamInUtf8Option;
+  streamInOption_t              streamInOption;
+  streamInFromFileDescriptor_t *streamInFromFileDescriptorp;
+
+  if (streamInOptionp == NULL) {
+    if (streamIn_optionDefaultb(&streamInOption) == STREAMIN_BOOL_FALSE) {
+      return NULL;
+    }
+    streamInOptionp = &streamInOption;
+  }
+  if (streamInUtf8Optionp == NULL) {
+    if (streamInUtf8_optionDefaultb(&streamInUtf8Option) == STREAMIN_BOOL_FALSE) {
+      return NULL;
+    }
+    streamInUtf8Optionp = &streamInUtf8Option;
+  }
+
+  streamInFromFileDescriptorp = malloc(sizeof(streamInFromFileDescriptor_t));
+  if (streamInFromFileDescriptorp == NULL) {
+    return NULL;
+  }
+  streamInFromFileDescriptorp->fd = fd;
+
+  /* We explicitely overwrite the read callback, unless user already provided one */
+  if (streamInOptionp->readCallbackp == NULL) {
+    streamInOptionp->readCallbackp = &_streamIn_readFromFileDescriptorCallback;
+    streamInOptionp->readCallbackDatavp = streamInFromFileDescriptorp;
+  }
+
+  streamInFromFileDescriptorp->streamInp = streamInUtf8_newp(streamInOptionp, streamInUtf8Optionp);
+  if (streamInFromFileDescriptorp->streamInp == NULL) {
+    free(streamInFromFileDescriptorp);
+    return NULL;
+  }
+
+  return streamInFromFileDescriptorp;
+}
+
+/********************************************/
+/* _streamIn_readFromFileDescriptorCallback */
+/********************************************/
+static C_INLINE streamInBool_t _streamIn_readFromFileDescriptorCallback(void *datavp, size_t wantedBytesi, size_t *gotBytesip, char *byteArrayp, char **charManagedArrayp) {
+  streamInFromFileDescriptor_t *streamInFromFileDescriptorp = (streamInFromFileDescriptor_t *) datavp;
+  streamIn_t                   *streamInp = streamInFromFileDescriptorp->streamInp;
+  int                           n;
+  streamInBool_t                rcb = STREAMIN_BOOL_TRUE;
+
+#ifdef _WIN32
+  STREAMIN_TRACEX("_read(%d, %p, %lld)", streamInFromFileDescriptorp->fd, byteArrayp, (long long) wantedBytesi);
+#else
+  STREAMIN_TRACEX("read(%d, %p, %lld)", streamInFromFileDescriptorp->fd, byteArrayp, (long long) wantedBytesi);
+#endif
+  n = STREAMIN_READ(streamInFromFileDescriptorp->fd, byteArrayp, wantedBytesi);
+  if (n <= 0) {
+    if (n < 0) {
+      STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "read from file descriptor %d: %s at %s:%d", streamInFromFileDescriptorp->fd, strerror(errno), __FILE__, __LINE__);
+      rcb = STREAMIN_BOOL_FALSE;
+    }
+    n = 0;
+  }
+
+  *gotBytesip = n;
+
+  return rcb;
+}
+
+/****************************************************/
+/* streamInUtf8_streamInFromFileDescriptor_destroyv */
+/****************************************************/
+void streamInUtf8_streamInFromFileDescriptor_destroyv(streamInFromFileDescriptor_t **streamInFromFileDescriptorpp) {
+  streamInFromFileDescriptor_t *streamInFromFileDescriptorp;
+
+  if (streamInFromFileDescriptorpp != NULL) {
+    streamInFromFileDescriptorp = *streamInFromFileDescriptorpp;
+    if (streamInFromFileDescriptorp != NULL) {
+      streamIn_destroyv(&(streamInFromFileDescriptorp->streamInp));
+      free(streamInFromFileDescriptorp);
+      *streamInFromFileDescriptorpp = NULL;
+    }
+  }
+}
+
+/*******************************/
+/* streamInUtf8_newFromBufferp */
+/*******************************/
+streamInFromBuffer_t *streamInUtf8_newFromBufferp(streamInOption_t *streamInOptionp, streamInUtf8Option_t *streamInUtf8Optionp, const char *bufp, size_t bufferByteLengthl) {
+  streamInUtf8Option_t  streamInUtf8Option;
+  streamInOption_t      streamInOption;
+  streamInFromBuffer_t *streamInFromBufferp;
+
+  if (streamInOptionp == NULL) {
+    if (streamIn_optionDefaultb(&streamInOption) == STREAMIN_BOOL_FALSE) {
+      return NULL;
+    }
+    streamInOptionp = &streamInOption;
+  }
+  if (streamInUtf8Optionp == NULL) {
+    if (streamInUtf8_optionDefaultb(&streamInUtf8Option) == STREAMIN_BOOL_FALSE) {
+      return NULL;
+    }
+    streamInUtf8Optionp = &streamInUtf8Option;
+  }
+
+  streamInFromBufferp = malloc(sizeof(streamInFromBuffer_t));
+  if (streamInFromBufferp == NULL) {
+    return NULL;
+  }
+  streamInFromBufferp->bufp = bufp;
+  streamInFromBufferp->bufferByteLengthl = bufferByteLengthl;
+  streamInFromBufferp->firstb = STREAMIN_BOOL_TRUE;
+
+  /* We explicitely overwrite the read callback, unless user already provided one */
+  if (streamInOptionp->readCallbackp == NULL) {
+    streamInOptionp->readCallbackp = &_streamIn_readFromBufferCallback;
+    streamInOptionp->readCallbackDatavp = streamInFromBufferp;
+  }
+
+  streamInFromBufferp->streamInp = streamInUtf8_newp(streamInOptionp, streamInUtf8Optionp);
+  if (streamInFromBufferp->streamInp == NULL) {
+    free(streamInFromBufferp);
+    return NULL;
+  }
+
+  return streamInFromBufferp;
+}
+
+/************************************/
+/* _streamIn_readFromBufferCallback */
+/************************************/
+static C_INLINE streamInBool_t _streamIn_readFromBufferCallback(void *datavp, size_t wantedBytesi, size_t *gotBytesip, char *byteArrayp, char **charManagedArrayp) {
+  streamInFromBuffer_t *streamInFromBufferp = (streamInFromBuffer_t *) datavp;
+
+  if (streamInFromBufferp->firstb == STREAMIN_BOOL_TRUE) {
+    *gotBytesip = streamInFromBufferp->bufferByteLengthl;
+    *charManagedArrayp = (char*) streamInFromBufferp->bufp;
+    streamInFromBufferp->firstb = STREAMIN_BOOL_FALSE;
+  } else {
+    *gotBytesip = 0;
+  }
+
+  return STREAMIN_BOOL_TRUE;
+}
+
+/********************************************/
+/* streamInUtf8_streamInFromBuffer_destroyv */
+/********************************************/
+void streamInUtf8_streamInFromBuffer_destroyv(streamInFromBuffer_t **streamInFromBufferpp) {
+  streamInFromBuffer_t *streamInFromBufferp;
+
+  if (streamInFromBufferpp != NULL) {
+    streamInFromBufferp = *streamInFromBufferpp;
+    if (streamInFromBufferp != NULL) {
+      streamIn_destroyv(&(streamInFromBufferp->streamInp));
+      free(streamInFromBufferp);
+      *streamInFromBufferpp = NULL;
+    }
+  }
+}
+
+/*****************************/
+/* streamInUtf8_newFromFILEp */
+/*****************************/
+streamInFromFILE_t *streamInUtf8_newFromFILEp(streamInOption_t *streamInOptionp, streamInUtf8Option_t *streamInUtf8Optionp, FILE *fp) {
+  streamInUtf8Option_t  streamInUtf8Option;
+  streamInOption_t      streamInOption;
+  streamInFromFILE_t   *streamInFromFILEp;
+
+  if (streamInOptionp == NULL) {
+    if (streamIn_optionDefaultb(&streamInOption) == STREAMIN_BOOL_FALSE) {
+      return NULL;
+    }
+    streamInOptionp = &streamInOption;
+  }
+  if (streamInUtf8Optionp == NULL) {
+    if (streamInUtf8_optionDefaultb(&streamInUtf8Option) == STREAMIN_BOOL_FALSE) {
+      return NULL;
+    }
+    streamInUtf8Optionp = &streamInUtf8Option;
+  }
+
+  streamInFromFILEp = malloc(sizeof(streamInFromFILE_t));
+  if (streamInFromFILEp == NULL) {
+    return NULL;
+  }
+  streamInFromFILEp->fp = fp;
+
+  /* We explicitely overwrite the read callback, unless user already provided one */
+  if (streamInOptionp->readCallbackp == NULL) {
+    streamInOptionp->readCallbackp = &_streamIn_readFromFILECallback;
+    streamInOptionp->readCallbackDatavp = streamInFromFILEp;
+  }
+
+  streamInFromFILEp->streamInp = streamInUtf8_newp(streamInOptionp, streamInUtf8Optionp);
+  if (streamInFromFILEp->streamInp == NULL) {
+    free(streamInFromFILEp);
+    return NULL;
+  }
+
+  return streamInFromFILEp;
+}
+
+/********************************************/
+/* _streamIn_readFromFILECallback */
+/********************************************/
+static C_INLINE streamInBool_t _streamIn_readFromFILECallback(void *datavp, size_t wantedBytesi, size_t *gotBytesip, char *byteArrayp, char **charManagedArrayp) {
+  streamInFromFILE_t *streamInFromFILEp = (streamInFromFILE_t *) datavp;
+  streamIn_t         *streamInp = streamInFromFILEp->streamInp;
+  size_t              n;
+  streamInBool_t      rcb = STREAMIN_BOOL_TRUE;
+
+  STREAMIN_TRACEX("fread(%p, %lld, 1, %p)", byteArrayp, (long long) wantedBytesi, streamInFromFILEp->fp);
+  n = fread(byteArrayp, wantedBytesi, 1, streamInFromFILEp->fp);
+  if (n <= 0) {
+    STREAMIN_TRACEX("ferror(%p)", streamInFromFILEp->fp);
+    if (ferror(streamInFromFILEp->fp) != 0) {
+      STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "read from FILE %p: %s at %s:%d", streamInFromFILEp->fp, strerror(errno), __FILE__, __LINE__);
+      rcb = STREAMIN_BOOL_FALSE;
+    } else {
+      STREAMIN_TRACEX("feof(%p)", streamInFromFILEp->fp);
+      if (feof(streamInFromFILEp->fp) == 0) {
+	STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "read from FILE %p: Got %lld bytes but neither feof() nor ferror() are setted at %s:%d", streamInFromFILEp->fp, (long long) n, __FILE__, __LINE__);
+	rcb = STREAMIN_BOOL_FALSE;
+      }
+    }
+    n = 0;
+  }
+
+  *gotBytesip = n;
+
+  return rcb;
+}
+
+/******************************************/
+/* streamInUtf8_streamInFromFILE_destroyv */
+/******************************************/
+void streamInUtf8_streamInFromFILE_destroyv(streamInFromFILE_t **streamInFromFILEpp) {
+  streamInFromFILE_t *streamInFromFILEp;
+
+  if (streamInFromFILEpp != NULL) {
+    streamInFromFILEp = *streamInFromFILEpp;
+    if (streamInFromFILEp != NULL) {
+      streamIn_destroyv(&(streamInFromFILEp->streamInp));
+      free(streamInFromFILEp);
+      *streamInFromFILEpp = NULL;
+    }
+  }
+}
+
+/***************************************/
+/* streamInUtf8_newFromSocketp */
+/***************************************/
+streamInFromSocket_t *streamInUtf8_newFromSocketp(streamInOption_t *streamInOptionp, streamInUtf8Option_t *streamInUtf8Optionp, int fd, int timeoutInMilliseconds) {
+  streamInUtf8Option_t  streamInUtf8Option;
+  streamInOption_t      streamInOption;
+  streamInFromSocket_t *streamInFromSocketp;
+
+  if (streamInOptionp == NULL) {
+    if (streamIn_optionDefaultb(&streamInOption) == STREAMIN_BOOL_FALSE) {
+      return NULL;
+    }
+    streamInOptionp = &streamInOption;
+  }
+  if (streamInUtf8Optionp == NULL) {
+    if (streamInUtf8_optionDefaultb(&streamInUtf8Option) == STREAMIN_BOOL_FALSE) {
+      return NULL;
+    }
+    streamInUtf8Optionp = &streamInUtf8Option;
+  }
+
+  streamInFromSocketp = malloc(sizeof(streamInFromSocket_t));
+  if (streamInFromSocketp == NULL) {
+    return NULL;
+  }
+  streamInFromSocketp->fd = fd;
+  streamInFromSocketp->timeoutInMilliseconds = timeoutInMilliseconds;
+
+  /* We explicitely overwrite the read callback, unless user already provided one */
+  if (streamInOptionp->readCallbackp == NULL) {
+    streamInOptionp->readCallbackp = &_streamIn_readFromSocketCallback;
+    streamInOptionp->readCallbackDatavp = streamInFromSocketp;
+  }
+
+  streamInFromSocketp->streamInp = streamInUtf8_newp(streamInOptionp, streamInUtf8Optionp);
+  if (streamInFromSocketp->streamInp == NULL) {
+    free(streamInFromSocketp);
+    return NULL;
+  }
+
+  return streamInFromSocketp;
+}
+
+/************************************/
+/* _streamIn_readFromSocketCallback */
+/************************************/
+/* Loosely based on http://developerweb.net/viewtopic.php?id=2933 */
+static C_INLINE streamInBool_t _streamIn_readFromSocketCallback(void *datavp, size_t wantedBytesi, size_t *gotBytesip, char *byteArrayp, char **charManagedArrayp) {
+  streamInFromSocket_t *streamInFromSocketp = (streamInFromSocket_t *) datavp;
+  streamIn_t                   *streamInp = streamInFromSocketp->streamInp;
+  streamInBool_t                rcb = STREAMIN_BOOL_TRUE;
+  fd_set                        readset;
+#ifdef _WIN32
+  int                           result;
+#else
+  ssize_t                       result;
+#endif
+  int                           iof;
+  struct timeval                tv;
+
+  /* Initialize the set */
+  FD_ZERO(&readset);
+  FD_SET(streamInFromSocketp->fd, &readset);
+   
+  if (streamInFromSocketp->timeoutInMilliseconds > 0) {
+    /* Initialize time out struct */
+    tv.tv_sec = 0;
+    tv.tv_usec = streamInFromSocketp->timeoutInMilliseconds * 1000;
+    STREAMIN_TRACEX("select(%d, %p, NULL, NULL, %p)", streamInFromSocketp->fd + 1, &readset, &tv);
+    result = select(streamInFromSocketp->fd + 1, &readset, NULL, NULL, &tv);
+  } else {
+    STREAMIN_TRACEX("select(%d, %p, NULL, NULL, NULL)", streamInFromSocketp->fd + 1, &readset);
+    result = select(streamInFromSocketp->fd + 1, &readset, NULL, NULL, NULL);
+  }
+
+  /* Check status */
+  if (result < 0) {
+    STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "select for file descriptor %d: %s at %s:%d", streamInFromSocketp->fd, strerror(errno), __FILE__, __LINE__);
+    rcb = STREAMIN_BOOL_FALSE;
+  } else if (result > 0) {
+    if (FD_ISSET(streamInFromSocketp->fd, &readset)) {
+      /* Set non-blocking mode */
+      STREAMIN_TRACEX("fcntl(%d, F_GETFL, 0)", streamInFromSocketp->fd);
+      if ((iof = fcntl(streamInFromSocketp->fd, F_GETFL, 0)) != -1) {
+	STREAMIN_TRACEX("fcntl(%d, F_SETFL, 0x%lx)", streamInFromSocketp->fd, iof|O_NONBLOCK);
+	if (fcntl(streamInFromSocketp->fd, F_SETFL, iof|O_NONBLOCK) == -1) {
+	  STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "fcntl(%d, F_SETLF, 0x%lx): %s at %s:%d", streamInFromSocketp->fd, (unsigned long) (iof|O_NONBLOCK), strerror(errno), __FILE__, __LINE__);
+	  rcb = STREAMIN_BOOL_FALSE;
+	}
+      }
+      /* Receive */
+      STREAMIN_TRACEX("recv(%d, %p, %lld, 0)", streamInFromSocketp->fd, byteArrayp, (long long) wantedBytesi, 0);
+      result = recv(streamInFromSocketp->fd, byteArrayp, wantedBytesi, 0);
+      /* Set as before */
+      if (iof != -1) {
+	STREAMIN_TRACEX("fcntl(%d, F_SETFL, 0x%lx)", streamInFromSocketp->fd, iof);
+	if (fcntl(streamInFromSocketp->fd, F_SETFL, iof) == -1) {
+	  STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "fcntl(%d, F_SETLF, 0x%lx): %s at %s:%d", streamInFromSocketp->fd, (unsigned long) iof, strerror(errno), __FILE__, __LINE__);
+	  rcb = STREAMIN_BOOL_FALSE;
+	}
+      }
+      if (result < 0) {
+	STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "recv for file descriptor %d: %s at %s:%d", streamInFromSocketp->fd, strerror(errno), __FILE__, __LINE__);
+	rcb = STREAMIN_BOOL_FALSE;
+      } else {
+	*gotBytesip = result;
+      }
+    }
+  } else {
+    STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "select timeout after %lld milliseconds from file descriptor %d: %s at %s:%d", (long long) streamInFromSocketp->timeoutInMilliseconds, streamInFromSocketp->fd, strerror(errno), __FILE__, __LINE__);
+    rcb = STREAMIN_BOOL_FALSE;
+  }
+
+  return rcb;
+}
+
+/********************************************/
+/* streamInUtf8_streamInFromSocket_destroyv */
+/********************************************/
+void streamInUtf8_streamInFromSocket_destroyv(streamInFromSocket_t **streamInFromSocketpp) {
+  streamInFromSocket_t *streamInFromSocketp;
+
+  if (streamInFromSocketpp != NULL) {
+    streamInFromSocketp = *streamInFromSocketpp;
+    if (streamInFromSocketp != NULL) {
+      streamIn_destroyv(&(streamInFromSocketp->streamInp));
+      free(streamInFromSocketp);
+      *streamInFromSocketpp = NULL;
+    }
+  }
+}
+

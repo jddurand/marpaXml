@@ -43,9 +43,18 @@ FIND_PACKAGE (Inline)
 # ---------------------------
 # General overwrite of CFLAGS
 # ---------------------------
-# Specific to Windows, does not hurt to set it in any case
-ADD_DEFINITIONS("-D_CRT_SECURE_NO_WARNINGS")
-ADD_DEFINITIONS("-D_CRT_NONSTDC_NO_DEPRECATE")
+IF (WIN32)
+  # Loosely based on http://www.hdfgroup.org/ftp/HDF/HDF_Current/src/unpacked/config/cmake/ConfigureChecks.cmake
+  ADD_DEFINITIONS("-D_CRT_SECURE_NO_WARNINGS")
+  ADD_DEFINITIONS("-D_CRT_NONSTDC_NO_DEPRECATE")
+  IF (MINGW)
+    SET (CMAKE_REQUIRED_FLAGS "-DWIN32_LEAN_AND_MEAN=1 -DNOGDI=1")
+  ENDIF (MINGW)
+  SET (CMAKE_REQUIRED_LIBRARIES "ws2_32.lib;wsock32.lib")
+  IF (NOT UNIX AND NOT CYGWIN AND NOT MINGW)
+    SET (CMAKE_REQUIRED_FLAGS "/DWIN32_LEAN_AND_MEAN=1 /DNOGDI=1")
+  ENDIF (NOT UNIX AND NOT CYGWIN AND NOT MINGW)
+ENDIF (WIN32)
 
 SET (CMAKE_C_FLAGS             "${CMAKE_C_FLAGS} $ENV{CFLAGS} ${ICU_CPP_FLAGS} ${ICU_C_FLAGS}")
 SET (CMAKE_CXX_FLAGS           "${CMAKE_CXX_FLAGS} $ENV{CXXFLAGS} ${ICU_CPP_FLAGS} ${ICU_CXX_FLAGS}")
@@ -112,7 +121,7 @@ IF (NOT EXISTS "${MARPA_DIR}" OR NOT IS_DIRECTORY "${MARPA_DIR}")
     )
 ENDIF ()
 FILE(GLOB marpa_lib_src Marpa-R2-${MARPA_VERSION}/core/read_only/*.c)
-ADD_LIBRARY (marpa ${marpa_lib_src})
+ADD_LIBRARY (marpa STATIC ${marpa_lib_src})
 
 # --------------
 # SQLITE library
@@ -126,7 +135,7 @@ IF (NOT EXISTS "${SQLITE_DIR}" OR NOT IS_DIRECTORY "${SQLITE_DIR}")
     )
 ENDIF ()
 FILE(GLOB sqlite_lib_src ${SQLITE_DIR}/sqlite3.c)
-ADD_LIBRARY (sqlite ${sqlite_lib_src})
+ADD_LIBRARY (sqlite STATIC ${sqlite_lib_src})
 SET_PROPERTY (TARGET sqlite APPEND_STRING PROPERTY COMPILE_FLAGS " -DSQLITE_DISABLE_LFS")
 IF (MINGW)
   CHECK_INCLUDE_FILE("mingw.h" _HAVE_MINGW_H)
@@ -170,7 +179,7 @@ SET_PROPERTY (TARGET sqlite APPEND_STRING PROPERTY COMPILE_FLAGS " -DSQLITE_THRE
 # ------------------------
 # marpaXmlInternal library
 # ------------------------
-ADD_LIBRARY (marpaXml
+ADD_LIBRARY (marpaXml STATIC
   src/internal/genericStack.c
   src/internal/marpaWrapper.c
   src/internal/manageBuf.c
@@ -297,9 +306,15 @@ FIND_PACKAGE(Threads REQUIRED)
 # -------------------------
 INCLUDE(CheckIncludeFile)
 CHECK_INCLUDE_FILE("inttypes.h" HAVE_INTTYPES_H)
+CHECK_INCLUDE_FILE("sys/time.h" HAVE_SYS_TIME_H)
 CHECK_INCLUDE_FILE("sys/types.h" HAVE_SYS_TYPES_H)
+CHECK_INCLUDE_FILE("sys/stat.h" HAVE_SYS_STAT_H)
+CHECK_INCLUDE_FILE("sys/socket.h" HAVE_SYS_SOCKET_H)
 CHECK_INCLUDE_FILE("stdint.h" HAVE_STDINT_H)
+CHECK_INCLUDE_FILE("unistd.h" HAVE_UNISTD_H)
+CHECK_INCLUDE_FILE("fcntl.h" HAVE_FCNTL_H)
 CHECK_INCLUDE_FILE("features.h" HAVE_FEATURES_H)
+CHECK_INCLUDE_FILE("limits.h" HAVE_LIMITS_H)
 CHECK_INCLUDE_FILE("unistd.h" HAVE_UNISTD_H)
 CHECK_INCLUDE_FILE("io.h" HAVE_IO_H)
 
@@ -341,10 +356,10 @@ TARGET_LINK_LIBRARIES (String_test marpaXml)
 ADD_EXECUTABLE        (ICU4CDetectEncoding ${PROJECT_SOURCE_DIR}/test/internal/ICU4CDetectEncoding.c)
 
 ADD_EXECUTABLE        (xml_1_0_test ${PROJECT_SOURCE_DIR}/test/internal/grammar/xml_1_0_test.c)
-TARGET_LINK_LIBRARIES (xml_1_0_test marpaXml marpa)
+TARGET_LINK_LIBRARIES (xml_1_0_test marpaXml marpa sqlite ${CMAKE_THREAD_LIBS_INIT})
 
 ADD_EXECUTABLE        (xml_1_1_test ${PROJECT_SOURCE_DIR}/test/internal/grammar/xml_1_1_test.c)
-TARGET_LINK_LIBRARIES (xml_1_1_test marpaXml marpa)
+TARGET_LINK_LIBRARIES (xml_1_1_test marpaXml marpa sqlite ${CMAKE_THREAD_LIBS_INIT})
 
 #INSTALL (TARGETS marpaxml DESTINATION install/bin)
 #INSTALL (FILES marpaWrapper.h DESTINATION install/include)

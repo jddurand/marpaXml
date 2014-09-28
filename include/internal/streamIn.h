@@ -16,6 +16,7 @@
 /* It is assumed that an int is at least 32bits                                         */
 /****************************************************************************************/
 
+#include <stdio.h>
 #include <stddef.h>               /*  size_t definition */
 #include "config.h"
 #include "API/marpaXml/log.h"
@@ -85,6 +86,30 @@ typedef struct streamInUtf8Option {
   streamInBool_t                   ICUToFallback;     /* Output fallback ?     Default: STREAMIN_BOOL_FALSE */
 } streamInUtf8Option_t;
 
+typedef struct streamInFromFileDescriptor {
+  int            fd;
+  streamIn_t    *streamInp;
+} streamInFromFileDescriptor_t;
+typedef streamInFromFileDescriptor_t streamInFromFileName_t;
+
+typedef struct streamInFromFILE {
+  FILE          *fp;
+  streamIn_t    *streamInp;
+} streamInFromFILE_t;
+
+typedef struct streamInFromSocket {
+  int            fd;
+  int            timeoutInMilliseconds;
+  streamIn_t    *streamInp;
+} streamInFromSocket_t;
+
+typedef struct streamInFromBuffer {
+  const char    *bufp;
+  size_t         bufferByteLengthl;
+  streamIn_t    *streamInp;
+  streamInBool_t firstb;
+} streamInFromBuffer_t;
+
 /******************************************
    Common to byte and char oriented methods
 *******************************************/
@@ -130,5 +155,28 @@ streamInBool_t streamInUnicode_nextBufferb    (streamIn_t *streamInp, size_t *in
 /* Take care: *lengthInBufferp is the NATIVE length, i.e. the null character, if any, is counted. This is not strlen. */
 streamInBool_t streamInUnicode_getBufferb     (streamIn_t *streamInp, int indexBufferi, size_t *indexBufferip, char **byteArraypp, size_t *bytesInBufferp, size_t *lengthInBufferp);
 streamInBool_t streamInUnicode_doneBufferb    (streamIn_t *streamInp, int indexBufferi);
+
+/************************************************************************************************************************************
+   Generic helpers
+   In all these helpers, readCallback is overwriten to a default version, unless user already
+   putted another function pointer.
+   I personnaly had a use only of UTF8 stuff, look to the source and you will see how it is easy
+   to do it with buffer-oriented methods.
+*************************************************************************************************************************************/
+streamInFromFileDescriptor_t *streamInUtf8_newFromFileDescriptorp(streamInOption_t *streamInOptionp, streamInUtf8Option_t *streamInUtf8Optionp, int fd);
+void                          streamInUtf8_streamInFromFileDescriptor_destroyv(streamInFromFileDescriptor_t **streamInFromFileDescriptorpp);
+
+streamInFromFileName_t       *streamInUtf8_newFromFileNamep(streamInOption_t *streamInOptionp, streamInUtf8Option_t *streamInUtf8Optionp, const char *filename);
+void                          streamInUtf8_streamInFromFileName_destroyv(streamInFromFileName_t **streamInFromFileNamepp);
+
+streamInFromFILE_t           *streamInUtf8_newFromFILEp(streamInOption_t *streamInOptionp, streamInUtf8Option_t *streamInUtf8Optionp, FILE *fp);
+void                          streamInUtf8_streamInFromFILE_destroyv(streamInFromFILE_t **streamInFromFILEpp);
+
+streamInFromBuffer_t         *streamInUtf8_newFromBufferp(streamInOption_t *streamInOptionp, streamInUtf8Option_t *streamInUtf8Optionp, const char *bufp, size_t bufferByteLengthl);
+void                          streamInUtf8_streamInFromBuffer_destroyv(streamInFromBuffer_t **streamInFromBufferpp);
+
+/* give a negative value for timeoutInMilliseconds to have no timeout */
+streamInFromSocket_t         *streamInUtf8_newFromSocketp(streamInOption_t *streamInOptionp, streamInUtf8Option_t *streamInUtf8Optionp, int fd, int timeoutInMilliseconds);
+void                          streamInUtf8_streamInFromSocket_destroyv(streamInFromSocket_t **streamInFromSocketpp);
 
 #endif /* MARPAXML_INTERNAL_STREAMIN_H */

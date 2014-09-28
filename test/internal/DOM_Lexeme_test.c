@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  string1p = marpaXml_String_newFromUTF8(MYSTRING, NULL);  /* Null byte volontarily ommited */
+  string1p = marpaXml_String_newFromUTF8(MYSTRING, NULL);
 
   lexeme1p = marpaXml_Lexeme_new(string1p);
   if (lexeme1p == NULL) {

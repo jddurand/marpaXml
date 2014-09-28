@@ -47,7 +47,7 @@
 #define MARPAWRAPPER_LOG_NOTICEX(callerfmts, ...)  MARPAWRAPPER_LOG_X(MARPAXML_LOGLEVEL_NOTICE, MARPAWRAPPERERRORORIGIN_NA, 0, callerfmts, __VA_ARGS__)
 
 /* Dedicated Marpa log macros */
-#define MARPAWRAPPER_LOG_MARPA_ERROR(errorCode) MARPAWRAPPER_LOG_0(MARPAXML_LOGLEVEL_ERROR, MARPAWRAPPERERRORORIGIN_MARPA, errorCode, NULL);
+#define MARPAWRAPPER_LOG_MARPA_ERROR(errorCode) MARPAWRAPPER_LOG_0(MARPAXML_LOGLEVEL_ERROR, MARPAWRAPPERERRORORIGIN_MARPA, errorCode, "Marpa");
 #define MARPAWRAPPER_LOG_MARPA_G_ERROR MARPAWRAPPER_LOG_MARPA_ERROR(marpa_g_error(marpaWrapperp->marpaGrammarp, NULL))
 #define MARPAWRAPPER_LOG_MARPA_C_ERROR MARPAWRAPPER_LOG_MARPA_ERROR(marpa_c_error(&(marpaWrapperp->marpaConfig), NULL));
 
@@ -390,7 +390,6 @@ marpaWrapperBool_t marpaWrapper_r_terminals_expectedb(marpaWrapper_t *marpaWrapp
       MARPAWRAPPER_LOG_SYS_ERROR(errno, "malloc()");
       return MARPAWRAPPER_BOOL_FALSE;
     }
-    /* These two buffers are synchronized. No need to test on nullity of the following */
     marpaWrapperp->expectedMarpaWrapperSymbolArraypp = (marpaWrapperSymbol_t **) malloc((highestSymbolIdi + 1) * sizeof(marpaWrapperSymbol_t *));
     if (marpaWrapperp->expectedMarpaWrapperSymbolArraypp == NULL) {
       MARPAWRAPPER_LOG_SYS_ERROR(errno, "malloc()");
@@ -398,7 +397,6 @@ marpaWrapperBool_t marpaWrapper_r_terminals_expectedb(marpaWrapper_t *marpaWrapp
       marpaWrapperp->expectedMarpaSymbolIdArrayp = NULL;
       return MARPAWRAPPER_BOOL_FALSE;
     }
-
   }
 
   MARPAWRAPPER_LOG_TRACEX("marpa_r_terminals_expected(%p, %p)", marpaWrapperp->marpaRecognizerp, marpaWrapperp->expectedMarpaSymbolIdArrayp);
@@ -1416,7 +1414,7 @@ static C_INLINE marpaWrapperBool_t _marpaWrapper_event(marpaWrapper_t *marpaWrap
       marpaWrapperEventp[subscribedEventi].eventType = MARPAWRAPPER_EVENTTYPE_COMPLETED;
       marpaWrapperEventp[subscribedEventi].marpaWrapperSymbolp = marpaWrapperp->marpaWrapperSymbolpp[eventValuei];
       subscribedEventi++;
-      MARPAWRAPPER_LOG_TRACEX("\tCompleted symbol %d", eventValuei);
+      MARPAWRAPPER_LOG_TRACEX("MARPA_EVENT_SYMBOL_COMPLETED %d", eventValuei);
       break;
     case MARPA_EVENT_SYMBOL_NULLED:
       MARPAWRAPPER_LOG_TRACEX("marpa_g_event_value(%p)", &event);
@@ -1424,14 +1422,14 @@ static C_INLINE marpaWrapperBool_t _marpaWrapper_event(marpaWrapper_t *marpaWrap
       marpaWrapperEventp[subscribedEventi].eventType = MARPAWRAPPER_EVENTTYPE_NULLED;
       marpaWrapperEventp[subscribedEventi].marpaWrapperSymbolp = marpaWrapperp->marpaWrapperSymbolpp[eventValuei];
       subscribedEventi++;
-      MARPAWRAPPER_LOG_TRACEX("\tSymbol %d was nulled", eventValuei);
+      MARPAWRAPPER_LOG_TRACEX("MARPA_EVENT_SYMBOL_NULLED %d", eventValuei);
       break;
     case MARPA_EVENT_SYMBOL_EXPECTED:        /* Terminals only, should not happen since we rely on the general events mechanism */
       eventValuei = marpa_g_event_value(&event);
       marpaWrapperEventp[subscribedEventi].eventType = MARPAWRAPPER_EVENTTYPE_PREDICTED;
       marpaWrapperEventp[subscribedEventi].marpaWrapperSymbolp = marpaWrapperp->marpaWrapperSymbolpp[eventValuei];
       subscribedEventi++;
-      MARPAWRAPPER_LOG_TRACEX("\tExpecting symbol %d", eventValuei);
+      MARPAWRAPPER_LOG_TRACEX("MARPA_EVENT_SYMBOL_EXPECTED %d", eventValuei);
       break;
     case MARPA_EVENT_SYMBOL_PREDICTED:
       MARPAWRAPPER_LOG_TRACEX("marpa_g_event_value(%p)", &event);
@@ -1439,7 +1437,7 @@ static C_INLINE marpaWrapperBool_t _marpaWrapper_event(marpaWrapper_t *marpaWrap
       marpaWrapperEventp[subscribedEventi].eventType = MARPAWRAPPER_EVENTTYPE_PREDICTED;
       marpaWrapperEventp[subscribedEventi].marpaWrapperSymbolp = marpaWrapperp->marpaWrapperSymbolpp[eventValuei];
       subscribedEventi++;
-      MARPAWRAPPER_LOG_TRACEX("\tSymbol %d was predicted", eventValuei);
+      MARPAWRAPPER_LOG_TRACEX("MARPA_EVENT_SYMBOL_PREDICTED %d", eventValuei);
       break;
     default:
       MARPAWRAPPER_LOG_NOTICEX("marpa_g_event_value(%p) returns unsupported event type %d", &event, (int) eventType);
@@ -1648,10 +1646,13 @@ marpaWrapperBool_t marpaWrapper_r_recognizeb(marpaWrapper_t *marpaWrapperp, void
   }
 
   while (streamInUtf8_nexti(streamInp, &nexti) == STREAMIN_BOOL_TRUE) {
+    MARPAWRAPPER_LOG_TRACEX("next character: 0x%lx", nexti);
     if (marpaWrapper_r_terminals_expectedb(marpaWrapperp, &nMarpaWrapperSymboli, &marpaWrapperSymbolpp) == MARPAWRAPPER_BOOL_FALSE) {
+      MARPAWRAPPER_LOG_TRACE0("No more expected terminal");
       rcb = MARPAWRAPPER_BOOL_FALSE;
       goto recognizebEnd;
     }
+    MARPAWRAPPER_LOG_TRACEX("Number of expected terminals: %d", nMarpaWrapperSymboli);
     maxLengthl = 0;
     for (i = 0; i < nMarpaWrapperSymboli; i++) {
       /* Every lexeme callback has to make sure index in stream is unchanged when they return */
@@ -1662,23 +1663,13 @@ marpaWrapperBool_t marpaWrapper_r_recognizeb(marpaWrapper_t *marpaWrapperp, void
       }
     }
     if (maxLengthl > 0) {
-      /* Go back by one character ./.. */
+      /* Go back by one character and mark this position */
       if ((streamInUtf8_markPreviousb(streamInp) == STREAMIN_BOOL_FALSE) ||
           (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE)) {
         rcb = MARPAWRAPPER_BOOL_FALSE;
         goto recognizebEnd;
       }
-      /* ../. i.e. we guarantee to our caller that the stream is positionned where the the lexeme is starting */
-      if (marpaWrapper_lexemeValuebCallbackp(lexemeValuebCallbackDatavp, streamInp, maxLengthl, &lexemeValuei) == MARPAWRAPPER_BOOL_FALSE) {
-        rcb = MARPAWRAPPER_BOOL_FALSE;
-        goto recognizebEnd;
-      }
-      if (marpaWrapper_r_alternativeb(marpaWrapperp, marpaWrapperSymbolpp[i], lexemeValuei, (int) maxLengthl) == MARPAWRAPPER_BOOL_FALSE) {
-        /* Because we did a terminal_expected(), this should never happen */
-        rcb = MARPAWRAPPER_BOOL_FALSE;
-        goto recognizebEnd;
-      }
-      /* Move the stream forward */
+      /* Move the stream forward again */
       lengthl = 0;
       while (lengthl++ < maxLengthl) {
         if (streamInUtf8_nexti(streamInp, &nexti) == STREAMIN_BOOL_FALSE) {
@@ -1686,17 +1677,39 @@ marpaWrapperBool_t marpaWrapper_r_recognizeb(marpaWrapper_t *marpaWrapperp, void
           goto recognizebEnd;
         }
       }
+      /* we guarantee to our caller that the stream is positionned where the the lexeme is ending, and marked where it is starting */
+      if (marpaWrapper_lexemeValuebCallbackp(lexemeValuebCallbackDatavp, streamInp, maxLengthl, &lexemeValuei) == MARPAWRAPPER_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        goto recognizebEnd;
+      }
+      for (i = 0; i < nMarpaWrapperSymboli; i++) {
+	if (marpaWrapperSymbolpp[i]->lengthl == maxLengthl) {
+	  if (marpaWrapper_r_alternativeb(marpaWrapperp, marpaWrapperSymbolpp[i], lexemeValuei, 1) == MARPAWRAPPER_BOOL_FALSE) {
+	    /* Because we did a terminal_expected(), this should never happen */
+	    rcb = MARPAWRAPPER_BOOL_FALSE;
+	    goto recognizebEnd;
+	  }
+	}
+      }
+      if (marpaWrapper_r_completeb(marpaWrapperp) == MARPAWRAPPER_BOOL_FALSE) {
+	rcb = MARPAWRAPPER_BOOL_FALSE;
+	goto recognizebEnd;
+      }
+      /* Say that previous character is done */
+      if (streamInUtf8_markPreviousb(streamInp) == STREAMIN_BOOL_FALSE) {
+          rcb = MARPAWRAPPER_BOOL_FALSE;
+          goto recognizebEnd;
+      }
+      if (streamInUtf8_doneb(streamInp) == STREAMIN_BOOL_FALSE) {
+          rcb = MARPAWRAPPER_BOOL_FALSE;
+          goto recognizebEnd;
+      }
     } else {
       /* A discarded thing then, the marpaWrapper_isLexemebCallbackp have returned MARPAWRAPPER_BOOL_TRUE, but maxLengthl <= 0: it has in the meantime moved the pointer in the stream */
     }
   }
 
  recognizebEnd:
-
-  if (marpaWrapperSymbolpp != NULL) {
-    free(marpaWrapperSymbolpp);
-    return MARPAWRAPPER_BOOL_FALSE;
-  }
 
   return rcb;
 }

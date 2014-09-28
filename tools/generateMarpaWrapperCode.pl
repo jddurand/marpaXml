@@ -1340,6 +1340,17 @@ ISLEXEMEB
       break;
   }
 
+#ifndef MARPAXML_NTRACE
+  {
+      marpaXmlLog_t *marpaXmlLogp = ${namespace}_symbol_callbackp->${namespace}p->marpaXmlLogp;
+      if (rcb == MARPAWRAPPER_BOOL_TRUE) {
+	  MARPAXML_TRACEX("Accepted lexeme %s, length %lld\\n", symbolsToString[${namespace}_symbol_callbackp->${namespace}_symboli], (long long) *sizelp);
+      } else {
+	  MARPAXML_TRACEX("Rejected lexeme %s\\n", symbolsToString[${namespace}_symbol_callbackp->${namespace}_symboli]);
+      }
+  }
+#endif
+
   return rcb;
 }
 ISLEXEMEB_TRAILER
@@ -1383,8 +1394,6 @@ ISLEXEMEB
 	  my $rcIfCaretMatch = ($value->{lexemesExact}->{$_}->{type} == $LEXEME_RANGES) ? 'MARPAWRAPPER_BOOL_FALSE' : 'MARPAWRAPPER_BOOL_TRUE';
 	  my $sizelpMatch = ($rcIfMatch eq 'MARPAWRAPPER_BOOL_TRUE') ? "*sizelp = 1;\n    " : '    ';
 	  my $sizelpCaretMatch = ($rcIfCaretMatch eq 'MARPAWRAPPER_BOOL_TRUE') ? "*sizelp = 1;\n    " : '    ';
-	  my $traceMatch = ($rcIfMatch eq 'MARPAWRAPPER_BOOL_TRUE') ? "#ifndef MARPAXML_NTRACE\n    marpaXmlLog_t *marpaXmlLogp = ${namespace}p->marpaXmlLogp;\n#endif\n    MARPAXML_TRACEX(\"Accepted lexeme %s, length 1\\n\", symbolsToString[${namespace}_${_}]);\n    " : '';
-	  my $traceCaretMatch = ($rcIfCaretMatch eq 'MARPAWRAPPER_BOOL_TRUE') ? "#ifndef MARPAXML_NTRACE\n    marpaXmlLog_t *marpaXmlLogp = ${namespace}p->marpaXmlLogp;\n#endif\n    MARPAXML_TRACEX(\"Accepted lexeme %s, length 1\\n\", symbolsToString[${namespace}_${_}]);\n    " : '';
 
         my @wanted = ();
         my $n = scalar(@{$value->{lexemesExact}->{$_}->{value}});
@@ -1404,9 +1413,9 @@ ISLEXEMEB
  ************************************************/
 static C_INLINE marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
   if ($wanted) {
-${traceMatch}${sizelpMatch}return $rcIfMatch;
+    ${sizelpMatch}return $rcIfMatch;
   } else {
-${traceCaretMatch}${sizelpCaretMatch}return $rcIfCaretMatch;
+    ${sizelpCaretMatch}return $rcIfCaretMatch;
   }
 }
 ISLEXEMEB
@@ -1429,12 +1438,7 @@ ISLEXEMEB
  ************************************************/
 static C_INLINE marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
   if (currenti == $wanted) {
-#ifndef MARPAXML_NTRACE
-     marpaXmlLog_t *marpaXmlLogp = ${namespace}p->marpaXmlLogp;
-#endif
-
     *sizelp = 1;
-    MARPAXML_TRACEX("Accepted lexeme %s, length 1\\n", symbolsToString[${namespace}_${_}]);
     return MARPAWRAPPER_BOOL_TRUE;
   } else {
     return MARPAWRAPPER_BOOL_FALSE;
@@ -1449,12 +1453,7 @@ ISLEXEMEB
  ************************************************/
 static C_INLINE marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, signed int currenti, streamIn_t *streamInP, size_t *sizelp) {
   if ($wanted) {
-#ifndef MARPAXML_NTRACE
-    marpaXmlLog_t *marpaXmlLogp = ${namespace}p->marpaXmlLogp;
-#endif
-
     *sizelp = 1;
-    MARPAXML_TRACEX("Accepted lexeme %s, length 1\\n", symbolsToString[${namespace}_${_}]);
     return MARPAWRAPPER_BOOL_TRUE;
   } else {
     return MARPAWRAPPER_BOOL_FALSE;
@@ -1474,12 +1473,7 @@ ISLEXEMEB
  ************************************************/
 static C_INLINE marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
   if (currenti == $wanted) {
-#ifndef MARPAXML_NTRACE
-    marpaXmlLog_t *marpaXmlLogp = ${namespace}p->marpaXmlLogp;
-#endif
-
     *sizelp = 1;
-    MARPAXML_TRACEX("Accepted lexeme %s, length 1\\n", symbolsToString[${namespace}_${_}]);
     return MARPAWRAPPER_BOOL_TRUE;
   } else {
     return MARPAWRAPPER_BOOL_FALSE;
@@ -1498,7 +1492,7 @@ static C_INLINE marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespa
   };
   signed int           got = currenti;
   int                  i = 0;
-  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_TRUE;
 
   /* We will move current character, so we want to restore it */
   if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
@@ -1515,15 +1509,12 @@ static C_INLINE marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespa
     if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
     }
+  } else {
+    rcb = MARPAWRAPPER_BOOL_FALSE;
   }
 
   if (rcb == MARPAWRAPPER_BOOL_TRUE) {
-#ifndef MARPAXML_NTRACE
-    marpaXmlLog_t *marpaXmlLogp = ${namespace}p->marpaXmlLogp;
-#endif
-
     *sizelp = $length;
-    MARPAXML_TRACEX("Accepted lexeme %s, length $length\\n", symbolsToString[${namespace}_${_}]);
   }
 
   return rcb;
@@ -1803,6 +1794,10 @@ __[ xml_1_0_test01 ]__
   that have been deprecated (hence the "transitional" label).
 </BODY>
 </HTML>
+__[ xml_1_0_test02 ]__
+<dictionary>
+  <!-- see /usr/share/gtkmathview*xml for examples -->
+</dictionary>
 __[ xml_1_1_test01 ]__
 <?xml version="1.1" standalone="no" ?>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
