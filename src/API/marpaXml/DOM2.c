@@ -135,6 +135,7 @@ typedef struct _marpaXml_stmt {
   marpaXml_boolean_t  selectb;
   marpaXml_boolean_t  insertb;
   _marpaXml_stmt_e     e;
+  marpaXml_boolean_t  noopb;
   const char          *sql;
 } _marpaXml_stmt_t;
 
@@ -686,138 +687,138 @@ static qname_1_1_t             *qname_1_1p = NULL;
 
 static _marpaXml_stmt_t _marpaXml_stmt[] = {
 
-  /* ------------------------------------------------------------------------------------------------------------------------*/
-  /* stmt generatedb      changesb        selectb,        insertb,        e                                       sql        */
-  /* ------------------------------------------------------------------------------------------------------------------------*/
+  /* ----------------------------------------------------------------------------------------------------------------------------------------*/
+  /* stmt generatedb      changesb        selectb,        insertb,        e                                       noop            sql        */
+  /* ----------------------------------------------------------------------------------------------------------------------------------------*/
   /* Note: For selectb, we put 0 instead of marpaXml_false to indicate this is a noop in this context.                       */
   /*       Indeed, selectb is meaninful only in the new() sql's that have changesb to false                                  */
   /*       In C, _order start at 0, In db this is at 1. DOM spec says to return NULL if nothing found                        */
   /* ------------------------------------------------------------------------------------------------------------------------*/
 
-  /* ------------------------------------------------------------------------------------------------------------------------*/
-  /* stmt generatedb      changesb        selectb,        insertb,        e                                       sql        */
-  /* ------------------------------------------------------------------------------------------------------------------------*/
-  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_Transaction_BeginImmediate_e, "BEGIN IMMEDIATE TRANSACTION" },
-  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_Transaction_End_e,            "END TRANSACTION" },
-  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_Transaction_Rollback_e,       "ROLLBACK TRANSACTION" },
+  /* ----------------------------------------------------------------------------------------------------------------------------------------*/
+  /* stmt generatedb      changesb        selectb,        insertb,        e                                       noop            sql        */
+  /* ----------------------------------------------------------------------------------------------------------------------------------------*/
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_Transaction_BeginImmediate_e, marpaXml_false, "BEGIN IMMEDIATE TRANSACTION" },
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_Transaction_End_e,            marpaXml_false, "END TRANSACTION" },
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_Transaction_Rollback_e,       marpaXml_false, "ROLLBACK TRANSACTION" },
 
-  /* ------------------------------------------------------------------------------------------------------------------------*/
-  /* stmt generatedb      changesb        selectb,        insertb,        e                                       sql        */
-  /* ------------------------------------------------------------------------------------------------------------------------*/
+  /* ----------------------------------------------------------------------------------------------------------------------------------------*/
+  /* stmt generatedb      changesb        selectb,        insertb,        e                                       noop            sql        */
+  /* ----------------------------------------------------------------------------------------------------------------------------------------*/
   /* DOMException: the lifetime of the row is the lifetime of the object */
-  { NULL, marpaXml_false, marpaXml_true,  marpaXml_false, marpaXml_true,  _marpaXml_DOMException_new_e,           "INSERT INTO DOMException (code, message) VALUES (?1, ?2)" },
-  { NULL, marpaXml_false, marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMException_getCode_e,       "SELECT code FROM DOMException WHERE (id = ?1)" },
-  { NULL, marpaXml_false, marpaXml_true,  marpaXml_false, marpaXml_false, _marpaXml_DOMException_setCode_e,       "UPDATE DOMException SET code = ?2 WHERE (id = ?1)" },
-  { NULL, marpaXml_false, marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMException_getMessage_e,    "SELECT message FROM DOMException WHERE (id = ?1)" },
-  { NULL, marpaXml_false, marpaXml_true,  marpaXml_false, marpaXml_false, _marpaXml_DOMException_setMessage_e,    "UPDATE DOMException SET message = ?2 WHERE (id = ?1)" },
-  { NULL, marpaXml_false, marpaXml_true,  marpaXml_false, marpaXml_false, _marpaXml_DOMException_free_e,          "DELETE FROM DOMException WHERE (id = ?1)" },
+  { NULL, marpaXml_false, marpaXml_true,  marpaXml_false, marpaXml_true,  _marpaXml_DOMException_new_e,           marpaXml_false, "INSERT INTO DOMException (code, message) VALUES (?1, ?2)" },
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMException_getCode_e,       marpaXml_false, "SELECT code FROM DOMException WHERE (id = ?1)" },
+  { NULL, marpaXml_false, marpaXml_true,  marpaXml_false, marpaXml_false, _marpaXml_DOMException_setCode_e,       marpaXml_false, "UPDATE DOMException SET code = ?2 WHERE (id = ?1)" },
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMException_getMessage_e,    marpaXml_false, "SELECT message FROM DOMException WHERE (id = ?1)" },
+  { NULL, marpaXml_false, marpaXml_true,  marpaXml_false, marpaXml_false, _marpaXml_DOMException_setMessage_e,    marpaXml_false, "UPDATE DOMException SET message = ?2 WHERE (id = ?1)" },
+  { NULL, marpaXml_false, marpaXml_true,  marpaXml_false, marpaXml_false, _marpaXml_DOMException_free_e,          marpaXml_false, "DELETE FROM DOMException WHERE (id = ?1)" },
 
-  /* ------------------------------------------------------------------------------------------------------------------------*/
-  /* stmt generatedb      changesb        selectb,        insertb,        e                                       sql        */
-  /* ------------------------------------------------------------------------------------------------------------------------*/
+  /* ----------------------------------------------------------------------------------------------------------------------------------------*/
+  /* stmt generatedb      changesb        selectb,        insertb,        e                                       noop            sql        */
+  /* ----------------------------------------------------------------------------------------------------------------------------------------*/
   /* DOMError */
-  { NULL, marpaXml_false, marpaXml_true,  marpaXml_false, marpaXml_true,  _marpaXml_DOMError_new_e,               "INSERT INTO DOMError DEFAULT VALUES" },
-  { NULL, marpaXml_false, marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMError_getSeverity_e,       "SELECT severity FROM DOMError WHERE (id = ?1)" },
-  { NULL, marpaXml_false, marpaXml_true,  marpaXml_false, marpaXml_false, _marpaXml_DOMError_setSeverity_e,       "UPDATE DOMError SET severity = ?2 WHERE (id = ?1)" },
-  { NULL, marpaXml_false, marpaXml_true,  marpaXml_false, marpaXml_false, _marpaXml_DOMError_free_e,              "DELETE FROM DOMError WHERE (id = ?1)" },
+  { NULL, marpaXml_false, marpaXml_true,  marpaXml_false, marpaXml_true,  _marpaXml_DOMError_new_e,               marpaXml_false, "INSERT INTO DOMError DEFAULT VALUES" },
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMError_getSeverity_e,       marpaXml_false, "SELECT severity FROM DOMError WHERE (id = ?1)" },
+  { NULL, marpaXml_false, marpaXml_true,  marpaXml_false, marpaXml_false, _marpaXml_DOMError_setSeverity_e,       marpaXml_false, "UPDATE DOMError SET severity = ?2 WHERE (id = ?1)" },
+  { NULL, marpaXml_false, marpaXml_true,  marpaXml_false, marpaXml_false, _marpaXml_DOMError_free_e,              marpaXml_false, "DELETE FROM DOMError WHERE (id = ?1)" },
 
-  /* ------------------------------------------------------------------------------------------------------------------------*/
-  /* stmt generatedb      changesb        selectb,        insertb,        e                                       sql        */
-  /* ------------------------------------------------------------------------------------------------------------------------*/
+  /* ----------------------------------------------------------------------------------------------------------------------------------------*/
+  /* stmt generatedb      changesb        selectb,        insertb,        e                                       noop            sql        */
+  /* ----------------------------------------------------------------------------------------------------------------------------------------*/
   /* DOMObjects: used to track dynamic objects, i.e. those that have generatedb to marpaXml_true */
-  { NULL, marpaXml_false, marpaXml_true,  marpaXml_false, marpaXml_true,  _marpaXml_DOMObjects_new_e,             "INSERT INTO DOMObjects (objectName) VALUES (?1)" },
-  { NULL, marpaXml_false, marpaXml_true,  marpaXml_false, marpaXml_false, _marpaXml_DOMObjects_free_e,            "DELETE FROM DOMObjects WHERE (id = ?1)" },
+  { NULL, marpaXml_false, marpaXml_true,  marpaXml_false, marpaXml_true,  _marpaXml_DOMObjects_new_e,             marpaXml_false, "INSERT INTO DOMObjects (objectName) VALUES (?1)" },
+  { NULL, marpaXml_false, marpaXml_true,  marpaXml_false, marpaXml_false, _marpaXml_DOMObjects_free_e,            marpaXml_false, "DELETE FROM DOMObjects WHERE (id = ?1)" },
 
-  /* ------------------------------------------------------------------------------------------------------------------------*/
-  /* stmt generatedb      changesb        selectb,        insertb,        e                                       sql        */
-  /* ------------------------------------------------------------------------------------------------------------------------*/
+  /* ----------------------------------------------------------------------------------------------------------------------------------------*/
+  /* stmt generatedb      changesb        selectb,        insertb,        e                                       noop            sql        */
+  /* ----------------------------------------------------------------------------------------------------------------------------------------*/
   /* DOMUtils: SQLite oriented statements */
-  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMUtils_new_e,               "PRAGMA _marpaXml_DOMUtils_new_e; /* No op */" },
-  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMUtils_vacuum_e,            "VACUUM" },
-  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMUtils_free_e,              "PRAGMA _marpaXml_DOMUtils_free_e; /* No op */" },
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMUtils_new_e,               marpaXml_true,  "PRAGMA _marpaXml_DOMUtils_new_e; /* No op */" },
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMUtils_vacuum_e,            marpaXml_false, "VACUUM" },
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMUtils_free_e,              marpaXml_true,  "PRAGMA _marpaXml_DOMUtils_free_e; /* No op */" },
 
-  /* ------------------------------------------------------------------------------------------------------------------------*/
-  /* stmt generatedb      changesb        selectb,        insertb,        e                                       sql        */
-  /* ------------------------------------------------------------------------------------------------------------------------*/
+  /* ----------------------------------------------------------------------------------------------------------------------------------------*/
+  /* stmt generatedb      changesb        selectb,        insertb,        e                                       noop            sql        */
+  /* ----------------------------------------------------------------------------------------------------------------------------------------*/
   /* DOMStringList : we use the temp namespace so that main is not changed */
-  { NULL, marpaXml_true,  marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMStringList_new_e,          "CREATE TEMPORARY VIEW DOMStringList%lld AS SELECT item FROM DOMString" },
-  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMStringList_item_e,         "SELECT COALESCE((SELECT item FROM DOMStringList%lld LIMIT 1 OFFSET ?1), NULL)" },
-  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMStringList_getLength_e,    "SELECT COUNT(*) FROM DOMStringList%lld" },
-  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMStringList_contains_e,     "SELECT CASE WHEN EXISTS (SELECT 1 FROM DOMStringList%lld WHERE (item = ?1) LIMIT 1) THEN 1 ELSE 0 END" },
-  { NULL, marpaXml_true,  marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMStringList_free_e,         "DROP VIEW DOMStringList%lld" },
+  { NULL, marpaXml_true,  marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMStringList_new_e,          marpaXml_false, "CREATE TEMPORARY VIEW DOMStringList%lld AS SELECT item FROM DOMString" },
+  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMStringList_item_e,         marpaXml_false, "SELECT COALESCE((SELECT item FROM DOMStringList%lld LIMIT 1 OFFSET ?1), NULL)" },
+  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMStringList_getLength_e,    marpaXml_false, "SELECT COUNT(*) FROM DOMStringList%lld" },
+  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMStringList_contains_e,     marpaXml_false, "SELECT CASE WHEN EXISTS (SELECT 1 FROM DOMStringList%lld WHERE (item = ?1) LIMIT 1) THEN 1 ELSE 0 END" },
+  { NULL, marpaXml_true,  marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMStringList_free_e,         marpaXml_false, "DROP VIEW DOMStringList%lld" },
 
-  /* ------------------------------------------------------------------------------------------------------------------------*/
-  /* stmt generatedb      changesb        selectb,        insertb,        e                                       sql        */
-  /* ------------------------------------------------------------------------------------------------------------------------*/
+  /* ----------------------------------------------------------------------------------------------------------------------------------------*/
+  /* stmt generatedb      changesb        selectb,        insertb,        e                                       noop            sql        */
+  /* ----------------------------------------------------------------------------------------------------------------------------------------*/
   /* NameList : we use the temp namespace so that main is not changed */
-  { NULL, marpaXml_true,  marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_NameList_new_e,               "CREATE TEMPORARY VIEW NameList%lld AS SELECT name, namespaceURI FROM Node" },
-  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_NameList_getName_e,           "SELECT COALESCE((SELECT name FROM NameList%lld LIMIT 1 OFFSET ?1), NULL)" },
-  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_NameList_getNamespaceURI_e,   "SELECT COALESCE((SELECT namespaceURI FROM NameList%lld LIMIT 1 OFFSET ?1), NULL)" },
-  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_NameList_getLength_e,         "SELECT COUNT(*) FROM NameList%lld" },
-  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_NameList_contains_e,          "SELECT CASE WHEN EXISTS (SELECT 1 FROM NameList%lld WHERE (name = ?1) LIMIT 1) THEN 1 ELSE 0 END" },
-  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_NameList_containsNS_e,        "SELECT CASE WHEN EXISTS (SELECT 1 FROM NameList%lld WHERE (namespaceURI = ?1 AND name = ?2) LIMIT 1) THEN 1 ELSE 0 END" },
-  { NULL, marpaXml_true,  marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_NameList_free_e,              "DROP VIEW NameList%lld" },
+  { NULL, marpaXml_true,  marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_NameList_new_e,               marpaXml_false, "CREATE TEMPORARY VIEW NameList%lld AS SELECT name, namespaceURI FROM Node" },
+  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_NameList_getName_e,           marpaXml_false, "SELECT COALESCE((SELECT name FROM NameList%lld LIMIT 1 OFFSET ?1), NULL)" },
+  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_NameList_getNamespaceURI_e,   marpaXml_false, "SELECT COALESCE((SELECT namespaceURI FROM NameList%lld LIMIT 1 OFFSET ?1), NULL)" },
+  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_NameList_getLength_e,         marpaXml_false, "SELECT COUNT(*) FROM NameList%lld" },
+  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_NameList_contains_e,          marpaXml_false, "SELECT CASE WHEN EXISTS (SELECT 1 FROM NameList%lld WHERE (name = ?1) LIMIT 1) THEN 1 ELSE 0 END" },
+  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_NameList_containsNS_e,        marpaXml_false, "SELECT CASE WHEN EXISTS (SELECT 1 FROM NameList%lld WHERE (namespaceURI = ?1 AND name = ?2) LIMIT 1) THEN 1 ELSE 0 END" },
+  { NULL, marpaXml_true,  marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_NameList_free_e,              marpaXml_false, "DROP VIEW NameList%lld" },
 
-  /* ------------------------------------------------------------------------------------------------------------------------*/
-  /* stmt generatedb      changesb        selectb,        insertb,        e                                       sql        */
-  /* ------------------------------------------------------------------------------------------------------------------------*/
+  /* ----------------------------------------------------------------------------------------------------------------------------------------*/
+  /* stmt generatedb      changesb        selectb,        insertb,        e                                       noop            sql        */
+  /* ----------------------------------------------------------------------------------------------------------------------------------------*/
   /* Node */
-  { NULL, marpaXml_false, marpaXml_true,  marpaXml_false, marpaXml_true,  _marpaXml_Node_new_e,                   "INSERT INTO Node DEFAULT VALUES" },
-  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_Node_free_e,                  "PRAGMA _marpaXml_Node_free_e; /* No op */" },
+  { NULL, marpaXml_false, marpaXml_true,  marpaXml_false, marpaXml_true,  _marpaXml_Node_new_e,                   marpaXml_false, "INSERT INTO Node DEFAULT VALUES" },
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_Node_free_e,                  marpaXml_true,  "PRAGMA _marpaXml_Node_free_e; /* No op */" },
 
-  /* ------------------------------------------------------------------------------------------------------------------------*/
-  /* stmt generatedb      changesb        selectb,        insertb,        e                                       sql        */
-  /* ------------------------------------------------------------------------------------------------------------------------*/
+  /* ----------------------------------------------------------------------------------------------------------------------------------------*/
+  /* stmt generatedb      changesb        selectb,        insertb,        e                                       noop            sql        */
+  /* ----------------------------------------------------------------------------------------------------------------------------------------*/
   /* DOMImplementationList */
-  { NULL, marpaXml_true,  marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementationList_new_e,  "CREATE TEMPORARY VIEW DOMImplementationList%lld AS %s" },
-  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMImplementationList_item_e, "SELECT COALESCE((SELECT implementationName FROM DOMImplementationList%lld LIMIT 1 OFFSET ?1), NULL)" },
-  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMImplementationList_getLength_e,    "SELECT COUNT(*) FROM DOMImplementationList%lld" },
-  { NULL, marpaXml_true,  marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementationList_free_e, "DROP VIEW DOMImplementationList%lld" },
+  { NULL, marpaXml_true,  marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementationList_new_e,  marpaXml_false, "CREATE TEMPORARY VIEW DOMImplementationList%lld AS %s" },
+  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMImplementationList_item_e, marpaXml_false, "SELECT COALESCE((SELECT implementationName FROM DOMImplementationList%lld LIMIT 1 OFFSET ?1), NULL)" },
+  { NULL, marpaXml_true,  marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMImplementationList_getLength_e,    marpaXml_false, "SELECT COUNT(*) FROM DOMImplementationList%lld" },
+  { NULL, marpaXml_true,  marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementationList_free_e, marpaXml_false, "DROP VIEW DOMImplementationList%lld" },
 
-  /* ------------------------------------------------------------------------------------------------------------------------*/
-  /* stmt generatedb      changesb        selectb,        insertb,        e                                       sql        */
-  /* ------------------------------------------------------------------------------------------------------------------------*/
+  /* ----------------------------------------------------------------------------------------------------------------------------------------*/
+  /* stmt generatedb      changesb        selectb,        insertb,        e                                       noop            sql        */
+  /* ----------------------------------------------------------------------------------------------------------------------------------------*/
   /* DOMImplementationSource */
-  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementationSource_new_e,  "PRAGMA _marpaXml_DOMImplementationSource_new_e; /* No op */" },
-  { NULL, marpaXml_false, marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMImplementationSource_getDOMImplementation_e,  "PRAGMA _marpaXml_DOMImplementationSource_getDOMImplementation_e; /* Implemented as an exec() */" },
-  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementationSource_getDOMImplementationList_e,  "PRAGMA _marpaXml_DOMImplementationSource_getDOMImplementationList_e; /* Implemented as an exec() */" },
-  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementationSource_free_e, "PRAGMA _marpaXml_DOMImplementationSource_free_e; /* No op */" },
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementationSource_new_e,  marpaXml_true, "PRAGMA _marpaXml_DOMImplementationSource_new_e; /* No op */" },
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMImplementationSource_getDOMImplementation_e,  marpaXml_true, "PRAGMA _marpaXml_DOMImplementationSource_getDOMImplementation_e; /* Implemented as an exec() */" },
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementationSource_getDOMImplementationList_e,  marpaXml_true, "PRAGMA _marpaXml_DOMImplementationSource_getDOMImplementationList_e; /* Implemented as an exec() */" },
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementationSource_free_e, marpaXml_true, "PRAGMA _marpaXml_DOMImplementationSource_free_e; /* No op */" },
 
-  /* ------------------------------------------------------------------------------------------------------------------------*/
-  /* stmt generatedb      changesb        selectb,        insertb,        e                                       sql        */
-  /* ------------------------------------------------------------------------------------------------------------------------*/
+  /* ----------------------------------------------------------------------------------------------------------------------------------------*/
+  /* stmt generatedb      changesb        selectb,        insertb,        e                                       noop            sql        */
+  /* ----------------------------------------------------------------------------------------------------------------------------------------*/
   /* DOMImplementation */
-  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementation_new_e,        "PRAGMA _marpaXml_DOMImplementation_new_e; /* No op */" },
-  { NULL, marpaXml_false, marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMImplementation_newFromFeatureAndVersion_e,  "SELECT id FROM DOMImplementation WHERE ((feature LIKE ?1) AND ((?3 IS NULL) OR (version = ?2))) LIMIT 1; /* Internal */" },
-  { NULL, marpaXml_false, marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMImplementation_newFromImplementationName_e,  "SELECT id FROM DOMImplementation WHERE (implementationName = ?1) LIMIT 1; /* Internal */" },
-  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementation_hasFeature_e,  "SELECT CASE WHEN EXISTS (SELECT 1 FROM DOMImplementation WHERE ((implementationName = (SELECT implementationName WHERE (id = ?1))) AND (feature LIKE ?2) AND ((?3 IS NULL) OR (version = ?3))) LIMIT 1) THEN 1 ELSE 0 END" },
-  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementation_createDocumentType_e,  "PRAGMA _marpaXml_DOMImplementation_createDocumentType_e; /* TO DO */" },
-  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementation_createDocument_e,  "PRAGMA _marpaXml_DOMImplementation_createDocument_e; /* TO DO */" },
-  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementation_getFeature_e,  "PRAGMA _marpaXml_DOMImplementation_getFeature_e; /* No op - implemented as a sw logic around hasFeature */" },
-  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementation_free_e, "PRAGMA _marpaXml_DOMImplementation_free_e; /* No op */" },
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementation_new_e,        marpaXml_true, "PRAGMA _marpaXml_DOMImplementation_new_e; /* No op */" },
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMImplementation_newFromFeatureAndVersion_e,  marpaXml_false, "SELECT id FROM DOMImplementation WHERE ((feature LIKE ?1) AND ((?3 IS NULL) OR (version = ?2))) LIMIT 1; /* Internal */" },
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_DOMImplementation_newFromImplementationName_e,  marpaXml_false, "SELECT id FROM DOMImplementation WHERE (implementationName = ?1) LIMIT 1; /* Internal */" },
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementation_hasFeature_e,  marpaXml_false, "SELECT CASE WHEN EXISTS (SELECT 1 FROM DOMImplementation WHERE ((implementationName = (SELECT implementationName WHERE (id = ?1))) AND (feature LIKE ?2) AND ((?3 IS NULL) OR (version = ?3))) LIMIT 1) THEN 1 ELSE 0 END" },
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementation_createDocumentType_e,  marpaXml_true, "PRAGMA _marpaXml_DOMImplementation_createDocumentType_e; /* TO DO */" },
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementation_createDocument_e,  marpaXml_true, "PRAGMA _marpaXml_DOMImplementation_createDocument_e; /* TO DO */" },
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementation_getFeature_e,  marpaXml_true, "PRAGMA _marpaXml_DOMImplementation_getFeature_e; /* No op - implemented as a sw logic around hasFeature */" },
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DOMImplementation_free_e, marpaXml_true, "PRAGMA _marpaXml_DOMImplementation_free_e; /* No op */" },
 
-  /* ------------------------------------------------------------------------------------------------------------------------*/
-  /* stmt generatedb      changesb        selectb,        insertb,        e                                       sql        */
-  /* ------------------------------------------------------------------------------------------------------------------------*/
+  /* ----------------------------------------------------------------------------------------------------------------------------------------*/
+  /* stmt generatedb      changesb        selectb,        insertb,        e                                       noop            sql        */
+  /* ----------------------------------------------------------------------------------------------------------------------------------------*/
   /* DocumentType */
-  { NULL, marpaXml_false, marpaXml_true,  marpaXml_false, marpaXml_true,  _marpaXml_DocumentType_new_e,             "INSERT INTO DocumentType (name, publicId, systemId, internalSubset, DOMNode_id) VALUES (?1, ?2, ?3, ?4, ?5)" },
-  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DocumentType_free_e,            "PRAGMA _marpaXml_DocumentType_free_e; /* No op */" },
+  { NULL, marpaXml_false, marpaXml_true,  marpaXml_false, marpaXml_true,  _marpaXml_DocumentType_new_e,             marpaXml_false, "INSERT INTO DocumentType (name, publicId, systemId, internalSubset, DOMNode_id) VALUES (?1, ?2, ?3, ?4, ?5)" },
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_DocumentType_free_e,            marpaXml_true, "PRAGMA _marpaXml_DocumentType_free_e; /* No op */" },
 
-  /* ------------------------------------------------------------------------------------------------------------------------*/
-  /* stmt generatedb      changesb        selectb,        insertb,        e                                       sql        */
-  /* ------------------------------------------------------------------------------------------------------------------------*/
+  /* ----------------------------------------------------------------------------------------------------------------------------------------*/
+  /* stmt generatedb      changesb        selectb,        insertb,        e                                       noop            sql        */
+  /* ----------------------------------------------------------------------------------------------------------------------------------------*/
   /* Lexeme */
-  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_Lexeme_new_e,                   "PRAGMA _marpaXml_Lexeme_new_e; /* No op */" },
-  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_true,  _marpaXml_Lexeme_insert_e,                "INSERT INTO Lexeme (hash, string, counter) VALUES (xxhash(?1), ?1, 1)" },
-  { NULL, marpaXml_false, marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_Lexeme_select_e,                "SELECT id FROM Lexeme WHERE ((hash = xxhash(?1)) AND (string = ?1))" },
-  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_Lexeme_getId_e,                 "PRAGMA _marpaXml_Lexeme_getId_e; /* No op */" },
-  { NULL, marpaXml_false, marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_Lexeme_getString_e,             "SELECT string FROM Lexeme WHERE (id = ?1)" },
-  { NULL, marpaXml_false, marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_Lexeme_getCounter_e,            "SELECT counter FROM Lexeme WHERE (id = ?1)" },
-  { NULL, marpaXml_false, marpaXml_true,  marpaXml_false, marpaXml_false, _marpaXml_Lexeme_incCounter_e,            "UPDATE Lexeme SET counter = counter + 1 WHERE (id = ?1)" },
-  { NULL, marpaXml_false, marpaXml_true,  marpaXml_false, marpaXml_false, _marpaXml_Lexeme_delete_e,                "UPDATE Lexeme SET counter = counter - 1 WHERE (id = ?1)" },
-  { NULL, marpaXml_false, marpaXml_true,  marpaXml_false, marpaXml_false, _marpaXml_Lexeme_free_e,                  "PRAGMA _marpaXml_Lexeme_new_e; /* No op */" },
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_Lexeme_new_e,                   marpaXml_true, "PRAGMA _marpaXml_Lexeme_new_e; /* No op */" },
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_true,  _marpaXml_Lexeme_insert_e,                marpaXml_false, "INSERT INTO Lexeme (hash, string, counter) VALUES (xxhash(?1), ?1, 1)" },
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_Lexeme_select_e,                marpaXml_false, "SELECT id FROM Lexeme WHERE ((hash = xxhash(?1)) AND (string = ?1))" },
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_false, marpaXml_false, _marpaXml_Lexeme_getId_e,                 marpaXml_true, "PRAGMA _marpaXml_Lexeme_getId_e; /* No op */" },
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_Lexeme_getString_e,             marpaXml_false, "SELECT string FROM Lexeme WHERE (id = ?1)" },
+  { NULL, marpaXml_false, marpaXml_false, marpaXml_true,  marpaXml_false, _marpaXml_Lexeme_getCounter_e,            marpaXml_false, "SELECT counter FROM Lexeme WHERE (id = ?1)" },
+  { NULL, marpaXml_false, marpaXml_true,  marpaXml_false, marpaXml_false, _marpaXml_Lexeme_incCounter_e,            marpaXml_false, "UPDATE Lexeme SET counter = counter + 1 WHERE (id = ?1)" },
+  { NULL, marpaXml_false, marpaXml_true,  marpaXml_false, marpaXml_false, _marpaXml_Lexeme_delete_e,                marpaXml_false, "UPDATE Lexeme SET counter = counter - 1 WHERE (id = ?1)" },
+  { NULL, marpaXml_false, marpaXml_true,  marpaXml_false, marpaXml_false, _marpaXml_Lexeme_free_e,                  marpaXml_true, "PRAGMA _marpaXml_Lexeme_free_e; /* No op */" },
 
-  { NULL, 0, 0, 0, 0, 0, NULL }
+  { NULL, 0, 0, 0, 0, 0, 0, NULL }
 };
 
 static _marpaXml_init_t _marpaXml_init[] = {
@@ -2649,7 +2650,7 @@ marpaXml_boolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Optionp
   sqlite3_mutex        *mutexp = NULL;
   sqlite3_stmt         *loadcollation_stmt = NULL;
   static sqlite3       *dbp = NULL;
-  marpaXml_DOM_Option_t marpaXml_DOM_Option = {":memory", NULL, -1, { NULL, NULL, MARPAXML_LOGLEVEL_WARNING }};
+  marpaXml_DOM_Option_t marpaXml_DOM_Option = {":memory:", NULL, -1, { NULL, NULL, MARPAXML_LOGLEVEL_WARNING }};
   int                   sqliteRc;
   int                   i;
   int                   iConstantForEndiannessDetection = 1;
@@ -2667,7 +2668,6 @@ marpaXml_boolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Optionp
   sqlite3_config(SQLITE_CONFIG_LOG, &_marpaXml_DOMErrorLogCallback, NULL);
 
   /* Note: sqlite3_initialize() is thread-safe and only the first one is effective */
-  MARPAXML_TRACE0("Initializing SQLite\n");
   if ((sqliteRc = sqlite3_initialize()) != SQLITE_OK) {
     goto error;
   }
@@ -2699,6 +2699,8 @@ marpaXml_boolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Optionp
       goto error;
     }
   }
+
+  /* From now on we can use the log macros */
 
   /* Precompute grammars */
   MARPAXML_TRACE0("Precomputing qname XML 1.0 grammar\n");
