@@ -639,6 +639,7 @@ sub generateC {
 #include <errno.h>
 #include "internal/streamIn.h"
 #include "internal/grammar/$namespace.h"
+#include "internal/grammar/xml_common.h"
 
 INCLUDES
 
@@ -668,6 +669,8 @@ DECLARATIONS
   $c .= generateParseEventsb(@_);
   $c .= generateBuildSymbolsb(@_);
   $c .= generateBuildRulesb(@_);
+  $c .= generateLexemeValueb(@_);
+  $c .= generateRecognizeb(@_);
   $c .= generatePushLexemeb(@_);
 
   return $c;
@@ -931,7 +934,13 @@ void ${namespace}_destroyv(${namespace}_t **${namespace}pp) {
       if (${namespace}p->marpaWrapperRuleArrayp != NULL) {
 	free(${namespace}p->marpaWrapperRuleArrayp);
       }
-      free(${namespace}p);
+      if (${namespace}p->marpaWrapperSymbolCallbackArrayp != NULL) {
+	free(${namespace}p->marpaWrapperSymbolCallbackArrayp);
+      }
+      if (${namespace}p->marpaWrapperRuleCallbackArrayp != NULL) {
+	free(${namespace}p->marpaWrapperRuleCallbackArrayp);
+      }
+     free(${namespace}p);
     }
 
     *${namespace}pp = NULL;
@@ -948,20 +957,6 @@ sub generateBuildGrammarb {
   if ($namespace =~ /^xml/) {
 
     $buildGrammarb .= <<BUILDGRAMMARBWITHOPTION;
-
-/**************************/
-/* ${namespace}_getMarpaWrapperpb */
-/**************************/
-marpaWrapperBool_t ${namespace}_getMarpaWrapperpb(${namespace}_t *${namespace}p, marpaWrapper_t **marpaWrapperpp) {
-  if (${namespace}p == NULL) {
-    return MARPAWRAPPER_BOOL_FALSE;
-  }
-  if (marpaWrapperpp != NULL) {
-      *marpaWrapperpp = ${namespace}p->marpaWrapperp;
-  }
-
-  return MARPAWRAPPER_BOOL_TRUE;
-}
 
 /**************************/
 /* _${namespace}_buildGrammarb */
@@ -1021,6 +1016,55 @@ static C_INLINE marpaWrapperBool_t _${namespace}_buildGrammarb(${namespace}_t *$
 BUILDGRAMMARBWITHOUTOPTION
   }
   return $buildGrammarb;
+}
+
+sub generateLexemeValueb {
+  my ($value, $namespace) = @_;
+
+  my $lexemeValueb = '';
+
+  $lexemeValueb .= <<BUILDLEXEMEVALUEB;
+
+/**************************/
+/* ${namespace}_lexemeValueb */
+/**************************/
+marpaWrapperBool_t ${namespace}_lexemeValueb(void *lexemeValuebCallbackDatavp, streamIn_t *streamInp, size_t lengthl, int *lexemeValueip) {
+  ${namespace}_t *${namespace}p = (${namespace}_t *) lexemeValuebCallbackDatavp;
+
+  if (${namespace}p == NULL) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+
+  return xml_common_lexemeValueb(${namespace}p->marpaWrapperp, streamInp, lengthl, lexemeValueip);
+}
+
+BUILDLEXEMEVALUEB
+
+  return $lexemeValueb;
+}
+
+sub generateRecognizeb {
+  my ($value, $namespace) = @_;
+
+  my $recognizeb = '';
+
+  $recognizeb .= <<BUILDREGOGNIZEB;
+
+/**************************/
+/* ${namespace}_recognizeb */
+/**************************/
+marpaWrapperBool_t ${namespace}_recognizeb(${namespace}_t *${namespace}p, streamIn_t *streamInp) {
+
+  if (${namespace}p == NULL) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+
+  return marpaWrapper_r_recognizeb(${namespace}p->marpaWrapperp, ${namespace}p, streamInp, &${namespace}_isLexemeb, &${namespace}_lexemeValueb);
+}
+
+BUILDREGOGNIZEB
+
+  return $recognizeb;
 }
 
 sub generateParseEventsb {
