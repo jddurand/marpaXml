@@ -14,7 +14,7 @@ int main(int argc, char **argv) {
   marpaXml_DOM_Option_t marpaXml_DOM_Option = {"/tmp/test.sqlite", NULL, -1, { NULL, NULL, MARPAXML_LOGLEVEL_TRACE } };
 #endif
 
-  marpaXml_DOM_init(&marpaXml_DOM_Option);
+  marpaXml_DOM_init(NULL /* &marpaXml_DOM_Option */);
 
   marpaWrapper_optionDefaultb(&marpaWrapperOption);
   marpaWrapperOption.logLevelWantedi     = MARPAXML_LOGLEVEL_TRACE;
