@@ -1029,14 +1029,10 @@ sub generateLexemeValueb {
 /**************************/
 /* ${namespace}_lexemeValueb */
 /**************************/
-marpaWrapperBool_t ${namespace}_lexemeValueb(void *lexemeValuebCallbackDatavp, streamIn_t *streamInp, size_t lengthl, int *lexemeValueip) {
-  ${namespace}_t *${namespace}p = (${namespace}_t *) lexemeValuebCallbackDatavp;
+marpaWrapperBool_t ${namespace}_lexemeValueb(void *marpaWrapperSymbolOptionDatavp, streamIn_t *streamInp, int *lexemeValueip, int *lexemeLengthip) {
+  ${namespace}_symbol_callback_t *${namespace}_symbol_callbackp = (${namespace}_symbol_callback_t *) marpaWrapperSymbolOptionDatavp;
 
-  if (${namespace}p == NULL) {
-    return MARPAWRAPPER_BOOL_FALSE;
-  }
-
-  return xml_common_lexemeValueb(${namespace}p->marpaWrapperp, streamInp, lengthl, lexemeValueip);
+  return xml_common_lexemeValueb(${namespace}_symbol_callbackp->${namespace}p->marpaWrapperp, streamInp, lexemeValueip, lexemeLengthip);
 }
 
 BUILDLEXEMEVALUEB
@@ -1060,10 +1056,13 @@ marpaWrapperBool_t ${namespace}_recognizeb(${namespace}_t *${namespace}p, stream
     return MARPAWRAPPER_BOOL_FALSE;
   }
 
-  return marpaWrapper_r_recognizeb(${namespace}p->marpaWrapperp, streamInp, &${namespace}_isLexemeb,
-                                   ${namespace}p, &${namespace}_lexemeValueb,
-                                   ${namespace}p, &${namespace}_symbolToStringb,
-                                   ${namespace}p, &${namespace}_ruleToStringb);
+  return marpaWrapper_r_recognizeb(${namespace}p->marpaWrapperp,
+				   streamInp,
+				   MARPAWRAPPER_BOOL_TRUE, /* We work explicitely in the latm mode */
+				   &${namespace}_isLexemeb,
+                                   &${namespace}_lexemeValueb,
+                                   &${namespace}_symbolToStringb,
+                                   &${namespace}_ruleToStringb);
 }
 
 BUILDREGOGNIZEB
@@ -1083,15 +1082,11 @@ sub generateToStringb {
 /**************************/
 /* ${namespace}_ruleToStringb */
 /**************************/
-marpaWrapperBool_t ${namespace}_ruleToStringb(marpaWrapperRule_t *marpaWrapperRulep, const char **rulesp) {
-  ${namespace}_rule_callback_t *marpaWrapperRuleCallbackp;
-
-  if (marpaWrapperRule_datavp_getb(marpaWrapperRulep, (void **) &marpaWrapperRuleCallbackp) == MARPAWRAPPER_BOOL_FALSE) {
-    return MARPAWRAPPER_BOOL_FALSE;
-  }
+marpaWrapperBool_t ${namespace}_ruleToStringb(void *marpaWrapperRuleOptionDatavp, const char **rulesp) {
+  ${namespace}_rule_callback_t *${namespace}_rule_callbackp = (${namespace}_rule_callback_t *) marpaWrapperRuleOptionDatavp;
 
   if (rulesp != NULL) {
-    *rulesp = rulesToString[marpaWrapperRuleCallbackp->${namespace}_rulei];
+    *rulesp = rulesToString[${namespace}_rule_callbackp->${namespace}_rulei];
   }
 
   return MARPAWRAPPER_BOOL_TRUE;
@@ -1100,15 +1095,11 @@ marpaWrapperBool_t ${namespace}_ruleToStringb(marpaWrapperRule_t *marpaWrapperRu
 /**************************/
 /* ${namespace}_symbolToStringb */
 /**************************/
-marpaWrapperBool_t ${namespace}_symbolToStringb(marpaWrapperSymbol_t *marpaWrapperSymbolp, const char **symbolsp) {
-  ${namespace}_symbol_callback_t *marpaWrapperSymbolCallbackp;
-
-  if (marpaWrapperSymbol_datavp_getb(marpaWrapperSymbolp, (void **) &marpaWrapperSymbolCallbackp) == MARPAWRAPPER_BOOL_FALSE) {
-    return MARPAWRAPPER_BOOL_FALSE;
-  }
+marpaWrapperBool_t ${namespace}_symbolToStringb(void *marpaWrapperSymbolOptionDatavp, const char **symbolsp) {
+  ${namespace}_symbol_callback_t *${namespace}_symbol_callbackp = (${namespace}_symbol_callback_t *) marpaWrapperSymbolOptionDatavp;
 
   if (symbolsp != NULL) {
-    *symbolsp = symbolsToString[marpaWrapperSymbolCallbackp->${namespace}_symboli];
+    *symbolsp = symbolsToString[${namespace}_symbol_callbackp->${namespace}_symboli];
   }
 
   return MARPAWRAPPER_BOOL_TRUE;
@@ -1370,9 +1361,9 @@ sub generatePushLexemeb {
 /* Note: MARPAWRAPPER_BOOL_TRUE and *sizelp == 0 means this is a discarded input */
 /*********************************************************************************/
 
-marpaWrapperBool_t ${namespace}_isLexemeb(void *p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
+marpaWrapperBool_t ${namespace}_isLexemeb(void *marpaWrapperSymbolOptionDatavp, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
   marpaWrapperBool_t rcb;
-  ${namespace}_symbol_callback_t *${namespace}_symbol_callbackp = (${namespace}_symbol_callback_t *) p;
+  ${namespace}_symbol_callback_t *${namespace}_symbol_callbackp = (${namespace}_symbol_callback_t *) marpaWrapperSymbolOptionDatavp;
 
   switch (${namespace}_symbol_callbackp->${namespace}_symboli) {
 ISLEXEMEB_HEADER
@@ -1396,9 +1387,9 @@ ISLEXEMEB
   {
       marpaXmlLog_t *marpaXmlLogp = ${namespace}_symbol_callbackp->${namespace}p->marpaXmlLogp;
       if (rcb == MARPAWRAPPER_BOOL_TRUE) {
-	  MARPAXML_TRACEX("Accepted symbol %s, length %lld\\n", symbolsToString[${namespace}_symbol_callbackp->${namespace}_symboli], (long long) *sizelp);
+	  MARPAXML_TRACEX("Accepted symbol No %4d: %s, length %lld\\n", ${namespace}_symbol_callbackp->${namespace}_symboli, symbolsToString[${namespace}_symbol_callbackp->${namespace}_symboli], (long long) *sizelp);
       } else {
-	  MARPAXML_TRACEX("Rejected symbol %s\\n", symbolsToString[${namespace}_symbol_callbackp->${namespace}_symboli]);
+	  MARPAXML_TRACEX("Rejected symbol No %4d: %s\\n", ${namespace}_symbol_callbackp->${namespace}_symboli, symbolsToString[${namespace}_symbol_callbackp->${namespace}_symboli]);
       }
   }
 #endif

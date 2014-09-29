@@ -30,13 +30,14 @@ marpaWrapperBool_t xml_common_optionDefaultb(xml_common_option_t *xml_common_opt
 /* xml_common_lexemeValueb                                          */
 /* DOM layer is supposed to have been already correctly initialized */
 /********************************************************************/
-marpaWrapperBool_t xml_common_lexemeValueb(marpaWrapper_t *marpaWrapperp, streamIn_t *streamInp, size_t lengthl, int *lexemeValueip) {
+marpaWrapperBool_t xml_common_lexemeValueb(marpaWrapper_t *marpaWrapperp, streamIn_t *streamInp, int *lexemeValueip, int *lexemeLengthip) {
   char                  *dests;
   size_t                 byteLengthl;
   marpaXml_String_t     *stringp;
   marpaXml_Lexeme_t     *lexemep;
   sqlite3_int64          id;
   marpaXmlLog_t         *marpaXmlLogp = NULL;
+  size_t                 lengthl;
 
   if (marpaWrapperp != NULL) {
     marpaXmlLogp = marpaWrapper_marpaXmlLogp(marpaWrapperp);
@@ -47,7 +48,7 @@ marpaWrapperBool_t xml_common_lexemeValueb(marpaWrapper_t *marpaWrapperp, stream
      - current position in streamInp is where the lexeme is ending
      - lengthl, if > 0, is the correct number of characters within this range
   */
-  if (streamInUtf8_extractFromMarkedb(streamInp, &dests, &byteLengthl, (lengthl <= 0) ? &lengthl : NULL) == STREAMIN_BOOL_FALSE) {
+  if (streamInUtf8_extractFromMarkedb(streamInp, &dests, &byteLengthl, &lengthl) == STREAMIN_BOOL_FALSE) {
     return MARPAWRAPPER_BOOL_FALSE;
   }
 
@@ -78,6 +79,8 @@ marpaWrapperBool_t xml_common_lexemeValueb(marpaWrapper_t *marpaWrapperp, stream
   }
 
   *lexemeValueip = (int) id;
+  /* We use the token-per-earleme model */
+  *lexemeLengthip = 1;
 
   marpaXml_Lexeme_free(&lexemep);
 
