@@ -1288,14 +1288,15 @@ marpaXml_boolean_t marpaXml_DOM_release(void) {
     qname_1_0_destroyv(&qname_1_0p);
   }
 
+  MARPAXML_TRACE0("Shutting down SQLite\n");
+
   /* Free logging */
   if (marpaXmlLogp != NULL) {
     marpaXmlLog_freev(&marpaXmlLogp);
   }
 
-  MARPAXML_TRACE0("Shutting down SQLite\n");
   if ((sqliteRc = sqlite3_shutdown()) != SQLITE_OK) {
-    MARPAXML_ERRORX("sqlite3_shutdown(): %s at %s:%d\n", sqlite3_errstr(sqliteRc), __FILE__, __LINE__);
+    /* MARPAXML_ERRORX("sqlite3_shutdown(): %s at %s:%d\n", sqlite3_errstr(sqliteRc), __FILE__, __LINE__); */
     rc = marpaXml_false;
   }
 
