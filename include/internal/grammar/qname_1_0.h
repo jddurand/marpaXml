@@ -13,6 +13,8 @@ marpaWrapperBool_t  qname_1_0_recognizeb(qname_1_0_t *qname_1_0p, streamIn_t *st
 void                qname_1_0_destroyv(qname_1_0_t **qname_1_0pp);
 
 /* Callbacks */
+marpaWrapperBool_t  qname_1_0_ruleToStringb(marpaWrapperRule_t *marpaWrapperRulep, const char **rulesp);
+marpaWrapperBool_t  qname_1_0_symbolToStringb(marpaWrapperSymbol_t *marpaWrapperSymbolp, const char **symbolsp);
 marpaWrapperBool_t  qname_1_0_isLexemeb(void *p, signed int currenti, streamIn_t *streamInp, size_t *lengthlp);
 marpaWrapperBool_t  qname_1_0_lexemeValueb(void *lexemeValuebCallbackDatavp, streamIn_t *streamInp, size_t lengthl, int *lexemeValueip);
 

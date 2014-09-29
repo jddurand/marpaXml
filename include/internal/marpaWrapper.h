@@ -143,8 +143,18 @@ marpaWrapperBool_t        marpaWrapper_r_progressb            (marpaWrapper_t *m
 /* streamInp is supposed to have been opened in UTF-8 mode */
 typedef marpaWrapperBool_t (*marpaWrapper_isLexemebCallback_t)(void *p, signed int currenti, streamIn_t *streamInp, size_t *lengthlp);
 typedef marpaWrapperBool_t (*marpaWrapper_lexemeValuebCallback_t)(void *lexemeValuebCallbackDatavp, streamIn_t *streamInp, size_t lengthl, int *lexemeValueip);
+typedef marpaWrapperBool_t (*marpaWrapper_ruleToStringb_t)(marpaWrapperRule_t *marpaWrapperRulep, const char **rulesp);
+typedef marpaWrapperBool_t (*marpaWrapper_symbolToStringb_t)(marpaWrapperSymbol_t *marpaWrapperSymbolp, const char **rulesp);
 
-marpaWrapperBool_t        marpaWrapper_r_recognizeb           (marpaWrapper_t *marpaWrapperp, void *lexemeValuebCallbackDatavp, streamIn_t *streamInp, marpaWrapper_isLexemebCallback_t marpaWrapper_isLexemebCallbackp, marpaWrapper_lexemeValuebCallback_t marpaWrapper_lexemeValuebCallbackp);
+marpaWrapperBool_t        marpaWrapper_r_recognizeb           (marpaWrapper_t *marpaWrapperp,
+                                                               streamIn_t *streamInp,
+                                                               marpaWrapper_isLexemebCallback_t isLexemebCallbackp,
+                                                               void *lexemeValuebCallbackDatavp,
+                                                               marpaWrapper_lexemeValuebCallback_t lexemeValuebCallbackp,
+                                                               void *symbolToStringDatavp,
+                                                               marpaWrapper_symbolToStringb_t symbolToStringCallbackp,
+                                                               void *ruleToStringDatavp,
+                                                               marpaWrapper_ruleToStringb_t ruleToStringCallbackp);
 
 /******************/
 /* Phase 3: Value */

@@ -671,6 +671,7 @@ DECLARATIONS
   $c .= generateBuildRulesb(@_);
   $c .= generateLexemeValueb(@_);
   $c .= generateRecognizeb(@_);
+  $c .= generateToStringb(@_);
   $c .= generatePushLexemeb(@_);
 
   return $c;
@@ -1059,12 +1060,63 @@ marpaWrapperBool_t ${namespace}_recognizeb(${namespace}_t *${namespace}p, stream
     return MARPAWRAPPER_BOOL_FALSE;
   }
 
-  return marpaWrapper_r_recognizeb(${namespace}p->marpaWrapperp, ${namespace}p, streamInp, &${namespace}_isLexemeb, &${namespace}_lexemeValueb);
+  return marpaWrapper_r_recognizeb(${namespace}p->marpaWrapperp, streamInp, &${namespace}_isLexemeb,
+                                   ${namespace}p, &${namespace}_lexemeValueb,
+                                   ${namespace}p, &${namespace}_symbolToStringb,
+                                   ${namespace}p, &${namespace}_ruleToStringb);
 }
 
 BUILDREGOGNIZEB
 
   return $recognizeb;
+}
+
+sub generateToStringb {
+  my ($value, $namespace) = @_;
+
+  my $NAMESPACE = uc($namespace);
+
+  my $toStringb = '';
+
+  $toStringb .= <<TOSTRINGB;
+
+/**************************/
+/* ${namespace}_ruleToStringb */
+/**************************/
+marpaWrapperBool_t ${namespace}_ruleToStringb(marpaWrapperRule_t *marpaWrapperRulep, const char **rulesp) {
+  ${namespace}_rule_callback_t *marpaWrapperRuleCallbackp;
+
+  if (marpaWrapperRule_datavp_getb(marpaWrapperRulep, (void **) &marpaWrapperRuleCallbackp) == MARPAWRAPPER_BOOL_FALSE) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+
+  if (rulesp != NULL) {
+    *rulesp = rulesToString[marpaWrapperRuleCallbackp->${namespace}_rulei];
+  }
+
+  return MARPAWRAPPER_BOOL_TRUE;
+}
+
+/**************************/
+/* ${namespace}_symbolToStringb */
+/**************************/
+marpaWrapperBool_t ${namespace}_symbolToStringb(marpaWrapperSymbol_t *marpaWrapperSymbolp, const char **symbolsp) {
+  ${namespace}_symbol_callback_t *marpaWrapperSymbolCallbackp;
+
+  if (marpaWrapperSymbol_datavp_getb(marpaWrapperSymbolp, (void **) &marpaWrapperSymbolCallbackp) == MARPAWRAPPER_BOOL_FALSE) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+
+  if (symbolsp != NULL) {
+    *symbolsp = symbolsToString[marpaWrapperSymbolCallbackp->${namespace}_symboli];
+  }
+
+  return MARPAWRAPPER_BOOL_TRUE;
+}
+
+TOSTRINGB
+
+  return $toStringb;
 }
 
 sub generateParseEventsb {
@@ -1344,9 +1396,9 @@ ISLEXEMEB
   {
       marpaXmlLog_t *marpaXmlLogp = ${namespace}_symbol_callbackp->${namespace}p->marpaXmlLogp;
       if (rcb == MARPAWRAPPER_BOOL_TRUE) {
-	  MARPAXML_TRACEX("Accepted lexeme %s, length %lld\\n", symbolsToString[${namespace}_symbol_callbackp->${namespace}_symboli], (long long) *sizelp);
+	  MARPAXML_TRACEX("Accepted symbol %s, length %lld\\n", symbolsToString[${namespace}_symbol_callbackp->${namespace}_symboli], (long long) *sizelp);
       } else {
-	  MARPAXML_TRACEX("Rejected lexeme %s\\n", symbolsToString[${namespace}_symbol_callbackp->${namespace}_symboli]);
+	  MARPAXML_TRACEX("Rejected symbol %s\\n", symbolsToString[${namespace}_symbol_callbackp->${namespace}_symboli]);
       }
   }
 #endif
@@ -1796,6 +1848,27 @@ __[ xml_1_0_test01 ]__
 </HTML>
 __[ xml_1_0_test02 ]__
 <dictionary>
+  <!-- see /usr/share/gtkmathview*xml for examples -->
+</dictionary>
+__[ xml_1_1_test01 ]__
+<?xml version="1.1" standalone="no" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+  "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
+<TITLE>A typical HTML file</TITLE>
+</HEAD>
+<BODY>
+  This is the typical structure of an HTML file. It follows
+  the notation of the HTML 4.0 specification, including tags
+  that have been deprecated (hence the "transitional" label).
+</BODY>
+</HTML>
+__[ qname_1_0_test01 ]__
+prefix:localpart
+__[ qname_1_1_test01 ]__
+prefix:localpart
+ary>
   <!-- see /usr/share/gtkmathview*xml for examples -->
 </dictionary>
 __[ xml_1_1_test01 ]__

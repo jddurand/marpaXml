@@ -97,10 +97,29 @@ typedef struct streamInFromFILE {
   streamIn_t    *streamInp;
 } streamInFromFILE_t;
 
+/* If *blockingModeb ==  STREAMIN_BOOL_TRUE : socket is blocking mode */
+/* If *blockingModeb ==  STREAMIN_BOOL_FALSE: socket is non-blocking mode */
+/* Returns STREAMIN_BOOL_TRUE on success, STREAMIN_BOOL_FALSE on failure */
+typedef streamInBool_t (*streamIn_SocketGetBlockingMode_t)(void *socketGetBlockingModeDatavp, int fd, streamInBool_t *blockingModebp);
+
+/* If blockingModeb ==  STREAMIN_BOOL_TRUE : we want the socket to go in blocking mode */
+/* If blockingModeb ==  STREAMIN_BOOL_FALSE: we want the socket to go in non-blocking mode */
+/* Returns STREAMIN_BOOL_TRUE on success, STREAMIN_BOOL_FALSE on failure */
+typedef streamInBool_t (*streamIn_SocketSetBlockingMode_t)(void *socketSetBlockingModeDatavp, int fd, streamInBool_t blockingModeb);
+
+/* Will be called if there is an error with any system call involving this socket */
+typedef streamInBool_t (*streamIn_SocketErr_t)(void *socketErrDatavp, int fd);
+
 typedef struct streamInFromSocket {
-  int            fd;
-  int            timeoutInMilliseconds;
-  streamIn_t    *streamInp;
+  int                               fd;
+  int                               timeoutInMilliseconds;
+  streamIn_t                       *streamInp;
+  streamIn_SocketGetBlockingMode_t  socketGetBlockingModeCallbackp;
+  void                             *socketGetBlockingModeDatavp;
+  streamIn_SocketSetBlockingMode_t  socketSetBlockingModeCallbackp;
+  void                             *socketSetBlockingModeDatavp;
+  streamIn_SocketErr_t              socketErrCallbackp;
+  void                             *socketErrDatavp;
 } streamInFromSocket_t;
 
 typedef struct streamInFromBuffer {
@@ -175,8 +194,17 @@ void                          streamInUtf8_streamInFromFILE_destroyv(streamInFro
 streamInFromBuffer_t         *streamInUtf8_newFromBufferp(streamInOption_t *streamInOptionp, streamInUtf8Option_t *streamInUtf8Optionp, const char *bufp, size_t bufferByteLengthl);
 void                          streamInUtf8_streamInFromBuffer_destroyv(streamInFromBuffer_t **streamInFromBufferpp);
 
-/* give a negative value for timeoutInMilliseconds to have no timeout */
-streamInFromSocket_t         *streamInUtf8_newFromSocketp(streamInOption_t *streamInOptionp, streamInUtf8Option_t *streamInUtf8Optionp, int fd, int timeoutInMilliseconds);
+/* Give a negative value for timeoutInMilliseconds to have no timeout */
+
+/* For portability reason, on Win32 in particular, it is IMPOSSIBLE to determine in advance and reliably if a socket */
+/* is non-blocking on ALL platforms. This is why this interface is requiring callbacks to query and set the non-blocking mode */
+
+streamInFromSocket_t         *streamInUtf8_newFromSocketp(streamInOption_t *streamInOptionp, streamInUtf8Option_t *streamInUtf8Optionp,
+                                                          int fd, int timeoutInMilliseconds,
+                                                          streamIn_SocketGetBlockingMode_t socketGetBlockingModeCallbackp, void *socketGetBlockingModeDatavp,
+                                                          streamIn_SocketSetBlockingMode_t socketSetBlockingModeCallbackp, void *socketSetBlockingModeDatavp,
+                                                          streamIn_SocketErr_t             socketErrCallbackp,             void *socketErrDatavp
+                                                          );
 void                          streamInUtf8_streamInFromSocket_destroyv(streamInFromSocket_t **streamInFromSocketpp);
 
 #endif /* MARPAXML_INTERNAL_STREAMIN_H */

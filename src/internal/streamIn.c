@@ -23,32 +23,40 @@
 #ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
 #endif
-#ifdef HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
 #endif
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
 #ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#define NOGDI
+#pragma comment(lib, "Ws2_32.lib")
 #include <io.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #define STREAMIN_OPEN _open
+#define STREAMIN_OPEN_STRING "_open"
 #define STREAMIN_CLOSE _close
+#define STREAMIN_CLOSE_STRING "_close"
 #define STREAMIN_READ _read
+#define STREAMIN_READ_STRING "_read"
 #define STREAMIN_LSEEK _lseek
+#define STREAMIN_LSEEK_STRING "_lseek"
 #define STREAMIN_STRDUP _strdup
-#include <windows.h>
+#define STREAMIN_STRDUP_STRING "_strdup"
 #else
-#include <unistd.h>
 #define STREAMIN_OPEN open
+#define STREAMIN_OPEN_STRING "open"
 #define STREAMIN_CLOSE close
+#define STREAMIN_CLOSE_STRING "close"
 #define STREAMIN_READ read
+#define STREAMIN_READ_STRING "read"
 #define STREAMIN_LSEEK lseek
+#define STREAMIN_LSEEK_STRING "lseek"
 #define STREAMIN_STRDUP strdup
+#define STREAMIN_STRDUP_STRING "strdup"
 #endif
 
 #include "API/marpaXml/log.h"
@@ -2038,11 +2046,7 @@ static C_INLINE streamInBool_t _streamIn_readFromFileDescriptorCallback(void *da
   int                           n;
   streamInBool_t                rcb = STREAMIN_BOOL_TRUE;
 
-#ifdef _WIN32
-  STREAMIN_TRACEX("_read(%d, %p, %lld)", streamInFromFileDescriptorp->fd, byteArrayp, (long long) wantedBytesi);
-#else
-  STREAMIN_TRACEX("read(%d, %p, %lld)", streamInFromFileDescriptorp->fd, byteArrayp, (long long) wantedBytesi);
-#endif
+  STREAMIN_TRACEX("%s(%d, %p, %lld)", STREAMIN_READ_STRING, streamInFromFileDescriptorp->fd, byteArrayp, (long long) wantedBytesi);
   n = STREAMIN_READ(streamInFromFileDescriptorp->fd, byteArrayp, wantedBytesi);
   if (n <= 0) {
     if (n < 0) {
@@ -2242,10 +2246,19 @@ void streamInUtf8_streamInFromFILE_destroyv(streamInFromFILE_t **streamInFromFIL
 /***************************************/
 /* streamInUtf8_newFromSocketp */
 /***************************************/
-streamInFromSocket_t *streamInUtf8_newFromSocketp(streamInOption_t *streamInOptionp, streamInUtf8Option_t *streamInUtf8Optionp, int fd, int timeoutInMilliseconds) {
+streamInFromSocket_t *streamInUtf8_newFromSocketp(streamInOption_t *streamInOptionp, streamInUtf8Option_t *streamInUtf8Optionp,
+                                                  int fd, int timeoutInMilliseconds,
+                                                  streamIn_SocketGetBlockingMode_t socketGetBlockingModeCallbackp, void *socketGetBlockingModeDatavp,
+                                                  streamIn_SocketSetBlockingMode_t socketSetBlockingModeCallbackp, void *socketSetBlockingModeDatavp,
+                                                  streamIn_SocketErr_t             socketErrCallbackp,             void *socketErrDatavp
+                                                  ) {
   streamInUtf8Option_t  streamInUtf8Option;
   streamInOption_t      streamInOption;
   streamInFromSocket_t *streamInFromSocketp;
+
+  if (socketGetBlockingModeCallbackp == NULL || socketSetBlockingModeCallbackp == NULL) {
+    return NULL;
+  }
 
   if (streamInOptionp == NULL) {
     if (streamIn_optionDefaultb(&streamInOption) == STREAMIN_BOOL_FALSE) {
@@ -2264,8 +2277,14 @@ streamInFromSocket_t *streamInUtf8_newFromSocketp(streamInOption_t *streamInOpti
   if (streamInFromSocketp == NULL) {
     return NULL;
   }
-  streamInFromSocketp->fd = fd;
-  streamInFromSocketp->timeoutInMilliseconds = timeoutInMilliseconds;
+  streamInFromSocketp->fd                             = fd;
+  streamInFromSocketp->timeoutInMilliseconds          = timeoutInMilliseconds;
+  streamInFromSocketp->socketGetBlockingModeCallbackp = socketGetBlockingModeCallbackp;
+  streamInFromSocketp->socketGetBlockingModeDatavp    = socketGetBlockingModeDatavp;
+  streamInFromSocketp->socketSetBlockingModeCallbackp = socketSetBlockingModeCallbackp;
+  streamInFromSocketp->socketSetBlockingModeDatavp    = socketSetBlockingModeDatavp;
+  streamInFromSocketp->socketErrCallbackp             = socketErrCallbackp;
+  streamInFromSocketp->socketErrDatavp                = socketErrDatavp;
 
   /* We explicitely overwrite the read callback, unless user already provided one */
   if (streamInOptionp->readCallbackp == NULL) {
@@ -2287,17 +2306,17 @@ streamInFromSocket_t *streamInUtf8_newFromSocketp(streamInOption_t *streamInOpti
 /************************************/
 /* Loosely based on http://developerweb.net/viewtopic.php?id=2933 */
 static C_INLINE streamInBool_t _streamIn_readFromSocketCallback(void *datavp, size_t wantedBytesi, size_t *gotBytesip, char *byteArrayp, char **charManagedArrayp) {
-  streamInFromSocket_t *streamInFromSocketp = (streamInFromSocket_t *) datavp;
+  streamInFromSocket_t         *streamInFromSocketp = (streamInFromSocket_t *) datavp;
   streamIn_t                   *streamInp = streamInFromSocketp->streamInp;
   streamInBool_t                rcb = STREAMIN_BOOL_TRUE;
   fd_set                        readset;
+  streamInBool_t                blockingModeb;
+  struct timeval                tv;
 #ifdef _WIN32
   int                           result;
 #else
   ssize_t                       result;
 #endif
-  int                           iof;
-  struct timeval                tv;
 
   /* Initialize the set */
   FD_ZERO(&readset);
@@ -2316,39 +2335,55 @@ static C_INLINE streamInBool_t _streamIn_readFromSocketCallback(void *datavp, si
 
   /* Check status */
   if (result < 0) {
-    STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "select for file descriptor %d: %s at %s:%d", streamInFromSocketp->fd, strerror(errno), __FILE__, __LINE__);
+    STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "select error for file descriptor %d: %s at %s:%d", streamInFromSocketp->fd, __FILE__, __LINE__);
+    if (streamInFromSocketp->socketErrCallbackp != NULL) {
+      streamInFromSocketp->socketErrCallbackp(streamInFromSocketp->socketErrDatavp, streamInFromSocketp->fd);
+    }
     rcb = STREAMIN_BOOL_FALSE;
   } else if (result > 0) {
-    if (FD_ISSET(streamInFromSocketp->fd, &readset)) {
-      /* Set non-blocking mode */
-      STREAMIN_TRACEX("fcntl(%d, F_GETFL, 0)", streamInFromSocketp->fd);
-      if ((iof = fcntl(streamInFromSocketp->fd, F_GETFL, 0)) != -1) {
-	STREAMIN_TRACEX("fcntl(%d, F_SETFL, 0x%lx)", streamInFromSocketp->fd, iof|O_NONBLOCK);
-	if (fcntl(streamInFromSocketp->fd, F_SETFL, iof|O_NONBLOCK) == -1) {
-	  STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "fcntl(%d, F_SETLF, 0x%lx): %s at %s:%d", streamInFromSocketp->fd, (unsigned long) (iof|O_NONBLOCK), strerror(errno), __FILE__, __LINE__);
-	  rcb = STREAMIN_BOOL_FALSE;
-	}
+    if (! FD_ISSET(streamInFromSocketp->fd, &readset)) {
+      STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "FD_ISSET error for file descriptor %d: %s at %s:%d", streamInFromSocketp->fd, __FILE__, __LINE__);
+      if (streamInFromSocketp->socketErrCallbackp != NULL) {
+        streamInFromSocketp->socketErrCallbackp(streamInFromSocketp->socketErrDatavp, streamInFromSocketp->fd);
       }
-      /* Receive */
-      STREAMIN_TRACEX("recv(%d, %p, %lld, 0)", streamInFromSocketp->fd, byteArrayp, (long long) wantedBytesi, 0);
-      result = recv(streamInFromSocketp->fd, byteArrayp, wantedBytesi, 0);
-      /* Set as before */
-      if (iof != -1) {
-	STREAMIN_TRACEX("fcntl(%d, F_SETFL, 0x%lx)", streamInFromSocketp->fd, iof);
-	if (fcntl(streamInFromSocketp->fd, F_SETFL, iof) == -1) {
-	  STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "fcntl(%d, F_SETLF, 0x%lx): %s at %s:%d", streamInFromSocketp->fd, (unsigned long) iof, strerror(errno), __FILE__, __LINE__);
-	  rcb = STREAMIN_BOOL_FALSE;
-	}
-      }
-      if (result < 0) {
-	STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "recv for file descriptor %d: %s at %s:%d", streamInFromSocketp->fd, strerror(errno), __FILE__, __LINE__);
-	rcb = STREAMIN_BOOL_FALSE;
+      rcb = STREAMIN_BOOL_FALSE;
+    } else {
+      /* Get non-blocking mode */
+      if (streamInFromSocketp->socketGetBlockingModeCallbackp(streamInFromSocketp->socketGetBlockingModeDatavp, streamInFromSocketp->fd, &blockingModeb) == STREAMIN_BOOL_FALSE) {
+        STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "Getting blocking mode error for file descriptor %d: %s at %s:%d", streamInFromSocketp->fd, __FILE__, __LINE__);
+        rcb = STREAMIN_BOOL_FALSE;
       } else {
-	*gotBytesip = result;
+        /* Set eventually non-blocking mode */
+        if ((blockingModeb == STREAMIN_BOOL_TRUE) && streamInFromSocketp->socketSetBlockingModeCallbackp(streamInFromSocketp->socketSetBlockingModeDatavp, streamInFromSocketp->fd, STREAMIN_BOOL_FALSE) == STREAMIN_BOOL_FALSE) {
+          STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "Setting non-blocking mode error for file descriptor %d: %s at %s:%d", streamInFromSocketp->fd, __FILE__, __LINE__);
+          rcb = STREAMIN_BOOL_FALSE;
+        } else {
+          /* Receive */
+          STREAMIN_TRACEX("recv(%d, %p, %lld, 0)", streamInFromSocketp->fd, byteArrayp, (long long) wantedBytesi, 0);
+          result = recv(streamInFromSocketp->fd, byteArrayp, wantedBytesi, 0);
+          /* Always restore eventually blocking mode */
+          if ((blockingModeb == STREAMIN_BOOL_TRUE) && streamInFromSocketp->socketSetBlockingModeCallbackp(streamInFromSocketp->socketSetBlockingModeDatavp, streamInFromSocketp->fd, STREAMIN_BOOL_TRUE) == STREAMIN_BOOL_FALSE) {
+            STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "Restoring blocking mode error for file descriptor %d: %s at %s:%d", streamInFromSocketp->fd, __FILE__, __LINE__);
+            rcb = STREAMIN_BOOL_FALSE;
+          } else {
+            if (result < 0) {
+              STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "recv error for file descriptor %d: %s at %s:%d", streamInFromSocketp->fd, __FILE__, __LINE__);
+              if (streamInFromSocketp->socketErrCallbackp != NULL) {
+                streamInFromSocketp->socketErrCallbackp(streamInFromSocketp->socketErrDatavp, streamInFromSocketp->fd);
+              }
+              rcb = STREAMIN_BOOL_FALSE;
+            } else {
+              *gotBytesip = result;
+            }
+          }
+        }
       }
     }
   } else {
-    STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "select timeout after %lld milliseconds from file descriptor %d: %s at %s:%d", (long long) streamInFromSocketp->timeoutInMilliseconds, streamInFromSocketp->fd, strerror(errno), __FILE__, __LINE__);
+    STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "select timeout after %lld milliseconds from file descriptor %d at %s:%d", (long long) streamInFromSocketp->timeoutInMilliseconds, streamInFromSocketp->fd, __FILE__, __LINE__);
+    if (streamInFromSocketp->socketErrCallbackp != NULL) {
+      streamInFromSocketp->socketErrCallbackp(streamInFromSocketp->socketErrDatavp, streamInFromSocketp->fd);
+    }
     rcb = STREAMIN_BOOL_FALSE;
   }
 
