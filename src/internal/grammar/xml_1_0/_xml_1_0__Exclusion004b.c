@@ -37,15 +37,15 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Exclusion004b(xml_1_0_t *xml_1_0p, 
 
   /* Do the if only on the three first characters ... */
   do {
-    marpaXmlLog_t *marpaXmlLogp = xml_1_0p->marpaXmlLogp;
-    MARPAXML_TRACEX("JDD sizel: %d, currenti : 0x%lx\n", (int) sizel, (int) currenti);
-    if (sizel == 0 && _xml_1_0_NameStartCharb(xml_1_0p, currenti, streamInp, &dummySizel) == MARPAWRAPPER_BOOL_FALSE) {
-      rcb = MARPAWRAPPER_BOOL_FALSE;
-      break;
-    } else if (_xml_1_0__Lex004b(xml_1_0p, currenti, streamInp, &sizel) == MARPAWRAPPER_BOOL_FALSE) {
+    if (sizel == 0) {
+      if (_xml_1_0_NameStartCharb(xml_1_0p, currenti, streamInp, &dummySizel) == MARPAWRAPPER_BOOL_FALSE) {
+	rcb = MARPAWRAPPER_BOOL_FALSE;
+	break;
+      }
+    } else if (_xml_1_0_NameStartCharb(xml_1_0p, currenti, streamInp, &dummySizel) == MARPAWRAPPER_BOOL_FALSE &&
+	       _xml_1_0__Lex004b      (xml_1_0p, currenti, streamInp, &dummySizel) == MARPAWRAPPER_BOOL_FALSE) {
       break;
     }
-    MARPAXML_TRACEX("JDD sizel: %d, currenti : 0x%lx OK\n", (int) sizel, (int) currenti);
     if (sizel++ <= 2) {
       switch (sizel) {
       case 1:
@@ -69,9 +69,11 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Exclusion004b(xml_1_0_t *xml_1_0p, 
   
   if (noTestOnGen080b == MARPAWRAPPER_BOOL_TRUE) {
     while (streamInUtf8_nexti(streamInp, &currenti) == STREAMIN_BOOL_TRUE) {
-      if (_xml_1_0_NameStartCharb(xml_1_0p, currenti, streamInp, &sizel) == MARPAWRAPPER_BOOL_FALSE) {
+      if (_xml_1_0_NameStartCharb(xml_1_0p, currenti, streamInp, &dummySizel) == MARPAWRAPPER_BOOL_FALSE &&
+	  _xml_1_0__Lex004b      (xml_1_0p, currenti, streamInp, &dummySizel) == MARPAWRAPPER_BOOL_FALSE) {
 	break;
       }
+      sizel++;
     }
   }
   
