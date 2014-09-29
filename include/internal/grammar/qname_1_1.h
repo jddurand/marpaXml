@@ -16,6 +16,6 @@ void                qname_1_1_destroyv(qname_1_1_t **qname_1_1pp);
 marpaWrapperBool_t  qname_1_1_symbolToStringb(void *marpaWrapperSymbolOptionDatavp, const char **symbolsp);
 marpaWrapperBool_t  qname_1_1_ruleToStringb(void *marpaWrapperRuleOptionDatavp, const char **rulesp);
 marpaWrapperBool_t  qname_1_1_isLexemeb(void *marpaWrapperSymbolOptionDatavp, signed int currenti, streamIn_t *streamInp, size_t *lengthlp);
-marpaWrapperBool_t  qname_1_1_lexemeValueb(void *marpaWrapperSymbolOptionDatavp, streamIn_t *streamInp, int *lexemeValueip, int *lexemeLengthip);
+marpaWrapperBool_t  qname_1_1_lexemeValueb(void *marpaWrapperSymbolOptionDatavp, streamIn_t *streamInp, int *lexemeValueip);
 
 #endif /* MARPAQNAME_INTERNAL_GRAMMAR_QNAME_1_1_H */

@@ -17,6 +17,6 @@ void                xml_1_0_destroyv(xml_1_0_t **xml_1_0pp);
 marpaWrapperBool_t  xml_1_0_symbolToStringb(void *marpaWrapperSymbolOptionDatavp, const char **symbolsp);
 marpaWrapperBool_t  xml_1_0_ruleToStringb(void *marpaWrapperRuleOptionDatavp, const char **rulesp);
 marpaWrapperBool_t  xml_1_0_isLexemeb(void *marpaWrapperSymbolOptionDatavp, signed int currenti, streamIn_t *streamInp, size_t *lengthlp);
-marpaWrapperBool_t  xml_1_0_lexemeValueb(void *marpaWrapperSymbolOptionDatavp, streamIn_t *streamInp, int *lexemeValueip, int *lexemeLengthip);
+marpaWrapperBool_t  xml_1_0_lexemeValueb(void *marpaWrapperSymbolOptionDatavp, streamIn_t *streamInp, int *lexemeValueip);
 
 #endif /* MARPAXML_INTERNAL_GRAMMAR_XML_1_0_H */

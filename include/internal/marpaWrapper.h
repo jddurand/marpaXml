@@ -142,14 +142,13 @@ marpaWrapperBool_t        marpaWrapper_r_progressb            (marpaWrapper_t *m
 /* Generic routine using all of the above */
 /* streamInp is supposed to have been opened in UTF-8 mode */
 typedef marpaWrapperBool_t (*marpaWrapper_isLexemebCallback_t)(void *marpaWrapperSymbolOptionDatavp, signed int currenti, streamIn_t *streamInp, size_t *lengthlp);
-/* the length of a lexeme is e.g. length in the token-per-earleme model, 1 in the character-per-earleme model */
-typedef marpaWrapperBool_t (*marpaWrapper_lexemeValuebCallback_t)(void *marpaWrapperSymbolOptionDatavp, streamIn_t *streamInp, int *lexemeValueip, int *lexemeLengthip);
+/* If there is more than one possible alternative, marpaWrapper_lexemeValuebCallback() will be called with one of the symbol candidates, once */
+typedef marpaWrapperBool_t (*marpaWrapper_lexemeValuebCallback_t)(void *marpaWrapperSymbolOptionDatavp, streamIn_t *streamInp, int *lexemeValueip);
 typedef marpaWrapperBool_t (*marpaWrapper_ruleToStringb_t)(void *marpaWrapperRuleOptionDatavp, const char **rulesp);
 typedef marpaWrapperBool_t (*marpaWrapper_symbolToStringb_t)(void *marpaWrapperSymbolOptionDatavp, const char **symbolsp);
 
 marpaWrapperBool_t marpaWrapper_r_recognizeb(marpaWrapper_t *marpaWrapperp,
 					     streamIn_t *streamInp,
-					     marpaWrapperBool_t longestAcceptableTokenMatchb,
 					     marpaWrapper_isLexemebCallback_t isLexemebCallbackp,
 					     marpaWrapper_lexemeValuebCallback_t lexemeValuebCallbackp,
 					     marpaWrapper_symbolToStringb_t symbolToStringCallbackp,

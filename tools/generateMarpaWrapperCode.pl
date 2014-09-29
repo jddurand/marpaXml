@@ -1029,10 +1029,10 @@ sub generateLexemeValueb {
 /**************************/
 /* ${namespace}_lexemeValueb */
 /**************************/
-marpaWrapperBool_t ${namespace}_lexemeValueb(void *marpaWrapperSymbolOptionDatavp, streamIn_t *streamInp, int *lexemeValueip, int *lexemeLengthip) {
+marpaWrapperBool_t ${namespace}_lexemeValueb(void *marpaWrapperSymbolOptionDatavp, streamIn_t *streamInp, int *lexemeValueip) {
   ${namespace}_symbol_callback_t *${namespace}_symbol_callbackp = (${namespace}_symbol_callback_t *) marpaWrapperSymbolOptionDatavp;
 
-  return xml_common_lexemeValueb(${namespace}_symbol_callbackp->${namespace}p->marpaWrapperp, streamInp, lexemeValueip, lexemeLengthip);
+  return xml_common_lexemeValueb(${namespace}_symbol_callbackp->${namespace}p->marpaWrapperp, streamInp, lexemeValueip);
 }
 
 BUILDLEXEMEVALUEB
@@ -1058,7 +1058,6 @@ marpaWrapperBool_t ${namespace}_recognizeb(${namespace}_t *${namespace}p, stream
 
   return marpaWrapper_r_recognizeb(${namespace}p->marpaWrapperp,
 				   streamInp,
-				   MARPAWRAPPER_BOOL_TRUE, /* We work explicitely in the latm mode */
 				   &${namespace}_isLexemeb,
                                    &${namespace}_lexemeValueb,
                                    &${namespace}_symbolToStringb,

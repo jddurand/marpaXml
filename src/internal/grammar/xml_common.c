@@ -30,7 +30,7 @@ marpaWrapperBool_t xml_common_optionDefaultb(xml_common_option_t *xml_common_opt
 /* xml_common_lexemeValueb                                          */
 /* DOM layer is supposed to have been already correctly initialized */
 /********************************************************************/
-marpaWrapperBool_t xml_common_lexemeValueb(marpaWrapper_t *marpaWrapperp, streamIn_t *streamInp, int *lexemeValueip, int *lexemeLengthip) {
+marpaWrapperBool_t xml_common_lexemeValueb(marpaWrapper_t *marpaWrapperp, streamIn_t *streamInp, int *lexemeValueip) {
   char                  *dests;
   size_t                 byteLengthl;
   marpaXml_String_t     *stringp;
@@ -79,8 +79,6 @@ marpaWrapperBool_t xml_common_lexemeValueb(marpaWrapper_t *marpaWrapperp, stream
   }
 
   *lexemeValueip = (int) id;
-  /* We use the token-per-earleme model */
-  *lexemeLengthip = 1;
 
   marpaXml_Lexeme_free(&lexemep);
 

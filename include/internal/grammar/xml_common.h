@@ -32,7 +32,7 @@ typedef struct xml_common_option {
 } xml_common_option_t;
 
 marpaWrapperBool_t xml_common_optionDefaultb(xml_common_option_t *xml_common_optionp);
-marpaWrapperBool_t xml_common_lexemeValueb(marpaWrapper_t *marpaWrapperp, streamIn_t *streamInp, int *lexemeValueip, int *lexemeLengthip);
+marpaWrapperBool_t xml_common_lexemeValueb(marpaWrapper_t *marpaWrapperp, streamIn_t *streamInp, int *lexemeValueip);
 
 #endif /* MARPAXML_INTERNAL_GRAMMAR_XML_COMMON_H */
 

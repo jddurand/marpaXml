@@ -26,23 +26,26 @@
 static C_INLINE marpaWrapperBool_t _xml_1_0__Exclusion004b(xml_1_0_t *xml_1_0p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
   size_t               sizel = 0;
   size_t               dummySizel = 0;
-  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_FALSE;
-  signed int           lastthreei[3];
-  marpaWrapperBool_t   noMoreTestb = MARPAWRAPPER_BOOL_FALSE;
+  marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_TRUE;
+  signed int           lastthreei[3] = {0, 0, 0};
+  marpaWrapperBool_t   noTestOnGen080b = MARPAWRAPPER_BOOL_FALSE;
 
   /* We will move current character, so we want to restore it */
   if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_FALSE) {
     return MARPAWRAPPER_BOOL_FALSE;
   }
 
-  /* Do the if only on the three first character ... */
+  /* Do the if only on the three first characters ... */
   do {
+    marpaXmlLog_t *marpaXmlLogp = xml_1_0p->marpaXmlLogp;
+    MARPAXML_TRACEX("JDD sizel: %d, currenti : 0x%lx\n", (int) sizel, (int) currenti);
     if (sizel == 0 && _xml_1_0_NameStartCharb(xml_1_0p, currenti, streamInp, &dummySizel) == MARPAWRAPPER_BOOL_FALSE) {
       rcb = MARPAWRAPPER_BOOL_FALSE;
       break;
-    } else if (_xml_1_0_NameStartCharb(xml_1_0p, currenti, streamInp, &sizel) == MARPAWRAPPER_BOOL_FALSE) {
+    } else if (_xml_1_0__Lex004b(xml_1_0p, currenti, streamInp, &sizel) == MARPAWRAPPER_BOOL_FALSE) {
       break;
     }
+    MARPAXML_TRACEX("JDD sizel: %d, currenti : 0x%lx OK\n", (int) sizel, (int) currenti);
     if (sizel++ <= 2) {
       switch (sizel) {
       case 1:
@@ -58,33 +61,33 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Exclusion004b(xml_1_0_t *xml_1_0p, 
 	/* Never reached */
 	break;
       }
-      noMoreTestb = MARPAWRAPPER_BOOL_TRUE; /* No more test needed */
+    } else {
+      noTestOnGen080b = MARPAWRAPPER_BOOL_TRUE; /* Token is longer than 3: no test on [xX][mM][lL] needed */
       break;
     }
   } while (streamInUtf8_nexti(streamInp, &currenti) == STREAMIN_BOOL_TRUE);
-
-  /* And stop the if when more */
-  if (noMoreTestb == MARPAWRAPPER_BOOL_TRUE) {
+  
+  if (noTestOnGen080b == MARPAWRAPPER_BOOL_TRUE) {
     while (streamInUtf8_nexti(streamInp, &currenti) == STREAMIN_BOOL_TRUE) {
       if (_xml_1_0_NameStartCharb(xml_1_0p, currenti, streamInp, &sizel) == MARPAWRAPPER_BOOL_FALSE) {
 	break;
       }
     }
   }
-
+  
   if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
     rcb = MARPAWRAPPER_BOOL_FALSE;
   }
 
   if (rcb == MARPAWRAPPER_BOOL_TRUE) {
-    if (sizel == 3 &&
+    if (noTestOnGen080b == MARPAWRAPPER_BOOL_FALSE &&
 	(lastthreei[0] == 'x' || lastthreei[0] == 'X') &&
-	(lastthreei[1] == 'm' || lastthreei[0] == 'M') &&
-	(lastthreei[1] == 'l' || lastthreei[0] == 'L')) {
+	(lastthreei[1] == 'm' || lastthreei[1] == 'M') &&
+	(lastthreei[1] == 'l' || lastthreei[2] == 'L')) {
       rcb = MARPAWRAPPER_BOOL_FALSE;
     } else {
+      *sizelp = sizel;
     }
-    *sizelp = sizel;
   }
 
   return rcb;
