@@ -1705,7 +1705,7 @@ marpaWrapperBool_t marpaWrapper_r_recognizeb(marpaWrapper_t *marpaWrapperp,
       }
       for (i = 0; i < nMarpaWrapperSymboli; i++) {
 	if (marpaWrapperSymbolpp[i]->lengthl <= 0) {
-	  /* This symbol did not match */
+	  /* This symbol did not match or is a discard */
 	  continue;
 	}
 	if ((longestAcceptableTokenMatchb == MARPAWRAPPER_BOOL_TRUE) && (marpaWrapperSymbolpp[i]->lengthl < maxLengthl)) {
@@ -1738,7 +1738,7 @@ marpaWrapperBool_t marpaWrapper_r_recognizeb(marpaWrapper_t *marpaWrapperp,
       }
     }
     /* We always do a marpaWrapper_r_complete, unless only a discarded token has matched */
-    if (nbIsLexemebCallbackTruei <= 0 || maxLengthl > 0) {
+    if ((nbIsLexemebCallbackTruei <= 0) || (maxLengthl > 0)) {
       if (marpaWrapper_r_completeb(marpaWrapperp) == MARPAWRAPPER_BOOL_FALSE) {
 	rcb = MARPAWRAPPER_BOOL_FALSE;
 	goto recognizebEnd;
