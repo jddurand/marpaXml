@@ -10,7 +10,6 @@
 #include "internal/genericStack.h"
 #include "internal/messageBuilder.h"
 #include "internal/manageBuf.h"
-#include "marpaXml/String.h"
 #include "marpa.h"
 
 #include "API/marpaXml/log.h"
@@ -1620,6 +1619,24 @@ marpaWrapperBool_t marpaWrapper_optionDefaultb(marpaWrapperOption_t *marpaWrappe
   return MARPAWRAPPER_BOOL_TRUE;
 }
 
+/****************************/
+/* marpaWrapper_recognize2b */
+/****************************/
+marpaWrapperBool_t marpaWrapper_r_recognize2b(marpaWrapper_t *marpaWrapperp, marpaWrapperRecognizerOption_t *marpaWrapperRecognizerOptionp) {
+  if (marpaWrapperp == NULL) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+
+  if (marpaWrapperRecognizerOptionp == NULL ||
+      marpaWrapperRecognizerOptionp->readerCallbackp ||
+      marpaWrapperRecognizerOptionp->isLexemebCallbackp ||
+      marpaWrapperRecognizerOptionp->lexemeValuebCallbackp) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+
+  return MARPAWRAPPER_BOOL_TRUE;
+}
+
 /***************************/
 /* marpaWrapper_recognizeb */
 /***************************/
@@ -1627,8 +1644,8 @@ marpaWrapperBool_t marpaWrapper_r_recognizeb(marpaWrapper_t *marpaWrapperp,
                                              streamIn_t *streamInp,
                                              marpaWrapper_isLexemebCallback_t isLexemebCallbackp,
                                              marpaWrapper_lexemeValuebCallback_t lexemeValuebCallbackp,
-                                             marpaWrapper_symbolToStringb_t symbolToStringCallbackp,
-                                             marpaWrapper_ruleToStringb_t ruleToStringCallbackp) {
+                                             marpaWrapper_symbolToCharsbCallback_t symbolToCharsCallbackp,
+                                             marpaWrapper_ruleToCharsbCallback_t ruleToCharsCallbackp) {
   signed int             nexti;
   size_t                 nMarpaWrapperSymboli = 0;
   marpaWrapperSymbol_t **marpaWrapperSymbolpp = NULL;
@@ -1668,7 +1685,7 @@ marpaWrapperBool_t marpaWrapper_r_recognizeb(marpaWrapper_t *marpaWrapperp,
                                   marpaWrapperProgresspp[i]->marpaEarleySetIdOrigini,
                                   (void *) marpaWrapperProgresspp[i]->marpaWrapperRulep,
                                   marpaWrapperProgresspp[i]->positioni,
-                                  (ruleToStringCallbackp != NULL && ruleToStringCallbackp(marpaWrapperProgresspp[i]->marpaWrapperRulep->marpaWrapperRuleOption.datavp, &rules) == MARPAWRAPPER_BOOL_TRUE) ? rules : "**Error**");
+                                  (ruleToCharsCallbackp != NULL && ruleToCharsCallbackp(marpaWrapperProgresspp[i]->marpaWrapperRulep->marpaWrapperRuleOption.datavp, &rules) == MARPAWRAPPER_BOOL_TRUE) ? rules : "**Error**");
         }
       }
     }
@@ -1684,7 +1701,7 @@ marpaWrapperBool_t marpaWrapper_r_recognizeb(marpaWrapper_t *marpaWrapperp,
     nbIsLexemebCallbackTruei = 0;
     for (i = 0; i < nMarpaWrapperSymboli; i++) {
       /* Every lexeme callback has to make sure index in stream is unchanged when they return */
-      MARPAWRAPPER_LOG_TRACEX("Checking symbol No %4d: %s", marpaWrapperSymbolpp[i]->marpaSymbolIdi, (symbolToStringCallbackp != NULL && symbolToStringCallbackp(marpaWrapperSymbolpp[i]->marpaWrapperSymbolOption.datavp, &symbols) == MARPAWRAPPER_BOOL_TRUE) ? symbols : "");
+      MARPAWRAPPER_LOG_TRACEX("Checking symbol No %4d: %s", marpaWrapperSymbolpp[i]->marpaSymbolIdi, (symbolToCharsCallbackp != NULL && symbolToCharsCallbackp(marpaWrapperSymbolpp[i]->marpaWrapperSymbolOption.datavp, &symbols) == MARPAWRAPPER_BOOL_TRUE) ? symbols : "");
       if ((marpaWrapperSymbolpp[i]->isLexemeb = isLexemebCallbackp(marpaWrapperSymbolpp[i]->marpaWrapperSymbolOption.datavp, nexti, streamInp, &lengthl)) == MARPAWRAPPER_BOOL_TRUE) {
 	nbIsLexemebCallbackTruei++;
         if ((marpaWrapperSymbolpp[i]->lengthl = lengthl) > maxLengthl) {

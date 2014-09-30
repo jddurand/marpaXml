@@ -14,8 +14,8 @@ marpaWrapperBool_t  xml_1_0_recognizeb(xml_1_0_t *xml_1_0p, streamIn_t *streamIn
 void                xml_1_0_destroyv(xml_1_0_t **xml_1_0pp);
 
 /* Callbacks */
-marpaWrapperBool_t  xml_1_0_symbolToStringb(void *marpaWrapperSymbolOptionDatavp, const char **symbolsp);
-marpaWrapperBool_t  xml_1_0_ruleToStringb(void *marpaWrapperRuleOptionDatavp, const char **rulesp);
+marpaWrapperBool_t  xml_1_0_symbolToCharsb(void *marpaWrapperSymbolOptionDatavp, const char **symbolsp);
+marpaWrapperBool_t  xml_1_0_ruleToCharsb(void *marpaWrapperRuleOptionDatavp, const char **rulesp);
 marpaWrapperBool_t  xml_1_0_isLexemeb(void *marpaWrapperSymbolOptionDatavp, signed int currenti, streamIn_t *streamInp, size_t *lengthlp);
 marpaWrapperBool_t  xml_1_0_lexemeValueb(void *marpaWrapperSymbolOptionDatavp, streamIn_t *streamInp, int *lexemeValueip);
 
