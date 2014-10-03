@@ -55,22 +55,27 @@ int main(int argc, char **argv) {
     streamInOption_t streamInOption;
     streamInUtf8Option_t streamInUtf8Option;
     streamInFromFileName_t *streamInFromFileNamep;
+    size_t nbTerminalsl;
 
     streamIn_optionDefaultb(&streamInOption);
     streamInUtf8_optionDefaultb(&streamInUtf8Option);
 
-    streamInOption.logLevelWantedi = MARPAXML_LOGLEVEL_TRACE;
-    streamInFromFileNamep = streamInUtf8_newFromFileNamep(&streamInOption, &streamInUtf8Option, (const char *) argv[1]);
-
     marpaWrapper_optionDefaultb(&marpaWrapperOption);
     marpaWrapperOption.logLevelWantedi     = MARPAXML_LOGLEVEL_TRACE;
-
     xml_common_optionDefaultb(&xml_common_option);
-
     xml_common_option.xml_common_topi = XML_COMMON_TOP_DOCUMENT;
     xml_1_0p = xml_1_0_newp(&marpaWrapperOption, &xml_common_option);
 
-    xml_1_0_recognizeb(xml_1_0p, streamInFromFileNamep->streamInp);
+    streamInOption.logLevelWantedi = MARPAXML_LOGLEVEL_TRACE;
+
+    if (xml_1_0_nbTerminalsb(xml_1_0p, &nbTerminalsl) == MARPAWRAPPER_BOOL_TRUE) {
+      /* Last indice is used a temporary storage to move in the stream - c.f. lexemeValueb */
+      streamInUtf8Option.userMarkSize = nbTerminalsl + 1;
+      streamInFromFileNamep = streamInUtf8_newFromFileNamep(&streamInOption, &streamInUtf8Option, (const char *) argv[1]);
+
+      xml_1_0_recognizeb(xml_1_0p, streamInFromFileNamep->streamInp);
+    }
+
     xml_1_0_destroyv(&xml_1_0p);
     streamInUtf8_streamInFromFileName_destroyv(&streamInFromFileNamep);
   }

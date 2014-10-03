@@ -45,6 +45,13 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Exclusion005b(xml_1_0_t *xml_1_0p, 
       break;
     }
   }
+
+  if (sizel > 0) {
+    if (streamInUtf8_userMarkPreviousb(streamInp, xml_1_0__Exclusion005) == STREAMIN_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+
   if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
     return MARPAWRAPPER_BOOL_FALSE;
   }

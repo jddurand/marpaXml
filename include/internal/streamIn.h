@@ -84,6 +84,7 @@ typedef struct streamInUtf8Option {
   streamInBool_t                   ICUFromFallback;   /* Input fallback ?      Default: STREAMIN_BOOL_FALSE */
   streamInUtf8Option_ICU_t         ICUToCallback;     /* Unicode -> Output.    Default: STREAMINUTF8OPTION_ICU_DEFAULT */
   streamInBool_t                   ICUToFallback;     /* Output fallback ?     Default: STREAMIN_BOOL_FALSE */
+  size_t                           userMarkSize;      /* User-marks ?          Default: 0. Note: user is responsible to not use an index >= userMarkSize */
 } streamInUtf8Option_t;
 
 typedef struct streamInFromFileDescriptor {
@@ -155,14 +156,20 @@ streamInBool_t streamInUtf8_optionDefaultb    (streamInUtf8Option_t *streamInUtf
 /* Options at the utf8 level cannot be changed after streamInUtf8_newp() */
 streamInBool_t streamInUtf8_currenti          (streamIn_t *streamInp, signed int *currentip);                           /* Get current utf8 */
 streamInBool_t streamInUtf8_nexti             (streamIn_t *streamInp, signed int *nextip);                              /* Get next utf8. Moves current by one.  */
+streamInBool_t streamInUtf8_eofb              (streamIn_t *streamInp);                                                  /* Is eof reached */
 streamInBool_t streamInUtf8_markb             (streamIn_t *streamInp);                                                  /* Mark current utf8 */
 streamInBool_t streamInUtf8_markPreviousb     (streamIn_t *streamInp);                                                  /* Mark previous utf8 */
+streamInBool_t streamInUtf8_userMarkb         (streamIn_t *streamInp, size_t indexl);                                   /* User-Mark current utf8 */
+streamInBool_t streamInUtf8_userMarkPreviousb (streamIn_t *streamInp, size_t indexl);                                   /* User-Mark previous utf8 */
 streamInBool_t streamInUtf8_doneb             (streamIn_t *streamInp);                                                  /* Say marked utf8 is done */
+streamInBool_t streamInUtf8_userDoneb         (streamIn_t *streamInp, size_t indexl);                                   /* Say user-marked utf8 is done */
 /* Behaviour is undefined if you use streamInUtf8_doneb() between calls to mark and markToCurrent. Let's say it will very likely crash */
 streamInBool_t streamInUtf8_currentFromMarkedb(streamIn_t *streamInp);                                                  /* Set marked utf8 as current */
+streamInBool_t streamInUtf8_currentFromUserMarkedb(streamIn_t *streamInp, size_t indexl);                               /* Set marked utf8 as current */
 /* extract an UTF-8 string from marked position. All parameters but streamInp can be NULL. If destsp is non-NULL, *destsp string is guaranteed to be NULL terminated */
 /* If destsp is non-NULL and output is ok, caller is responsible to call free() on *destsp */
 streamInBool_t streamInUtf8_extractFromMarkedb(streamIn_t *streamInp, char **destsp, size_t *byteLengthlp, size_t *lengthlp);
+streamInBool_t streamInUtf8_extractFromUserMarkedb(streamIn_t *streamInp, size_t indexl, char **destsp, size_t *byteLengthlp, size_t *lengthlp);
 
 /* These methods are the only way to get output using another encoding but the original. The caller WILL HAVE TO CALL free(byteArrayp) himself. */
 /* It is very important to remember that, here, buffer indexes in output map EXACTLY buffer indexes in input. */

@@ -21,6 +21,12 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Exclusion002b(xml_1_0_t *xml_1_0p, 
   /* Consume many Lex015 - we KNOW in advance that lex015 does not play with utf8 mark and have a size 1 */
   sizel = 0;
   while(_xml_1_0__Lex015b(xml_1_0p, currenti, streamInp, &sizeLex015l) == MARPAWRAPPER_BOOL_TRUE) {
+#ifndef MARPAXML_NTRACE
+  {
+      marpaXmlLog_t *marpaXmlLogp = marpaWrapper_marpaXmlLogp(xml_1_0p->marpaWrapperp);
+      MARPAXML_TRACEX("_xml_1_0__Exclusion002b : accepted character 0x%lx\n", (long) currenti);
+  }
+#endif
     /* For performance reason it is better to do the test on sizel >= 3 first: the probability      */
     /* to have three or more characters is much higher than having less than three characters       */
     if (sizel >= 3) {
@@ -45,6 +51,13 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Exclusion002b(xml_1_0_t *xml_1_0p, 
       break;
     }
   }
+
+  if (sizel > 0) {
+    if (streamInUtf8_userMarkPreviousb(streamInp, xml_1_0__Exclusion002) == STREAMIN_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+
   if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
     return MARPAWRAPPER_BOOL_FALSE;
   }

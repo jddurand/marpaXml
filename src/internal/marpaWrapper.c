@@ -1623,34 +1623,59 @@ marpaWrapperBool_t marpaWrapper_optionDefaultb(marpaWrapperOption_t *marpaWrappe
 /* marpaWrapper_recognize2b */
 /****************************/
 marpaWrapperBool_t marpaWrapper_r_recognize2b(marpaWrapper_t *marpaWrapperp, marpaWrapperRecognizerOption_t *marpaWrapperRecognizerOptionp) {
-  size_t                 i;
-  size_t                 nMarpaWrapperSymboli = 0;
-  marpaWrapperSymbol_t **marpaWrapperSymbolpp = NULL;
-  int                    nbIsLexemebCallbackTruei;
-  marpaWrapperBool_t     rcb = MARPAWRAPPER_BOOL_TRUE;
-  size_t                 maxLengthl;
+  size_t                     i;
+  size_t                     nMarpaWrapperSymboli = 0;
+  marpaWrapperSymbol_t     **marpaWrapperSymbolpp = NULL;
+  int                        nbIsLexemebCallbackTruei;
+  marpaWrapperBool_t         rcb = MARPAWRAPPER_BOOL_TRUE;
+  size_t                     lengthl;
+  size_t                     maxLengthl;
+  marpaWrapperBool_t         endOfInputb;
+  int                        lexemeValuei;
+  int                        lexemelengthi;
+#ifndef MARPAWRAPPER_NTRACE
+  size_t                     nmarpaWrapperProgressi;
+  marpaWrapperProgress_t   **marpaWrapperProgresspp;
+  const char                *symbols;
+  const char                *rules;
+#endif
 
   if (marpaWrapperp == NULL) {
     return MARPAWRAPPER_BOOL_FALSE;
   }
 
-  if (marpaWrapperRecognizerOptionp == NULL ||
-      marpaWrapperRecognizerOptionp->readerCallbackp ||
-      marpaWrapperRecognizerOptionp->isLexemebCallbackp ||
-      marpaWrapperRecognizerOptionp->lexemeValuebCallbackp) {
+  if (marpaWrapperRecognizerOptionp                        == NULL ||
+      marpaWrapperRecognizerOptionp->readerCallbackp       == NULL ||
+      marpaWrapperRecognizerOptionp->isLexemebCallbackp    == NULL ||
+      marpaWrapperRecognizerOptionp->lexemeValuebCallbackp == NULL) {
     return MARPAWRAPPER_BOOL_FALSE;
-
-    /* it is OK if ruleToCharsbCallbackp or symbolToCharsbCallbackp are NULL */
   }
 
-  while (marpaWrapperRecognizerOptionp->readerCallbackp(marpaWrapperRecognizerOptionp->readerDatavp) == MARPAWRAPPER_BOOL_TRUE) {
+    /* It is OK if ruleToCharsbCallbackp or symbolToCharsbCallbackp are NULL except in Debug mode */
+#ifndef MARPAWRAPPER_NTRACE
+  if (marpaWrapperRecognizerOptionp->ruleToCharsbCallbackp   == NULL ||
+      marpaWrapperRecognizerOptionp->symbolToCharsbCallbackp == NULL) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+#endif
+
+  /* ---------------- */
+  /* Start read phase */
+  /* ---------------- */
+  if (marpaWrapper_r_startb(marpaWrapperp) == MARPAWRAPPER_BOOL_FALSE) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+
+  /* ----------- */
+  /* Call reader */
+  /* ----------- */
+  while (marpaWrapperRecognizerOptionp->readerCallbackp(marpaWrapperRecognizerOptionp->readerDatavp, &endOfInputb) == MARPAWRAPPER_BOOL_TRUE) {
+
 #ifndef MARPAWRAPPER_NTRACE
     {
-      size_t                     nmarpaWrapperProgressi;
-      marpaWrapperProgress_t   **marpaWrapperProgresspp;
-      const char                *rules;
-
-      /* Calling progress is expensive, so it is explicitely done only in Debug mode */
+      /* ------------- */
+      /* Show progress */
+      /* ------------- */
       if (marpaWrapper_r_progressb(marpaWrapperp, -1, -1, &nmarpaWrapperProgressi, &marpaWrapperProgresspp) == MARPAWRAPPER_BOOL_TRUE) {
         for (i = 0; i < nmarpaWrapperProgressi; i++) {
           MARPAWRAPPER_LOG_TRACEX("Earley Set Id: %4d, Origin Earley Set Id: %4d, Rule: %10p, Position: %3d: %s",
@@ -1658,21 +1683,85 @@ marpaWrapperBool_t marpaWrapper_r_recognize2b(marpaWrapper_t *marpaWrapperp, mar
                                   marpaWrapperProgresspp[i]->marpaEarleySetIdOrigini,
                                   (void *) marpaWrapperProgresspp[i]->marpaWrapperRulep,
                                   marpaWrapperProgresspp[i]->positioni,
-                                  (marpaWrapperRecognizerOptionp->ruleToCharsbCallbackp != NULL && marpaWrapperRecognizerOptionp->ruleToCharsbCallbackp(marpaWrapperProgresspp[i]->marpaWrapperRulep->marpaWrapperRuleOption.datavp, &rules) == MARPAWRAPPER_BOOL_TRUE) ? rules : "**Error**");
+                                  (marpaWrapperRecognizerOptionp->ruleToCharsbCallbackp(marpaWrapperProgresspp[i]->marpaWrapperRulep->marpaWrapperRuleOption.datavp, &rules) == MARPAWRAPPER_BOOL_TRUE) ? rules : "**Error**");
         }
       }
     }
 #endif
+
+    /* --------------------------- */
+    /* Ask for expected terminals */
+    /* --------------------------- */
     if (marpaWrapper_r_terminals_expectedb(marpaWrapperp, &nMarpaWrapperSymboli, &marpaWrapperSymbolpp) == MARPAWRAPPER_BOOL_FALSE) {
-      MARPAWRAPPER_LOG_TRACE0("No more expected terminal");
       rcb = MARPAWRAPPER_BOOL_FALSE;
       goto recognizebEnd;
     }
     MARPAWRAPPER_LOG_TRACEX("Number of expected terminals: %d", nMarpaWrapperSymboli);
+
     maxLengthl = 0;
     nbIsLexemebCallbackTruei = 0;
+
+    /* ------------------------ */
+    /* Check expected terminals */
+    /* ------------------------ */
+    for (i = 0; i < nMarpaWrapperSymboli; i++) {
+      /* Every lexeme callback has to make sure index in stream is unchanged when they return */
+      MARPAWRAPPER_LOG_TRACEX("Checking symbol No %4d: %s", marpaWrapperSymbolpp[i]->marpaSymbolIdi, (marpaWrapperRecognizerOptionp->symbolToCharsbCallbackp(marpaWrapperSymbolpp[i]->marpaWrapperSymbolOption.datavp, &symbols) == MARPAWRAPPER_BOOL_TRUE) ? symbols : "**Error**");
+      if ((marpaWrapperSymbolpp[i]->isLexemeb = marpaWrapperRecognizerOptionp->isLexemebCallbackp(marpaWrapperSymbolpp[i]->marpaWrapperSymbolOption.datavp, &lengthl)) == MARPAWRAPPER_BOOL_TRUE) {
+	nbIsLexemebCallbackTruei++;
+        if ((marpaWrapperSymbolpp[i]->lengthl = lengthl) > maxLengthl) {
+          maxLengthl = lengthl;
+        }
+      } else {
+	marpaWrapperSymbolpp[i]->lengthl = 0;
+      }
+    }
+
+    /* -------------- */
+    /* Push terminals */
+    /* -------------- */
+    if (maxLengthl > 0) {
+
+      lexemeValuei = 0;
+      for (i = 0; i < nMarpaWrapperSymboli; i++) {
+        if (((marpaWrapperRecognizerOptionp->longestAcceptableTokenMatchb == MARPAWRAPPER_BOOL_TRUE)  && (marpaWrapperSymbolpp[i]->lengthl == maxLengthl)) ||
+            ((marpaWrapperRecognizerOptionp->longestAcceptableTokenMatchb == MARPAWRAPPER_BOOL_FALSE) && (marpaWrapperSymbolpp[i]->lengthl  > 0))) {
+
+          /* --------------------------------- */
+          /* Get terminal "value" and "length" */
+          /* --------------------------------- */
+          if (((marpaWrapperRecognizerOptionp->longestAcceptableTokensShareTheSameValueAndLengthb == MARPAWRAPPER_BOOL_TRUE) && (lexemeValuei == 0)) ||
+              ((marpaWrapperRecognizerOptionp->longestAcceptableTokensShareTheSameValueAndLengthb == MARPAWRAPPER_BOOL_FALSE))) {
+          
+            if (marpaWrapperRecognizerOptionp->lexemeValuebCallbackp(marpaWrapperSymbolpp[i]->marpaWrapperSymbolOption.datavp, &lexemeValuei, &lexemelengthi) == MARPAWRAPPER_BOOL_FALSE) {
+              rcb = MARPAWRAPPER_BOOL_FALSE;
+              goto recognizebEnd;
+            }
+          }
+
+          if (marpaWrapper_r_alternativeb(marpaWrapperp, marpaWrapperSymbolpp[i], lexemeValuei, lexemelengthi) == MARPAWRAPPER_BOOL_FALSE) {
+            rcb = MARPAWRAPPER_BOOL_FALSE;
+            goto recognizebEnd;
+          }
+        }
+      }
+    }
+
+    /* -------------------- */
+    /* Terminals completion */
+    /* -------------------- */
+    if (marpaWrapper_r_completeb(marpaWrapperp) == MARPAWRAPPER_BOOL_FALSE) {
+      rcb = MARPAWRAPPER_BOOL_FALSE;
+      goto recognizebEnd;
+    }
+
   }
 
+  if ((endOfInputb == MARPAWRAPPER_BOOL_FALSE) && (marpaWrapperRecognizerOptionp->remainingDataIsOkb == MARPAWRAPPER_BOOL_FALSE)) {
+    MARPAWRAPPER_LOG_TRACE0("There is data remaining in the input");
+    rcb = MARPAWRAPPER_BOOL_FALSE;
+    goto recognizebEnd;
+  }
 
  recognizebEnd:
   return rcb;

@@ -139,16 +139,19 @@ marpaWrapperBool_t        marpaWrapper_r_terminals_expectedb  (marpaWrapper_t *m
 marpaWrapperBool_t        marpaWrapper_r_terminal_is_expectedb(marpaWrapper_t *marpaWrapperp, marpaWrapperSymbol_t *marpaWrapperSymbolp, marpaWrapperBool_t *isExpectedbp);
 marpaWrapperBool_t        marpaWrapper_r_progressb            (marpaWrapper_t *marpaWrapperp, int starti, int endi, size_t *nmarpaWrapperProgressip, marpaWrapperProgress_t ***marpaWrapperProgressppp);
 
-typedef marpaWrapperBool_t (*marpaWrapper_readerCallback_t)(void *readerCallbackDatavp);
+typedef marpaWrapperBool_t (*marpaWrapper_readerCallback_t)(void *readerCallbackDatavp, marpaWrapperBool_t *endOfInputbp);
 /* streamInp is supposed to have been opened in UTF-8 mode */
-typedef marpaWrapperBool_t (*marpaWrapper_isLexemebCallback_t)(void *marpaWrapperSymbolOptionDatavp, signed int currenti, streamIn_t *streamInp, size_t *lengthlp);
+typedef marpaWrapperBool_t (*marpaWrapper_isLexemebCallback_t)(void *marpaWrapperSymbolOptionDatavp, size_t *lengthlp);
 /* If there is more than one possible alternative, marpaWrapper_lexemeValuebCallback() will be called with one of the symbol candidates, once */
-typedef marpaWrapperBool_t (*marpaWrapper_lexemeValuebCallback_t)(void *marpaWrapperSymbolOptionDatavp, streamIn_t *streamInp, int *lexemeValueip);
+typedef marpaWrapperBool_t (*marpaWrapper_lexemeValuebCallback_t)(void *marpaWrapperSymbolOptionDatavp, int *lexemeValueip, int *lexemeLengthip);
 typedef marpaWrapperBool_t (*marpaWrapper_ruleToCharsbCallback_t)(void *marpaWrapperRuleOptionDatavp, const char **rulesp);
 typedef marpaWrapperBool_t (*marpaWrapper_symbolToCharsbCallback_t)(void *marpaWrapperSymbolOptionDatavp, const char **symbolsp);
 
 /* Generic routine using all of the above. There is not default for the content of this typedef: user will have to provide a valid pointer. */
 typedef struct marpaWrapperRecognizerOption {
+  marpaWrapperBool_t                    remainingDataIsOkb;
+  marpaWrapperBool_t                    longestAcceptableTokenMatchb;
+  marpaWrapperBool_t                    longestAcceptableTokensShareTheSameValueAndLengthb;
   marpaWrapper_readerCallback_t         readerCallbackp;
   void                                 *readerDatavp;
   marpaWrapper_isLexemebCallback_t      isLexemebCallbackp;

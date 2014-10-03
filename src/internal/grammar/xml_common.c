@@ -30,18 +30,14 @@ marpaWrapperBool_t xml_common_optionDefaultb(xml_common_option_t *xml_common_opt
 /* xml_common_lexemeValueb                                          */
 /* DOM layer is supposed to have been already correctly initialized */
 /********************************************************************/
-marpaWrapperBool_t xml_common_lexemeValueb(marpaWrapper_t *marpaWrapperp, streamIn_t *streamInp, int *lexemeValueip) {
+marpaWrapperBool_t xml_common_lexemeValueb(marpaWrapper_t *marpaWrapperp, streamIn_t *streamInp, int *lexemeValueip, int *lexemeLengthip) {
   char                  *dests;
   size_t                 byteLengthl;
   marpaXml_String_t     *stringp;
   marpaXml_Lexeme_t     *lexemep;
   sqlite3_int64          id;
-  marpaXmlLog_t         *marpaXmlLogp = NULL;
   size_t                 lengthl;
-
-  if (marpaWrapperp != NULL) {
-    marpaXmlLogp = marpaWrapper_marpaXmlLogp(marpaWrapperp);
-  }
+  marpaXmlLog_t         *marpaXmlLogp = marpaWrapper_marpaXmlLogp(marpaWrapperp);
 
   /* Our caller must have guaranteed that:
      - marker in streamInp is at where the lexeme is starting
@@ -79,8 +75,22 @@ marpaWrapperBool_t xml_common_lexemeValueb(marpaWrapper_t *marpaWrapperp, stream
   }
 
   *lexemeValueip = (int) id;
+  /* We use the character-per-earleme model */
+  *lexemeLengthip = (int) lengthl;
 
   marpaXml_Lexeme_free(&lexemep);
+
+  return MARPAWRAPPER_BOOL_TRUE;
+}
+
+/********************************************************************/
+/* xml_common_readerb                                               */
+/********************************************************************/
+marpaWrapperBool_t xml_common_readerb(marpaWrapper_t *marpaWrapperp, streamIn_t *streamInp, signed int *currentip, marpaWrapperBool_t *endOfInputbp) {
+  if (streamInUtf8_nexti(streamInp, currentip) == STREAMIN_BOOL_FALSE) {
+    *endOfInputbp = (streamInUtf8_eofb(streamInp) == STREAMIN_BOOL_TRUE) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
 
   return MARPAWRAPPER_BOOL_TRUE;
 }

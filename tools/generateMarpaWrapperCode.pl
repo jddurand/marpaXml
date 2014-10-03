@@ -669,6 +669,7 @@ DECLARATIONS
   $c .= generateParseEventsb(@_);
   $c .= generateBuildSymbolsb(@_);
   $c .= generateBuildRulesb(@_);
+  $c .= generateNbTerminalsb(@_);
   $c .= generateLexemeValueb(@_);
   $c .= generateRecognizeb(@_);
   $c .= generateToCharsb(@_);
@@ -797,7 +798,8 @@ struct $namespace {
   size_t                   marpaWrapperSymbolCallbackArrayLengthi;
   ${namespace}_rule_callback_t *marpaWrapperRuleCallbackArrayp;
   size_t                   marpaWrapperRuleCallbackArrayLengthi;
-  marpaXmlLog_t           *marpaXmlLogp;
+  streamIn_t              *streamInp;
+  signed int               currenti;
 };
 
 /* From symbol to string - indexed by ${namespace}_symbol_t */
@@ -858,6 +860,8 @@ ${namespace}_t *${namespace}_newp(marpaWrapperOption_t *marpaWrapperOptionp, xml
   ${namespace}p->marpaWrapperSymbolCallbackArrayLengthi = 0;
   ${namespace}p->marpaWrapperRuleCallbackArrayp = NULL;
   ${namespace}p->marpaWrapperRuleCallbackArrayLengthi = 0;
+  ${namespace}p->streamInp = NULL;
+  ${namespace}p->currenti = -1;
 
   if (_${namespace}_buildGrammarb(${namespace}p, &marpaWrapperOption, xml_common_optionp) == MARPAWRAPPER_BOOL_FALSE) {
     ${namespace}_destroyv(&${namespace}p);
@@ -969,8 +973,6 @@ static C_INLINE marpaWrapperBool_t _${namespace}_buildGrammarb(${namespace}_t *$
     return MARPAWRAPPER_BOOL_FALSE;
   }
 
-  ${namespace}p->marpaXmlLogp = marpaWrapper_marpaXmlLogp(${namespace}p->marpaWrapperp);
-
   if (_${namespace}_buildSymbolsb(${namespace}p, marpaWrapperOptionp, xml_common_optionp) == MARPAWRAPPER_BOOL_FALSE) {
     return MARPAWRAPPER_BOOL_FALSE;
   }
@@ -1022,6 +1024,8 @@ BUILDGRAMMARBWITHOUTOPTION
 sub generateLexemeValueb {
   my ($value, $namespace) = @_;
 
+  my $NAMESPACE = uc($namespace);
+
   my $lexemeValueb = '';
 
   $lexemeValueb .= <<BUILDLEXEMEVALUEB;
@@ -1029,13 +1033,78 @@ sub generateLexemeValueb {
 /**************************/
 /* ${namespace}_lexemeValueb */
 /**************************/
-marpaWrapperBool_t ${namespace}_lexemeValueb(void *marpaWrapperSymbolOptionDatavp, streamIn_t *streamInp, int *lexemeValueip) {
+marpaWrapperBool_t ${namespace}_lexemeValueb(void *marpaWrapperSymbolOptionDatavp, int *lexemeValueip, int *lexemeLengthip) {
   ${namespace}_symbol_callback_t *${namespace}_symbol_callbackp = (${namespace}_symbol_callback_t *) marpaWrapperSymbolOptionDatavp;
+  streamIn_t *streamInp = ${namespace}_symbol_callbackp->${namespace}p->streamInp;
+  marpaWrapperBool_t rcb;
 
-  return xml_common_lexemeValueb(${namespace}_symbol_callbackp->${namespace}p->marpaWrapperp, streamInp, lexemeValueip);
+  /* xml_common_lexemeValueb will use streamInUtf8_extractFromMarkedb, which will extract text in the range [marked, current] */
+  /* We used the user-marks to remember the end of the lexemes, i.e. a sort of floating "current" */
+
+  /* Lexeme recognition started when at least one character was consumed, and all isLexemeb() routines are guaranteed to restore */
+  /* stream to this position */
+  /* This mean the lexeme is starting at previous character */
+
+  /* Save current position */
+  if (streamInUtf8_userMarkb(streamInp, ${NAMESPACE}_TERMINAL_MAX) == STREAMIN_BOOL_FALSE) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+
+  /* Mark previous position */
+  if (streamInUtf8_markPreviousb(streamInp) == STREAMIN_BOOL_FALSE) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+
+  /* Set current position to the end of this lexeme */
+  if (streamInUtf8_currentFromUserMarkedb(streamInp, ${namespace}_symbol_callbackp->${namespace}_symboli) == STREAMIN_BOOL_FALSE) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+
+  /* Extract character from [marked, current] */
+  if (streamInUtf8_currentFromUserMarkedb(streamInp, ${namespace}_symbol_callbackp->${namespace}_symboli) == STREAMIN_BOOL_FALSE) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+
+  rcb = xml_common_lexemeValueb(${namespace}_symbol_callbackp->${namespace}p->marpaWrapperp, streamInp, lexemeValueip, lexemeLengthip);
+
+  /* Restore current position */
+  if (streamInUtf8_currentFromUserMarkedb(streamInp, ${NAMESPACE}_TERMINAL_MAX) == STREAMIN_BOOL_FALSE) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+
+  return rcb;
 }
 
 BUILDLEXEMEVALUEB
+
+  return $lexemeValueb;
+}
+
+sub generateNbTerminalsb {
+  my ($value, $namespace) = @_;
+
+  my $NAMESPACE = uc($namespace);
+
+  my $lexemeValueb = '';
+
+  $lexemeValueb .= <<NBTERMINALSB;
+
+/**************************/
+/* ${namespace}_nbTerminalsb */
+/**************************/
+marpaWrapperBool_t ${namespace}_nbTerminalsb(${namespace}_t *${namespace}p, size_t *nbTerminalslp) {
+  if (${namespace}p == NULL) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+
+  if (nbTerminalslp != NULL) {
+    *nbTerminalslp = ${NAMESPACE}_TERMINAL_MAX;
+  }
+
+  return MARPAWRAPPER_BOOL_TRUE;
+}
+
+NBTERMINALSB
 
   return $lexemeValueb;
 }
@@ -1047,21 +1116,35 @@ sub generateRecognizeb {
 
   $recognizeb .= <<BUILDREGOGNIZEB;
 
+static C_INLINE marpaWrapperBool_t ${namespace}_readerb(void *readerCallbackDatavp, marpaWrapperBool_t *endOfInputbp) {
+  ${namespace}_t *${namespace}p = (${namespace}_t *) readerCallbackDatavp;
+
+  return xml_common_readerb(${namespace}p->marpaWrapperp, ${namespace}p->streamInp, &(${namespace}p->currenti), endOfInputbp);
+}
+
 /**************************/
 /* ${namespace}_recognizeb */
 /**************************/
 marpaWrapperBool_t ${namespace}_recognizeb(${namespace}_t *${namespace}p, streamIn_t *streamInp) {
+  marpaWrapperRecognizerOption_t marpaWrapperRecognizerOption;
 
   if (${namespace}p == NULL) {
     return MARPAWRAPPER_BOOL_FALSE;
   }
 
-  return marpaWrapper_r_recognizeb(${namespace}p->marpaWrapperp,
-				   streamInp,
-				   &${namespace}_isLexemeb,
-                                   &${namespace}_lexemeValueb,
-                                   &${namespace}_symbolToCharsb,
-                                   &${namespace}_ruleToCharsb);
+  marpaWrapperRecognizerOption.remainingDataIsOkb                                 = MARPAWRAPPER_BOOL_FALSE;
+  marpaWrapperRecognizerOption.longestAcceptableTokenMatchb                       = MARPAWRAPPER_BOOL_TRUE;
+  marpaWrapperRecognizerOption.longestAcceptableTokensShareTheSameValueAndLengthb = MARPAWRAPPER_BOOL_TRUE;
+  marpaWrapperRecognizerOption.readerCallbackp                                    = &${namespace}_readerb;
+  marpaWrapperRecognizerOption.readerDatavp                                       = ${namespace}p;
+  marpaWrapperRecognizerOption.isLexemebCallbackp                                 = &${namespace}_isLexemeb;
+  marpaWrapperRecognizerOption.lexemeValuebCallbackp                              = &${namespace}_lexemeValueb;
+  marpaWrapperRecognizerOption.ruleToCharsbCallbackp                              = &${namespace}_ruleToCharsb;
+  marpaWrapperRecognizerOption.symbolToCharsbCallbackp                            = &${namespace}_symbolToCharsb;
+
+  ${namespace}p->streamInp = streamInp;
+
+  return marpaWrapper_r_recognize2b(${namespace}p->marpaWrapperp, &marpaWrapperRecognizerOption);
 }
 
 BUILDREGOGNIZEB
@@ -1130,7 +1213,7 @@ static C_INLINE marpaWrapperBool_t _${namespace}_parseEventsb(void *datavp, marp
   ${namespace}_symbol_t           symboli;
   size_t                          i;
 #ifndef MARPAXML_NTRACE
-  marpaXmlLog_t                  *marpaXmlLogp = NULL;
+  marpaXmlLog_t                  *marpaXmlLogp = marpaWrapper_marpaXmlLogp(marpaWrapperp);
 #endif
 
   for (i = 0; i < nEventi; i++) {
@@ -1146,7 +1229,6 @@ static C_INLINE marpaWrapperBool_t _${namespace}_parseEventsb(void *datavp, marp
     /* No need to get more than once our namespace pointer */
     if (i == 0) {
       ${namespace}p = marpaWrapperSymbolCallbackp->${namespace}p;
-      marpaXmlLogp = ${namespace}p->marpaXmlLogp;
     }
 
     switch (symboli = marpaWrapperSymbolCallbackp->${namespace}_symboli) {
@@ -1360,16 +1442,20 @@ sub generatePushLexemeb {
 /* Note: MARPAWRAPPER_BOOL_TRUE and *sizelp == 0 means this is a discarded input */
 /*********************************************************************************/
 
-marpaWrapperBool_t ${namespace}_isLexemeb(void *marpaWrapperSymbolOptionDatavp, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
+marpaWrapperBool_t ${namespace}_isLexemeb(void *marpaWrapperSymbolOptionDatavp, size_t *sizelp) {
   marpaWrapperBool_t rcb;
   ${namespace}_symbol_callback_t *${namespace}_symbol_callbackp = (${namespace}_symbol_callback_t *) marpaWrapperSymbolOptionDatavp;
+  ${namespace}_t    *${namespace}p = ${namespace}_symbol_callbackp->${namespace}p;
+  signed int         currenti = ${namespace}p->currenti;
+  streamIn_t        *streamInp = ${namespace}p->streamInp;
+  ${namespace}_symbol_t ${namespace}_symboli = ${namespace}_symbol_callbackp->${namespace}_symboli;
 
-  switch (${namespace}_symbol_callbackp->${namespace}_symboli) {
+  switch (${namespace}_symboli) {
 ISLEXEMEB_HEADER
   foreach (sort {$a cmp $b} grep {$value->{symbols}->{$_}->{terminal} == 1} keys %{$value->{symbols}}) {
       $pushLexemeb .= <<ISLEXEMEB;
     case ${namespace}_${_}:
-      rcb = _${namespace}_${_}b(${namespace}_symbol_callbackp->${namespace}p, currenti, streamInp, sizelp);
+      rcb = _${namespace}_${_}b(${namespace}p, currenti, streamInp, sizelp);
       break;
 ISLEXEMEB
     }
@@ -1378,17 +1464,17 @@ ISLEXEMEB
     default:
       /* Special case: if return is MARPAWRAPPER_BOOL_TRUE and *sizelp is 0, then this is a :discard */
       /* Nevertheless streamInp will have have progressed */
-      rcb = $funcDiscardb(${namespace}_symbol_callbackp->${namespace}p, currenti, streamInp, sizelp);
+      rcb = $funcDiscardb(${namespace}p, currenti, streamInp, sizelp);
       break;
   }
 
 #ifndef MARPAXML_NTRACE
   {
-      marpaXmlLog_t *marpaXmlLogp = ${namespace}_symbol_callbackp->${namespace}p->marpaXmlLogp;
+      marpaXmlLog_t *marpaXmlLogp = marpaWrapper_marpaXmlLogp(${namespace}p->marpaWrapperp);
       if (rcb == MARPAWRAPPER_BOOL_TRUE) {
-	  MARPAXML_TRACEX("Accepted symbol No %4d: %s, length %lld\\n", ${namespace}_symbol_callbackp->${namespace}_symboli, symbolsToChars[${namespace}_symbol_callbackp->${namespace}_symboli], (long long) *sizelp);
+	  MARPAXML_TRACEX("Accepted symbol No %4d: %s, length %lld\\n", ${namespace}_symboli, symbolsToChars[${namespace}_symboli], (long long) *sizelp);
       } else {
-	  MARPAXML_TRACEX("Rejected symbol No %4d: %s\\n", ${namespace}_symbol_callbackp->${namespace}_symboli, symbolsToChars[${namespace}_symbol_callbackp->${namespace}_symboli]);
+	  MARPAXML_TRACEX("Rejected symbol No %4d: %s\\n", ${namespace}_symboli, symbolsToChars[${namespace}_symboli]);
       }
   }
 #endif
@@ -1454,11 +1540,18 @@ ISLEXEMEB
   $value->{symbols}->{$_}->{content}
  ************************************************/
 static C_INLINE marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
+  marpaWrapperBool_t rcb;
   if ($wanted) {
-    ${sizelpMatch}return $rcIfMatch;
+    ${sizelpMatch}rcb = $rcIfMatch;
   } else {
-    ${sizelpCaretMatch}return $rcIfCaretMatch;
+    ${sizelpCaretMatch}rcb = $rcIfCaretMatch;
   }
+  if (rcb == MARPAWRAPPER_BOOL_TRUE) {
+    if (streamInUtf8_userMarkb(streamInp, ${namespace}_${_}) == STREAMIN_BOOL_FALSE) {
+      rcb = MARPAWRAPPER_BOOL_FALSE;
+    }
+  }
+  return rcb;
 }
 ISLEXEMEB
       } elsif ($value->{lexemesExact}->{$_}->{type} == $LEXEME_HEXMANY) {
@@ -1480,8 +1573,12 @@ ISLEXEMEB
  ************************************************/
 static C_INLINE marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
   if (currenti == $wanted) {
-    *sizelp = 1;
-    return MARPAWRAPPER_BOOL_TRUE;
+    if (streamInUtf8_userMarkb(streamInp, ${namespace}_${_}) == STREAMIN_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    } else {
+      *sizelp = 1;
+      return MARPAWRAPPER_BOOL_TRUE;
+    }
   } else {
     return MARPAWRAPPER_BOOL_FALSE;
   }
@@ -1495,8 +1592,12 @@ ISLEXEMEB
  ************************************************/
 static C_INLINE marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, signed int currenti, streamIn_t *streamInP, size_t *sizelp) {
   if ($wanted) {
-    *sizelp = 1;
-    return MARPAWRAPPER_BOOL_TRUE;
+    if (streamInUtf8_userMarkb(streamInp, ${namespace}_${_}) == STREAMIN_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    } else {
+      *sizelp = 1;
+      return MARPAWRAPPER_BOOL_TRUE;
+    }
   } else {
     return MARPAWRAPPER_BOOL_FALSE;
   }
@@ -1515,8 +1616,12 @@ ISLEXEMEB
  ************************************************/
 static C_INLINE marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
   if (currenti == $wanted) {
-    *sizelp = 1;
-    return MARPAWRAPPER_BOOL_TRUE;
+    if (streamInUtf8_userMarkb(streamInp, ${namespace}_${_}) == STREAMIN_BOOL_FALSE) {
+      return MARPAWRAPPER_BOOL_FALSE;
+    } else {
+      *sizelp = 1;
+      return MARPAWRAPPER_BOOL_TRUE;
+    }
   } else {
     return MARPAWRAPPER_BOOL_FALSE;
   }
@@ -1548,8 +1653,12 @@ static C_INLINE marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespa
         break;
       }
     } while (i < $length);
-    if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
-	rcb = MARPAWRAPPER_BOOL_FALSE;
+    if (streamInUtf8_userMarkb(streamInp, ${namespace}_${_}) == STREAMIN_BOOL_FALSE) {
+      rcb = MARPAWRAPPER_BOOL_FALSE;
+    } else {
+      if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+      }
     }
   } else {
     rcb = MARPAWRAPPER_BOOL_FALSE;
