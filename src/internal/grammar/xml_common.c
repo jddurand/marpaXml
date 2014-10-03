@@ -64,6 +64,7 @@ marpaWrapperBool_t xml_common_lexemeValueb(marpaWrapper_t *marpaWrapperp, stream
 
   if (marpaXml_Lexeme_getId(lexemep, &id) == marpaXml_false) {
     marpaXml_Lexeme_free(&lexemep);
+    marpaXml_String_free(&stringp);
     return MARPAWRAPPER_BOOL_FALSE;
   }
 
@@ -71,6 +72,7 @@ marpaWrapperBool_t xml_common_lexemeValueb(marpaWrapper_t *marpaWrapperp, stream
     /* Marpa is using an int, and disregard strongly value 0 (which means 'undef' to him) */
     MARPAXML_ERRORX("index would exceed the 'int' representation at %s:%d", __FILE__, __LINE__);
     marpaXml_Lexeme_free(&lexemep);
+    marpaXml_String_free(&stringp);
     return MARPAWRAPPER_BOOL_FALSE;
   }
 
@@ -79,6 +81,7 @@ marpaWrapperBool_t xml_common_lexemeValueb(marpaWrapper_t *marpaWrapperp, stream
   *lexemeLengthip = (int) lengthl;
 
   marpaXml_Lexeme_free(&lexemep);
+  marpaXml_String_free(&stringp);
 
   return MARPAWRAPPER_BOOL_TRUE;
 }
