@@ -841,7 +841,7 @@ static _marpaXml_init_t _marpaXml_init[] = {
     "END;"
   },
   {
-    "CREATE TRIGGER IF NOT EXISTS Lexeme_delete_Update_Trigger "
+    "CREATE TRIGGER IF NOT EXISTS Lexeme_counter_Update_Trigger "
     "BEFORE UPDATE ON Lexeme "
     "FOR EACH ROW "
     "WHEN (NEW.counter <= 0) "
