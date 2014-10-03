@@ -1144,7 +1144,7 @@ marpaWrapperBool_t ${namespace}_recognizeb(${namespace}_t *${namespace}p, stream
 
   ${namespace}p->streamInp = streamInp;
 
-  return marpaWrapper_r_recognize2b(${namespace}p->marpaWrapperp, &marpaWrapperRecognizerOption);
+  return marpaWrapper_r_recognizeb(${namespace}p->marpaWrapperp, &marpaWrapperRecognizerOption);
 }
 
 BUILDREGOGNIZEB

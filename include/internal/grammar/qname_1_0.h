@@ -13,6 +13,7 @@ marpaWrapperBool_t  qname_1_0_recognizeb(qname_1_0_t *qname_1_0p, streamIn_t *st
 void                qname_1_0_destroyv(qname_1_0_t **qname_1_0pp);
 
 /* Needed for streamInUtf8_newp */
+marpaWrapperBool_t  qname_1_0_nbTerminalsb(qname_1_0_t *qname_1_0p, size_t *nbTerminalslp);
 
 /* Callbacks */
 marpaWrapperBool_t  qname_1_0_symbolToCharsb(void *marpaWrapperSymbolOptionDatavp, const char **symbolsp);

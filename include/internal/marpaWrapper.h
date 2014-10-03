@@ -3,8 +3,6 @@
 
 #include <stddef.h>                  /* size_t definition */
 
-#include "internal/streamIn.h"
-
 /* Convention is:
    - all pointer symbols end with 'p'
    - all number  symbols end with 'i'
@@ -140,7 +138,6 @@ marpaWrapperBool_t        marpaWrapper_r_terminal_is_expectedb(marpaWrapper_t *m
 marpaWrapperBool_t        marpaWrapper_r_progressb            (marpaWrapper_t *marpaWrapperp, int starti, int endi, size_t *nmarpaWrapperProgressip, marpaWrapperProgress_t ***marpaWrapperProgressppp);
 
 typedef marpaWrapperBool_t (*marpaWrapper_readerCallback_t)(void *readerCallbackDatavp, marpaWrapperBool_t *endOfInputbp);
-/* streamInp is supposed to have been opened in UTF-8 mode */
 typedef marpaWrapperBool_t (*marpaWrapper_isLexemebCallback_t)(void *marpaWrapperSymbolOptionDatavp, size_t *lengthlp);
 /* If there is more than one possible alternative, marpaWrapper_lexemeValuebCallback() will be called with one of the symbol candidates, once */
 typedef marpaWrapperBool_t (*marpaWrapper_lexemeValuebCallback_t)(void *marpaWrapperSymbolOptionDatavp, int *lexemeValueip, int *lexemeLengthip);
@@ -160,14 +157,7 @@ typedef struct marpaWrapperRecognizerOption {
   marpaWrapper_symbolToCharsbCallback_t symbolToCharsbCallbackp;
 } marpaWrapperRecognizerOption_t;
 
-marpaWrapperBool_t marpaWrapper_r_recognizeb(marpaWrapper_t *marpaWrapperp,
-					     streamIn_t *streamInp,
-					     marpaWrapper_isLexemebCallback_t isLexemebCallbackp,
-					     marpaWrapper_lexemeValuebCallback_t lexemeValuebCallbackp,
-					     marpaWrapper_symbolToCharsbCallback_t symbolToCharsCallbackp,
-					     marpaWrapper_ruleToCharsbCallback_t ruleToCharsCallbackp);
-
-marpaWrapperBool_t marpaWrapper_r_recognize2b(marpaWrapper_t *marpaWrapperp, marpaWrapperRecognizerOption_t *marpaWrapperRecognizerOptionp);
+marpaWrapperBool_t marpaWrapper_r_recognizeb(marpaWrapper_t *marpaWrapperp, marpaWrapperRecognizerOption_t *marpaWrapperRecognizerOptionp);
 
 /******************/
 /* Phase 3: Value */

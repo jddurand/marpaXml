@@ -1619,10 +1619,10 @@ marpaWrapperBool_t marpaWrapper_optionDefaultb(marpaWrapperOption_t *marpaWrappe
   return MARPAWRAPPER_BOOL_TRUE;
 }
 
-/****************************/
-/* marpaWrapper_recognize2b */
-/****************************/
-marpaWrapperBool_t marpaWrapper_r_recognize2b(marpaWrapper_t *marpaWrapperp, marpaWrapperRecognizerOption_t *marpaWrapperRecognizerOptionp) {
+/***************************/
+/* marpaWrapper_recognizeb */
+/***************************/
+marpaWrapperBool_t marpaWrapper_r_recognizeb(marpaWrapper_t *marpaWrapperp, marpaWrapperRecognizerOption_t *marpaWrapperRecognizerOptionp) {
   size_t                     i;
   size_t                     nMarpaWrapperSymboli = 0;
   marpaWrapperSymbol_t     **marpaWrapperSymbolpp = NULL;
@@ -1764,135 +1764,6 @@ marpaWrapperBool_t marpaWrapper_r_recognize2b(marpaWrapper_t *marpaWrapperp, mar
   }
 
  recognizebEnd:
-  return rcb;
-}
-
-/***************************/
-/* marpaWrapper_recognizeb */
-/***************************/
-marpaWrapperBool_t marpaWrapper_r_recognizeb(marpaWrapper_t *marpaWrapperp,
-                                             streamIn_t *streamInp,
-                                             marpaWrapper_isLexemebCallback_t isLexemebCallbackp,
-                                             marpaWrapper_lexemeValuebCallback_t lexemeValuebCallbackp,
-                                             marpaWrapper_symbolToCharsbCallback_t symbolToCharsCallbackp,
-                                             marpaWrapper_ruleToCharsbCallback_t ruleToCharsCallbackp) {
-  signed int             nexti;
-  size_t                 nMarpaWrapperSymboli = 0;
-  marpaWrapperSymbol_t **marpaWrapperSymbolpp = NULL;
-  size_t                 i;
-  size_t                 lengthl, maxLengthl;
-  marpaWrapperBool_t     rcb = MARPAWRAPPER_BOOL_TRUE;
-  int                    lexemeValuei;
-  const char            *symbols;
-  const char            *rules;
-  int                    nbIsLexemebCallbackTruei;
-
-  if (isLexemebCallbackp == NULL) {
-    MARPAWRAPPER_LOG_ERROR0("isLexemebCallbackp must be non-NULL");
-    return MARPAWRAPPER_BOOL_FALSE;
-  }
-  if (lexemeValuebCallbackp == NULL) {
-    MARPAWRAPPER_LOG_ERROR0("lexemeValuebCallbackp be non-NULL");
-    return MARPAWRAPPER_BOOL_FALSE;
-  }
-
-  if (marpaWrapper_r_startb(marpaWrapperp) == MARPAWRAPPER_BOOL_FALSE) {
-    return MARPAWRAPPER_BOOL_FALSE;
-  }
-
-  while (streamInUtf8_nexti(streamInp, &nexti) == STREAMIN_BOOL_TRUE) {
-    MARPAWRAPPER_LOG_TRACEX("next character: 0x%lx", nexti);
-
-#ifndef MARPAWRAPPER_NTRACE
-    {
-      size_t                     nmarpaWrapperProgressi;
-      marpaWrapperProgress_t   **marpaWrapperProgresspp;
-      /* Calling progress is expensive, so it is explicitely done only in Debug mode */
-      if (marpaWrapper_r_progressb(marpaWrapperp, -1, -1, &nmarpaWrapperProgressi, &marpaWrapperProgresspp) == MARPAWRAPPER_BOOL_TRUE) {
-        for (i = 0; i < nmarpaWrapperProgressi; i++) {
-          MARPAWRAPPER_LOG_TRACEX("Earley Set Id: %4d, Origin Earley Set Id: %4d, Rule: %10p, Position: %3d: %s",
-                                  marpaWrapperProgresspp[i]->marpaEarleySetIdi,
-                                  marpaWrapperProgresspp[i]->marpaEarleySetIdOrigini,
-                                  (void *) marpaWrapperProgresspp[i]->marpaWrapperRulep,
-                                  marpaWrapperProgresspp[i]->positioni,
-                                  (ruleToCharsCallbackp != NULL && ruleToCharsCallbackp(marpaWrapperProgresspp[i]->marpaWrapperRulep->marpaWrapperRuleOption.datavp, &rules) == MARPAWRAPPER_BOOL_TRUE) ? rules : "**Error**");
-        }
-      }
-    }
-#endif
-
-    if (marpaWrapper_r_terminals_expectedb(marpaWrapperp, &nMarpaWrapperSymboli, &marpaWrapperSymbolpp) == MARPAWRAPPER_BOOL_FALSE) {
-      MARPAWRAPPER_LOG_TRACE0("No more expected terminal");
-      rcb = MARPAWRAPPER_BOOL_FALSE;
-      goto recognizebEnd;
-    }
-    MARPAWRAPPER_LOG_TRACEX("Number of expected terminals: %d", nMarpaWrapperSymboli);
-    maxLengthl = 0;
-    nbIsLexemebCallbackTruei = 0;
-    for (i = 0; i < nMarpaWrapperSymboli; i++) {
-      /* Every lexeme callback has to make sure index in stream is unchanged when they return */
-      MARPAWRAPPER_LOG_TRACEX("Checking symbol No %4d: %s", marpaWrapperSymbolpp[i]->marpaSymbolIdi, (symbolToCharsCallbackp != NULL && symbolToCharsCallbackp(marpaWrapperSymbolpp[i]->marpaWrapperSymbolOption.datavp, &symbols) == MARPAWRAPPER_BOOL_TRUE) ? symbols : "");
-      if ((marpaWrapperSymbolpp[i]->isLexemeb = isLexemebCallbackp(marpaWrapperSymbolpp[i]->marpaWrapperSymbolOption.datavp, nexti, streamInp, &lengthl)) == MARPAWRAPPER_BOOL_TRUE) {
-	nbIsLexemebCallbackTruei++;
-        if ((marpaWrapperSymbolpp[i]->lengthl = lengthl) > maxLengthl) {
-          maxLengthl = lengthl;
-        }
-      } else {
-	marpaWrapperSymbolpp[i]->lengthl = 0;
-      }
-    }
-    if (maxLengthl > 0) {
-      /* Go back by one character and mark this position */
-      if ((streamInUtf8_markPreviousb(streamInp) == STREAMIN_BOOL_FALSE) ||
-          (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE)) {
-        rcb = MARPAWRAPPER_BOOL_FALSE;
-        goto recognizebEnd;
-      }
-      /* Move the stream forward up to the end of the longest acceptable token match */
-      lengthl = 0;
-      while (lengthl++ < maxLengthl) {
-	if (streamInUtf8_nexti(streamInp, &nexti) == STREAMIN_BOOL_FALSE) {
-	  rcb = MARPAWRAPPER_BOOL_FALSE;
-	  goto recognizebEnd;
-	}
-      }
-      lexemeValuei = 0;
-      for (i = 0; i < nMarpaWrapperSymboli; i++) {
-	if (marpaWrapperSymbolpp[i]->lengthl != maxLengthl) {
-	  /* This symbol did not match or is a discard */
-	  continue;
-	}
-	if (lexemeValuei == 0) {
-	  /* We guarantee to our caller that the stream is positionned where the the lexeme is ending, and marked where it is starting */
-	  if (lexemeValuebCallbackp(marpaWrapperSymbolpp[i]->marpaWrapperSymbolOption.datavp, streamInp, &lexemeValuei) == MARPAWRAPPER_BOOL_FALSE) {
-	    rcb = MARPAWRAPPER_BOOL_FALSE;
-	    goto recognizebEnd;
-	  }
-	}
-	/* We say that all tokens have a length of "1". No need to hog memory with the character-per-earleme model */
-	if (marpaWrapper_r_alternativeb(marpaWrapperp, marpaWrapperSymbolpp[i], lexemeValuei, 1) == MARPAWRAPPER_BOOL_FALSE) {
-	  /* Because we did a terminal_expected(), this should never happen */
-	  rcb = MARPAWRAPPER_BOOL_FALSE;
-	  goto recognizebEnd;
-	}
-      }
-    }
-    /* We always do a marpaWrapper_r_complete, unless only a discarded token has matched */
-    if ((nbIsLexemebCallbackTruei <= 0) || (maxLengthl > 0)) {
-      if (marpaWrapper_r_completeb(marpaWrapperp) == MARPAWRAPPER_BOOL_FALSE) {
-	rcb = MARPAWRAPPER_BOOL_FALSE;
-	goto recognizebEnd;
-      }
-    }
-    /* Say current character is done */
-    if (streamInUtf8_doneb(streamInp) == STREAMIN_BOOL_FALSE) {
-      rcb = MARPAWRAPPER_BOOL_FALSE;
-      goto recognizebEnd;
-    }
-  }
-
- recognizebEnd:
-
   return rcb;
 }
 
