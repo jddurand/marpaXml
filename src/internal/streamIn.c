@@ -104,6 +104,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_fromConvertb(streamIn_t *stream
 static C_INLINE streamInBool_t _streamInUtf8_ICU_toConvertb(streamIn_t *streamInp, size_t bufIndexi, char **byteArraypp, size_t *bytesInBufferp, size_t *lengthInBufferp);
 static C_INLINE streamInBool_t _streamInUtf8_ICU_currenti(streamIn_t *streamInp, signed int *currentip);
 static C_INLINE streamInBool_t _streamInUtf8_ICU_nexti(streamIn_t *streamInp, signed int *nextip);
+static C_INLINE streamInBool_t _streamInUtf8_ICU_isprint(streamIn_t *streamInp, signed int currenti);
 static C_INLINE streamInBool_t _streamInUtf8_ICU_markb(streamIn_t *streamInp);
 static C_INLINE streamInBool_t _streamInUtf8_ICU_userMarkb(streamIn_t *streamInp, size_t indexi);
 static C_INLINE streamInBool_t _streamInUtf8_ICU_eofb(streamIn_t *streamInp);
@@ -1215,9 +1216,9 @@ streamInBool_t streamInUnicode_toEncodings(streamIn_t *streamInp, char **toEncod
   return STREAMIN_BOOL_TRUE;
 }
 
-/*********************/
-/* streamInUtf8_next */
-/*********************/
+/**********************/
+/* streamInUtf8_nexti */
+/**********************/
 streamInBool_t streamInUtf8_nexti(streamIn_t *streamInp, signed int *nextip) {
   streamInBool_t rcb = STREAMIN_BOOL_FALSE;
   signed int     nexti;
@@ -1787,6 +1788,28 @@ streamInBool_t streamInUtf8_eofb(streamIn_t *streamInp) {
 /**************************/
 static C_INLINE streamInBool_t _streamInUtf8_ICU_eofb(streamIn_t *streamInp) {
   return streamInp->streamIn_ICU.eofb;
+}
+
+/*************************/
+/* _streamInUtf8_isprint */
+/*************************/
+streamInBool_t streamInUtf8_isprint(streamIn_t *streamInp, signed int currenti) {
+  streamInBool_t rcb = STREAMIN_BOOL_FALSE;
+
+  if (streamInp == NULL || streamInp->utf8b == STREAMIN_BOOL_FALSE) {
+    return rcb;
+  }
+
+  rcb = _streamInUtf8_ICU_isprint(streamInp, currenti);
+
+  return rcb;
+}
+
+/*****************************/
+/* _streamInUtf8_ICU_isprint */
+/*****************************/
+static C_INLINE streamInBool_t _streamInUtf8_ICU_isprint(streamIn_t *streamInp, signed int currenti) {
+  return (u_isprint(currenti) == TRUE) ? STREAMIN_BOOL_TRUE : STREAMIN_BOOL_FALSE;
 }
 
 /***********************/
