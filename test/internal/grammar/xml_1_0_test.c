@@ -6,14 +6,14 @@
 
 int main(int argc, char **argv) {
   xml_1_0_t *xml_1_0p;
-  marpaWrapperOption_t       marpaWrapperOption;
-  xml_common_option_t        xml_common_option;
+  marpaWrapperOption_t  marpaWrapperOption;
+  xml_common_option_t   xml_common_option;
+  marpaXmlLog_t        *marpaXmlLogp = marpaXmlLog_newp(NULL, NULL, MARPAXML_LOGLEVEL_TRACE);
 #ifdef _WIN32
-  marpaXml_DOM_Option_t marpaXml_DOM_Option = {"C:\\Windows\\Temp\\test.sqlite", NULL, -1, NULL};
+  marpaXml_DOM_Option_t marpaXml_DOM_Option = {"C:\\Windows\\Temp\\test.sqlite", NULL, -1, marpaXmlLogp};
 #else
-  marpaXml_DOM_Option_t marpaXml_DOM_Option = {"/tmp/test.sqlite", NULL, -1, NULL};
+  marpaXml_DOM_Option_t marpaXml_DOM_Option = {"/tmp/test.sqlite", NULL, -1, marpaXmlLogp};
 #endif
-  marpaXmlLog_t   *marpaXmlLogp = marpaXmlLog_newp(NULL, NULL, MARPAXML_LOGLEVEL_TRACE);
 
   marpaXml_DOM_init(&marpaXml_DOM_Option);
 
