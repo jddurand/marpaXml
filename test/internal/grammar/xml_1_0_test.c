@@ -10,9 +10,9 @@ int main(int argc, char **argv) {
   xml_common_option_t   xml_common_option;
   marpaXmlLog_t        *marpaXmlLogp = marpaXmlLog_newp(NULL, NULL, MARPAXML_LOGLEVEL_TRACE);
 #ifdef _WIN32
-  marpaXml_DOM_Option_t marpaXml_DOM_Option = {"C:\\Windows\\Temp\\test.sqlite", NULL, -1, marpaXmlLogp};
+  marpaXml_DOM_Option_t marpaXml_DOM_Option = {NULL /* "C:\\Windows\\Temp\\test.sqlite" */, NULL, -1, marpaXmlLogp};
 #else
-  marpaXml_DOM_Option_t marpaXml_DOM_Option = {"/tmp/test.sqlite", NULL, -1, marpaXmlLogp};
+  marpaXml_DOM_Option_t marpaXml_DOM_Option = {NULL /* "/tmp/test.sqlite" */, NULL, -1, marpaXmlLogp};
 #endif
 
   marpaXml_DOM_init(&marpaXml_DOM_Option);
