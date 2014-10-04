@@ -1971,6 +1971,9 @@ marpaWrapperBool_t marpaWrapper_r_progressb(marpaWrapper_t *marpaWrapperp, int s
   return rcb; 
 }
 
+/*****************************/
+/* marpaWrapper_marpaXmlLogp */
+/*****************************/
 marpaXmlLog_t *marpaWrapper_marpaXmlLogp(marpaWrapper_t *marpaWrapperp) {
   if (marpaWrapperp == NULL) {
     return NULL;
@@ -1978,4 +1981,3 @@ marpaXmlLog_t *marpaWrapper_marpaXmlLogp(marpaWrapper_t *marpaWrapperp) {
 
   return marpaWrapperp->marpaXmlLogp;
 }
-
