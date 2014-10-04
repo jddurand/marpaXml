@@ -154,7 +154,6 @@ streamInBool_t streamInUtf8_optionDefaultb    (streamInUtf8Option_t *streamInUtf
 /* Options at the utf8 level cannot be changed after streamInUtf8_newp() */
 streamInBool_t streamInUtf8_currenti          (streamIn_t *streamInp, signed int *currentip);                           /* Get current utf8 */
 streamInBool_t streamInUtf8_nexti             (streamIn_t *streamInp, signed int *nextip);                              /* Get next utf8. Moves current by one.  */
-streamInBool_t streamInUtf8_isprint           (streamIn_t *streamInp, signed int chari);                                /* Is this utf8 character printable.  */
 streamInBool_t streamInUtf8_eofb              (streamIn_t *streamInp);                                                  /* Is eof reached */
 streamInBool_t streamInUtf8_markb             (streamIn_t *streamInp);                                                  /* Mark current utf8 */
 streamInBool_t streamInUtf8_markPreviousb     (streamIn_t *streamInp);                                                  /* Mark previous utf8 */
