@@ -31,9 +31,11 @@ typedef struct xml_common_option {
   char            *encodings;
 } xml_common_option_t;
 
+#define XML_COMMON_LAST_UTF8_TRACKSIZE 20
 typedef struct xml_common_work {
   unsigned long long linel;
   unsigned long long columnl;
+  signed int         lastUtf8[XML_COMMON_LAST_UTF8_TRACKSIZE];
 } xml_common_work_t;
 
 marpaWrapperBool_t xml_common_optionDefaultb(xml_common_option_t *xml_common_optionp);
