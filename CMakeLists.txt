@@ -95,7 +95,7 @@ FIND_PROGRAM (PERL perl)
 # -------------
 # Marpa library
 # -------------
-SET (MARPA_VERSION "2.088000")
+SET (MARPA_VERSION "2.097_001")
 SET (MARPA_DIR "${PROJECT_SOURCE_DIR}/Marpa-R2-${MARPA_VERSION}")
 IF (NOT EXISTS "${MARPA_DIR}" OR NOT IS_DIRECTORY "${MARPA_DIR}")
   MESSAGE (STATUS "Preparing ${MARPA_DIR}")
@@ -113,7 +113,11 @@ IF (NOT EXISTS "${MARPA_DIR}" OR NOT IS_DIRECTORY "${MARPA_DIR}")
     COMMAND "${PERL}" tools/prepare_libmarpa.pl "${MARPA_VERSION}" "${CC_BASENAME}" "" "${CMAKE_C_OUTPUT_EXTENSION}"
     )
 ENDIF ()
-FILE(GLOB marpa_lib_src Marpa-R2-${MARPA_VERSION}/core/read_only/*.c)
+IF (IS_DIRECTORY "${MARPA_DIR}/core")
+  FILE(GLOB marpa_lib_src Marpa-R2-${MARPA_VERSION}/core/read_only/*.c)
+ELSEIF (IS_DIRECTORY "${MARPA_DIR}/engine")
+  FILE(GLOB marpa_lib_src Marpa-R2-${MARPA_VERSION}/engine/read_only/*.c)
+ENDIF () 
 ADD_LIBRARY (marpa STATIC ${marpa_lib_src})
 
 # --------------
