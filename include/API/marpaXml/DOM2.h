@@ -50,7 +50,7 @@ typedef struct marpaXml_DOM_Option {
   const char                  *dbFilename;                    /* Default: ":memory:"                          */
   const char                  *locale;                        /* Default: NULL                                */
   int                          collStrength;                  /* Default: -1                                  */
-  marpaXmlLog_Option_t         logOption;
+  marpaXmlLog_t               *marpaXmlLogp;                  /* Default: NULL                                */
 } marpaXml_DOM_Option_t;
 
 /*

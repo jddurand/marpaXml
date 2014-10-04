@@ -9,15 +9,16 @@ int main(int argc, char **argv) {
   marpaWrapperOption_t       marpaWrapperOption;
   xml_common_option_t        xml_common_option;
 #ifdef _WIN32
-  marpaXml_DOM_Option_t marpaXml_DOM_Option = {"C:\\Windows\\Temp\\test.sqlite", NULL, -1, { NULL, NULL, MARPAXML_LOGLEVEL_TRACE} };
+  marpaXml_DOM_Option_t marpaXml_DOM_Option = {"C:\\Windows\\Temp\\test.sqlite", NULL, -1, NULL};
 #else
-  marpaXml_DOM_Option_t marpaXml_DOM_Option = {"/tmp/test.sqlite", NULL, -1, { NULL, NULL, MARPAXML_LOGLEVEL_TRACE } };
+  marpaXml_DOM_Option_t marpaXml_DOM_Option = {"/tmp/test.sqlite", NULL, -1, NULL};
 #endif
+  marpaXmlLog_t   *marpaXmlLogp = marpaXmlLog_newp(NULL, NULL, MARPAXML_LOGLEVEL_TRACE);
 
   marpaXml_DOM_init(&marpaXml_DOM_Option);
 
   marpaWrapper_optionDefaultb(&marpaWrapperOption);
-  marpaWrapperOption.logLevelWantedi     = MARPAXML_LOGLEVEL_TRACE;
+  marpaWrapperOption.marpaXmlLogp = marpaXmlLogp;
 
   xml_common_optionDefaultb(&xml_common_option);
 
@@ -61,12 +62,12 @@ int main(int argc, char **argv) {
     streamInUtf8_optionDefaultb(&streamInUtf8Option);
 
     marpaWrapper_optionDefaultb(&marpaWrapperOption);
-    marpaWrapperOption.logLevelWantedi     = MARPAXML_LOGLEVEL_TRACE;
+    marpaWrapperOption.marpaXmlLogp     = marpaXmlLogp;
     xml_common_optionDefaultb(&xml_common_option);
     xml_common_option.xml_common_topi = XML_COMMON_TOP_DOCUMENT;
     xml_1_0p = xml_1_0_newp(&marpaWrapperOption, &xml_common_option);
 
-    streamInOption.logLevelWantedi = MARPAXML_LOGLEVEL_TRACE;
+    streamInOption.marpaXmlLogp = marpaXmlLogp;
 
     if (xml_1_0_nbTerminalsb(xml_1_0p, &nbTerminalsl) == MARPAWRAPPER_BOOL_TRUE) {
       /* Last indice is used a temporary storage to move in the stream - c.f. lexemeValueb */
@@ -81,6 +82,7 @@ int main(int argc, char **argv) {
   }
 
   marpaXml_DOM_release();
+  marpaXmlLog_freev(&marpaXmlLogp);
 
   return 0;
 }

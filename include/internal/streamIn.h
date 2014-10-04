@@ -53,9 +53,7 @@ typedef streamInBool_t (*streamInReadCallback_t)  (void *datavp, size_t wantedBy
 typedef struct streamInOption {
   size_t                       bufMaxSizei;                   /* Defaut:  1M. Optional.                       */
   streamInBool_t               allBuffersAreManagedByUserb;   /* Default: STREAMIN_BOOL_FALSE                 */
-  marpaXmlLogLevel_t           logLevelWantedi;               /* Default: MARPAXML_LOGLEVEL_WARNING           */
-  marpaXmlLogCallback_t        logCallbackp;                  /* Default: marpaXmlLog_defaultLogCallback()    */
-  void                        *logCallbackDatavp;             /* Default: NULL                                */
+  marpaXmlLog_t               *marpaXmlLogp;                  /* Default: NULL                                */
   streamInReadCallback_t       readCallbackp;                 /* Default: NULL.                               */
   void                        *readCallbackDatavp;            /* Default: NULL.                               */
   streamInBufFreeCallback_t    bufFreeCallbackp;              /* Default: NULL.                               */

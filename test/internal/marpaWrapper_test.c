@@ -50,10 +50,11 @@ int main() {
   int                       minus_token_value    = 5;      /* Indice 5 in token_values */
   int                       plus_token_value     = 6;      /* Indice 6 in token_values */
   int                       multiply_token_value = 7;      /* Indice 7 in token_values */
+  marpaXmlLog_t            *marpaXmlLogp = marpaXmlLog_newp(NULL, NULL, MARPAXML_LOGLEVEL_TRACE);
 
   /* We want TRACE log level */
   marpaWrapper_optionDefaultb(&marpaWrapperOption);
-  marpaWrapperOption.logLevelWantedi     = MARPAXML_LOGLEVEL_TRACE;
+  marpaWrapperOption.marpaXmlLogp = marpaXmlLogp;
 
   /* Grammar */
   marpaWrapperp = marpaWrapper_newp(&marpaWrapperOption);
@@ -147,6 +148,8 @@ int main() {
   marpaWrapper_vb(marpaWrapperp, &marpaWrapperValueOption, &marpaWrapperStackOption);
 
   marpaWrapper_destroyv(&marpaWrapperp);
+
+  marpaXmlLog_freev(&marpaXmlLogp);
 
   return 0;
 }

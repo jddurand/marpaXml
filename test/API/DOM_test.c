@@ -25,9 +25,9 @@ int main(int argc, char **argv) {
     marpaXml_DOMImplementationSource_t *DOMImplementationSourcep = NULL;
 
 #ifdef _WIN32
-    marpaXml_DOM_Option_t marpaXml_DOM_Option = {"C:\\Windows\\Temp\\test.sqlite", NULL, -1, { NULL, NULL, MARPAXML_LOGLEVEL_TRACE} };
+    marpaXml_DOM_Option_t marpaXml_DOM_Option = {"C:\\Windows\\Temp\\test.sqlite", NULL, -1, NULL};
 #else
-    marpaXml_DOM_Option_t marpaXml_DOM_Option = {"/tmp/test.sqlite", NULL, -1, { NULL, NULL, MARPAXML_LOGLEVEL_TRACE } };
+    marpaXml_DOM_Option_t marpaXml_DOM_Option = {"/tmp/test.sqlite", NULL, -1, NULL};
 #endif
 
   message1p = marpaXml_String_newFromUTF8((char *) "My Message", NULL);

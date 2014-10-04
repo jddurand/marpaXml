@@ -30,7 +30,7 @@ typedef struct marpaXml_String_ConvertOption {
 typedef struct marpaXml_String_Option {
   marpaXml_String_Option_ICU_t marpaXml_String_Option_ICU;
   marpaXml_boolean_t           fallback;
-  marpaXmlLog_Option_t         logOption;
+  marpaXmlLog_t               *marpaXmlLogp;
 } marpaXml_String_Option_t;
 
 typedef struct marpaXml_String marpaXml_String_t;

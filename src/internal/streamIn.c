@@ -62,8 +62,6 @@
 #define STREAMIN_STRDUP_STRING "strdup"
 #endif
 
-#include "API/marpaXml/log.h"
-
 const static char *_streamIn_defaultEncodings = "UTF-8";
 
 static C_INLINE streamInBool_t _streamInUtf8_doneBufferb(streamIn_t *streamInp, size_t bufIndexi);
@@ -195,9 +193,7 @@ streamInBool_t streamIn_optionDefaultb(streamInOption_t *streamInOptionp){
 
   streamInOptionp->bufMaxSizei                  = STREAMIN_DEFAULT_BUFMAXSIZEI;
   streamInOptionp->allBuffersAreManagedByUserb  = STREAMIN_BOOL_FALSE;
-  streamInOptionp->logLevelWantedi              = MARPAXML_LOGLEVEL_WARNING;
-  streamInOptionp->logCallbackp                 = marpaXmlLog_defaultLogCallback();
-  streamInOptionp->logCallbackDatavp            = NULL;
+  streamInOptionp->marpaXmlLogp                 = NULL;
   streamInOptionp->readCallbackp                = NULL;
   streamInOptionp->readCallbackDatavp           = NULL;
   streamInOptionp->bufFreeCallbackp             = NULL;
@@ -212,13 +208,12 @@ streamInBool_t streamIn_optionDefaultb(streamInOption_t *streamInOptionp){
 streamIn_t *streamIn_newp(streamInOption_t *streamInOptionp) {
   streamIn_t      *streamInp;
   char            *errorMsgs = NULL;
+  marpaXmlLog_t   *marpaXmlLogp = (streamInOptionp != NULL) ? streamInOptionp->marpaXmlLogp : NULL;
 
   streamInp = malloc(sizeof(streamIn_t));
   if (streamInp == NULL) {
-    if (streamInOptionp != NULL && streamInOptionp->logCallbackp != NULL) {
-      errorMsgs = messageBuilder("malloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
-      (*streamInOptionp->logCallbackp)(streamInOptionp->logCallbackDatavp, MARPAXML_LOGLEVEL_ERROR, errorMsgs);
-    }
+    errorMsgs = messageBuilder("malloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
+    marpaXml_log(marpaXmlLogp, MARPAXML_LOGLEVEL_ERROR, errorMsgs);
     if (errorMsgs != messageBuilder_internalErrors()) {
       STREAMIN_FREE(errorMsgs);
     }
@@ -231,13 +226,8 @@ streamIn_t *streamIn_newp(streamInOption_t *streamInOptionp) {
   streamInp->managedbp         = NULL;
   streamInp->eofb              = 0;
   streamInp->utf8b             = STREAMIN_BOOL_FALSE;
-
+  streamInp->marpaXmlLogp      = streamInOptionp->marpaXmlLogp;
   /* From now on we can use STREAMIN_LOG macro */
-  if (streamInOptionp != NULL) {
-    streamInp->marpaXmlLogp = marpaXmlLog_newp(streamInOptionp->logCallbackp, streamInOptionp->logCallbackDatavp, streamInOptionp->logLevelWantedi);
-  } else {
-    streamInp->marpaXmlLogp = marpaXmlLog_newp(NULL, NULL, MARPAXML_LOGLEVEL_WARNING);
-  }
 
   streamIn_optionDefaultb(&(streamInp->streamInOption));
   if (_streamIn_optionb(streamInp, streamInOptionp) == STREAMIN_BOOL_FALSE) {
@@ -874,8 +864,6 @@ void streamIn_destroyv(streamIn_t **streamInpp) {
 
   _streamInUtf8_destroyv(streamInp);
 
-  marpaXmlLog_freev(&(streamInp->marpaXmlLogp));
-
   /* No need to assign to NULL, we know what we are doing here */
   free(streamInp);
   *streamInpp = NULL;
@@ -1043,7 +1031,6 @@ static C_INLINE streamInBool_t _streamIn_optionb(streamIn_t *streamInp, streamIn
 
     if (rcb == STREAMIN_BOOL_TRUE) {
       streamInp->streamInOption = *streamInOptionp;
-      marpaXmlLog_logLevel_seti(streamInp->marpaXmlLogp, streamInOptionp->logLevelWantedi);
     }
   }
 

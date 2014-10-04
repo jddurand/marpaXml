@@ -913,11 +913,9 @@ static C_INLINE marpaXml_boolean_t _marpaXml_qualifiedNameToPrefixAndLocalName(m
 /* _marpaXml_DOMErrorLogCallback                                          */
 /*******************************************************************/
 static C_INLINE void _marpaXml_DOMErrorLogCallback(void *pArg, int iErrCode, const char *zMsg) {
-  if (marpaXmlLogp != NULL) {
-    /* Not thread-safe but OK: this value can be true only if marpa is initialized, which is done */
-    /* in a thread-safe routine, and marpaXmlLogp, when setted, does never interfer with any DB call */
-    MARPAXML_ERRORX("SQLite error code %d: %s\n", iErrCode, (zMsg != NULL) ? zMsg : "(null)");
-  }
+  /* Not thread-safe but OK: this value can be true only if marpa is initialized, which is done */
+  /* in a thread-safe routine, and marpaXmlLogp, when setted, does never interfer with any DB call */
+  MARPAXML_ERRORX("SQLite error code %d: %s\n", iErrCode, (zMsg != NULL) ? zMsg : "(null)");
 }
 
 /*******************************************************************/
@@ -1289,11 +1287,6 @@ marpaXml_boolean_t marpaXml_DOM_release(void) {
   }
 
   MARPAXML_TRACE0("Shutting down SQLite\n");
-
-  /* Free logging */
-  if (marpaXmlLogp != NULL) {
-    marpaXmlLog_freev(&marpaXmlLogp);
-  }
 
   if ((sqliteRc = sqlite3_shutdown()) != SQLITE_OK) {
     /* MARPAXML_ERRORX("sqlite3_shutdown(): %s at %s:%d\n", sqlite3_errstr(sqliteRc), __FILE__, __LINE__); */
@@ -2651,7 +2644,7 @@ marpaXml_boolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Optionp
   sqlite3_mutex        *mutexp = NULL;
   sqlite3_stmt         *loadcollation_stmt = NULL;
   static sqlite3       *dbp = NULL;
-  marpaXml_DOM_Option_t marpaXml_DOM_Option = {":memory:", NULL, -1, { NULL, NULL, MARPAXML_LOGLEVEL_WARNING }};
+  marpaXml_DOM_Option_t marpaXml_DOM_Option = {":memory:", NULL, -1, NULL};
   int                   sqliteRc;
   int                   i;
   int                   iConstantForEndiannessDetection = 1;
@@ -2694,21 +2687,14 @@ marpaXml_boolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Optionp
     marpaXml_DOM_Option = *marpaXml_DOM_Optionp;
   }
 
-  if (marpaXmlLogp == NULL) {
-    marpaXmlLogp = marpaXmlLog_newp(marpaXml_DOM_Option.logOption.logCallbackp, marpaXml_DOM_Option.logOption.logCallbackDatavp, marpaXml_DOM_Option.logOption.logLevelWantedi);
-    if (marpaXmlLogp == NULL) {
-      goto error;
-    }
-  }
+  marpaXmlLogp = marpaXml_DOM_Option.marpaXmlLogp;
 
   /* From now on we can use the log macros */
 
   /* Precompute grammars */
   MARPAXML_TRACE0("Precomputing qname XML 1.0 grammar\n");
   marpaWrapper_optionDefaultb(&marpaWrapperOption);
-  marpaWrapperOption.logLevelWantedi = marpaXml_DOM_Option.logOption.logLevelWantedi;
-  marpaWrapperOption.logCallbackp = marpaXml_DOM_Option.logOption.logCallbackp;
-  marpaWrapperOption.logCallbackDatavp = marpaXml_DOM_Option.logOption.logCallbackDatavp;
+  marpaWrapperOption.marpaXmlLogp = marpaXml_DOM_Option.marpaXmlLogp;
   qname_1_0p = qname_1_0_newp(&marpaWrapperOption);
   if (qname_1_0p == NULL) {
     goto error;
@@ -2729,7 +2715,7 @@ marpaXml_boolean_t marpaXml_DOM_init(marpaXml_DOM_Option_t *marpaXml_DOM_Optionp
 
   _marpaXml_String_globalOption.marpaXml_String_Option_ICU = MARPAXML_STRING_OPTION_ICU_DEFAULT;
   _marpaXml_String_globalOption.fallback                   = marpaXml_true;
-  _marpaXml_String_globalOption.logOption                  = marpaXml_DOM_Option.logOption;
+  _marpaXml_String_globalOption.marpaXmlLogp               = marpaXml_DOM_Option.marpaXmlLogp;
 
   mutexp = sqlite3_mutex_alloc(SQLITE_MUTEX_FAST);
   if (mutexp == NULL) {

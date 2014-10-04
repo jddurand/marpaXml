@@ -7,9 +7,10 @@ int main(int argc, char **argv) {
   xml_1_1_t *xml_1_1p;
   marpaWrapperOption_t       marpaWrapperOption;
   xml_common_option_t        xml_common_option;
+  marpaXmlLog_t             *marpaXmlLogp = marpaXmlLog_newp(NULL, NULL, MARPAXML_LOGLEVEL_TRACE);
 
   marpaWrapper_optionDefaultb(&marpaWrapperOption);
-  marpaWrapperOption.logLevelWantedi     = MARPAXML_LOGLEVEL_TRACE;
+  marpaWrapperOption.marpaXmlLogp = marpaXmlLogp;
 
   xml_common_optionDefaultb(&xml_common_option);
 
@@ -42,6 +43,7 @@ int main(int argc, char **argv) {
     fprintf(stderr, "XML_1_1 extSubset grammar creation KO\n");
   }
   xml_1_1_destroyv(&xml_1_1p);
+  marpaXmlLog_freev(&marpaXmlLogp);
 
   return 0;
 }

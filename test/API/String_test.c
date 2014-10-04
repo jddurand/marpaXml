@@ -11,14 +11,7 @@ const char *testGb2312String = "\xbe\xb2\xcc\xac\xc4\xa3\xca\xbd"; /* http://www
 void hexdump(void *mem, unsigned int len);
 void test(char *bytes, size_t byteLength, char *charset, marpaXml_String_Option_t *optionp);
 
-struct marpaXml_String_Option option = {
-  MARPAXML_STRING_OPTION_ICU_DEFAULT,
-  marpaXml_false,
-  {NULL,
-   NULL,
-   MARPAXML_LOGLEVEL_INFO
-  }
-};
+struct marpaXml_String_Option option = {MARPAXML_STRING_OPTION_ICU_DEFAULT, marpaXml_false,NULL};
 
 void test(char *origBytes, size_t origByteLength, char *origCharset, marpaXml_String_Option_t *optionp) {
   char              *p;

@@ -113,7 +113,7 @@ static void _fileTest(streamIn_t *streamInp, streamInBool_t utf8b, streamInBool_
   size_t           indexBufferi;
   char             *byteArrayp;
   size_t           bytesInBuffer;
-
+  marpaXmlLog_t   *marpaXmlLogp = marpaXmlLog_newp(NULL, NULL, MARPAXML_LOGLEVEL_TRACE);
   
   fprintf(stderr, "Filename test (utf8 mode: %s)\n", (utf8b == STREAMIN_BOOL_TRUE) ? "on" : "off");
   fprintf(stderr, "------------------------------\n");
@@ -136,7 +136,7 @@ static void _fileTest(streamIn_t *streamInp, streamInBool_t utf8b, streamInBool_
     return;
   }
   /* streamInOption.bufMaxSizei = 1; */
-  streamInOption.logLevelWantedi = MARPAXML_LOGLEVEL_TRACE;
+  streamInOption.marpaXmlLogp = marpaXmlLogp;
   streamInOption.readCallbackp = &_readFileCallback;
   streamInOption.readCallbackDatavp = &myReadData;
   if (streamIn_optionb(streamInp, &streamInOption) == STREAMIN_BOOL_FALSE) {
@@ -190,6 +190,8 @@ static void _fileTest(streamIn_t *streamInp, streamInBool_t utf8b, streamInBool_
   if (fd >= 0 && CLOSE(fd) != 0) {
     fprintf(stderr, "Failed to close %s, %s\n", argv[1], strerror(errno));
   }
+
+  marpaXmlLog_freev(&marpaXmlLogp);
 }
 
 /***************/
@@ -202,6 +204,7 @@ static void _bufferTest(streamIn_t *streamInp, streamInBool_t utf8b, char **argv
   size_t           indexBufferi;
   char             *byteArrayp;
   size_t           bytesInBuffer;
+  marpaXmlLog_t   *marpaXmlLogp = marpaXmlLog_newp(NULL, NULL, MARPAXML_LOGLEVEL_TRACE);
 
   fprintf(stderr, "Buffer test (utf8 mode: %s)\n", (utf8b == STREAMIN_BOOL_TRUE) ? "on" : "off");
   fprintf(stderr, "-----------------------------\n");
@@ -214,7 +217,7 @@ static void _bufferTest(streamIn_t *streamInp, streamInBool_t utf8b, char **argv
     return;
   }
   /* streamInOption.bufMaxSizei = 1002; */
-  streamInOption.logLevelWantedi = MARPAXML_LOGLEVEL_TRACE;
+  streamInOption.marpaXmlLogp = marpaXmlLogp;
   streamInOption.readCallbackp = &_readBufferCallback;
   streamInOption.readCallbackDatavp = &myReadData;
   if (streamIn_optionb(streamInp, &streamInOption) == STREAMIN_BOOL_FALSE) {
@@ -236,6 +239,7 @@ static void _bufferTest(streamIn_t *streamInp, streamInBool_t utf8b, char **argv
   }
 
   streamIn_doneBufferb(streamInp, 0);
+  marpaXmlLog_freev(&marpaXmlLogp);
 }
 
 /*********************/

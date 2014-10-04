@@ -17,7 +17,7 @@ int main(int argc, char **argv) {
 #else
 #define MARPAXML_DB_PATH "/tmp/test.sqlite"
 #endif
-  marpaXml_DOM_Option_t marpaXml_DOM_Option = {MARPAXML_DB_PATH, NULL, -1, { NULL, NULL, MARPAXML_LOGLEVEL_TRACE } };
+  marpaXml_DOM_Option_t marpaXml_DOM_Option = {MARPAXML_DB_PATH, NULL, -1, NULL};
 
   /*************************************/
   /*                Init               */

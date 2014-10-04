@@ -27,7 +27,6 @@ marpaXmlLogLevel_t    marpaXmlLog_logLevel_seti(marpaXmlLog_t *marpaXmlLogp, mar
 marpaXmlLogLevel_t    marpaXmlLog_logLevel_geti(marpaXmlLog_t *marpaXmlLogp);
 
 marpaXmlLog_t        *marpaXmlLog_newp(marpaXmlLogCallback_t logCallbackp, void *userDatavp, marpaXmlLogLevel_t marpaXmlLogLeveli);
-marpaXmlLog_t        *marpaXmlLog_clonep(marpaXmlLog_t *marpaXmlLogp);
 void                  marpaXmlLog_freev(marpaXmlLog_t **marpaXmlLogpp);
 
 

@@ -8,7 +8,6 @@
 
 #include "internal/grammar/xml_common.h"
 #include "marpaXml/String.h"
-#include "marpaXml/log.h"
 #include "internal/DOM_Lexeme.h"
 
 /*****************************/

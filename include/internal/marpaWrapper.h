@@ -98,9 +98,7 @@ typedef struct marpaWrapperRuleOption {
 /**************************/
 typedef struct marpaWrapperOption {
   int                          (*versionip)[3];          /* Default: NULL                                                             */
-  marpaXmlLogLevel_t             logLevelWantedi;        /* Default: MARPAXML_LOGLEVEL_WARNING                                        */
-  marpaXmlLogCallback_t          logCallbackp;           /* Default: marpaXmlLog_defaultLogCallback()                                 */
-  void                          *logCallbackDatavp;      /* Default: NULL                                                             */
+  marpaXmlLog_t                 *marpaXmlLogp;           /* Default: NULL                                                             */
   marpaWrapperEventCallback_t    eventCallbackp;         /* Default: NULL                                                             */
   void                          *eventCallbackDatavp;    /* Default: NULL                                                             */
   marpaWrapperBool_t             warningIsErrorb;        /* Default: MARPAWRAPPER_BOOL_FALSE. Have precedence over warningIsIgnoredb  */

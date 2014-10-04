@@ -12,8 +12,6 @@
 #include "internal/manageBuf.h"
 #include "marpa.h"
 
-#include "API/marpaXml/log.h"
-
 #define MARPAWRAPPER_GENERATE_GETTER_DEFINITION(prefix, externalType, externalName, ref, internalName) \
   marpaWrapperBool_t prefix##_##externalName##_getb(prefix##_t * prefix##p, externalType *externalName##p) { \
     if (prefix##p != NULL) {						\
@@ -126,7 +124,7 @@ static C_INLINE int _marpaWrapper_event_weight(Marpa_Event_Type eventType);
 static C_INLINE void                   _marpaWrapper_logWrapper(marpaWrapper_t *marpaWrapperp, marpaWrapperErrorOrigin_t errorOrigini, int errorNumberi, const char *calls, marpaXmlLogLevel_t marpaXmlLogLeveli);
 static C_INLINE const char            *_marpaWrapper_strerror   (marpaWrapperErrorOrigin_t errorOrigini, int errorNumberi);
 static C_INLINE void                   _marpaWrapper_log(marpaWrapper_t *marpaWrapperp, marpaXmlLogLevel_t marpaXmlLogLeveli, marpaWrapperErrorOrigin_t marpaWrapperErrorOrigini, int errorCodei, const char *fmts, ...);
-static C_INLINE void                   _marpaWrapper_logExt(marpaXmlLogCallback_t logCallbackp, void *logCallbackDatavp, marpaWrapper_t *marpaWrapperp, marpaXmlLogLevel_t logLevelWantedi, marpaWrapperErrorOrigin_t errorOrigini, int errorNumberi, const char *calls, marpaXmlLogLevel_t marpaXmlLogLeveli);
+static C_INLINE void                   _marpaWrapper_logExt(marpaWrapper_t *marpaWrapperp, marpaWrapperErrorOrigin_t errorOrigini, int errorNumberi, const char *calls, marpaXmlLogLevel_t marpaXmlLogLeveli);
 
 /* API helpers */
 static C_INLINE marpaWrapperBool_t    _marpaWrapper_event       (marpaWrapper_t *marpaWrapperp);
@@ -166,10 +164,7 @@ marpaWrapper_t *marpaWrapper_newp(marpaWrapperOption_t *marpaWrapperOptionp) {
 
   marpaWrapperp = (marpaWrapper_t *) malloc(sizeof(marpaWrapper_t));
   if (marpaWrapperp == NULL) {
-    _marpaWrapper_logExt(marpaWrapperOption.logCallbackp,
-			 marpaWrapperOption.logCallbackDatavp,
-			 NULL,
-			 marpaWrapperOption.logLevelWantedi,
+    _marpaWrapper_logExt(NULL,
 			 MARPAWRAPPERERRORORIGIN_SYSTEM,
 			 errno,
 			 "malloc()",
@@ -177,8 +172,7 @@ marpaWrapper_t *marpaWrapper_newp(marpaWrapperOption_t *marpaWrapperOptionp) {
     return NULL;
   }
 
-  marpaWrapperp->marpaXmlLogp = marpaXmlLog_newp(marpaWrapperOption.logCallbackp, marpaWrapperOption.logCallbackDatavp, marpaWrapperOption.logLevelWantedi);
-
+  marpaWrapperp->marpaXmlLogp                      = marpaWrapperOption.marpaXmlLogp;
   marpaWrapperp->marpaWrapperOption                = marpaWrapperOption;
   marpaWrapperp->marpaGrammarp                     = NULL;
   marpaWrapperp->marpaRecognizerp                  = NULL;
@@ -271,7 +265,6 @@ void marpaWrapper_destroyv(marpaWrapper_t **marpaWrapperpp) {
       if (marpaWrapperp->expectedMarpaWrapperSymbolArraypp != NULL) {
         free(marpaWrapperp->expectedMarpaWrapperSymbolArraypp);
       }
-      marpaXmlLog_freev(&(marpaWrapperp->marpaXmlLogp));
       free(marpaWrapperp);
     }
     *marpaWrapperpp = NULL;
@@ -1147,10 +1140,7 @@ static C_INLINE void _marpaWrapper_logWrapper(marpaWrapper_t           *marpaWra
 					      const char               *calls,
 					      marpaXmlLogLevel_t    marpaXmlLogLeveli) {
   if (marpaWrapperp != NULL) {
-    _marpaWrapper_logExt(marpaWrapperp->marpaWrapperOption.logCallbackp,
-			 marpaWrapperp->marpaWrapperOption.logCallbackDatavp,
-			 marpaWrapperp,
-			 marpaWrapperp->marpaWrapperOption.logLevelWantedi,
+    _marpaWrapper_logExt(marpaWrapperp,
 			 errorOrigini,
 			 errorNumberi,
 			 calls,
@@ -1161,10 +1151,7 @@ static C_INLINE void _marpaWrapper_logWrapper(marpaWrapper_t           *marpaWra
 /************************/
 /* _marpaWrapper_logExt */
 /************************/
-static C_INLINE void _marpaWrapper_logExt(marpaXmlLogCallback_t     logCallbackp,
-					  void                     *logCallbackDatavp,
-					  marpaWrapper_t           *marpaWrapperp,
-					  marpaXmlLogLevel_t        logLevelWantedi,
+static C_INLINE void _marpaWrapper_logExt(marpaWrapper_t           *marpaWrapperp,
 					  marpaWrapperErrorOrigin_t errorOrigini,
 					  int                       errorNumberi,
 					  const char               *calls,
@@ -1172,7 +1159,7 @@ static C_INLINE void _marpaWrapper_logExt(marpaXmlLogCallback_t     logCallbackp
   char *msgs;
   const char *strerrors;
 
-  if (marpaWrapperp != NULL && marpaWrapperp->marpaXmlLogp != NULL) {
+  if (marpaWrapperp != NULL) {
 
     strerrors = _marpaWrapper_strerror(errorOrigini, errorNumberi);
     if (strlen(strerrors) > 0) {
@@ -1607,9 +1594,7 @@ marpaWrapperBool_t marpaWrapper_optionDefaultb(marpaWrapperOption_t *marpaWrappe
   }
 
   marpaWrapperOptionp->versionip              = (int (*)[3]) NULL;
-  marpaWrapperOptionp->logLevelWantedi        = MARPAXML_LOGLEVEL_WARNING;
-  marpaWrapperOptionp->logCallbackp           = marpaXmlLog_defaultLogCallback();
-  marpaWrapperOptionp->logCallbackDatavp      = NULL;
+  marpaWrapperOptionp->marpaXmlLogp           = NULL;
   marpaWrapperOptionp->eventCallbackp         = NULL;
   marpaWrapperOptionp->eventCallbackDatavp    = NULL;
   marpaWrapperOptionp->warningIsErrorb        = MARPAWRAPPER_BOOL_FALSE;

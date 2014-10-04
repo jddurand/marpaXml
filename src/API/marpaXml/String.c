@@ -67,26 +67,17 @@ marpaXml_String_t *marpaXml_String_newFromAnyAndByteLengthAndCharset(char *bytes
   size_t                  bytesInBuffer;
   size_t                  lengthInBuffer;
   marpaXml_boolean_t      firstCallToNextBufferb;
-  marpaXmlLog_t          *marpaXmlLogp = NULL;
   char                   *tmpUtf8;
   size_t                  tmpByteLength;
   size_t                  tmpLength;
-
-  if (optionp != NULL) {
-    marpaXmlLogp = marpaXmlLog_newp(optionp->logOption.logCallbackp, optionp->logOption.logCallbackDatavp, optionp->logOption.logLevelWantedi);
-    if (marpaXmlLogp == NULL) {
-      return NULL;
-    }
-  }
+  marpaXmlLog_t          *marpaXmlLogp = (optionp != NULL) ? optionp->marpaXmlLogp : NULL;
 
   if (bytes == NULL || byteLength <= 0) {
-    marpaXmlLog_freev(&(marpaXmlLogp));
     return NULL;
   }
 
   if ((thisp = malloc(sizeof(marpaXml_String_t))) == NULL) {
     MARPAXML_ERRORX("malloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
-    marpaXmlLog_freev(&(marpaXmlLogp));
     return NULL;
   }
 
@@ -109,11 +100,7 @@ marpaXml_String_t *marpaXml_String_newFromAnyAndByteLengthAndCharset(char *bytes
   streamInOption.allBuffersAreManagedByUserb = STREAMIN_BOOL_TRUE;
   streamInOption.readCallbackp               = &_marpaXml_String_readBufferCallback;
   streamInOption.readCallbackDatavp          = &marpaXml_streamInData;
-  if (optionp != NULL) {
-    streamInOption.logLevelWantedi = optionp->logOption.logLevelWantedi;
-    streamInOption.logCallbackp = optionp->logOption.logCallbackp;
-    streamInOption.logCallbackDatavp = optionp->logOption.logCallbackDatavp;
-  }
+  streamInOption.marpaXmlLogp                = marpaXmlLogp;
 
   streamInOptionUtf8.fromEncodings = charset;
   streamInOptionUtf8.toEncodings = (char *) "UTF-8";
@@ -217,25 +204,16 @@ marpaXml_String_t *marpaXml_String_newFromAnyAndByteLengthAndCharset(char *bytes
 /*********************************************/
 marpaXml_String_t *marpaXml_String_newFromValidUTF8(char *utf8, size_t byteLength, size_t length, marpaXml_String_Option_t *optionp) {
   marpaXml_String_t      *thisp;
-  marpaXmlLog_t          *marpaXmlLogp = NULL;
+  marpaXmlLog_t          *marpaXmlLogp = (optionp != NULL) ? optionp->marpaXmlLogp : NULL;
   UChar                  *ucharp;
   int32_t                 destCapacity;
   UErrorCode              uErrorCode;
 
-  if (optionp != NULL) {
-    marpaXmlLogp = marpaXmlLog_newp(optionp->logOption.logCallbackp, optionp->logOption.logCallbackDatavp, optionp->logOption.logLevelWantedi);
-    if (marpaXmlLogp == NULL) {
-      return NULL;
-    }
-  }
-
   if (utf8 == NULL || byteLength <= 0) {
-    marpaXmlLog_freev(&(marpaXmlLogp));
     return NULL;
   }
 
   if ((thisp = malloc(sizeof(marpaXml_String_t))) == NULL) {
-    marpaXmlLog_freev(&(marpaXmlLogp));
     return NULL;
   }
 
@@ -314,13 +292,11 @@ marpaXml_String_t *marpaXml_String_newFromValidUTF8(char *utf8, size_t byteLengt
 /*********************************************/
 marpaXml_String_t *marpaXml_String_clone(marpaXml_String_t *stringp) {
   marpaXml_String_t *thisp;
-  marpaXmlLog_t     *marpaXmlLogp;
+  marpaXmlLog_t     *marpaXmlLogp = (stringp != NULL) ? stringp->marpaXmlLogp : NULL;
 
   if (stringp == NULL) {
     return NULL;
   }
-
-  marpaXmlLogp = stringp->marpaXmlLogp;
 
   if ((thisp = malloc(sizeof(marpaXml_String_t))) == NULL) {
     MARPAXML_ERRORX("malloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
@@ -334,14 +310,7 @@ marpaXml_String_t *marpaXml_String_clone(marpaXml_String_t *stringp) {
   thisp->nullByteAddedb = marpaXml_false;
   thisp->marpaXmlLogp = marpaXmlLogp;
   thisp->origUtf8ByteLength = 0;
-
-  thisp->marpaXmlLogp = marpaXmlLog_clonep(marpaXmlLogp);
-  if ((marpaXmlLogp != NULL) && (thisp->marpaXmlLogp == NULL)) {
-    marpaXml_String_free(&thisp);
-    return NULL;
-  }
-
-  marpaXmlLogp = thisp->marpaXmlLogp;
+  thisp->marpaXmlLogp = marpaXmlLogp;
 
   if ((thisp->utf8 = malloc(stringp->utf8ByteLength)) == NULL) {
     MARPAXML_ERRORX("malloc(): %s at %s:%d", strerror(errno), __FILE__, __LINE__);
@@ -363,7 +332,7 @@ marpaXml_String_t *marpaXml_String_clone(marpaXml_String_t *stringp) {
 /* marpaXml_String_cat                       */
 /*********************************************/
 marpaXml_String_t *marpaXml_String_cat(marpaXml_String_t *dstp, marpaXml_String_t *srcp) {
-  marpaXmlLog_t *marpaXmlLogp;
+  marpaXmlLog_t  *marpaXmlLogp = (srcp != NULL) ? srcp->marpaXmlLogp : NULL;
   char           *utf8;                /* Internal representation: null terminated UTF-8 */
   size_t          utf8ByteLength;      /* Internal representation: byte length, including eventual forced null byte */
 
@@ -434,7 +403,6 @@ void marpaXml_String_free(marpaXml_String_t **thispp) {
       if (thisp->utf8 != NULL) {
 	free(thisp->utf8);
       }
-      marpaXmlLog_freev(&(thisp->marpaXmlLogp));
       free(thisp);
     }
     *thispp = NULL;
@@ -528,9 +496,7 @@ char *marpaXml_String_encode(marpaXml_String_t *thisp, size_t *byteLengthp, size
   char                   *rc = NULL;
   size_t                  byteLength = 0;
   size_t                  length = 0;
-  marpaXmlLog_t          *marpaXmlLogp;
-
-  marpaXmlLogp = thisp->marpaXmlLogp;
+  marpaXmlLog_t          *marpaXmlLogp = (optionp != NULL) ? optionp->marpaXmlLogp : NULL;
 
   /* These calls never fail if you provide a non-NULL pointer -; */
   streamIn_optionDefaultb(&streamInOption);
@@ -544,11 +510,7 @@ char *marpaXml_String_encode(marpaXml_String_t *thisp, size_t *byteLengthp, size
   streamInOption.allBuffersAreManagedByUserb = STREAMIN_BOOL_TRUE;
   streamInOption.readCallbackp               = &_marpaXml_String_readBufferCallback;
   streamInOption.readCallbackDatavp          = &marpaXml_streamInData;
-  if (optionp != NULL) {
-    streamInOption.logLevelWantedi = optionp->logOption.logLevelWantedi;
-    streamInOption.logCallbackp = optionp->logOption.logCallbackp;
-    streamInOption.logCallbackDatavp = optionp->logOption.logCallbackDatavp;
-  }
+  streamInOption.marpaXmlLogp                = marpaXmlLogp;
 
   streamInOptionUtf8.fromEncodings = (char *) "UTF-8";
   streamInOptionUtf8.toEncodings = charset;
