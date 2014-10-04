@@ -146,6 +146,9 @@ static C_INLINE void                  _marpaWrapperStackFailureCallback(genericS
 static C_INLINE int                   _marpaWrapperStackFreeCallback(void *elementp, void *freeCallbackUserDatap);
 static C_INLINE int                   _marpaWrapperStackCopyCallback(void *elementDstp, void *elementSrcp, void *copyCallbackUserDatap);
 
+/* Progress report sort */
+static C_INLINE int _marpaWrapper_progress_cmp(const void *a, const void *b);
+
 /********************************************************************************************************/
 /* marpaWrapper_newp                                                                                    */
 /********************************************************************************************************/
@@ -1663,10 +1666,10 @@ marpaWrapperBool_t marpaWrapper_r_recognizeb(marpaWrapper_t *marpaWrapperp, marp
       /* ------------- */
       if (marpaWrapper_r_progressb(marpaWrapperp, -1, -1, &nmarpaWrapperProgressi, &marpaWrapperProgresspp) == MARPAWRAPPER_BOOL_TRUE) {
         for (i = 0; i < nmarpaWrapperProgressi; i++) {
-          MARPAWRAPPER_LOG_TRACEX("Earley Set Id: %4d, Origin Earley Set Id: %4d, Rule: %10p, Position: %3d: %s",
+          MARPAWRAPPER_LOG_TRACEX("Earley Set Id: %4d, Origin Earley Set Id: %4d, Rule: %4d, Position: %3d: %s",
                                   marpaWrapperProgresspp[i]->marpaEarleySetIdi,
                                   marpaWrapperProgresspp[i]->marpaEarleySetIdOrigini,
-                                  (void *) marpaWrapperProgresspp[i]->marpaWrapperRulep,
+                                  marpaWrapperProgresspp[i]->marpaWrapperRulep->marpaRuleIdi,
                                   marpaWrapperProgresspp[i]->positioni,
                                   (marpaWrapperRecognizerOptionp->ruleToCharsbCallbackp(marpaWrapperProgresspp[i]->marpaWrapperRulep->marpaWrapperRuleOption.datavp, &rules) == MARPAWRAPPER_BOOL_TRUE) ? rules : "**Error**");
         }
@@ -1961,6 +1964,12 @@ marpaWrapperBool_t marpaWrapper_r_progressb(marpaWrapper_t *marpaWrapperp, int s
   }
 
   if (rcb == MARPAWRAPPER_BOOL_TRUE) {
+    if (marpaWrapperp->nMarpaWrapperProgressi > 0) {
+      qsort(marpaWrapperp->marpaWrapperProgresspp,
+	    marpaWrapperp->nMarpaWrapperProgressi,
+	    sizeof(marpaWrapperProgress_t *),
+	    &_marpaWrapper_progress_cmp);
+    }
     if (nmarpaWrapperProgressip != NULL) {
       *nmarpaWrapperProgressip = marpaWrapperp->nMarpaWrapperProgressi;
     }
@@ -1981,3 +1990,26 @@ marpaXmlLog_t *marpaWrapper_marpaXmlLogp(marpaWrapper_t *marpaWrapperp) {
 
   return marpaWrapperp->marpaXmlLogp;
 }
+
+/******************************/
+/* _marpaWrapper_progress_cmp */
+/******************************/
+static C_INLINE int _marpaWrapper_progress_cmp(const void *a, const void *b) {
+  marpaWrapperProgress_t *p1 = * (marpaWrapperProgress_t **) a;
+  marpaWrapperProgress_t *p2 = * (marpaWrapperProgress_t **) b;
+
+  if (p1->marpaWrapperRulep->marpaRuleIdi < p2->marpaWrapperRulep->marpaRuleIdi) {
+    return -1;
+  } else if (p1->marpaWrapperRulep->marpaRuleIdi > p2->marpaWrapperRulep->marpaRuleIdi) {
+    return 1;
+  } else {
+    if (p1->positioni < p2->positioni) {
+      return -1;
+    } else if (p1->positioni > p2->positioni) {
+      return 1;
+    } else {
+      return 0;
+    }
+  }
+}
+
