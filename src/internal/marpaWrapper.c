@@ -200,7 +200,7 @@ marpaWrapper_t *marpaWrapper_newp(marpaWrapperOption_t *marpaWrapperOptionp) {
     marpaWrapper_destroyv(&marpaWrapperp);
     return NULL;
   } else {
-    MARPAWRAPPER_LOG_INFOX("libmarpa version is: %d.%d.%d", marpaVersion[0], marpaVersion[1], marpaVersion[2]);
+    MARPAWRAPPER_LOG_TRACEX("libmarpa version is: %d.%d.%d", marpaVersion[0], marpaVersion[1], marpaVersion[2]);
   }
 
   /* Check version ? */
