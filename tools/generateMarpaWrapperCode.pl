@@ -44,11 +44,11 @@ sub _pushLexemes {
     }
     my $content;
     if ($self->{$key}->{$_} =~ /^\[.+/) {
-      push(@{$rcp}, $content = join(' ', $_, '~', $self->{$key}->{$_}));
+      push(@{$rcp}, $content = join(' ', "<$_>", '~', $self->{$key}->{$_}));
     } elsif ($self->{$key}->{$_} =~ /^\\x\{/) {
-      push(@{$rcp}, $content = join(' ', $_, '~', '[' . $self->{$key}->{$_} . ']'));
+      push(@{$rcp}, $content = join(' ', "<$_>", '~', '[' . $self->{$key}->{$_} . ']'));
     } else {
-      push(@{$rcp}, $content = join(' ', $_, '~', '\'' . $self->{$key}->{$_} . '\''));
+      push(@{$rcp}, $content = join(' ', "<$_>", '~', '\'' . $self->{$key}->{$_} . '\''));
     }
     $self->{symbols}->{$_} = {terminal => 1, content => $content};
   }
@@ -86,7 +86,7 @@ sub _pushG1 {
         print STDERR "[WARN] Internal error: undefined RHS list for symbol $_->{lhs}\n";
         exit(EXIT_FAILURE);
       }
-      push(@{$rcp}, $content = join(' ', $_->{lhs}, $_->{rulesep}, "@{$_->{rhs}}", $_->{quantifier}));
+      push(@{$rcp}, $content = join(' ', "<$_->{lhs}>", $_->{rulesep}, @{$_->{rhs}} ? '<' . join('> <', @{$_->{rhs}}) . '>' : '', $_->{quantifier}));
       $self->{symbols}->{$_->{lhs}} = {terminal => 0, content => $content};
     }
 
@@ -680,7 +680,7 @@ DECLARATIONS
 
 sub ruleToChars {
     my ($rule) = @_;
-    my $content = join(' ', $rule->{lhs}, $rule->{rulesep}, "@{$rule->{rhs}}", $rule->{quantifier});
+    my $content = join(' ', "<$rule->{lhs}>", $rule->{rulesep}, @{$rule->{rhs}} ? '<' . join('> <', @{$rule->{rhs}}) . '>' : '', $rule->{quantifier});
     $content =~ s/\\/\\\\/g;
     $content =~ s/"/\\"/g;
 
