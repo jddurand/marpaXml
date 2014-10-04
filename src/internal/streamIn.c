@@ -1143,12 +1143,12 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_detectb(streamIn_t *streamInp) 
   }
 
   if (confidence < 10) {
-    STREAMIN_LOGX(MARPAXML_LOGLEVEL_INFO, "ucsdet_getConfidence() returned encoding \"%s\" with too low confidence %d < 10 - rejected", fromEncodings, confidence);
+    STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "ucsdet_getConfidence() returned encoding \"%s\" with too low confidence %d < 10 - rejected", fromEncodings, confidence);
     rcb = STREAMIN_BOOL_FALSE;
     goto ICU_end;
   }
 
-  STREAMIN_LOGX(MARPAXML_LOGLEVEL_INFO, "ICU returned encoding \"%s\" with confidence %d", fromEncodings, confidence);
+  STREAMIN_TRACEX("ICU returned encoding \"%s\" with confidence %d", fromEncodings, confidence);
 
  ICU_end:
 
@@ -1803,7 +1803,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_markb(streamIn_t *streamInp) {
     /* This give the index in the native format of the text below - we know this is UChar */
     streamInp->streamIn_ICU.ucharMarkedNativeIndexl = UTEXT_GETNATIVEINDEX(streamInp->streamIn_ICU.utextp);
     streamInp->streamIn_ICU.ucharMarkedOffsetl = streamInp->streamIn_ICU.ucharMarkedNativeIndexl * sizeof(UChar);
-    /* STREAMIN_LOGX(MARPAXML_LOGLEVEL_TRACE, "Marking index %lld, offset %lld", (long) streamInp->streamIn_ICU.ucharMarkedNativeIndexl, (long) streamInp->streamIn_ICU.ucharMarkedOffsetl); */
+    /* STREAMIN_TRACEX("Marking index %lld, offset %lld", (long) streamInp->streamIn_ICU.ucharMarkedNativeIndexl, (long) streamInp->streamIn_ICU.ucharMarkedOffsetl); */
     rcb = STREAMIN_BOOL_TRUE;
   }
 
@@ -1837,7 +1837,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_userMarkb(streamIn_t *streamInp
     /* This give the index in the native format of the text below - we know this is UChar */
     streamInp->streamIn_ICU.ucharUserMarkedNativeIndexl[indexl] = UTEXT_GETNATIVEINDEX(streamInp->streamIn_ICU.utextp);
     streamInp->streamIn_ICU.ucharUserMarkedOffsetl[indexl] = streamInp->streamIn_ICU.ucharUserMarkedNativeIndexl[indexl] * sizeof(UChar);
-    /* STREAMIN_LOGX(MARPAXML_LOGLEVEL_TRACE, "User-Marking index %lld, offset %lld", (long) streamInp->streamIn_ICU.ucharUserMarkedNativeIndexl, (long) streamInp->streamIn_ICU.ucharUserMarkedOffsetl); */
+    /* STREAMIN_TRACEX("User-Marking index %lld, offset %lld", (long) streamInp->streamIn_ICU.ucharUserMarkedNativeIndexl, (long) streamInp->streamIn_ICU.ucharUserMarkedOffsetl); */
     rcb = STREAMIN_BOOL_TRUE;
   }
 
@@ -1871,7 +1871,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_markPreviousb(streamIn_t *strea
     /* This give the index in the native format of the text below - we know this is UChar */
     streamInp->streamIn_ICU.ucharMarkedNativeIndexl = utext_getPreviousNativeIndex(streamInp->streamIn_ICU.utextp);
     streamInp->streamIn_ICU.ucharMarkedOffsetl = streamInp->streamIn_ICU.ucharMarkedNativeIndexl * sizeof(UChar);
-    /* STREAMIN_LOGX(MARPAXML_LOGLEVEL_TRACE, "Marking index %lld, offset %ld", (long) streamInp->streamIn_ICU.ucharMarkedNativeIndexl, (long) streamInp->streamIn_ICU.ucharMarkedOffsetl); */
+    /* STREAMIN_TRACEX("Marking index %lld, offset %ld", (long) streamInp->streamIn_ICU.ucharMarkedNativeIndexl, (long) streamInp->streamIn_ICU.ucharMarkedOffsetl); */
     rcb = STREAMIN_BOOL_TRUE;
   }
 
@@ -1905,7 +1905,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_userMarkPreviousb(streamIn_t *s
     /* This give the index in the native format of the text below - we know this is UChar */
     streamInp->streamIn_ICU.ucharUserMarkedNativeIndexl[indexl] = utext_getPreviousNativeIndex(streamInp->streamIn_ICU.utextp);
     streamInp->streamIn_ICU.ucharUserMarkedOffsetl[indexl] = streamInp->streamIn_ICU.ucharUserMarkedNativeIndexl[indexl] * sizeof(UChar);
-    /* STREAMIN_LOGX(MARPAXML_LOGLEVEL_TRACE, "User-Marking index %lld, offset %ld", (long) streamInp->streamIn_ICU.ucharUserMarkedNativeIndexl, (long) streamInp->streamIn_ICU.ucharUserMarkedOffsetl); */
+    /* STREAMIN_TRACEX("User-Marking index %lld, offset %ld", (long) streamInp->streamIn_ICU.ucharUserMarkedNativeIndexl, (long) streamInp->streamIn_ICU.ucharUserMarkedOffsetl); */
     rcb = STREAMIN_BOOL_TRUE;
   }
 
@@ -1938,7 +1938,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_currentFromMarkedb(streamIn_t *
   } else {
     /* This makes the marked character the current character */
     UTEXT_SETNATIVEINDEX(streamInp->streamIn_ICU.utextp, streamInp->streamIn_ICU.ucharMarkedNativeIndexl);
-    /* STREAMIN_LOGX(MARPAXML_LOGLEVEL_TRACE, "Making index %lld, offset %lld as current", (long) streamInp->streamIn_ICU.ucharMarkedNativeIndexl, (long) streamInp->streamIn_ICU.ucharMarkedOffsetl); */
+    /* STREAMIN_TRACEX("Making index %lld, offset %lld as current", (long) streamInp->streamIn_ICU.ucharMarkedNativeIndexl, (long) streamInp->streamIn_ICU.ucharMarkedOffsetl); */
     rcb = STREAMIN_BOOL_TRUE;
   }
 
@@ -1999,7 +1999,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_currentFromUserMarkedb(streamIn
   } else {
     /* This makes the user-marked character the current character */
     UTEXT_SETNATIVEINDEX(streamInp->streamIn_ICU.utextp, streamInp->streamIn_ICU.ucharUserMarkedNativeIndexl[indexl]);
-    /* STREAMIN_LOGX(MARPAXML_LOGLEVEL_TRACE, "Making index %lld, offset %lld as current", (long) streamInp->streamIn_ICU.ucharUserMarkedNativeIndexl[indexl], (long) streamInp->streamIn_ICU.ucharUserMarkedOffsetl[indexl]); */
+    /* STREAMIN_TRACEX("Making index %lld, offset %lld as current", (long) streamInp->streamIn_ICU.ucharUserMarkedNativeIndexl[indexl], (long) streamInp->streamIn_ICU.ucharUserMarkedOffsetl[indexl]); */
     rcb = STREAMIN_BOOL_TRUE;
   }
 
@@ -2121,7 +2121,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_doneb(streamIn_t *streamInp) {
     return STREAMIN_BOOL_FALSE;
   } else {
     /* We search for a byte buffer that maps exactly to ucharMarkedOffsetl */
-    /* STREAMIN_LOGX(MARPAXML_LOGLEVEL_TRACE, "Searching for marked offset %ld", streamInp->streamIn_ICU.ucharMarkedOffsetl); */
+    /* STREAMIN_TRACEX("Searching for marked offset %ld", streamInp->streamIn_ICU.ucharMarkedOffsetl); */
     for (i = 0; i < streamInp->nByteBufi; i++) {
       if (streamInp->streamIn_ICU.byteBuf2UCharByteLengthlp[i] == streamInp->streamIn_ICU.ucharMarkedOffsetl) {
 	break;
@@ -2162,7 +2162,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_userDoneb(streamIn_t *streamInp
     return STREAMIN_BOOL_FALSE;
   } else {
     /* We search for a byte buffer that maps exactly to ucharMarkedOffsetl */
-    /* STREAMIN_LOGX(MARPAXML_LOGLEVEL_TRACE, "Searching for marked offset %ld", streamInp->streamIn_ICU.ucharMarkedOffsetl); */
+    /* STREAMIN_TRACEX("Searching for marked offset %ld", streamInp->streamIn_ICU.ucharMarkedOffsetl); */
     for (i = 0; i < streamInp->nByteBufi; i++) {
       if (streamInp->streamIn_ICU.byteBuf2UCharByteLengthlp[i] == streamInp->streamIn_ICU.ucharUserMarkedOffsetl[indexl]) {
 	break;
