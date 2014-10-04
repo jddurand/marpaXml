@@ -800,6 +800,7 @@ struct $namespace {
   size_t                   marpaWrapperRuleCallbackArrayLengthi;
   streamIn_t              *streamInp;
   signed int               currenti;
+  xml_common_work_t        xml_common_work;
 };
 
 /* From symbol to string - indexed by ${namespace}_symbol_t */

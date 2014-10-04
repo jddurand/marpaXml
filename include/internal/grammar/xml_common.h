@@ -31,6 +31,11 @@ typedef struct xml_common_option {
   char            *encodings;
 } xml_common_option_t;
 
+typedef struct xml_common_work {
+  unsigned long long linel;
+  unsigned long long columnl;
+} xml_common_work_t;
+
 marpaWrapperBool_t xml_common_optionDefaultb(xml_common_option_t *xml_common_optionp);
 marpaWrapperBool_t xml_common_lexemeValueb(marpaWrapper_t *marpaWrapperp, streamIn_t *streamInp, int *lexemeValueip, int *lexemeLengthip);
 marpaWrapperBool_t xml_common_readerb(marpaWrapper_t *marpaWrapperp, streamIn_t *streamInp, signed int *currentip, marpaWrapperBool_t *endOfInputbp);
