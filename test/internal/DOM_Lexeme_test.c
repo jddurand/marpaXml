@@ -11,7 +11,6 @@
 int main(int argc, char **argv) {
   marpaXml_Lexeme_t *lexeme1p, *lexeme2p, *lexeme3p;
   marpaXml_String_t *string1p;
-  sqlite3_int64      counter;
 #ifdef _WIN32
 #define MARPAXML_DB_PATH "C:\\Windows\\Temp\\test.sqlite"
 #else
@@ -42,15 +41,6 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  if (marpaXml_Lexeme_getCounter(lexeme2p, &counter) == marpaXml_false) {
-    fprintf(stderr, "marpaXml_Lexeme_getCounter failure at %s:%d\n", __FILE__, __LINE__);
-    return 1;
-  }
-  if (counter != 2) {
-    fprintf(stderr, "marpaXml_Lexeme_getCounter give counter %lld failure at %s:%d\n", (long long int) counter, __FILE__, __LINE__);
-    return 1;
-  }
-
   lexeme3p = marpaXml_Lexeme_new(string1p);
   if (lexeme3p == NULL) {
     fprintf(stderr, "marpaXml_Lexeme_new failure at %s:%d\n", __FILE__, __LINE__);
@@ -59,25 +49,7 @@ int main(int argc, char **argv) {
 
   marpaXml_Lexeme_free(&lexeme1p);
 
-  if (marpaXml_Lexeme_getCounter(lexeme2p, &counter) == marpaXml_false) {
-    fprintf(stderr, "marpaXml_Lexeme_getCounter failure at %s:%d\n", __FILE__, __LINE__);
-    return 1;
-  }
-  if (counter != 3) {
-    fprintf(stderr, "marpaXml_Lexeme_getCounter give counter %lld failure at %s:%d\n", (long long int) counter, __FILE__, __LINE__);
-    return 1;
-  }
-
   marpaXml_Lexeme_delete(&lexeme2p);
-
-  if (marpaXml_Lexeme_getCounter(lexeme3p, &counter) == marpaXml_false) {
-    fprintf(stderr, "marpaXml_Lexeme_getCounter failure at %s:%d\n", __FILE__, __LINE__);
-    return 1;
-  }
-  if (counter != 2) {
-    fprintf(stderr, "marpaXml_Lexeme_getCounter give counter %lld failure at %s:%d\n", (long long int) counter, __FILE__, __LINE__);
-    return 1;
-  }
 
   marpaXml_Lexeme_delete(&lexeme3p);
 

@@ -118,6 +118,10 @@ static C_INLINE void           _streamInUtf8_ICU_destroyv(streamIn_t *streamInp)
 static C_INLINE unsigned char  _streaminUtf8_ICU_nibbleToHex(uint8_t n);
 static C_INLINE streamInBool_t _streamInUnicode_getBufferb(streamIn_t *streamInp, size_t wantedIndexi, size_t *indexBufferip, char **byteArraypp, size_t *bytesInBufferp, size_t *lengthInBufferp);
 
+static C_INLINE streamInBool_t _streamInUtf8_ICU_Utf16InfoFromMarkedb(streamIn_t *streamInp, const void **pp, size_t *byteLengthlp, size_t *lengthlp);
+static C_INLINE streamInBool_t _streamInUtf8_ICU_Utf16InfoFromUserMarkedb(streamIn_t *streamInp, size_t indexl, const void **pp, size_t *byteLengthlp, size_t *lengthlp);
+static C_INLINE streamInBool_t _streamInUtf8_ICU_Utf16InfoFromIndexesb(streamIn_t *streamInp, const void **pp, size_t *byteLengthlp, size_t *lengthlp, int64_t index1l, int64_t index2l);
+
 static C_INLINE streamInBool_t _streamIn_readFromFileDescriptorCallback(void *datavp, size_t wantedBytesi, size_t *gotBytesip, char *byteArrayp, char **charManagedArrayp);
 static C_INLINE streamInBool_t _streamIn_readFromFILECallback(void *datavp, size_t wantedBytesi, size_t *gotBytesip, char *byteArrayp, char **charManagedArrayp);
 static C_INLINE streamInBool_t _streamIn_readFromBufferCallback(void *datavp, size_t wantedBytesi, size_t *gotBytesip, char *byteArrayp, char **charManagedArrayp);
@@ -1754,9 +1758,9 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_nexti(streamIn_t *streamInp, si
   return rcb;
 }
 
-/**********************/
-/* _streamInUtf8_eofb */
-/**********************/
+/*********************/
+/* streamInUtf8_eofb */
+/*********************/
 streamInBool_t streamInUtf8_eofb(streamIn_t *streamInp) {
   streamInBool_t rcb = STREAMIN_BOOL_FALSE;
 
@@ -1776,9 +1780,9 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_eofb(streamIn_t *streamInp) {
   return streamInp->streamIn_ICU.eofb;
 }
 
-/***********************/
-/* _streamInUtf8_markb */
-/***********************/
+/**********************/
+/* streamInUtf8_markb */
+/**********************/
 streamInBool_t streamInUtf8_markb(streamIn_t *streamInp) {
   streamInBool_t rcb = STREAMIN_BOOL_FALSE;
 
@@ -1810,9 +1814,9 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_markb(streamIn_t *streamInp) {
   return rcb;
 }
 
-/***************************/
-/* _streamInUtf8_userMarkb */
-/***************************/
+/**************************/
+/* streamInUtf8_userMarkb */
+/**************************/
 streamInBool_t streamInUtf8_userMarkb(streamIn_t *streamInp, size_t indexl) {
   streamInBool_t rcb = STREAMIN_BOOL_FALSE;
 
@@ -1844,19 +1848,103 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_userMarkb(streamIn_t *streamInp
   return rcb;
 }
 
-/*******************************/
-/* _streamInUtf8_markPreviousb */
-/*******************************/
-streamInBool_t streamInUtf8_markPreviousb(streamIn_t *streamInp) {
+/*************************************/
+/* streamInUtf8_Utf16InfoFromMarkedb */
+/*************************************/
+streamInBool_t streamInUtf8_Utf16InfoFromMarkedb(streamIn_t *streamInp, const void **pp, size_t *byteLengthlp, size_t *lengthlp) {
   streamInBool_t rcb = STREAMIN_BOOL_FALSE;
 
   if (streamInp == NULL || streamInp->utf8b == STREAMIN_BOOL_FALSE) {
     return rcb;
   }
 
-  rcb = _streamInUtf8_ICU_markPreviousb(streamInp);
+  rcb = _streamInUtf8_ICU_Utf16InfoFromMarkedb(streamInp, pp, byteLengthlp, lengthlp);
 
   return rcb;
+}
+
+/******************************************/
+/* _streamInUtf8_ICU_Utf16InfoFromMarkedb */
+/******************************************/
+static C_INLINE streamInBool_t _streamInUtf8_ICU_Utf16InfoFromMarkedb(streamIn_t *streamInp, const void **pp, size_t *byteLengthlp, size_t *lengthlp) {
+  return
+    (streamInp->streamIn_ICU.utextp == NULL)
+    ?
+    STREAMIN_BOOL_FALSE
+    :
+    _streamInUtf8_ICU_Utf16InfoFromIndexesb(streamInp, pp, byteLengthlp, lengthlp, streamInp->streamIn_ICU.ucharMarkedNativeIndexl, UTEXT_GETNATIVEINDEX(streamInp->streamIn_ICU.utextp));
+}
+
+/*****************************************/
+/* streamInUtf8_Utf16InfoFromUserMarkedb */
+/*****************************************/
+streamInBool_t streamInUtf8_Utf16InfoFromUserMarkedb(streamIn_t *streamInp, size_t indexl, const void **pp, size_t *byteLengthlp, size_t *lengthlp) {
+  streamInBool_t rcb = STREAMIN_BOOL_FALSE;
+
+  if (streamInp == NULL || streamInp->utf8b == STREAMIN_BOOL_FALSE) {
+    return rcb;
+  }
+
+  rcb = _streamInUtf8_ICU_Utf16InfoFromUserMarkedb(streamInp, indexl, pp, byteLengthlp, lengthlp);
+
+  return rcb;
+}
+
+/**********************************************/
+/* _streamInUtf8_ICU_Utf16InfoFromUserMarkedb */
+/**********************************************/
+static C_INLINE streamInBool_t _streamInUtf8_ICU_Utf16InfoFromUserMarkedb(streamIn_t *streamInp, size_t indexl, const void **pp, size_t *byteLengthlp, size_t *lengthlp) {
+  return
+    (streamInp->streamIn_ICU.utextp == NULL)
+    ?
+    STREAMIN_BOOL_FALSE
+    :
+    _streamInUtf8_ICU_Utf16InfoFromIndexesb(streamInp, pp, byteLengthlp, lengthlp, streamInp->streamIn_ICU.ucharUserMarkedNativeIndexl[indexl], UTEXT_GETNATIVEINDEX(streamInp->streamIn_ICU.utextp));
+}
+
+/*******************************************/
+/* _streamInUtf8_ICU_Utf16InfoFromIndexesb */
+/*******************************************/
+static C_INLINE streamInBool_t _streamInUtf8_ICU_Utf16InfoFromIndexesb(streamIn_t *streamInp, const void **pp, size_t *byteLengthlp, size_t *lengthlp, int64_t index1l, int64_t index2l) {
+  streamInBool_t rcb = STREAMIN_BOOL_FALSE;
+  UChar         *ucharBufp;
+  int32_t        srcLength;
+
+  if (streamInp->streamIn_ICU.utextp != NULL) {
+    srcLength = (int32_t) (index2l - index1l);
+    /* If overflow, index2Verifl will not be equal to index2 */
+    if ((index1l + srcLength) != index2l) {
+      STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "integer overflow at %s:%d", __FILE__, __LINE__);
+    } else {
+      ucharBufp = streamInp->streamIn_ICU.ucharBufp + index1l;  /* positionl is in units of UChar */
+
+      if (pp != NULL) {
+	*pp = (const void *) ucharBufp;
+      }
+      if (byteLengthlp != NULL) {
+	/* No overflow check until I code it */
+	*byteLengthlp = (size_t) (srcLength * sizeof(UChar));
+      }
+      if (lengthlp != NULL) {
+	*lengthlp = u_countChar32(ucharBufp, srcLength);
+      }
+      rcb = STREAMIN_BOOL_TRUE;
+    }
+  }
+
+  return rcb;
+}
+
+/******************************/
+/* streamInUtf8_markPreviousb */
+/******************************/
+streamInBool_t streamInUtf8_markPreviousb(streamIn_t *streamInp) {
+
+  if (streamInp == NULL || streamInp->utf8b == STREAMIN_BOOL_FALSE) {
+    return STREAMIN_BOOL_FALSE;
+  }
+
+  return _streamInUtf8_ICU_markPreviousb(streamInp);
 }
 
 /***********************************/
@@ -1878,19 +1966,16 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_markPreviousb(streamIn_t *strea
   return rcb;
 }
 
-/*******************************/
-/* _streamInUtf8_userMarkPreviousb */
-/*******************************/
+/**********************************/
+/* streamInUtf8_userMarkPreviousb */
+/**********************************/
 streamInBool_t streamInUtf8_userMarkPreviousb(streamIn_t *streamInp, size_t indexl) {
-  streamInBool_t rcb = STREAMIN_BOOL_FALSE;
 
   if (streamInp == NULL || streamInp->utf8b == STREAMIN_BOOL_FALSE) {
-    return rcb;
+    return STREAMIN_BOOL_FALSE;
   }
 
-  rcb = _streamInUtf8_ICU_userMarkPreviousb(streamInp, indexl);
-
-  return rcb;
+  return _streamInUtf8_ICU_userMarkPreviousb(streamInp, indexl);
 }
 
 /***********************************/
@@ -1912,19 +1997,16 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_userMarkPreviousb(streamIn_t *s
   return rcb;
 }
 
-/************************************/
-/* _streamInUtf8_currentFromMarkedb */
-/************************************/
+/***********************************/
+/* streamInUtf8_currentFromMarkedb */
+/***********************************/
 streamInBool_t streamInUtf8_currentFromMarkedb(streamIn_t *streamInp) {
-  streamInBool_t rcb = STREAMIN_BOOL_FALSE;
 
   if (streamInp == NULL || streamInp->utf8b == STREAMIN_BOOL_FALSE) {
-    return rcb;
+    return STREAMIN_BOOL_FALSE;
   }
 
-  rcb = _streamInUtf8_ICU_currentFromMarkedb(streamInp);
-
-  return rcb;
+  return _streamInUtf8_ICU_currentFromMarkedb(streamInp);
 }
 
 /****************************************/
@@ -1945,19 +2027,16 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_currentFromMarkedb(streamIn_t *
   return rcb;
 }
 
-/************************************/
-/* _streamInUtf8_extractFromMarkedb */
-/************************************/
+/***********************************/
+/* streamInUtf8_extractFromMarkedb */
+/***********************************/
 streamInBool_t streamInUtf8_extractFromMarkedb(streamIn_t *streamInp, char **destsp, size_t *byteLengthlp, size_t *lengthlp) {
-  streamInBool_t rcb = STREAMIN_BOOL_FALSE;
 
   if (streamInp == NULL || streamInp->utf8b == STREAMIN_BOOL_FALSE) {
-    return rcb;
+    return STREAMIN_BOOL_FALSE;
   }
 
-  rcb = _streamInUtf8_ICU_extractFromMarkedb(streamInp, destsp, byteLengthlp, lengthlp);
-
-  return rcb;
+  return _streamInUtf8_ICU_extractFromMarkedb(streamInp, destsp, byteLengthlp, lengthlp);
 }
 
 /****************************************/
@@ -1973,19 +2052,16 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_extractFromMarkedb(streamIn_t *
     _streamInUtf8_ICU_extractFromIndexesb(streamInp, destsp, byteLengthlp, lengthlp, streamInp->streamIn_ICU.ucharMarkedNativeIndexl, UTEXT_GETNATIVEINDEX(streamInp->streamIn_ICU.utextp));
 }
 
-/****************************************/
-/* _streamInUtf8_currentFromUserMarkedb */
-/****************************************/
+/***************************************/
+/* streamInUtf8_currentFromUserMarkedb */
+/***************************************/
 streamInBool_t streamInUtf8_currentFromUserMarkedb(streamIn_t *streamInp, size_t indexl) {
-  streamInBool_t rcb = STREAMIN_BOOL_FALSE;
 
   if (streamInp == NULL || streamInp->utf8b == STREAMIN_BOOL_FALSE) {
-    return rcb;
+    return STREAMIN_BOOL_FALSE;
   }
 
-  rcb = _streamInUtf8_ICU_currentFromUserMarkedb(streamInp, indexl);
-
-  return rcb;
+  return _streamInUtf8_ICU_currentFromUserMarkedb(streamInp, indexl);
 }
 
 /********************************************/
@@ -2006,24 +2082,21 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_currentFromUserMarkedb(streamIn
   return rcb;
 }
 
-/************************************/
-/* _streamInUtf8_extractFromUserMarkedb */
-/************************************/
+/***************************************/
+/* streamInUtf8_extractFromUserMarkedb */
+/***************************************/
 streamInBool_t streamInUtf8_extractFromUserMarkedb(streamIn_t *streamInp, size_t indexl, char **destsp, size_t *byteLengthlp, size_t *lengthlp) {
-  streamInBool_t rcb = STREAMIN_BOOL_FALSE;
 
   if (streamInp == NULL || streamInp->utf8b == STREAMIN_BOOL_FALSE) {
-    return rcb;
+    return STREAMIN_BOOL_FALSE;
   }
 
-  rcb = _streamInUtf8_ICU_extractFromUserMarkedb(streamInp, indexl, destsp, byteLengthlp, lengthlp);
-
-  return rcb;
+  return _streamInUtf8_ICU_extractFromUserMarkedb(streamInp, indexl, destsp, byteLengthlp, lengthlp);
 }
 
-/****************************************/
+/********************************************/
 /* _streamInUtf8_ICU_extractFromUserMarkedb */
-/****************************************/
+/********************************************/
 static C_INLINE streamInBool_t _streamInUtf8_ICU_extractFromUserMarkedb(streamIn_t *streamInp, size_t indexl, char **destsp, size_t *byteLengthlp, size_t *lengthlp) {
 
   return
@@ -2095,19 +2168,16 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_extractFromIndexesb(streamIn_t 
   return rcb;
 }
 
-/***********************/
-/* _streamInUtf8_doneb */
-/***********************/
+/**********************/
+/* streamInUtf8_doneb */
+/**********************/
 streamInBool_t streamInUtf8_doneb(streamIn_t *streamInp) {
-  streamInBool_t rcb = STREAMIN_BOOL_FALSE;
 
   if (streamInp == NULL || streamInp->utf8b == STREAMIN_BOOL_FALSE) {
-    return rcb;
+    return STREAMIN_BOOL_FALSE;
   }
 
-  rcb = _streamInUtf8_ICU_doneb(streamInp);
-
-  return rcb;
+  return _streamInUtf8_ICU_doneb(streamInp);
 }
 
 /***************************/
@@ -2136,19 +2206,16 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_doneb(streamIn_t *streamInp) {
   return rcb;
 }
 
-/***************************/
-/* _streamInUtf8_userDoneb */
-/***************************/
+/**************************/
+/* streamInUtf8_userDoneb */
+/**************************/
 streamInBool_t streamInUtf8_userDoneb(streamIn_t *streamInp, size_t indexl) {
-  streamInBool_t rcb = STREAMIN_BOOL_FALSE;
 
   if (streamInp == NULL || streamInp->utf8b == STREAMIN_BOOL_FALSE) {
-    return rcb;
+    return STREAMIN_BOOL_FALSE;
   }
 
-  rcb = _streamInUtf8_ICU_userDoneb(streamInp, indexl);
-
-  return rcb;
+  return _streamInUtf8_ICU_userDoneb(streamInp, indexl);
 }
 
 /*******************************/

@@ -180,6 +180,10 @@ streamInBool_t streamInUnicode_nextBufferb    (streamIn_t *streamInp, size_t *in
 streamInBool_t streamInUnicode_getBufferb     (streamIn_t *streamInp, int indexBufferi, size_t *indexBufferip, char **byteArraypp, size_t *bytesInBufferp, size_t *lengthInBufferp);
 streamInBool_t streamInUnicode_doneBufferb    (streamIn_t *streamInp, int indexBufferi);
 
+/* Direct access to the UTF-16 buffer (ICU native Unicode representation) intermediary buffer - this will allocate NOTHING. */
+streamInBool_t streamInUtf8_Utf16InfoFromMarkedb(streamIn_t *streamInp, const void **pp, size_t *byteLengthlp, size_t *lengthlp);
+streamInBool_t streamInUtf8_Utf16InfoFromUserMarkedb(streamIn_t *streamInp, size_t indexl, const void **pp, size_t *byteLengthlp, size_t *lengthlp);
+
 /************************************************************************************************************************************
    Generic helpers
    In all these helpers, readCallback is overwriten to a default version, unless user already

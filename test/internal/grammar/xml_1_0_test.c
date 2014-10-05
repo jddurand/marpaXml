@@ -8,7 +8,7 @@ int main(int argc, char **argv) {
   xml_1_0_t *xml_1_0p;
   marpaWrapperOption_t  marpaWrapperOption;
   xml_common_option_t   xml_common_option;
-  marpaXmlLog_t        *marpaXmlLogp = marpaXmlLog_newp(NULL, NULL, MARPAXML_LOGLEVEL_TRACE);
+  marpaXmlLog_t        *marpaXmlLogp = marpaXmlLog_newp(NULL, NULL, MARPAXML_LOGLEVEL_WARNING);
 #ifdef _WIN32
   marpaXml_DOM_Option_t marpaXml_DOM_Option = {NULL /* "C:\\Windows\\Temp\\test.sqlite" */, NULL, -1, marpaXmlLogp};
 #else

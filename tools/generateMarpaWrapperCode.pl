@@ -1068,10 +1068,14 @@ marpaWrapperBool_t ${namespace}_lexemeValueb(void *marpaWrapperSymbolOptionDatav
 
   rcb = xml_common_lexemeValueb(${namespace}_symbol_callbackp->${namespace}p->marpaWrapperp, streamInp, lexemeValueip, lexemeLengthip);
 
+  /* We use the token-per-earleme model, i.e. xml_common_lexemeValueb will put a length of 1. So we leave the string */
+  /* at the end of current lexeme */
   /* Restore current position */
+  /*
   if (streamInUtf8_currentFromUserMarkedb(streamInp, ${NAMESPACE}_TERMINAL_MAX) == STREAMIN_BOOL_FALSE) {
     return MARPAWRAPPER_BOOL_FALSE;
   }
+  */
 
   return rcb;
 }

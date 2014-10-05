@@ -4,7 +4,7 @@
 
 CREATE TABLE [Node]
 (
-	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
+	[id] integer NOT NULL,
 	[name] text,
 	[value] text,
 	[nodeType] integer,
@@ -29,25 +29,12 @@ CREATE TABLE [Node]
 -- entities and notations are implemented like a view on DOMNode
 CREATE TABLE [DocumentType]
 (
-	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
+	[id] integer NOT NULL,
 	[name] text,
 	[publicId] text,
 	[systemId] text,
 	[internalSubset] text,
-	[DOMNode_id] integer NOT NULL UNIQUE,
-	PRIMARY KEY ([id]),
-	FOREIGN KEY ([DOMNode_id])
-	REFERENCES [Node] ([id])
-);
-
-
--- getElementsByTagName is a view on top of DOMNode
--- getElementsByTagNameNS is a view on top of DOMNode
-CREATE TABLE [DOMElement]
-(
-	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
-	[DOMNode_id] integer NOT NULL UNIQUE,
-	[tagName] text,
+	[DOMNode_id] integer,
 	PRIMARY KEY ([id]),
 	FOREIGN KEY ([DOMNode_id])
 	REFERENCES [Node] ([id])
@@ -56,37 +43,50 @@ CREATE TABLE [DOMElement]
 
 CREATE TABLE [DOMTypeInfo]
 (
-	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
+	[id] integer NOT NULL,
 	[typeName] text,
 	[typeNamespace] text,
 	PRIMARY KEY ([id])
 );
 
 
+-- getElementsByTagName is a view on top of DOMNode
+-- getElementsByTagNameNS is a view on top of DOMNode
+CREATE TABLE [DOMElement]
+(
+	[id] integer NOT NULL,
+	[DOMNode_id] integer,
+	[tagName] text,
+	PRIMARY KEY ([id]),
+	FOREIGN KEY ([DOMNode_id])
+	REFERENCES [Node] ([id])
+);
+
+
 CREATE TABLE [DOMAttr]
 (
-	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
-	[DOMNode_id] integer NOT NULL UNIQUE,
+	[id] integer NOT NULL,
+	[DOMNode_id] integer,
 	[name] text,
 	[specified] integer,
 	[value] text,
-	[ownerElement_id] integer NOT NULL UNIQUE,
+	[ownerElement_id] integer,
 	[isId] integer,
-	[schemaTypeInfo_id] integer NOT NULL UNIQUE,
+	[schemaTypeInfo_id] integer,
 	PRIMARY KEY ([id]),
+	FOREIGN KEY ([schemaTypeInfo_id])
+	REFERENCES [DOMTypeInfo] ([id]),
 	FOREIGN KEY ([DOMNode_id])
 	REFERENCES [Node] ([id]),
 	FOREIGN KEY ([ownerElement_id])
-	REFERENCES [DOMElement] ([id]),
-	FOREIGN KEY ([schemaTypeInfo_id])
-	REFERENCES [DOMTypeInfo] ([id])
+	REFERENCES [DOMElement] ([id])
 );
 
 
 CREATE TABLE [DOMCharacterData]
 (
-	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
-	[DOMNode_id] integer NOT NULL UNIQUE,
+	[id] integer NOT NULL,
+	[DOMNode_id] integer,
 	[data] text,
 	[length] integer,
 	PRIMARY KEY ([id]),
@@ -97,8 +97,8 @@ CREATE TABLE [DOMCharacterData]
 
 CREATE TABLE [DOMText]
 (
-	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
-	[DOMCharacterData_id] integer NOT NULL UNIQUE,
+	[id] integer NOT NULL,
+	[DOMCharacterData_id] integer,
 	[isElementContentWhitespace] integer,
 	[wholeText] text,
 	PRIMARY KEY ([id]),
@@ -109,8 +109,8 @@ CREATE TABLE [DOMText]
 
 CREATE TABLE [DOMCDATASection]
 (
-	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
-	[DOMText_id] integer NOT NULL UNIQUE,
+	[id] integer NOT NULL,
+	[DOMText_id] integer,
 	PRIMARY KEY ([id]),
 	FOREIGN KEY ([DOMText_id])
 	REFERENCES [DOMText] ([id])
@@ -119,8 +119,8 @@ CREATE TABLE [DOMCDATASection]
 
 CREATE TABLE [DOMComment]
 (
-	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
-	[DOMCharacterData_id] integer NOT NULL UNIQUE,
+	[id] integer NOT NULL,
+	[DOMCharacterData_id] integer,
 	PRIMARY KEY ([id]),
 	FOREIGN KEY ([DOMCharacterData_id])
 	REFERENCES [DOMCharacterData] ([id])
@@ -132,7 +132,7 @@ CREATE TABLE [DOMComment]
 -- In addition, DOM does NOT provide DELETE on this data, i.e. id is enough for ordering (could have used item as well)
 CREATE TABLE [DOMString]
 (
-	[id] integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+	[id] integer NOT NULL,
 	[item] text,
 	PRIMARY KEY ([id])
 );
@@ -140,8 +140,8 @@ CREATE TABLE [DOMString]
 
 CREATE TABLE [DOMConfiguration]
 (
-	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
-	[parameterNames_id] integer NOT NULL,
+	[id] integer NOT NULL,
+	[parameterNames_id] integer,
 	PRIMARY KEY ([id]),
 	FOREIGN KEY ([parameterNames_id])
 	REFERENCES [DOMString] ([id])
@@ -150,7 +150,7 @@ CREATE TABLE [DOMConfiguration]
 
 CREATE TABLE [DOMImplementation]
 (
-	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
+	[id] integer NOT NULL,
 	[feature] text,
 	[version] text,
 	[implementationName] text,
@@ -162,25 +162,25 @@ CREATE TABLE [DOMImplementation]
 -- getElementsByTagNameNS is a live query DOMNode
 CREATE TABLE [DOMDocument]
 (
-	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
-	[DOMNode_id] integer NOT NULL UNIQUE,
-	[doctype_id] integer NOT NULL UNIQUE,
-	[implementation_id] integer NOT NULL UNIQUE,
-	[documentElement_id] integer NOT NULL UNIQUE,
+	[id] integer NOT NULL,
+	[DOMNode_id] integer,
+	[doctype_id] integer,
+	[implementation_id] integer,
+	[documentElement_id] integer,
 	[inputEncoding] text,
 	[xmlEncoding] text,
 	[xmlStandalone] integer,
 	[xmlVersion] text,
 	[strictErrorChecking] integer,
 	[documentURI] text,
-	[domConfig_id] integer NOT NULL UNIQUE,
+	[domConfig_id] integer,
 	PRIMARY KEY ([id]),
+	FOREIGN KEY ([DOMNode_id])
+	REFERENCES [Node] ([id]),
 	FOREIGN KEY ([domConfig_id])
 	REFERENCES [DOMConfiguration] ([id]),
 	FOREIGN KEY ([documentElement_id])
 	REFERENCES [DOMElement] ([id]),
-	FOREIGN KEY ([DOMNode_id])
-	REFERENCES [Node] ([id]),
 	FOREIGN KEY ([doctype_id])
 	REFERENCES [DocumentType] ([id]),
 	FOREIGN KEY ([implementation_id])
@@ -190,8 +190,8 @@ CREATE TABLE [DOMDocument]
 
 CREATE TABLE [DOMDocumentFragment]
 (
-	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
-	[DOMNode_id] integer NOT NULL UNIQUE,
+	[id] integer NOT NULL,
+	[DOMNode_id] integer,
 	PRIMARY KEY ([id]),
 	FOREIGN KEY ([DOMNode_id])
 	REFERENCES [Node] ([id])
@@ -200,8 +200,8 @@ CREATE TABLE [DOMDocumentFragment]
 
 CREATE TABLE [DOMEntity]
 (
-	[id] integer NOT NULL UNIQUE,
-	[DOMNode_id] integer NOT NULL UNIQUE,
+	[id] integer NOT NULL,
+	[DOMNode_id] integer,
 	[publicId] text,
 	[systemId] text,
 	[notationName] text,
@@ -216,22 +216,31 @@ CREATE TABLE [DOMEntity]
 
 CREATE TABLE [DOMEntityReference]
 (
-	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
-	[DOMNode_id] integer NOT NULL UNIQUE,
+	[id] integer NOT NULL,
+	[DOMNode_id] integer,
 	PRIMARY KEY ([id]),
 	FOREIGN KEY ([DOMNode_id])
 	REFERENCES [Node] ([id])
 );
 
 
+CREATE TABLE [DOMException]
+(
+	[id] integer NOT NULL,
+	[code] integer,
+	[message] text,
+	PRIMARY KEY ([id])
+);
+
+
 CREATE TABLE [DOMLocator]
 (
-	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
+	[id] integer NOT NULL,
 	[lineNumber] integer,
 	[columnNumber] integer,
 	[byteOffset] integer,
 	[utf16Offset] integer,
-	[relatedNode_id] integer NOT NULL UNIQUE,
+	[relatedNode_id] integer,
 	[uri] text,
 	PRIMARY KEY ([id]),
 	FOREIGN KEY ([relatedNode_id])
@@ -239,38 +248,29 @@ CREATE TABLE [DOMLocator]
 );
 
 
-CREATE TABLE [DOMException]
-(
-	[id] integer NOT NULL PRIMARY KEY AUTOINCREMENT,
-	[code] integer,
-	[message] text,
-	PRIMARY KEY ([id])
-);
-
-
 CREATE TABLE [DOMError]
 (
-	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
+	[id] integer NOT NULL,
 	[severity] integer,
 	[message] text,
 	[_type] text,
-	[relatedException_id] integer NOT NULL UNIQUE,
-	[relatedData_id] integer NOT NULL UNIQUE,
-	[location_id] integer NOT NULL UNIQUE,
+	[relatedException_id] integer,
+	[relatedData_id] integer,
+	[location_id] integer,
 	PRIMARY KEY ([id]),
-	FOREIGN KEY ([location_id])
-	REFERENCES [DOMLocator] ([id]),
 	FOREIGN KEY ([relatedException_id])
 	REFERENCES [DOMException] ([id]),
 	FOREIGN KEY ([relatedData_id])
-	REFERENCES [Node] ([id])
+	REFERENCES [Node] ([id]),
+	FOREIGN KEY ([location_id])
+	REFERENCES [DOMLocator] ([id])
 );
 
 
 CREATE TABLE [DOMImplementationSource]
 (
-	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
-	[DOMImplementation_id] integer NOT NULL UNIQUE,
+	[id] integer NOT NULL,
+	[DOMImplementation_id] integer,
 	PRIMARY KEY ([id]),
 	FOREIGN KEY ([DOMImplementation_id])
 	REFERENCES [DOMImplementation] ([id])
@@ -279,8 +279,8 @@ CREATE TABLE [DOMImplementationSource]
 
 CREATE TABLE [DOMNotation]
 (
-	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
-	[DOMNode_id] integer NOT NULL UNIQUE,
+	[id] integer NOT NULL,
+	[DOMNode_id] integer,
 	[publicId] text,
 	[systemId] text,
 	PRIMARY KEY ([id]),
@@ -291,7 +291,7 @@ CREATE TABLE [DOMNotation]
 
 CREATE TABLE [DOMObjects]
 (
-	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
+	[id] integer NOT NULL,
 	[objectName] text,
 	PRIMARY KEY ([id])
 );
@@ -299,8 +299,8 @@ CREATE TABLE [DOMObjects]
 
 CREATE TABLE [DOMProcessingInstruction]
 (
-	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
-	[DOMNode_id] integer NOT NULL UNIQUE,
+	[id] integer NOT NULL,
+	[DOMNode_id] integer,
 	[target] text,
 	[data] text,
 	PRIMARY KEY ([id]),
@@ -311,7 +311,7 @@ CREATE TABLE [DOMProcessingInstruction]
 
 CREATE TABLE [DOMUserDataHandler]
 (
-	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
+	[id] integer NOT NULL,
 	[handle] integer,
 	PRIMARY KEY ([id])
 );
@@ -319,10 +319,10 @@ CREATE TABLE [DOMUserDataHandler]
 
 CREATE TABLE [DOMUserDataKey]
 (
-	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
+	[id] integer NOT NULL,
 	[string] text,
 	[data] integer,
-	[DOMUserDataHandler_id] integer NOT NULL UNIQUE,
+	[DOMUserDataHandler_id] integer,
 	PRIMARY KEY ([id]),
 	FOREIGN KEY ([DOMUserDataHandler_id])
 	REFERENCES [DOMUserDataHandler] ([id])
@@ -331,9 +331,9 @@ CREATE TABLE [DOMUserDataKey]
 
 CREATE TABLE [DomUserDataParameter]
 (
-	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
+	[id] integer NOT NULL,
 	[name] text,
-	[DOMUserDataHandler_id] integer NOT NULL UNIQUE,
+	[DOMUserDataHandler_id] integer,
 	PRIMARY KEY ([id]),
 	FOREIGN KEY ([DOMUserDataHandler_id])
 	REFERENCES [DOMUserDataHandler] ([id])
@@ -343,40 +343,32 @@ CREATE TABLE [DomUserDataParameter]
 -- Internal table used to store lexeme during parsing
 CREATE TABLE [Lexeme]
 (
-	[id] integer NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
-	[hash] integer,
+	[id] integer NOT NULL,
 	[string] text,
-	[counter] integer DEFAULT 1,
 	PRIMARY KEY ([id])
 );
 
 
 CREATE TABLE [RDOMConfigurationUserDataParameter]
 (
-	[DOMUserDataParameter_id] integer NOT NULL UNIQUE,
-	[DOMConfiguration_id] integer NOT NULL UNIQUE,
-	FOREIGN KEY ([DOMConfiguration_id])
-	REFERENCES [DOMConfiguration] ([id]),
+	[DOMUserDataParameter_id] integer,
+	[DOMConfiguration_id] integer,
 	FOREIGN KEY ([DOMUserDataParameter_id])
-	REFERENCES [DomUserDataParameter] ([id])
+	REFERENCES [DomUserDataParameter] ([id]),
+	FOREIGN KEY ([DOMConfiguration_id])
+	REFERENCES [DOMConfiguration] ([id])
 );
 
 
 CREATE TABLE [RDOMNodeUserDataKey]
 (
-	[DOMUserDataKey_id] integer NOT NULL UNIQUE,
-	[DOMNode_id] integer NOT NULL UNIQUE,
+	[DOMUserDataKey_id] integer,
+	[DOMNode_id] integer,
 	FOREIGN KEY ([DOMUserDataKey_id])
 	REFERENCES [DOMUserDataKey] ([id]),
 	FOREIGN KEY ([DOMNode_id])
 	REFERENCES [Node] ([id])
 );
-
-
-
-/* Create Indexes */
-
-CREATE INDEX [Lexeme_hash_idx] ON [Lexeme] ([hash]);
 
 
 

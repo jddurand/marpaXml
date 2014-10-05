@@ -37,50 +37,41 @@ marpaWrapperBool_t xml_common_lexemeValueb(marpaWrapper_t *marpaWrapperp, stream
   sqlite3_int64          id;
   size_t                 lengthl;
   marpaXmlLog_t         *marpaXmlLogp = marpaWrapper_marpaXmlLogp(marpaWrapperp);
+  const void            *p;
 
   /* Our caller must have guaranteed that:
      - marker in streamInp is at where the lexeme is starting
      - current position in streamInp is where the lexeme is ending
      - lengthl, if > 0, is the correct number of characters within this range
   */
-  if (streamInUtf8_extractFromMarkedb(streamInp, &dests, &byteLengthl, &lengthl) == STREAMIN_BOOL_FALSE) {
+  if (streamInUtf8_Utf16InfoFromMarkedb(streamInp, &p, &byteLengthl, NULL) == STREAMIN_BOOL_FALSE) {
     return MARPAWRAPPER_BOOL_FALSE;
   }
 
-  /* We use SQLite to store strings. Internal storage is optimized so that equivalent strings are not stored twice, via an internal relational table */
-  stringp = marpaXml_String_newFromUTF8(dests, NULL);
-  if (stringp == NULL) {
-    free(dests);
-    return MARPAWRAPPER_BOOL_FALSE;
-  }
-  free(dests);
-
-  lexemep = marpaXml_Lexeme_new(stringp);
+  lexemep = marpaXml_Lexeme_newFromUTF16(p, byteLengthl);
   if (lexemep == NULL) {
-    marpaXml_String_free(&stringp);
     return MARPAWRAPPER_BOOL_FALSE;
   }
 
   if (marpaXml_Lexeme_getId(lexemep, &id) == marpaXml_false) {
     marpaXml_Lexeme_free(&lexemep);
-    marpaXml_String_free(&stringp);
     return MARPAWRAPPER_BOOL_FALSE;
   }
 
   if ((id < INT_MIN) || (id > INT_MAX) || (id == 0)) {
     /* Marpa is using an int, and disregard strongly value 0 (which means 'undef' to him) */
-    MARPAXML_ERRORX("index would exceed the 'int' representation at %s:%d", __FILE__, __LINE__);
+    MARPAXML_ERRORX("index %lld would exceed the 'int' representation at %s:%d\n", id, __FILE__, __LINE__);
     marpaXml_Lexeme_free(&lexemep);
-    marpaXml_String_free(&stringp);
     return MARPAWRAPPER_BOOL_FALSE;
   }
 
   *lexemeValueip = (int) id;
   /* We use the character-per-earleme model */
-  *lexemeLengthip = (int) lengthl;
+  /* *lexemeLengthip = (int) lengthl; */
+  /* We use the token-per-earleme model */
+  *lexemeLengthip = 1;
 
   marpaXml_Lexeme_free(&lexemep);
-  marpaXml_String_free(&stringp);
 
   return MARPAWRAPPER_BOOL_TRUE;
 }

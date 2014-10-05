@@ -1550,13 +1550,16 @@ static C_INLINE void _marpaWrapperStackFailureCallback(genericStack_error_t erro
 /**********************************/
 static C_INLINE int _marpaWrapperStackFreeCallback(void *elementp, void *freeCallbackUserDatap) {
   marpaWrapperStackElementFreeData_t *marpaWrapperStackElementFreeDatap = (marpaWrapperStackElementFreeData_t *) freeCallbackUserDatap;
-  marpaWrapper_t                     *marpaWrapperp = marpaWrapperStackElementFreeDatap->marpaWrapperp;
   marpaWrapperBool_t                  rcb;
+#ifndef MARPAWRAPPER_NTRACE
+  marpaWrapper_t                     *marpaWrapperp = marpaWrapperStackElementFreeDatap->marpaWrapperp;
 
   MARPAWRAPPER_LOG_TRACEX("stackElementFreeCallbackp(%p, %p, %p)",
 			  marpaWrapperStackElementFreeDatap->stackElementFreeCallbackUserDatap,
 			  marpaWrapperStackElementFreeDatap->marpaWrapperp,
 			  elementp);
+#endif
+
   rcb = (*marpaWrapperStackElementFreeDatap->stackElementFreeCallbackp)
     (marpaWrapperStackElementFreeDatap->stackElementFreeCallbackUserDatap,
      marpaWrapperStackElementFreeDatap->marpaWrapperp,
@@ -1570,14 +1573,17 @@ static C_INLINE int _marpaWrapperStackFreeCallback(void *elementp, void *freeCal
 /**********************************/
 static C_INLINE int _marpaWrapperStackCopyCallback(void *elementDstp, void *elementSrcp, void *copyCallbackUserDatap) {
   marpaWrapperStackElementCopyData_t *marpaWrapperStackElementCopyDatap = (marpaWrapperStackElementCopyData_t *) copyCallbackUserDatap;
-  marpaWrapper_t                     *marpaWrapperp = marpaWrapperStackElementCopyDatap->marpaWrapperp;
   marpaWrapperBool_t                  rcb;
+#ifndef MARPAWRAPPER_NTRACE
+  marpaWrapper_t                     *marpaWrapperp = marpaWrapperStackElementCopyDatap->marpaWrapperp;
 
   MARPAWRAPPER_LOG_TRACEX("stackElementCopyCallbackp(%p, %p, %p, %p)",
 			  marpaWrapperStackElementCopyDatap->stackElementCopyCallbackUserDatap,
 			  marpaWrapperStackElementCopyDatap->marpaWrapperp,
 			  elementDstp,
 			  elementSrcp);
+#endif
+
   rcb = (*marpaWrapperStackElementCopyDatap->stackElementCopyCallbackp)
     (marpaWrapperStackElementCopyDatap->stackElementCopyCallbackUserDatap,
      marpaWrapperStackElementCopyDatap->marpaWrapperp,
@@ -1720,7 +1726,7 @@ marpaWrapperBool_t marpaWrapper_r_recognizeb(marpaWrapper_t *marpaWrapperp, marp
           /* --------------------------------- */
           if (((marpaWrapperRecognizerOptionp->longestAcceptableTokensShareTheSameValueAndLengthb == MARPAWRAPPER_BOOL_TRUE) && (lexemeValuei == 0)) ||
               ((marpaWrapperRecognizerOptionp->longestAcceptableTokensShareTheSameValueAndLengthb == MARPAWRAPPER_BOOL_FALSE))) {
-          
+
             if (marpaWrapperRecognizerOptionp->lexemeValuebCallbackp(marpaWrapperSymbolpp[i]->marpaWrapperSymbolOption.datavp, &lexemeValuei, &lexemelengthi) == MARPAWRAPPER_BOOL_FALSE) {
               rcb = MARPAWRAPPER_BOOL_FALSE;
               goto recognizebEnd;

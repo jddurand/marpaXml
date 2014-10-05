@@ -28,7 +28,7 @@ while ($sql =~ m/\bCREATE\s+TABLE\s+(\[(\w+)\]\s*\([^;]+\)\s*;)/sxmg) {
     # Well, it appears that the generated SQL says twice PRIMARY KEY on the same column and SQLite does not like it
     # Our model is using [id] everywhere, so we know what we are doing and can safely remove the redundant PRIMARY KEY
     #
-    $match =~ s/,\s*\bPRIMARY\s+KEY\s*\(\s*\[\s*id\s*\]\s*\)//;
+    # $match =~ s/,\s*\bPRIMARY\s+KEY\s*\(\s*\[\s*id\s*\]\s*\)//;
     $match =~ s/^/"/sxmg;
     $match =~ s/$/\\n"/sxmg;
     #
