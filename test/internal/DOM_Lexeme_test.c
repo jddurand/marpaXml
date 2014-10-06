@@ -11,12 +11,14 @@
 int main(int argc, char **argv) {
   marpaXml_Lexeme_t *lexeme1p, *lexeme2p, *lexeme3p;
   marpaXml_String_t *string1p;
+  marpaXmlLog_t        *marpaXmlLogp = marpaXmlLog_newp(NULL, NULL, MARPAXML_LOGLEVEL_TRACE);
 #ifdef _WIN32
 #define MARPAXML_DB_PATH "C:\\Windows\\Temp\\test.sqlite"
 #else
 #define MARPAXML_DB_PATH "/tmp/test.sqlite"
 #endif
-  marpaXml_DOM_Option_t marpaXml_DOM_Option = {MARPAXML_DB_PATH, NULL, -1, NULL};
+  marpaXml_DOM_Option_t marpaXml_DOM_Option = {MARPAXML_DB_PATH, NULL, -1, marpaXmlLogp};
+  marpaXml_String_t *   string2p;
 
   /*************************************/
   /*                Init               */
@@ -44,6 +46,11 @@ int main(int argc, char **argv) {
   lexeme3p = marpaXml_Lexeme_new(string1p);
   if (lexeme3p == NULL) {
     fprintf(stderr, "marpaXml_Lexeme_new failure at %s:%d\n", __FILE__, __LINE__);
+    return 1;
+  }
+
+  if (marpaXml_Lexeme_getString(lexeme3p, &string2p) == marpaXml_false) {
+    fprintf(stderr, "marpaXml_Lexeme_getString failure at %s:%d\n", __FILE__, __LINE__);
     return 1;
   }
 
