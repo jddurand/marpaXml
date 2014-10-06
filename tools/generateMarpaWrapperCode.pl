@@ -231,8 +231,8 @@ sub _rules {
   #
   # where XXX and YYYY are NOT sequences from Marpa point of view: the internal implementation will do the loop itself.
   #
-  # Disatvantage: the error reporting exactitude will suffer, by not being truely where the character failed, but more on
-  # where "the sequence failed".
+  # Disadvantage: none because the error reporting exactitude will not suffer.
+  # Advantages: less earlemes, less lexemes, less everything, except more work on the most optimum part of the s/w: the reader
   #
 
   $self->{grammar} = join("\n", @rc) . "\n";
