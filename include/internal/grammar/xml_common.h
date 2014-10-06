@@ -35,12 +35,17 @@ typedef struct xml_common_option {
 typedef struct xml_common_work {
   unsigned long long linel;
   unsigned long long columnl;
+  unsigned long long deltaLinel;
+  unsigned long long deltaColumnl;
   signed int         lastUtf8[XML_COMMON_LAST_UTF8_TRACKSIZE];
 } xml_common_work_t;
 
+typedef marpaWrapperBool_t (*xml_common_isLexemeb_t)(void *marpaWrapperSymbolOptionDatavp, size_t *sizelp);
+
+marpaWrapperBool_t xml_common_isLexemeb(xml_common_work_t *xml_common_workp, xml_common_isLexemeb_t xml_common_isLexemebp, void *marpaWrapperSymbolOptionDatavp, size_t *sizelp);
 marpaWrapperBool_t xml_common_optionDefaultb(xml_common_option_t *xml_common_optionp);
-marpaWrapperBool_t xml_common_lexemeValueb(marpaWrapper_t *marpaWrapperp, streamIn_t *streamInp, int *lexemeValueip, int *lexemeLengthip);
-marpaWrapperBool_t xml_common_readerb(marpaWrapper_t *marpaWrapperp, streamIn_t *streamInp, signed int *currentip, marpaWrapperBool_t *endOfInputbp);
+marpaWrapperBool_t xml_common_lexemeValueb(xml_common_work_t *xml_common_workp, marpaWrapper_t *marpaWrapperp, streamIn_t *streamInp, int *lexemeValueip, int *lexemeLengthip);
+marpaWrapperBool_t xml_common_readerb(xml_common_work_t *xml_common_workp, marpaWrapper_t *marpaWrapperp, streamIn_t *streamInp, signed int *currentip, marpaWrapperBool_t *endOfInputbp);
 
 #endif /* MARPAXML_INTERNAL_GRAMMAR_XML_COMMON_H */
 

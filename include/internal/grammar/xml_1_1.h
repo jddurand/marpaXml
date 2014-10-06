@@ -16,10 +16,4 @@ void                xml_1_1_destroyv(xml_1_1_t **xml_1_1pp);
 /* Needed for streamInUtf8_newp */
 marpaWrapperBool_t  xml_1_1_nbTerminalsb(xml_1_1_t *xml_1_1p, size_t *nbTerminalslp);
 
-/* Callbacks */
-marpaWrapperBool_t  xml_1_1_symbolToCharsb(void *marpaWrapperSymbolOptionDatavp, const char **symbolsp);
-marpaWrapperBool_t  xml_1_1_ruleToCharsb(void *marpaWrapperRuleOptionDatavp, const char **rulesp);
-marpaWrapperBool_t  xml_1_1_isLexemeb(void *marpaWrapperSymbolOptionDatavp, size_t *lengthlp);
-marpaWrapperBool_t  xml_1_1_lexemeValueb(void *marpaWrapperSymbolOptionDatavp, int *lexemeValueip, int *lexemeLengthip);
-
 #endif /* MARPAXML_INTERNAL_GRAMMAR_XML_1_1_H */

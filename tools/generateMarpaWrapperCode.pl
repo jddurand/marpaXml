@@ -649,6 +649,7 @@ INCLUDES
   $c .= <<DECLARATIONS;
 static C_INLINE marpaWrapperBool_t _${namespace}_buildGrammarb(${namespace}_t *${namespace}p, marpaWrapperOption_t *marpaWrapperOptionp, xml_common_option_t *xml_common_optionp);
 static C_INLINE marpaWrapperBool_t _${namespace}_buildSymbolsb(${namespace}_t *${namespace}p, marpaWrapperOption_t *marpaWrapperOptionp, xml_common_option_t *xml_common_optionp);
+static C_INLINE marpaWrapperBool_t _${namespace}_readerb(void *readerCallbackDatavp, marpaWrapperBool_t *endOfInputbp);
 DECLARATIONS
   } else {
   $c .= <<DECLARATIONS;
@@ -657,7 +658,11 @@ static C_INLINE marpaWrapperBool_t _${namespace}_buildSymbolsb(${namespace}_t *$
 DECLARATIONS
   }
   $c .= <<DECLARATIONS;
+static C_INLINE marpaWrapperBool_t _${namespace}_isLexemeb(void *marpaWrapperSymbolOptionDatavp, size_t *sizelp);
+static C_INLINE marpaWrapperBool_t _${namespace}_lexemeValueb(void *marpaWrapperSymbolOptionDatavp, int *lexemeValueip, int *lexemeLengthip);
 static C_INLINE marpaWrapperBool_t _${namespace}_buildRulesb(${namespace}_t *${namespace}p);
+static C_INLINE marpaWrapperBool_t _${namespace}_symbolToCharsb(void *marpaWrapperSymbolOptionDatavp, const char **symbolsp);
+static C_INLINE marpaWrapperBool_t _${namespace}_ruleToCharsb(void *marpaWrapperRuleOptionDatavp, const char **rulesp);
 DECLARATIONS
   foreach (sort {$a cmp $b} grep {$value->{symbols}->{$_}->{terminal} == 1} keys %{$value->{symbols}}) {
     $c .= "static C_INLINE marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, signed int currenti, streamIn_t *streamInp, size_t *sizelp);\n";
@@ -1031,10 +1036,10 @@ sub generateLexemeValueb {
 
   $lexemeValueb .= <<BUILDLEXEMEVALUEB;
 
-/**************************/
-/* ${namespace}_lexemeValueb */
-/**************************/
-marpaWrapperBool_t ${namespace}_lexemeValueb(void *marpaWrapperSymbolOptionDatavp, int *lexemeValueip, int *lexemeLengthip) {
+/******************************/
+/* _${namespace}_lexemeValueb */
+/******************************/
+static C_INLINE marpaWrapperBool_t _${namespace}_lexemeValueb(void *marpaWrapperSymbolOptionDatavp, int *lexemeValueip, int *lexemeLengthip) {
   ${namespace}_symbol_callback_t *${namespace}_symbol_callbackp = (${namespace}_symbol_callback_t *) marpaWrapperSymbolOptionDatavp;
   streamIn_t *streamInp = ${namespace}_symbol_callbackp->${namespace}p->streamInp;
   marpaWrapperBool_t rcb;
@@ -1066,7 +1071,7 @@ marpaWrapperBool_t ${namespace}_lexemeValueb(void *marpaWrapperSymbolOptionDatav
     return MARPAWRAPPER_BOOL_FALSE;
   }
 
-  rcb = xml_common_lexemeValueb(${namespace}_symbol_callbackp->${namespace}p->marpaWrapperp, streamInp, lexemeValueip, lexemeLengthip);
+  rcb = xml_common_lexemeValueb(&(${namespace}_symbol_callbackp->${namespace}p->xml_common_work), ${namespace}_symbol_callbackp->${namespace}p->marpaWrapperp, streamInp, lexemeValueip, lexemeLengthip);
 
   /* We use the token-per-earleme model, i.e. xml_common_lexemeValueb will put a length of 1. So we leave the string */
   /* at the end of current lexeme */
@@ -1121,10 +1126,13 @@ sub generateRecognizeb {
 
   $recognizeb .= <<BUILDREGOGNIZEB;
 
-static C_INLINE marpaWrapperBool_t ${namespace}_readerb(void *readerCallbackDatavp, marpaWrapperBool_t *endOfInputbp) {
+/*************************/
+/* _${namespace}_readerb */
+/*************************/
+static C_INLINE marpaWrapperBool_t _${namespace}_readerb(void *readerCallbackDatavp, marpaWrapperBool_t *endOfInputbp) {
   ${namespace}_t *${namespace}p = (${namespace}_t *) readerCallbackDatavp;
 
-  return xml_common_readerb(${namespace}p->marpaWrapperp, ${namespace}p->streamInp, &(${namespace}p->currenti), endOfInputbp);
+  return xml_common_readerb(&(${namespace}p->xml_common_work), ${namespace}p->marpaWrapperp, ${namespace}p->streamInp, &(${namespace}p->currenti), endOfInputbp);
 }
 
 /**************************/
@@ -1140,14 +1148,17 @@ marpaWrapperBool_t ${namespace}_recognizeb(${namespace}_t *${namespace}p, stream
   marpaWrapperRecognizerOption.remainingDataIsOkb                                 = MARPAWRAPPER_BOOL_FALSE;
   marpaWrapperRecognizerOption.longestAcceptableTokenMatchb                       = MARPAWRAPPER_BOOL_TRUE;
   marpaWrapperRecognizerOption.longestAcceptableTokensShareTheSameValueAndLengthb = MARPAWRAPPER_BOOL_TRUE;
-  marpaWrapperRecognizerOption.readerCallbackp                                    = &${namespace}_readerb;
+  marpaWrapperRecognizerOption.readerCallbackp                                    = &_${namespace}_readerb;
   marpaWrapperRecognizerOption.readerDatavp                                       = ${namespace}p;
-  marpaWrapperRecognizerOption.isLexemebCallbackp                                 = &${namespace}_isLexemeb;
-  marpaWrapperRecognizerOption.lexemeValuebCallbackp                              = &${namespace}_lexemeValueb;
-  marpaWrapperRecognizerOption.ruleToCharsbCallbackp                              = &${namespace}_ruleToCharsb;
-  marpaWrapperRecognizerOption.symbolToCharsbCallbackp                            = &${namespace}_symbolToCharsb;
+  marpaWrapperRecognizerOption.isLexemebCallbackp                                 = &_${namespace}_isLexemeb;
+  marpaWrapperRecognizerOption.lexemeValuebCallbackp                              = &_${namespace}_lexemeValueb;
+  marpaWrapperRecognizerOption.ruleToCharsbCallbackp                              = &_${namespace}_ruleToCharsb;
+  marpaWrapperRecognizerOption.symbolToCharsbCallbackp                            = &_${namespace}_symbolToCharsb;
 
   ${namespace}p->streamInp = streamInp;
+
+  ${namespace}p->xml_common_work.linel = 0;
+  ${namespace}p->xml_common_work.columnl = 0;
 
   return marpaWrapper_r_recognizeb(${namespace}p->marpaWrapperp, &marpaWrapperRecognizerOption);
 }
@@ -1166,10 +1177,10 @@ sub generateToCharsb {
 
   $toStringb .= <<TOSTRINGB;
 
-/**************************/
-/* ${namespace}_ruleToCharsb */
-/**************************/
-marpaWrapperBool_t ${namespace}_ruleToCharsb(void *marpaWrapperRuleOptionDatavp, const char **rulesp) {
+/******************************/
+/* _${namespace}_ruleToCharsb */
+/******************************/
+static C_INLINE marpaWrapperBool_t _${namespace}_ruleToCharsb(void *marpaWrapperRuleOptionDatavp, const char **rulesp) {
   ${namespace}_rule_callback_t *${namespace}_rule_callbackp = (${namespace}_rule_callback_t *) marpaWrapperRuleOptionDatavp;
 
   if (rulesp != NULL) {
@@ -1179,10 +1190,10 @@ marpaWrapperBool_t ${namespace}_ruleToCharsb(void *marpaWrapperRuleOptionDatavp,
   return MARPAWRAPPER_BOOL_TRUE;
 }
 
-/**************************/
-/* ${namespace}_symbolToCharsb */
-/**************************/
-marpaWrapperBool_t ${namespace}_symbolToCharsb(void *marpaWrapperSymbolOptionDatavp, const char **symbolsp) {
+/********************************/
+/* _${namespace}_symbolToCharsb */
+/********************************/
+static C_INLINE marpaWrapperBool_t _${namespace}_symbolToCharsb(void *marpaWrapperSymbolOptionDatavp, const char **symbolsp) {
   ${namespace}_symbol_callback_t *${namespace}_symbol_callbackp = (${namespace}_symbol_callback_t *) marpaWrapperSymbolOptionDatavp;
 
   if (symbolsp != NULL) {
@@ -1443,11 +1454,11 @@ sub generatePushLexemeb {
   $pushLexemeb .= <<ISLEXEMEB_HEADER;
 
 /*********************************************************************************/
-/* ${namespace}_isLexemeb                                                        */
+/* _${namespace}_isLexemeb                                                       */
 /* Note: MARPAWRAPPER_BOOL_TRUE and *sizelp == 0 means this is a discarded input */
 /*********************************************************************************/
 
-marpaWrapperBool_t ${namespace}_isLexemeb(void *marpaWrapperSymbolOptionDatavp, size_t *sizelp) {
+static C_INLINE marpaWrapperBool_t _${namespace}_isLexemeb(void *marpaWrapperSymbolOptionDatavp, size_t *sizelp) {
   marpaWrapperBool_t rcb;
   ${namespace}_symbol_callback_t *${namespace}_symbol_callbackp = (${namespace}_symbol_callback_t *) marpaWrapperSymbolOptionDatavp;
   ${namespace}_t    *${namespace}p = ${namespace}_symbol_callbackp->${namespace}p;

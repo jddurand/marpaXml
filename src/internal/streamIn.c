@@ -149,8 +149,8 @@ struct streamIn {
 
 #define STREAMIN_DEFAULT_BUFMAXSIZEI (1024*1024)
 
-#define STREAMIN_LOG0(marpaXmlLogLeveli, msgs)      marpaXml_log(streamInp->marpaXmlLogp, marpaXmlLogLeveli, msgs "\n")
-#define STREAMIN_LOGX(marpaXmlLogLeveli, fmts, ...) marpaXml_log(streamInp->marpaXmlLogp, marpaXmlLogLeveli, fmts "\n", __VA_ARGS__)
+#define STREAMIN_LOG0(marpaXmlLogLeveli, msgs)      marpaXml_log(streamInp->marpaXmlLogp, marpaXmlLogLeveli, msgs)
+#define STREAMIN_LOGX(marpaXmlLogLeveli, fmts, ...) marpaXml_log(streamInp->marpaXmlLogp, marpaXmlLogLeveli, fmts, __VA_ARGS__)
 
 #ifndef STREAMIN_NTRACE
 #define STREAMIN_TRACE0(fmts)      STREAMIN_LOG0(MARPAXML_LOGLEVEL_TRACE, fmts)

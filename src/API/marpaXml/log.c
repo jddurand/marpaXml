@@ -70,7 +70,7 @@ void _marpaXmlLog_defaultCallback(void *userDatavp, marpaXmlLogLevel_t logLeveli
     (logLeveli == MARPAXML_LOGLEVEL_EMERGENCY) ? "EMERGENCY" :
     "UNKOWN";
   char   *dates = dateBuilder("%d/%m/%Y %H:%M:%S");
-  char   *localMsgs = messageBuilder("%s %9s %s", dates, prefixs, (msgs != NULL) ? (char *) msgs : (char *) MARPAXML_LOG_NO_MESSAGE);
+  char   *localMsgs = messageBuilder("%s %9s %s\n", dates, prefixs, (msgs != NULL) ? (char *) msgs : (char *) MARPAXML_LOG_NO_MESSAGE);
 #if (defined(_WIN32) || (_POSIX_C_SOURCE >= 1 || _XOPEN_SOURCE || _POSIX_SOURCE))
 #ifdef _WIN32
   int filenoStderr = _fileno(stderr);

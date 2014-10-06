@@ -1176,10 +1176,10 @@ static C_INLINE void _marpaWrapper_logExt(marpaWrapper_t           *marpaWrapper
     }
 
     if (msgs != messageBuilder_internalErrors()) {
-      marpaXml_log(marpaWrapperp->marpaXmlLogp, marpaXmlLogLeveli, "%s\n", msgs);
+      marpaXml_log(marpaWrapperp->marpaXmlLogp, marpaXmlLogLeveli, "%s", msgs);
       free(msgs);
     } else {
-      marpaXml_log(marpaWrapperp->marpaXmlLogp, MARPAXML_LOGLEVEL_ERROR, "%s\n", msgs);
+      marpaXml_log(marpaWrapperp->marpaXmlLogp, MARPAXML_LOGLEVEL_ERROR, "%s", msgs);
     }
   }
 

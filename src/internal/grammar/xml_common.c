@@ -29,13 +29,10 @@ marpaWrapperBool_t xml_common_optionDefaultb(xml_common_option_t *xml_common_opt
 /* xml_common_lexemeValueb                                          */
 /* DOM layer is supposed to have been already correctly initialized */
 /********************************************************************/
-marpaWrapperBool_t xml_common_lexemeValueb(marpaWrapper_t *marpaWrapperp, streamIn_t *streamInp, int *lexemeValueip, int *lexemeLengthip) {
-  char                  *dests;
+marpaWrapperBool_t xml_common_lexemeValueb(xml_common_work_t *xml_common_workp, marpaWrapper_t *marpaWrapperp, streamIn_t *streamInp, int *lexemeValueip, int *lexemeLengthip) {
   size_t                 byteLengthl;
-  marpaXml_String_t     *stringp;
   marpaXml_Lexeme_t     *lexemep;
   sqlite3_int64          id;
-  size_t                 lengthl;
   marpaXmlLog_t         *marpaXmlLogp = marpaWrapper_marpaXmlLogp(marpaWrapperp);
   const void            *p;
 
@@ -60,7 +57,7 @@ marpaWrapperBool_t xml_common_lexemeValueb(marpaWrapper_t *marpaWrapperp, stream
 
   if ((id < INT_MIN) || (id > INT_MAX) || (id == 0)) {
     /* Marpa is using an int, and disregard strongly value 0 (which means 'undef' to him) */
-    MARPAXML_ERRORX("index %lld would exceed the 'int' representation at %s:%d\n", id, __FILE__, __LINE__);
+    MARPAXML_ERRORX("index %lld would exceed the 'int' representation at %s:%d", id, __FILE__, __LINE__);
     marpaXml_Lexeme_free(&lexemep);
     return MARPAWRAPPER_BOOL_FALSE;
   }
@@ -71,6 +68,9 @@ marpaWrapperBool_t xml_common_lexemeValueb(marpaWrapper_t *marpaWrapperp, stream
   /* We use the token-per-earleme model */
   *lexemeLengthip = 1;
 
+  /* We use the LATM mode. This mean there cannot be a token with lower length. */
+  /* I.e. we have the right to count line number and column number, and keep the last UTF8 characters */
+
   marpaXml_Lexeme_free(&lexemep);
 
   return MARPAWRAPPER_BOOL_TRUE;
@@ -79,7 +79,7 @@ marpaWrapperBool_t xml_common_lexemeValueb(marpaWrapper_t *marpaWrapperp, stream
 /********************************************************************/
 /* xml_common_readerb                                               */
 /********************************************************************/
-marpaWrapperBool_t xml_common_readerb(marpaWrapper_t *marpaWrapperp, streamIn_t *streamInp, signed int *currentip, marpaWrapperBool_t *endOfInputbp) {
+marpaWrapperBool_t xml_common_readerb(xml_common_work_t *xml_common_workp, marpaWrapper_t *marpaWrapperp, streamIn_t *streamInp, signed int *currentip, marpaWrapperBool_t *endOfInputbp) {
   if (streamInUtf8_nexti(streamInp, currentip) == STREAMIN_BOOL_FALSE) {
     *endOfInputbp = (streamInUtf8_eofb(streamInp) == STREAMIN_BOOL_TRUE) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
     return MARPAWRAPPER_BOOL_FALSE;

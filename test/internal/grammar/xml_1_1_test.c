@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "internal/grammar/xml_common.h"
 #include "internal/grammar/xml_1_1.h"

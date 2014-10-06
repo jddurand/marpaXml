@@ -118,8 +118,10 @@ IF (NOT EXISTS "${MARPA_DIR}" OR NOT IS_DIRECTORY "${MARPA_DIR}")
     )
 ENDIF ()
 IF (IS_DIRECTORY "${MARPA_DIR}/core")
+  SET (MARPA_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/Marpa-R2-${MARPA_VERSION}/core/read_only")
   FILE(GLOB marpa_lib_src Marpa-R2-${MARPA_VERSION}/core/read_only/*.c)
 ELSEIF (IS_DIRECTORY "${MARPA_DIR}/engine")
+  SET (MARPA_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/Marpa-R2-${MARPA_VERSION}/engine/read_only")
   FILE(GLOB marpa_lib_src Marpa-R2-${MARPA_VERSION}/engine/read_only/*.c)
 ENDIF () 
 ADD_LIBRARY (marpa STATIC ${marpa_lib_src})
@@ -200,7 +202,7 @@ ADD_LIBRARY (marpaXml STATIC
   xxhash-read-only/xxhash.c
   "db/Dom Level 3 Core.h"
   )
-SET_PROPERTY (TARGET marpaXml APPEND PROPERTY INCLUDE_DIRECTORIES "${MARPA_DIR}/core/read_only" "${SQLITE_DIR}" "${PROJECT_SOURCE_DIR}")
+SET_PROPERTY (TARGET marpaXml APPEND PROPERTY INCLUDE_DIRECTORIES "${MARPA_INCLUDE_DIR}" "${SQLITE_DIR}" "${PROJECT_SOURCE_DIR}")
 ADD_DEPENDENCIES (marpaXml marpa)
 
 # -----------------------
