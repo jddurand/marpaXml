@@ -212,6 +212,29 @@ sub _rules {
       }
   } while ($replaced);
 
+  #
+  # Now loop on all rules again and apply the following optimization:
+  # If a rule consist of a single exact lexeme with a quantifier, and if this exact lexeme is defined only once
+  # in the whole grammar, then, instead on relying of Marpa's sequence, do ourself the loop when reading data.
+  # this has the following big advantage:
+  # - reduce the number of calls to Mara => reduce the number of earlemes, reduce the number of gems (i.e. lexemes).
+  #
+  # for example
+  # XXX_any ::= XXX *                      YYY_many ::= YYY +
+  # XXX     ::= [abc]                      YYY      ::= [def]
+  #
+  # is translated to something like:
+  #
+  # XXX_any ::= XXX                        YYY_many ::= YYY
+  # XXX_any ::=
+  # XXX     ::= [abc]+                     YYY      ::= [def]+
+  #
+  # where XXX and YYYY are NOT sequences from Marpa point of view: the internal implementation will do the loop itself.
+  #
+  # Disatvantage: the error reporting exactitude will suffer, by not being truely where the character failed, but more on
+  # where "the sequence failed".
+  #
+
   $self->{grammar} = join("\n", @rc) . "\n";
 
   return $self;
