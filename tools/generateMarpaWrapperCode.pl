@@ -186,7 +186,7 @@ sub _rules {
 	  }
 	  if ($ok) {
 	      my $content = $self->{symbols}->{$rhs}->{content};
-	      print STDERR "Replacing LHS of <$content> by $lhs\n";
+	      print STDERR "Replacing LHS of $content by $lhs\n";
 	      $self->{symbols}->{$lhs} = $self->{symbols}->{$rhs};
 	      $self->{symbols}->{$lhs}->{content} =~ s/$rhs/$lhs/;
 	      delete($self->{symbols}->{$rhs});
@@ -241,7 +241,7 @@ sub _rules {
 }
 
 sub _rule {
-  my ($self, $rulenumber, $symbol, $rulesep, $expressions, $quantifier) = @_;
+  my ($self, $rulenumber, $symbol, $rulesep, $expressions, $quantifier, $symbolp) = @_;
 
   #
   # $expressions is [@concatenation]
@@ -422,18 +422,24 @@ sub _factorExpressions {
 }
 
 sub _factor {
-  my ($self, $value, $type, $exact) = @_;
+  my ($self, $value, $type, $valueDetail, $quantifier, $name) = @_;
 
-  my @name = grep {$self->{lexemes}->{$_} eq $value} keys %{$self->{lexemes}};
-  my $name;
-  if (! @name) {
-    $name = sprintf('_Lex%03d', 1 + (keys %{$self->{lexemes}}));
-    $self->{lexemes}->{$name} = $value;
-  } else {
-    $name = $name[0];
+  if (! $name) {
+      my @name = grep {$self->{lexemes}->{$_} eq $value} keys %{$self->{lexemes}};
+      if (! @name) {
+	  $name = sprintf('_Lex%03d', 1 + (keys %{$self->{lexemes}}));
+      } else {
+	  $name = $name[0];
+      }
   }
 
-  $self->{lexemesExact}->{$name} = {type => $type, value => $exact};
+  if (! exists($self->{lexemesExact}->{$name})) {
+      print STDERR "[INFO] Creating lexeme $name\n";
+      $self->{lexemesExact}->{$name} = {type => $type, value => $valueDetail, usage => 1, quantifier => $quantifier || ''};
+      $self->{lexemes}->{$name} = $value;
+  } else {
+      $self->{lexemesExact}->{$name}->{usage}++;
+  }
 
   return $name;
 }
@@ -486,27 +492,31 @@ sub _termFactorQuantifier {
   my ($self, $factor, $quantifier) = @_;
 
   my $symbol;
-  if ($quantifier eq '*') {
-    $symbol = sprintf('%s_any', $factor);
-    if (! exists($self->{quantifier}->{$symbol})) {
-      $self->_rule(undef, $symbol, '::=', [ [ [ $factor ] , {} ] ], $quantifier);
-      $self->{quantifier}->{$symbol}++;
-    }
-  } elsif ($quantifier eq '+') {
-    $symbol = sprintf('%s_many', $factor);
-    if (! exists($self->{quantifier}->{$symbol})) {
-      $self->_rule(undef, $symbol, '::=', [ [ [ $factor ] , {} ] ], $quantifier);
-      $self->{quantifier}->{$symbol}++;
-    }
+  if ($quantifier eq '*' || $quantifier eq '+') {
+      $symbol = sprintf('%s_%s', $factor, ($quantifier eq '*') ? 'any' : 'many');
+      if (! exists($self->{quantifiedSymbols}->{$symbol})) {
+	  $self->{quantifiedSymbols}->{$symbol}++;
+	  if (exists($self->{lexemesExact}->{$factor})) {
+	      if (! exists($self->{lexemesExact}->{"$factor$quantifier"})) {
+		  print STDERR "[INFO] Transformation to a lexeme: $symbol ::= $factor$quantifier\n";
+		  $self->_factor("$self->{lexemes}->{$factor}$quantifier", $self->{lexemesExact}->{$factor}->{type}, $self->{lexemesExact}->{$factor}->{value}, $quantifier, $symbol);
+		  if (--$self->{lexemesExact}->{$factor}->{usage} == 0) {
+		      delete($self->{lexemes}->{$factor});
+		  }
+	      }
+	  } else {
+	      $self->_rule(undef, $symbol, '::=', [ [ [ $factor ] , {} ] ], $quantifier);
+	  }
+      }
   } elsif ($quantifier eq '?') {
-    $symbol = sprintf('%s_maybe', $factor);
-    if (! exists($self->{quantifier}->{$symbol})) {
-      $self->_rule(undef, $symbol, '::=', [ [ [ "$factor" ] , {} ] ]);
-      $self->_rule(undef, $symbol, '::=', [ [ [] , {} ] ]);
-      $self->{quantifier}->{$symbol}++;
-    }
+      $symbol = sprintf('%s_maybe', $factor);
+      if (! exists($self->{quantifiedSymbols}->{$symbol})) {
+	  $self->{quantifiedSymbols}->{$symbol}++;
+	  $self->_rule(undef, $symbol, '::=', [ [ [ "$factor" ] , {} ] ]);
+	  $self->_rule(undef, $symbol, '::=', [ [ [] , {} ] ]);
+      }
   } else {
-    die "Unsupported quantifier '$quantifier'";
+      die "Unsupported quantifier '$quantifier'";
   }
 
 
@@ -596,58 +606,77 @@ my $namespace;
 eval {$recce->read(\$BNF)} || do {print STDERR "$@\n" . $recce->show_progress(); exit(1)};
 my $nbvalue = 0;
 my $value = undef;
+my $value2 = undef;
 while (defined($_ = $recce->value)) {
   ++$nbvalue;
-  last if ($nbvalue >= 2);
+  if ($nbvalue >= 2) {
+      $value2 = ${$_};
+      last;
+  }
   $value = ${$_};
 }
 if ($nbvalue != 1) {
-  print STDERR "Oups, \$nbvalue != 1\n";
-  exit(EXIT_FAILURE);
-} else {
-    #
-    # These calls are to make sure:
-    # - this is a valid Marpa grammar
-    # - this is an unambiguous grammar
-    #
-    # use Data::Dumper;
-    # print STDERR Dumper($value);
-    my $withoutExclusions = $value->{grammar};
-    foreach (sort keys %{$value->{lexemesWithExclusion}}) {
-	my ($key, $keyValue) = ($_, $value->{lexemesWithExclusion}->{$_});
-	# print STDERR "[TEST] Bypassing $key ~ '$keyValue'\n";
-	my $newKeyValue = $keyValue;
-	$newKeyValue =~ /(\w+)/;
-	$newKeyValue = $1;
-	my $quotedKeyValue = quotemeta("'$keyValue'");
-	$withoutExclusions =~ s/\s*~\s*$quotedKeyValue/ ::= $newKeyValue/g;
+  print STDERR "Warning, \$nbvalue != 1\n";
+  my $file1 = File::Spec->catfile(File::Spec->tmpdir, 'value1.txt');
+  my $file2 = File::Spec->catfile(File::Spec->tmpdir, 'value2.txt');
+  open(FILE1, '>', $file1) || die "Cannot open $file1, $!";
+  open(FILE2, '>', $file2) || die "Cannot open $file2, $!";
+  use Data::Dumper;
+  print FILE1 Dumper($value);
+  print FILE2 Dumper($value2);
+  close(FILE1) || warn "Cannot close $file1, $!";
+  close(FILE2) || warn "Cannot close $file2, $!";
+  print STDERR "Please compare $file1 and $file2\n";
+}
+#
+# These calls are to make sure:
+# - this is a valid Marpa grammar
+# - this is an unambiguous grammar
+#
+# use Data::Dumper;
+# print STDERR Dumper($value);
+my $withoutExclusions = $value->{grammar};
+foreach (sort keys %{$value->{lexemesWithExclusion}}) {
+    my ($key, $keyValue) = ($_, $value->{lexemesWithExclusion}->{$_});
+    # print STDERR "[TEST] Bypassing $key ~ '$keyValue'\n";
+    my $newKeyValue = $keyValue;
+    $newKeyValue =~ /(\w+)/;
+    $newKeyValue = $1;
+    my $quotedKeyValue = quotemeta("'$keyValue'");
+    $withoutExclusions =~ s/\s*~\s*$quotedKeyValue/ ::= $newKeyValue/g;
+}
+{
+# print STDERR "[TEST] Marpa grammar: $withoutExclusions\n";
+    my $grammar = eval {Marpa::R2::Scanless::G->new( { source => \$withoutExclusions } )};
+    if ($@) {
+	print STDERR "$@\n\n$withoutExclusions\n";
+	exit(EXIT_FAILURE);
     }
-    # print STDERR "[TEST] Marpa grammar: $withoutExclusions\n";
-    my $grammar = Marpa::R2::Scanless::G->new( { source => \$withoutExclusions } );
     if (1) {
 	foreach (grep {$_ ne 'bnf'} grep {$_ =~ /$namespace/i} __PACKAGE__->section_data_names) {
 	    my $dataSection = $_;
 	    my $testDatap = __PACKAGE__->section_data($dataSection);
-            $$testDatap =~ s/^\s*//;
-            $$testDatap =~ s/\s*$//;
+	    $$testDatap =~ s/^\s*//;
+	    $$testDatap =~ s/\s*$//;
 	    my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar
-                                                       # , trace_terminals => 1
-                                                     } );
+							   # , trace_terminals => 1
+						     } );
 	    if (! eval { $recce->read($testDatap) }) {
 		print STDERR "Test fail with data section $dataSection:\n$@\n";
-		print STDERR "Progress::\n" . $recce->show_progress() . "\n";
-		print STDERR "Terminals expected:: @{$recce->terminals_expected()}\n";
+		print STDERR "Progress:\n" . $recce->show_progress() . "\n";
+		print STDERR "Terminals expected: @{$recce->terminals_expected()}\n";
+		print STDERR "Grammar: $withoutExclusions\n";
 		exit(EXIT_FAILURE);
 	    }
 	}
     }
-    #
-    # Generate a typedef containing all symbols, lexemes first, then the rules
-    #
-    my $c = generateC($value, $namespace);
-    print $c;
-    # print STDERR "Symbols: " . join(' ', sort keys %{$value->{symbols}} ) . "\n";
 }
+#
+# Generate a typedef containing all symbols, lexemes first, then the rules
+#
+my $c = generateC($value, $namespace);
+print $c;
+# print STDERR "Symbols: " . join(' ', sort keys %{$value->{symbols}} ) . "\n";
 # print STDERR "\nOK\n";
 exit(EXIT_SUCCESS);
 
