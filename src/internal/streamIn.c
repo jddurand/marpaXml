@@ -1227,6 +1227,7 @@ streamInBool_t streamInUtf8_nexti(streamIn_t *streamInp, signed int *nextip) {
 
   if (rcb == STREAMIN_BOOL_TRUE) {
     if (nextip != NULL) {
+      STREAMIN_TRACEX("Got UTF-8 0x%lx '%c'%s, native index is now %lld, offset is now %lld", (long) nexti, (u_isprint(nexti) == TRUE) ? (char) nexti : ' ', (u_isprint(nexti) == TRUE) ? "" : " (not printable)", (long long) UTEXT_GETNATIVEINDEX(streamInp->streamIn_ICU.utextp), (long long) (UTEXT_GETNATIVEINDEX(streamInp->streamIn_ICU.utextp) * sizeof(UChar)));
       *nextip = nexti;
     }
   }
