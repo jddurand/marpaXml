@@ -31,13 +31,14 @@ typedef struct xml_common_option {
   char            *encodings;
 } xml_common_option_t;
 
+/* We use a small number because more is not useful: this tracking is here just to avoid calls to streamInUtf8_nexti() when we */
+/* we are checking lexemes of string type. */
 #define XML_COMMON_LAST_UTF8_TRACKSIZE 20
 typedef struct xml_common_work {
   unsigned long long linel;
   unsigned long long columnl;
   unsigned long long deltaLinel;
   unsigned long long deltaColumnl;
-  signed int         lastUtf8[XML_COMMON_LAST_UTF8_TRACKSIZE];
 } xml_common_work_t;
 
 typedef marpaWrapperBool_t (*xml_common_isLexemeb_t)(void *marpaWrapperSymbolOptionDatavp, size_t *sizelp);

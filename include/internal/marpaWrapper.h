@@ -72,6 +72,8 @@ typedef struct marpaWrapperSymbolOption {
   marpaWrapperBool_t terminalb;   /* Default: MARPAWRAPPER_BOOL_FALSE. Eventually force symbol to be terminal         */
   marpaWrapperBool_t startb;      /* Default: MARPAWRAPPER_BOOL_FALSE. Eventually force symbol to be the start symbol */
   int                eventSeti;   /* Default: 0.                                                                      */
+  size_t             sizel;       /* Default: 0. Used only if this is seen as an expected terminal and in LATM mode   */
+  signed int         firstChari;  /* Default: -1. Used only if this is seen as an expected terminal and in LATM mode  */
 } marpaWrapperSymbolOption_t;
 
 /* Rule options - this is a required parameter, so the user is EXPECTED to overwrite some members */

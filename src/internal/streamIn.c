@@ -1227,7 +1227,6 @@ streamInBool_t streamInUtf8_nexti(streamIn_t *streamInp, signed int *nextip) {
 
   if (rcb == STREAMIN_BOOL_TRUE) {
     if (nextip != NULL) {
-      STREAMIN_TRACEX("Got UTF-8 0x%lx '%c'%s, native index is now %lld, offset is now %lld", (long) nexti, (u_isprint(nexti) == TRUE) ? (char) nexti : ' ', (u_isprint(nexti) == TRUE) ? "" : " (not printable)", (long long) UTEXT_GETNATIVEINDEX(streamInp->streamIn_ICU.utextp), (long long) (UTEXT_GETNATIVEINDEX(streamInp->streamIn_ICU.utextp) * sizeof(UChar)));
       *nextip = nexti;
     }
   }
@@ -1754,6 +1753,12 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_nexti(streamIn_t *streamInp, si
       rcb = STREAMIN_BOOL_FALSE;
       streamInp->streamIn_ICU.eofb = STREAMIN_BOOL_TRUE;
     }
+    STREAMIN_TRACEX("Got UTF-8 0x%lx '%c'%s, native index is now %lld, offset is now %lld",
+                    (long) *nextip,
+                    (u_isprint(*nextip) == TRUE) ? (char) *nextip : ' ',
+                    (u_isprint(*nextip) == TRUE) ? "" : ((*nextip == U_SENTINEL) ? " U_SENTINEL" : " (not printable)"),
+                    (long long) UTEXT_GETNATIVEINDEX(streamInp->streamIn_ICU.utextp),
+                    (long long) (UTEXT_GETNATIVEINDEX(streamInp->streamIn_ICU.utextp) * sizeof(UChar)));
   }
 
   return rcb;
@@ -2021,7 +2026,9 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_currentFromMarkedb(streamIn_t *
   } else {
     /* This makes the marked character the current character */
     UTEXT_SETNATIVEINDEX(streamInp->streamIn_ICU.utextp, streamInp->streamIn_ICU.ucharMarkedNativeIndexl);
-    /* STREAMIN_TRACEX("Making index %lld, offset %lld as current", (long) streamInp->streamIn_ICU.ucharMarkedNativeIndexl, (long) streamInp->streamIn_ICU.ucharMarkedOffsetl); */
+    STREAMIN_TRACEX("Marking index %lld, offset %lld as current",
+                    (long long) streamInp->streamIn_ICU.ucharMarkedNativeIndexl,
+                    (long long) streamInp->streamIn_ICU.ucharMarkedOffsetl);
     rcb = STREAMIN_BOOL_TRUE;
   }
 
@@ -2076,7 +2083,9 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_currentFromUserMarkedb(streamIn
   } else {
     /* This makes the user-marked character the current character */
     UTEXT_SETNATIVEINDEX(streamInp->streamIn_ICU.utextp, streamInp->streamIn_ICU.ucharUserMarkedNativeIndexl[indexl]);
-    /* STREAMIN_TRACEX("Making index %lld, offset %lld as current", (long) streamInp->streamIn_ICU.ucharUserMarkedNativeIndexl[indexl], (long) streamInp->streamIn_ICU.ucharUserMarkedOffsetl[indexl]); */
+    STREAMIN_TRACEX("Marking index %lld, offset %lld as current",
+                    (long long) streamInp->streamIn_ICU.ucharUserMarkedNativeIndexl[indexl],
+                    (long long) streamInp->streamIn_ICU.ucharUserMarkedOffsetl[indexl]);
     rcb = STREAMIN_BOOL_TRUE;
   }
 

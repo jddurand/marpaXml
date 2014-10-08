@@ -116,6 +116,7 @@ MARPAWRAPPER_GENERATE_GETTER_DEFINITION(marpaWrapperRule, unsigned int, Marpa_Ru
 
 static C_INLINE int _marpaWrapper_event_cmp(const void *event1p, const void *event2p);
 static C_INLINE int _marpaWrapper_event_weight(Marpa_Event_Type eventType);
+static C_INLINE int _marpaWrapper_symbol_cmp_by_sizelDesc_firstCharDesc(const void *symbol1pp, const void *symbol2pp);
 
 /********************/
 /* Internal methods */
@@ -1486,6 +1487,36 @@ static C_INLINE int _marpaWrapper_event_cmp(const void *event1p, const void *eve
   }
 }
 
+/*******************************************************/
+/* _marpaWrapper_symbol_cmp_by_sizelDesc_firstCharDesc */
+/*******************************************************/
+static C_INLINE int _marpaWrapper_symbol_cmp_by_sizelDesc_firstCharDesc(const void *symbol1pp, const void *symbol2pp) {
+  size_t size1l  = ((* (marpaWrapperSymbol_t **) symbol1pp))->marpaWrapperSymbolOption.sizel;
+  size_t size2l  = ((* (marpaWrapperSymbol_t **) symbol2pp))->marpaWrapperSymbolOption.sizel;
+  signed int c1i = ((* (marpaWrapperSymbol_t **) symbol1pp))->marpaWrapperSymbolOption.firstChari;
+  signed int c2i = ((* (marpaWrapperSymbol_t **) symbol2pp))->marpaWrapperSymbolOption.firstChari;
+
+  if (size1l < size2l) {
+    return 1;
+  } else if (size1l == size2l) {
+    if (c1i < 0) {
+      return 1;
+    } else if (c2i < 0) {
+      return -1;
+    } else {
+      if (c1i < c2i) {
+        return 1;
+      } else if (c1i > c2i) {
+        return -1;
+      } else {
+        return 0;
+      }
+    }
+  } else {
+    return -1;
+  }
+}
+
 /******************************/
 /* _marpaWrapper_event_weight */
 /******************************/
@@ -1692,6 +1723,13 @@ marpaWrapperBool_t marpaWrapper_r_recognizeb(marpaWrapper_t *marpaWrapperp, marp
     }
     MARPAWRAPPER_LOG_TRACEX("Number of expected terminals: %d", nMarpaWrapperSymboli);
 
+    /* -------------------------------------------------------- */
+    /* Sort expected terminals by expected size if in LATM mode */
+    /* -------------------------------------------------------- */
+    if ((marpaWrapperRecognizerOptionp->longestAcceptableTokenMatchb == MARPAWRAPPER_BOOL_TRUE) && (nMarpaWrapperSymboli > 1)) {
+      qsort(marpaWrapperSymbolpp, nMarpaWrapperSymboli, sizeof(marpaWrapperSymbol_t *), &_marpaWrapper_symbol_cmp_by_sizelDesc_firstCharDesc);
+    }
+
     maxLengthl = 0;
     nbIsLexemebCallbackTruei = 0;
 
@@ -1699,15 +1737,25 @@ marpaWrapperBool_t marpaWrapper_r_recognizeb(marpaWrapper_t *marpaWrapperp, marp
     /* Check expected terminals */
     /* ------------------------ */
     for (i = 0; i < nMarpaWrapperSymboli; i++) {
-      /* Every lexeme callback has to make sure index in stream is unchanged when they return */
-      MARPAWRAPPER_LOG_TRACEX("Checking symbol No %4d: %s", marpaWrapperSymbolpp[i]->marpaSymbolIdi, (marpaWrapperRecognizerOptionp->symbolToCharsbCallbackp(marpaWrapperSymbolpp[i]->marpaWrapperSymbolOption.datavp, &symbols) == MARPAWRAPPER_BOOL_TRUE) ? symbols : "**Error**");
-      if ((marpaWrapperSymbolpp[i]->isLexemeb = marpaWrapperRecognizerOptionp->isLexemebCallbackp(marpaWrapperSymbolpp[i]->marpaWrapperSymbolOption.datavp, &lengthl)) == MARPAWRAPPER_BOOL_TRUE) {
-	nbIsLexemebCallbackTruei++;
-        if ((marpaWrapperSymbolpp[i]->lengthl = lengthl) > maxLengthl) {
-          maxLengthl = lengthl;
-        }
+      if ((marpaWrapperRecognizerOptionp->longestAcceptableTokenMatchb == MARPAWRAPPER_BOOL_TRUE) &&
+          (marpaWrapperSymbolpp[i]->marpaWrapperSymbolOption.sizel > 0) &&
+          (marpaWrapperSymbolpp[i]->marpaWrapperSymbolOption.sizel < maxLengthl)) {
+        /* We are in the LATM mode: expected terminals are sorted by expected size, at least one lexeme has matched, and */
+        /* we know that the expected terminal No i cannot have a greater size than what was already match: we can skip it */
+        /* immediately */
+        MARPAWRAPPER_LOG_TRACEX("Skipped symbol No %4d: %s (predicted length: %lld < current matched longest length %lld)", marpaWrapperSymbolpp[i]->marpaSymbolIdi, (marpaWrapperRecognizerOptionp->symbolToCharsbCallbackp(marpaWrapperSymbolpp[i]->marpaWrapperSymbolOption.datavp, &symbols) == MARPAWRAPPER_BOOL_TRUE) ? symbols : "**Error**", (long long) marpaWrapperSymbolpp[i]->marpaWrapperSymbolOption.sizel, (long long) maxLengthl);
+          marpaWrapperSymbolpp[i]->lengthl = 0;
       } else {
-	marpaWrapperSymbolpp[i]->lengthl = 0;
+        /* Every lexeme callback has to make sure index in stream is unchanged when they return */
+        MARPAWRAPPER_LOG_TRACEX("Checking symbol No %4d: %s", marpaWrapperSymbolpp[i]->marpaSymbolIdi, (marpaWrapperRecognizerOptionp->symbolToCharsbCallbackp(marpaWrapperSymbolpp[i]->marpaWrapperSymbolOption.datavp, &symbols) == MARPAWRAPPER_BOOL_TRUE) ? symbols : "**Error**");
+        if ((marpaWrapperSymbolpp[i]->isLexemeb = marpaWrapperRecognizerOptionp->isLexemebCallbackp(marpaWrapperSymbolpp[i]->marpaWrapperSymbolOption.datavp, &lengthl)) == MARPAWRAPPER_BOOL_TRUE) {
+          nbIsLexemebCallbackTruei++;
+          if ((marpaWrapperSymbolpp[i]->lengthl = lengthl) > maxLengthl) {
+            maxLengthl = lengthl;
+          }
+        } else {
+          marpaWrapperSymbolpp[i]->lengthl = 0;
+        }
       }
     }
 
@@ -1774,6 +1822,7 @@ marpaWrapperBool_t marpaWrapper_symbolOptionDefaultb(marpaWrapperSymbolOption_t 
   marpaWrapperSymbolOptionp->terminalb   = MARPAWRAPPER_BOOL_FALSE;
   marpaWrapperSymbolOptionp->startb      = MARPAWRAPPER_BOOL_FALSE;
   marpaWrapperSymbolOptionp->eventSeti   = 0;
+  marpaWrapperSymbolOptionp->sizel       = 0;
 
   return MARPAWRAPPER_BOOL_TRUE;
 }

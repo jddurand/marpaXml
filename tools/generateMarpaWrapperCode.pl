@@ -724,7 +724,7 @@ sub generateTypedef {
 
   $typedef .= "/* Symbols */\n";
   $typedef .= "typedef enum ${namespace}_symbol {\n";
-  my $i = 0;
+  my $i;
   my $terminal_max = '';
   my @sortedTerminals = sort {$a cmp $b} grep {$value->{symbols}->{$_}->{terminal} == 1} keys %{$value->{symbols}};
   my @terminalsToChars = map {
@@ -733,6 +733,55 @@ sub generateTypedef {
       $content =~ s/"/\\"/g;
       "\"$content\"";
   } @sortedTerminals;
+  my @terminalsToSize = map {
+      my $size =
+        exists($value->{lexemesExact}->{$_})
+        ?
+        (($value->{lexemesExact}->{$_}->{type} == $LEXEME_STRING) ? length($value->{lexemesExact}->{$_}->{value}) : 1)
+        :
+        0;
+      sprintf('%3d, /* %s */', $size, $value->{symbols}->{$_}->{content});
+  } @sortedTerminals;
+  my @terminalsToFirstChar = map {
+      my $firstchar =
+        exists($value->{lexemesExact}->{$_})
+        ?
+        (
+         ($value->{lexemesExact}->{$_}->{type} == $LEXEME_STRING)
+         ?
+         sprintf("0x%x", ord(substr($value->{lexemesExact}->{$_}->{value}, 0, 1)))
+         :
+         (
+          ($value->{lexemesExact}->{$_}->{type} == $LEXEME_RANGES)
+          ?
+          (
+           (($#{$value->{lexemesExact}->{$_}->{value}} == 0) && ($value->{lexemesExact}->{$_}->{value}->[0]->[0] eq $value->{lexemesExact}->{$_}->{value}->[0]->[1]))
+           ?
+           sprintf("0x%x", ord($value->{lexemesExact}->{$_}->{value}->[0]->[0]))
+           :
+           -1
+          )
+          :
+          (
+           ($value->{lexemesExact}->{$_}->{type} == $LEXEME_HEXMANY)
+           ?
+           (
+            ($#{$value->{lexemesExact}->{$_}->{value}} == 0)
+            ?
+            sprintf("0x%x", ord($value->{lexemesExact}->{$_}->{value}->[0]))
+            :
+            -1
+           )
+           :
+           -1
+          )
+         )
+        )
+        :
+        -1;
+      sprintf('  %4s, /* %s */', $firstchar, $value->{symbols}->{$_}->{content});
+  } @sortedTerminals;
+  $i = 0;
   my @terminals = map {
     $terminal_max = "${namespace}_${_}";
     my $content = $value->{symbols}->{$_}->{content};
@@ -752,6 +801,12 @@ sub generateTypedef {
       $content =~ s/"/\\"/g;
       "\"$content\"";
   } @sortedNonTerminals;
+  my @nonTerminalsToSize = map {
+      sprintf('%3d, /* %s */', 0, $value->{symbols}->{$_}->{content});
+  } @sortedNonTerminals;
+  my @nonTerminalsToFirstChar = map {
+      sprintf('    -1, /* %s */', 0, $value->{symbols}->{$_}->{content});
+  } @sortedNonTerminals;
   my @g1 = map {
     sprintf('  %-30s, /* [Symbol No %3d] */', "${namespace}_${_}", $i++);
   } @sortedNonTerminals;
@@ -762,6 +817,18 @@ sub generateTypedef {
   $typedef .= join("\n", @g1) . "\n";
   $typedef .= "  ${NAMESPACE}_SYMBOL_MAX /* $i ! */\n";
   $typedef .= "} ${namespace}_symbol_t;\n";
+  $typedef .= "\n";
+  $typedef .= "/* Symbols expected size, when possible */\n";
+  $typedef .= "size_t ${namespace}_symbol_expectedSizeArrayp[${NAMESPACE}_SYMBOL_MAX] = {\n";
+  my @allSizes = (@terminalsToSize, @nonTerminalsToSize);
+  $typedef .= join("\n", @allSizes) . "\n";
+  $typedef .= "};\n";
+  $typedef .= "\n";
+  $typedef .= "/* Symbols expected first char, when possible */\n";
+  $typedef .= "signed int ${namespace}_symbol_expectedFirstCharArrayp[${NAMESPACE}_SYMBOL_MAX] = {\n";
+  my @allFirstChars = (@terminalsToFirstChar, @nonTerminalsToFirstChar);
+  $typedef .= join("\n", @allFirstChars) . "\n";
+  $typedef .= "};\n";
   $typedef .= "\n";
   $typedef .= "#define ${NAMESPACE}_TERMINAL_MAX $terminal_max\n";
   $typedef .= "\n";
@@ -1369,7 +1436,10 @@ static C_INLINE marpaWrapperBool_t _${namespace}_buildSymbolsb(${namespace}_t *$
     marpaWrapperSymbolOption.datavp = (void *) &(${namespace}p->marpaWrapperSymbolCallbackArrayp[i]);
 
     /* Optional, but we can make ourself an explicit terminal */
-    marpaWrapperSymbolOption.terminalb = (i <= ${NAMESPACE}_TERMINAL_MAX) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
+    marpaWrapperSymbolOption.terminalb  = (i <= ${NAMESPACE}_TERMINAL_MAX) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
+    /* and give hints to the recognizer, that will sort expected terminals in the most optimal way */
+    marpaWrapperSymbolOption.sizel      = ${namespace}_symbol_expectedSizeArrayp[i];
+    marpaWrapperSymbolOption.firstChari = ${namespace}_symbol_expectedFirstCharArrayp[i];
 $caseNullingSymbols
     /* Start rule ? */
     switch (xml_common_optionp->xml_common_topi) {
@@ -1511,9 +1581,9 @@ ISLEXEMEB
   {
       marpaXmlLog_t *marpaXmlLogp = marpaWrapper_marpaXmlLogp(${namespace}p->marpaWrapperp);
       if (rcb == MARPAWRAPPER_BOOL_TRUE) {
-	  MARPAXML_TRACEX("Accepted symbol No %4d: %s, length %lld\\n", ${namespace}_symboli, symbolsToChars[${namespace}_symboli], (long long) *sizelp);
+	  MARPAXML_TRACEX("Accepted symbol No %4d: %s, length %lld", ${namespace}_symboli, symbolsToChars[${namespace}_symboli], (long long) *sizelp);
       } else {
-	  MARPAXML_TRACEX("Rejected symbol No %4d: %s\\n", ${namespace}_symboli, symbolsToChars[${namespace}_symboli]);
+	  MARPAXML_TRACEX("Rejected symbol No %4d: %s", ${namespace}_symboli, symbolsToChars[${namespace}_symboli]);
       }
   }
 #endif
@@ -1676,22 +1746,27 @@ static C_INLINE marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespa
   static const signed int wanted[$length] = {
     $wanted
   };
-  signed int           got = currenti;
+  signed int           got;
   int                  i = 0;
   marpaWrapperBool_t   rcb = MARPAWRAPPER_BOOL_TRUE;
 
+  if (currenti != wanted[0]) {
+    /* No need to navigate in the stream if current character is already not ok */
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+
   /* We will move current character, so we want to restore it */
   if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_TRUE) {
-    do {
+    while (++i < $length) {
+      if (streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
+        rcb = MARPAWRAPPER_BOOL_FALSE;
+        break;
+      }
       if (got != wanted[i]) {
         rcb = MARPAWRAPPER_BOOL_FALSE;
         break;
       }
-      if (++i < $length && streamInUtf8_nexti(streamInp, &got) == STREAMIN_BOOL_FALSE) {
-        rcb = MARPAWRAPPER_BOOL_FALSE;
-        break;
-      }
-    } while (i < $length);
+    }
     if (streamInUtf8_userMarkb(streamInp, ${namespace}_${_}) == STREAMIN_BOOL_FALSE) {
       rcb = MARPAWRAPPER_BOOL_FALSE;
     } else {
