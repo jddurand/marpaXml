@@ -12,7 +12,7 @@ use Data::Section -setup;
 our $LEXEME_RANGES       = 0;
 our $LEXEME_CARET_RANGES = 1;
 our $LEXEME_STRING       = 2;
-our $LEXEME_HEXMANY      = 3;
+our $LEXEME_HEX          = 3;
 
 ###########################################################################
 # package Actions                                                         #
@@ -46,7 +46,14 @@ sub _pushLexemes {
     if ($self->{$key}->{$_} =~ /^\[.+/) {
       push(@{$rcp}, $content = join(' ', "<$_>", '~', $self->{$key}->{$_}));
     } elsif ($self->{$key}->{$_} =~ /^\\x\{/) {
-      push(@{$rcp}, $content = join(' ', "<$_>", '~', '[' . $self->{$key}->{$_} . ']'));
+      my $thisContent = $self->{$key}->{$_};
+      my $lastCharacter = substr($thisContent, -1, 1);
+      if ($lastCharacter eq '+' || $lastCharacter eq '*') {
+        substr($thisContent, -1, 1, '');
+        push(@{$rcp}, $content = join(' ', "<$_>", '~', '[' . $thisContent . "]$lastCharacter"));
+      } else {
+        push(@{$rcp}, $content = join(' ', "<$_>", '~', '[' . $thisContent . ']'));
+      }
     } else {
       push(@{$rcp}, $content = join(' ', "<$_>", '~', '\'' . $self->{$key}->{$_} . '\''));
     }
@@ -380,8 +387,8 @@ sub _ranges {
 }
 
 sub _printable {
-  my ($self, $chr) = @_;
-  if ($chr =~ /[\s]/ || (! ($chr =~ /[[:ascii:]]/) || ($chr =~ /[[:cntrl:]]/))) {
+  my ($self, $chr, $forceHexa) = @_;
+  if ($forceHexa || $chr =~ /[\s]/ || (! ($chr =~ /[[:ascii:]]/) || ($chr =~ /[[:cntrl:]]/))) {
     $chr = sprintf('\\x{%x}', ord($chr));
   }
   return $chr;
@@ -422,10 +429,10 @@ sub _factorExpressions {
 }
 
 sub _factor {
-  my ($self, $value, $type, $valueDetail, $quantifier, $name) = @_;
+  my ($self, $printableValue, $type, $valueDetail, $quantifier, $name) = @_;
 
   if (! $name) {
-      my @name = grep {$self->{lexemes}->{$_} eq $value} keys %{$self->{lexemes}};
+      my @name = grep {$self->{lexemes}->{$_} eq $printableValue} keys %{$self->{lexemes}};
       if (! @name) {
 	  $name = sprintf('_Lex%03d', 1 + (keys %{$self->{lexemes}}));
       } else {
@@ -434,9 +441,9 @@ sub _factor {
   }
 
   if (! exists($self->{lexemesExact}->{$name})) {
-      print STDERR "[INFO] Creating lexeme $name\n";
-      $self->{lexemesExact}->{$name} = {type => $type, value => $valueDetail, usage => 1, quantifier => $quantifier || ''};
-      $self->{lexemes}->{$name} = $value;
+    $quantifier ||= '';
+      $self->{lexemesExact}->{$name} = {type => $type, value => $valueDetail, usage => 1, quantifier => $quantifier};
+      $self->{lexemes}->{$name} = $printableValue;
   } else {
       $self->{lexemesExact}->{$name}->{usage}++;
   }
@@ -444,33 +451,11 @@ sub _factor {
   return $name;
 }
 
-sub _factorString {
-  my ($self, $esc, $string) = @_;
-
-  my @real = ();
-  my @ch = split('', $string);
-  while (@ch) {
-    my $ch = shift(@ch);
-    if ($ch eq '\\' && @ch && $ch[0] eq $esc) {
-      push(@real, shift(@ch));
-    } else {
-      push(@real, $ch);
-    }
-  }
-  my @range1 = map {$self->_factor($self->_printable($self->_char(sprintf("#x%x", ord($_)))), $LEXEME_HEXMANY, [ $_ ])} @real;
-
-  my $symbol = sprintf('_Gen%03d', 1 + (scalar @{$self->{rules}}));
-  $self->_rule(undef, $symbol, '::=', [ [ [ @range1 ] , {} ] ]);
-
-  return $symbol;
-}
-
 sub _factorStringDquote {
   my ($self, $dquote1, $stringDquote, $dquote2) = @_;
   #
   # _STRING_DQUOTE_UNIT    ~ [^"] | '\"'
   #
-  # return $self->_factorString('"', $stringDquote);
   return $self->_factor($stringDquote, $LEXEME_STRING, $stringDquote);
 }
 
@@ -479,13 +464,12 @@ sub _factorStringSquote {
   #
   # _STRING_SQUOTE_UNIT    ~ [^'] | '\' [']
   #
-  # return $self->_factorString('\'', $stringSquote);
   return $self->_factor($stringSquote, $LEXEME_STRING, $stringSquote);
 }
 
-sub _hexMany {
-  my ($self, @hex) = @_;
-  return $self->_factor(join('', map {$self->_printable($self->_char($_))} @hex), $LEXEME_HEXMANY, [ map {s/^#x//; chr(hex($_));} @hex ]);
+sub _hex {
+  my ($self, $hex) = @_;
+  return $self->_factor($self->_printable($self->_char($hex), 1), $LEXEME_HEX, do {$hex =~ s/^#x//; chr(hex($hex));});
 }
 
 sub _termFactorQuantifier {
@@ -498,12 +482,37 @@ sub _termFactorQuantifier {
 	  $self->{quantifiedSymbols}->{$symbol}++;
 	  if (exists($self->{lexemesExact}->{$factor}) &&
 	      #
-	      # Lexeme optimization is limited to ranges type: [...] or [^...]
+	      # Lexeme optimization is limited to ranges type: [...] or [^...] or #x's
 	      #
-	      ($self->{lexemesExact}->{$factor}->{type} == $LEXEME_RANGES || $self->{lexemesExact}->{$factor}->{type} == $LEXEME_CARET_RANGES)) {
+	      ($self->{lexemesExact}->{$factor}->{type} == $LEXEME_RANGES       ||
+               $self->{lexemesExact}->{$factor}->{type} == $LEXEME_CARET_RANGES ||
+               $self->{lexemesExact}->{$factor}->{type} == $LEXEME_HEX
+              )) {
 	      if (! exists($self->{lexemesExact}->{"$factor$quantifier"})) {
 		  print STDERR "[INFO] Transformation to a lexeme: $symbol ::= $factor$quantifier\n";
-		  $self->_factor("$self->{lexemes}->{$factor}$quantifier", $self->{lexemesExact}->{$factor}->{type}, $self->{lexemesExact}->{$factor}->{value}, $quantifier, $symbol);
+                  #
+                  # Okay, let's take care of one thing: Marpa does not like lexemes with a zero length.
+                  # Therefore, if the quantifier is '*', we create a lexeme as if it was '+' and
+                  # replace current factor by a nullable symbol
+                  #
+                  my $thisQuantifier = $quantifier;
+                  my $thisSymbol = $symbol;
+                  if ($quantifier eq '*') {
+                    $thisQuantifier = '+';
+                    $thisSymbol = sprintf('%s_%s', $factor, 'many');
+                  }
+                  print STDERR "[INFO] Transformation to a lexeme: $thisSymbol ::= $factor$thisQuantifier\n";
+                  $self->_factor("$self->{lexemes}->{$factor}$thisQuantifier", $self->{lexemesExact}->{$factor}->{type}, $self->{lexemesExact}->{$factor}->{value}, $thisQuantifier, $thisSymbol);
+                  if ($quantifier eq '*') {
+                    my $newSymbol = sprintf('_Gen%03d', 1 + (scalar @{$self->{rules}}));
+                    print STDERR "[INFO] Using a nullable symbol for: $symbol ::= $factor$quantifier, i.e. $newSymbol ::= $thisSymbol; $newSymbol ::= ;\n";
+                    $self->_rule(undef, $newSymbol, '::=', [ [ [ $thisSymbol ] , {} ] ]);
+                    $self->_rule(undef, $newSymbol, '::=', [ [ [] , {} ] ]);
+                    #
+                    # For the return
+                    #
+                    $symbol = $newSymbol;
+                  }
 		  if (--$self->{lexemesExact}->{$factor}->{usage} == 0) {
 		      delete($self->{lexemes}->{$factor});
 		  }
@@ -588,7 +597,9 @@ if ($output) {
     open(STDOUT, '>', $output) || die "Cannot redirect STDOUT to $output";
 }
 
-my $grammar = Marpa::R2::Scanless::G->new( { source => \$DATA, action_object => 'Actions' });
+my $grammar = Marpa::R2::Scanless::G->new( { source => \$DATA,
+                                             action_object => 'Actions',
+                                             bless_package => 'WRAPPER'});
 my $recce = Marpa::R2::Scanless::R->new( {grammar => $grammar
                                           # , trace_terminals => 1
                                          });
@@ -766,6 +777,7 @@ sub generateTypedef {
       $content =~ s/"/\\"/g;
       "\"$content\"";
   } @sortedTerminals;
+  my $iTerminalToSize = 0;
   my @terminalsToSize = map {
       my $size =
         exists($value->{lexemesExact}->{$_})
@@ -773,8 +785,9 @@ sub generateTypedef {
         (($value->{lexemesExact}->{$_}->{type} == $LEXEME_STRING) ? length($value->{lexemesExact}->{$_}->{value}) : 1)
         :
         0;
-      sprintf('%3d, /* %s */', $size, $value->{symbols}->{$_}->{content});
+      sprintf('%3d, /* [Symbol No %3d] %s */', $size, $iTerminalToSize++, $value->{symbols}->{$_}->{content});
   } @sortedTerminals;
+  my $iTerminalToFirstChar = 0;
   my @terminalsToFirstChar = map {
       my $firstchar =
         exists($value->{lexemesExact}->{$_})
@@ -796,15 +809,9 @@ sub generateTypedef {
           )
           :
           (
-           ($value->{lexemesExact}->{$_}->{type} == $LEXEME_HEXMANY)
+           ($value->{lexemesExact}->{$_}->{type} == $LEXEME_HEX)
            ?
-           (
-            ($#{$value->{lexemesExact}->{$_}->{value}} == 0)
-            ?
-            sprintf("0x%x", ord($value->{lexemesExact}->{$_}->{value}->[0]))
-            :
-            -1
-           )
+           sprintf("0x%x", ord($value->{lexemesExact}->{$_}->{value}))
            :
            -1
           )
@@ -812,7 +819,7 @@ sub generateTypedef {
         )
         :
         -1;
-      sprintf('  %4s, /* %s */', $firstchar, $value->{symbols}->{$_}->{content});
+      sprintf('  %4s, /* [Symbol No %3d] %s */', $firstchar, $iTerminalToFirstChar++, $value->{symbols}->{$_}->{content});
   } @sortedTerminals;
   $i = 0;
   my @terminals = map {
@@ -835,10 +842,10 @@ sub generateTypedef {
       "\"$content\"";
   } @sortedNonTerminals;
   my @nonTerminalsToSize = map {
-      sprintf('%3d, /* %s */', 0, $value->{symbols}->{$_}->{content});
+      sprintf('%3d, /* [Symbol No %3d] %s */', 0, $iTerminalToSize++, $_);
   } @sortedNonTerminals;
   my @nonTerminalsToFirstChar = map {
-      sprintf('    -1, /* %s */', 0, $value->{symbols}->{$_}->{content});
+      sprintf('    -1, /* [Symbol No %3d] %s */', $iTerminalToFirstChar++, $_);
   } @sortedNonTerminals;
   my @g1 = map {
     sprintf('  %-30s, /* [Symbol No %3d] */', "${namespace}_${_}", $i++);
@@ -1746,18 +1753,53 @@ static C_INLINE marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespa
 }
 ISLEXEMEB
     }
-      } elsif ($value->{lexemesExact}->{$lexeme}->{type} == $LEXEME_HEXMANY) {
-	  my @wanted = ();
-          my $n = scalar(@{$value->{lexemesExact}->{$lexeme}->{value}});
-	  foreach (@{$value->{lexemesExact}->{$lexeme}->{value}}) {
-              if ($n > 1) {
-  	        push(@wanted, sprintf('(currenti == 0x%x) /* %s */', ord($_), _chprint($_)));
-              } else {
-  	        push(@wanted, sprintf('0x%x /* %s */', ord($_), _chprint($_)));
-              }
-	  }
-	  my $wanted = join(" ||\n      ", @wanted);
-          if ($n == 1) {
+      } elsif ($value->{lexemesExact}->{$lexeme}->{type} == $LEXEME_HEX) {
+
+        # --------#
+        # #x form #
+        # --------#
+
+        my $wanted = sprintf('0x%x /* %s */', ord($value->{lexemesExact}->{$lexeme}->{value}), _chprint($value->{lexemesExact}->{$lexeme}->{value}));
+        if ($value->{lexemesExact}->{$lexeme}->{quantifier}) {
+          $pushLexemeb .= <<ISLEXEMEB;
+
+/************************************************
+  $value->{symbols}->{$lexeme}->{content}
+ ************************************************/
+static C_INLINE marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
+  size_t sizel = 0;
+
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_FALSE) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+
+  do {
+    if (currenti == $wanted) {
+      sizel++;
+    } else {
+      break;
+    }
+  } while (streamInUtf8_nexti(streamInp, &currenti) == STREAMIN_BOOL_TRUE);
+
+  if (sizel > 0) {
+    if (streamInUtf8_userMarkPreviousb(streamInp, ${namespace}_${_}) == STREAMIN_BOOL_FALSE) {
+      streamInUtf8_currentFromMarkedb(streamInp); /* Cross the fingers */
+      return MARPAWRAPPER_BOOL_FALSE;
+    } else {
+      if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) { /* Oups */
+        return MARPAWRAPPER_BOOL_FALSE;
+      } else {
+        *sizelp = sizel;
+        return MARPAWRAPPER_BOOL_TRUE;
+      }
+    }
+  } else {
+    streamInUtf8_currentFromMarkedb(streamInp); /* Cross the fingers */
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+}
+ISLEXEMEB
+        } else {
           $pushLexemeb .= <<ISLEXEMEB;
 
 /************************************************
@@ -1765,25 +1807,6 @@ ISLEXEMEB
  ************************************************/
 static C_INLINE marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
   if (currenti == $wanted) {
-    if (streamInUtf8_userMarkb(streamInp, ${namespace}_${_}) == STREAMIN_BOOL_FALSE) {
-      return MARPAWRAPPER_BOOL_FALSE;
-    } else {
-      *sizelp = 1;
-      return MARPAWRAPPER_BOOL_TRUE;
-    }
-  } else {
-    return MARPAWRAPPER_BOOL_FALSE;
-  }
-}
-ISLEXEMEB
-          } else {
-	$pushLexemeb .= <<ISLEXEMEB;
-
-/************************************************
-  $value->{symbols}->{$lexeme}->{content}
- ************************************************/
-static C_INLINE marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, signed int currenti, streamIn_t *streamInP, size_t *sizelp) {
-  if ($wanted) {
     if (streamInUtf8_userMarkb(streamInp, ${namespace}_${_}) == STREAMIN_BOOL_FALSE) {
       return MARPAWRAPPER_BOOL_FALSE;
     } else {
@@ -2042,8 +2065,8 @@ exception      ::= term
                |   term MINUS term                                      action => _exceptionTermMinusTerm
 term           ::= factor
                |   factor QUANTIFIER                                    action => _termFactorQuantifier
-hexMany        ::= HEX+                                                 action => _hexMany
-factor         ::= hexMany
+hex            ::= HEX                                                  action => _hex
+factor         ::= hex
                |   LBRACKET       ranges RBRACKET                       action => _factorRange
                |   LBRACKET CARET ranges RBRACKET                       action => _factorCaretRange
                |   DQUOTE STRINGDQUOTE DQUOTE                           action => _factorStringDquote

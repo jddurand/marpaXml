@@ -1,11 +1,14 @@
 /************************************************
-  _Exclusion002 ~ '_Lex015_many - _Gen057'
-  _Gen057 ::= _Lex015_any _Lex016 _Lex015_any
-  _Lex016 ~ ']]>'
+  _Exclusion002 ~ '_Lex016_many - _Gen060'
+  <_Lex016_many> ~ [^<&]+
+  _Gen060 ::= _Lex017_any _Lex018 _Lex019_any
+  <_Lex017_any> ~ [^<&]+
+  ']]>'
+  <_Lex019_any> ~ [^<&]+
 
   which means:
 
-  _Exclusion002 ~ _Lex015_many minus ']]>'
+  _Exclusion002 ~ _Lex017_many minus ']]>' everywhere
   
  ************************************************/
 static C_INLINE marpaWrapperBool_t _xml_1_0__Exclusion002b(xml_1_0_t *xml_1_0p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
