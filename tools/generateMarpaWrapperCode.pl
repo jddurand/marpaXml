@@ -496,7 +496,11 @@ sub _termFactorQuantifier {
       $symbol = sprintf('%s_%s', $factor, ($quantifier eq '*') ? 'any' : 'many');
       if (! exists($self->{quantifiedSymbols}->{$symbol})) {
 	  $self->{quantifiedSymbols}->{$symbol}++;
-	  if (exists($self->{lexemesExact}->{$factor})) {
+	  if (exists($self->{lexemesExact}->{$factor}) &&
+	      #
+	      # Lexeme optimization is limited to ranges type: [...] or [^...]
+	      #
+	      ($self->{lexemesExact}->{$factor}->{type} == $LEXEME_RANGES || $self->{lexemesExact}->{$factor}->{type} == $LEXEME_CARET_RANGES)) {
 	      if (! exists($self->{lexemesExact}->{"$factor$quantifier"})) {
 		  print STDERR "[INFO] Transformation to a lexeme: $symbol ::= $factor$quantifier\n";
 		  $self->_factor("$self->{lexemes}->{$factor}$quantifier", $self->{lexemesExact}->{$factor}->{type}, $self->{lexemesExact}->{$factor}->{value}, $quantifier, $symbol);
@@ -1633,7 +1637,8 @@ ISLEXEMEB_TRAILER
   }
 
   foreach (sort {$a cmp $b} grep {$value->{symbols}->{$_}->{terminal} == 1} keys %{$value->{symbols}}) {
-    if (! exists($value->{lexemesExact}->{$_}->{type})) {
+    my $lexeme = $_;
+    if (! exists($value->{lexemesExact}->{$lexeme}->{type})) {
       my $func = "_${namespace}_${_}b";
       my $byHand = File::Spec->catfile('src', 'internal', 'grammar', $namespace, $func . '.c');
       if (-s $byHand) {
@@ -1644,7 +1649,7 @@ ISLEXEMEB_TRAILER
         $pushLexemeb .= <<ISLEXEMEB;
 
 /************************************************
-  $value->{symbols}->{$_}->{content}
+  $value->{symbols}->{$lexeme}->{content}
  ************************************************/
 static C_INLINE marpaWrapperBool_t $func(${namespace}_t *${namespace}p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
   /* Writen by hand */
@@ -1654,16 +1659,24 @@ static C_INLINE marpaWrapperBool_t $func(${namespace}_t *${namespace}p, signed i
 ISLEXEMEB
     }
     } else {
-      if ($value->{lexemesExact}->{$_}->{type} == $LEXEME_RANGES ||
-	  $value->{lexemesExact}->{$_}->{type} == $LEXEME_CARET_RANGES) {
-	  my $rcIfMatch = ($value->{lexemesExact}->{$_}->{type} == $LEXEME_RANGES) ? 'MARPAWRAPPER_BOOL_TRUE' : 'MARPAWRAPPER_BOOL_FALSE';
-	  my $rcIfCaretMatch = ($value->{lexemesExact}->{$_}->{type} == $LEXEME_RANGES) ? 'MARPAWRAPPER_BOOL_FALSE' : 'MARPAWRAPPER_BOOL_TRUE';
-	  my $sizelpMatch = ($rcIfMatch eq 'MARPAWRAPPER_BOOL_TRUE') ? "*sizelp = 1;\n    " : '    ';
-	  my $sizelpCaretMatch = ($rcIfCaretMatch eq 'MARPAWRAPPER_BOOL_TRUE') ? "*sizelp = 1;\n    " : '    ';
+      if ($value->{lexemesExact}->{$lexeme}->{type} == $LEXEME_RANGES ||
+	  $value->{lexemesExact}->{$lexeme}->{type} == $LEXEME_CARET_RANGES) {
+
+        # -----------------------#
+        # [...] and [^...] forms #
+        # -----------------------#
+        my $rcIfMatch = ($value->{lexemesExact}->{$lexeme}->{type} == $LEXEME_RANGES) ? 'MARPAWRAPPER_BOOL_TRUE' : 'MARPAWRAPPER_BOOL_FALSE';
+        my $rcIfQuantifiedMatch = ($value->{lexemesExact}->{$lexeme}->{type} == $LEXEME_RANGES) ? '' : 'break;';
+        my $rcIfCaretMatch = ($value->{lexemesExact}->{$lexeme}->{type} == $LEXEME_RANGES) ? 'MARPAWRAPPER_BOOL_FALSE' : 'MARPAWRAPPER_BOOL_TRUE';
+        my $rcIfQuantifiedCaretMatch = ($value->{lexemesExact}->{$lexeme}->{type} == $LEXEME_RANGES) ? 'break;' : '';
+        my $sizelpMatch = ($rcIfMatch eq 'MARPAWRAPPER_BOOL_TRUE') ? "*sizelp = 1;\n    " : '    ';
+        my $sizelQuantifierMatch = ($rcIfMatch eq 'MARPAWRAPPER_BOOL_TRUE') ? "sizel++;\n    " : '    ';
+        my $sizelpCaretMatch = ($rcIfCaretMatch eq 'MARPAWRAPPER_BOOL_TRUE') ? "*sizelp = 1;\n    " : '    ';
+        my $sizelQuantifierCaretMatch = ($rcIfCaretMatch eq 'MARPAWRAPPER_BOOL_TRUE') ? "sizel++;\n    " : '    ';
 
         my @wanted = ();
-        my $n = scalar(@{$value->{lexemesExact}->{$_}->{value}});
-        foreach (@{$value->{lexemesExact}->{$_}->{value}}) {
+        my $n = scalar(@{$value->{lexemesExact}->{$lexeme}->{value}});
+        foreach (@{$value->{lexemesExact}->{$lexeme}->{value}}) {
           my @range = @{$_};
 	  if ($range[0] ne $range[1]) {
 	      push(@wanted, sprintf('%scurrenti >= 0x%x && currenti <= 0x%x%s /* [%s-%s] */', ($n > 1 ? '(' : ''), ord($range[0]), ord($range[1]), ($n > 1 ? ')' : ''), _chprint($range[0]), _chprint($range[1])));
@@ -1672,10 +1685,50 @@ ISLEXEMEB
 	  }
         }
 	my $wanted = join(" ||\n      ", @wanted);
-        $pushLexemeb .= <<ISLEXEMEB;
+        if ($value->{lexemesExact}->{$lexeme}->{quantifier}) {
+          $pushLexemeb .= <<ISLEXEMEB;
 
 /************************************************
-  $value->{symbols}->{$_}->{content}
+  $value->{symbols}->{$lexeme}->{content}
+ ************************************************/
+static C_INLINE marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
+  size_t sizel = 0;
+
+  if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_FALSE) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+
+  do {
+    if ($wanted) {
+      ${sizelQuantifierMatch}${rcIfQuantifiedMatch}
+    } else {
+      ${sizelQuantifierCaretMatch}${rcIfQuantifiedCaretMatch}
+    }
+  } while (streamInUtf8_nexti(streamInp, &currenti) == STREAMIN_BOOL_TRUE);
+
+  if (sizel > 0) {
+    if (streamInUtf8_userMarkPreviousb(streamInp, ${namespace}_${_}) == STREAMIN_BOOL_FALSE) {
+      streamInUtf8_currentFromMarkedb(streamInp); /* Cross the fingers */
+      return MARPAWRAPPER_BOOL_FALSE;
+    } else {
+      if (streamInUtf8_currentFromMarkedb(streamInp) == STREAMIN_BOOL_FALSE) { /* Oups */
+        return MARPAWRAPPER_BOOL_FALSE;
+      } else {
+        *sizelp = sizel;
+        return MARPAWRAPPER_BOOL_TRUE;
+      }
+    }
+  } else {
+    streamInUtf8_currentFromMarkedb(streamInp); /* Cross the fingers */
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+}
+ISLEXEMEB
+        } else {
+	    $pushLexemeb .= <<ISLEXEMEB;
+
+/************************************************
+  $value->{symbols}->{$lexeme}->{content}
  ************************************************/
 static C_INLINE marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
   marpaWrapperBool_t rcb;
@@ -1692,10 +1745,11 @@ static C_INLINE marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespa
   return rcb;
 }
 ISLEXEMEB
-      } elsif ($value->{lexemesExact}->{$_}->{type} == $LEXEME_HEXMANY) {
+    }
+      } elsif ($value->{lexemesExact}->{$lexeme}->{type} == $LEXEME_HEXMANY) {
 	  my @wanted = ();
-          my $n = scalar(@{$value->{lexemesExact}->{$_}->{value}});
-	  foreach (@{$value->{lexemesExact}->{$_}->{value}}) {
+          my $n = scalar(@{$value->{lexemesExact}->{$lexeme}->{value}});
+	  foreach (@{$value->{lexemesExact}->{$lexeme}->{value}}) {
               if ($n > 1) {
   	        push(@wanted, sprintf('(currenti == 0x%x) /* %s */', ord($_), _chprint($_)));
               } else {
@@ -1707,7 +1761,7 @@ ISLEXEMEB
           $pushLexemeb .= <<ISLEXEMEB;
 
 /************************************************
-  $value->{symbols}->{$_}->{content}
+  $value->{symbols}->{$lexeme}->{content}
  ************************************************/
 static C_INLINE marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
   if (currenti == $wanted) {
@@ -1726,7 +1780,7 @@ ISLEXEMEB
 	$pushLexemeb .= <<ISLEXEMEB;
 
 /************************************************
-  $value->{symbols}->{$_}->{content}
+  $value->{symbols}->{$lexeme}->{content}
  ************************************************/
 static C_INLINE marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, signed int currenti, streamIn_t *streamInP, size_t *sizelp) {
   if ($wanted) {
@@ -1742,15 +1796,15 @@ static C_INLINE marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespa
 }
 ISLEXEMEB
         }
-      } elsif ($value->{lexemesExact}->{$_}->{type} == $LEXEME_STRING) {
-        my @wanted = map {sprintf("0x%x /* %s */", ord($_), _chprint($_))} split('', $value->{lexemesExact}->{$_}->{value});
+      } elsif ($value->{lexemesExact}->{$lexeme}->{type} == $LEXEME_STRING) {
+        my @wanted = map {sprintf("0x%x /* %s */", ord($_), _chprint($_))} split('', $value->{lexemesExact}->{$lexeme}->{value});
         my $wanted = join(",\n    ", @wanted);
-	my $length = length($value->{lexemesExact}->{$_}->{value});
+	my $length = length($value->{lexemesExact}->{$lexeme}->{value});
         if ($length == 1) {
           $pushLexemeb .= <<ISLEXEMEB;
 
 /************************************************
-  $value->{symbols}->{$_}->{content}
+  $value->{symbols}->{$lexeme}->{content}
  ************************************************/
 static C_INLINE marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
   if (currenti == $wanted) {
@@ -1769,7 +1823,7 @@ ISLEXEMEB
           $pushLexemeb .= <<ISLEXEMEB;
 
 /************************************************
-  $value->{symbols}->{$_}->{content}
+  $value->{symbols}->{$lexeme}->{content}
  ************************************************/
 static C_INLINE marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
   static const signed int wanted[$length] = {
