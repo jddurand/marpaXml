@@ -1,6 +1,6 @@
 /************************************************
   discard orthogonal rule
-  This is basically a lighter version of S that will
+  This is basically a lighter version of S that
   can move the stream forward
  ************************************************/
 static C_INLINE marpaWrapperBool_t _xml_1_0__discardb(xml_1_0_t *xml_1_0p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {

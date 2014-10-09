@@ -1,18 +1,19 @@
 /************************************************
-  _Exclusion005 ~ 'Char_many - _Gen244'
-  Char ~ [\x{9}\x{a}\x{d}\x{20}-\x{d7ff}\x{e000}-\x{fffd}\x{10000}-\x{10ffff}]
-  _Gen233 ::= Char_any _Gen242 Char_any
-  _Gen231 ::= _Lex068
-  _Gen231 ::= _Lex016
-  _Lex068 ~ '<!['
-  _Lex016 ~ ']]>'
+  <_Exclusion006> ~ 'Char_many - _Gen246'
+  Char_many ::= Char +
+  <Char> ~ [\x{9}\x{a}\x{d}\x{20}-\x{d7ff}\x{e000}-\x{fffd}\x{10000}-\x{10ffff}]
+  _Gen246 ::= Char_any _Gen244 Char_any
+  Char_many ::= Char *
+  _Gen244 ::= _Lex070
+  _Gen244 ::= _Lex017
+  <_Lex070> ~ '<!['
+   <_Lex017> ~ ']]>'
   
   which means:
 
-  _Exclusion005 ~ Char_any - ('<![' or ']]>')
+  _Exclusion005 ~ Char_any - ('<![' or ']]>') everywhere
  ************************************************/
 static C_INLINE marpaWrapperBool_t _xml_1_0__Exclusion006b(xml_1_0_t *xml_1_0p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
-  size_t             sizeCharl;
   size_t             sizel;
   signed int         lastthreei[3] = {0, 0, 0};
 
@@ -23,7 +24,12 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Exclusion006b(xml_1_0_t *xml_1_0p, 
 
   /* Consume any Char - we KNOW in advance that lex015 does not play with utf8 mark and have a size 1 */
   sizel = 0;
-  while(_xml_1_0_Charb(xml_1_0p, currenti, streamInp, &sizeCharl) == MARPAWRAPPER_BOOL_TRUE) {
+  while ((currenti == 0x9) /* #x9 */ ||
+	 (currenti == 0xa) /* #xa */ ||
+	 (currenti == 0xd) /* #xd */ ||
+	 (currenti >= 0x20 && currenti <= 0xd7ff) /* [#x20-#xd7ff] */ ||
+	 (currenti >= 0xe000 && currenti <= 0xfffd) /* [#xe000-#xfffd] */ ||
+	(currenti >= 0x10000 && currenti <= 0x10ffff) /* [#x10000-#x10ffff] */) {
     /* For performance reason it is better to do the test on sizel >= 3 first: the probability      */
     /* to have three or more characters is much higher than having less than three characters       */
     if (sizel >= 3) {

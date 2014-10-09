@@ -1,15 +1,17 @@
 /************************************************
-  _Exclusion003 ~ 'Char_many - _Gen063'
-  _Gen063 ::= Char_any _Lex020 Char_any
-  _Lex020 ~ '?>'
+  _Exclusion003 ~ 'Char_many - _Gen066'
+  _Gen066 ::= Char_any _Lex022 Char_any
+  Char_any ::= Char *
+  <Char> ~ [\x{9}\x{a}\x{d}\x{20}-\x{d7ff}\x{e000}-\x{fffd}\x{10000}-\x{10ffff}]
+  Char_many ::= Char +
+  <_Lex022> ~ '?>'
 
   which means:
 
-  _Exclusion003 ~ Char_many minus '?>'
+  _Exclusion003 ~ Char_many minus '?>' everywhere
   
  ************************************************/
 static C_INLINE marpaWrapperBool_t _xml_1_0__Exclusion003b(xml_1_0_t *xml_1_0p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
-  size_t             sizeCharl;
   size_t             sizel;
   signed int         lasttwoi[2] = {0, 0};
 
@@ -20,7 +22,12 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Exclusion003b(xml_1_0_t *xml_1_0p, 
 
   /* Consume many Char - we KNOW in advance that lex015 does not play with utf8 mark and have a size 1 */
   sizel = 0;
-  while(_xml_1_0_Charb(xml_1_0p, currenti, streamInp, &sizeCharl) == MARPAWRAPPER_BOOL_TRUE) {
+  while ((currenti == 0x9) /* #x9 */ ||
+	 (currenti == 0xa) /* #xa */ ||
+	 (currenti == 0xd) /* #xd */ ||
+	 (currenti >= 0x20 && currenti <= 0xd7ff) /* [#x20-#xd7ff] */ ||
+	 (currenti >= 0xe000 && currenti <= 0xfffd) /* [#xe000-#xfffd] */ ||
+	 (currenti >= 0x10000 && currenti <= 0x10ffff) /* [#x10000-#x10ffff] */) {
     /* For performance reason it is better to do the test on sizel >= 2 first: the probability  */
     /* to have two or more characters is much higher than having less than two characters       */
     if (sizel >= 2) {
