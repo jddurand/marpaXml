@@ -2446,7 +2446,7 @@ MARPAXML_GENERIC_METHOD_API(,                                       /* staticSto
                             _marpaXml_bind_text16(sqliteStmtp, 1, txt16, byteLengthl), /* bindingResult */
                             int,                                    /* dbType - no op */
                             int,                                    /* dbMapType - no op */
-                            ,                                       /* rcDb2rc - no op */
+                            {rcDb = rcDb;},                         /* rcDb2rc - no op */
                             ,                                       /* defaultRc */
                             marpaXml_true,                          /* changeId */
                             {
@@ -2467,7 +2467,7 @@ MARPAXML_GENERIC_METHOD_API(,                                       /* staticSto
                             _marpaXml_bind_text(sqliteStmtp, 1, txt, byteLengthl), /* bindingResult */
                             int,                                    /* dbType - no op */
                             int,                                    /* dbMapType - no op */
-                            ,                                       /* rcDb2rc - no op */
+                            {rcDb = rcDb;},                         /* rcDb2rc - no op */
                             ,                                       /* defaultRc */
                             marpaXml_true,                          /* changeId */
                             {
@@ -2489,7 +2489,7 @@ MARPAXML_GENERIC_METHOD_API(,                                       /* staticSto
                             _marpaXml_bind_string(sqliteStmtp, 1, stringp, _MARPAXML_ARGNOTUSED), /* bindingResult */
                             int,                                    /* dbType - no op */
                             int,                                    /* dbMapType - no op */
-                            ,                                       /* rcDb2rc - no op */
+                            {rcDb = rcDb;},                         /* rcDb2rc - no op */
                             ,                                       /* defaultRc */
                             marpaXml_true,                          /* changeId */
                             {
@@ -2498,19 +2498,6 @@ MARPAXML_GENERIC_METHOD_API(,                                       /* staticSto
                               }
                             }                                       /* epilog */
                             )
-
-/* --------------------------------------------------------------- */
-/* marpaXml_Lexeme_getId                                           */
-/* --------------------------------------------------------------- */
-marpaXml_boolean_t  marpaXml_Lexeme_getId(marpaXml_Lexeme_t *thisp, sqlite3_int64 *idlp) {
-  if (thisp == NULL) {
-    return marpaXml_false;
-  }
-  if (idlp != NULL) {
-    *idlp = thisp->id;
-  }
-  return marpaXml_true;
-}
 
 /* --------------------------------------------------------------- */
 /* marpaXml_Lexeme_getString                                       */
