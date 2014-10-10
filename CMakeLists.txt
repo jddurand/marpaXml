@@ -19,7 +19,7 @@ ENDIF ()
 
 PROJECT (marpaXml)
 
-# In any case we include our include directory for all targets
+# In any case we include our include directories + our sqlite for all targets
 INCLUDE_DIRECTORIES (${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/include/API)
 
 # ---------------------------------------
@@ -225,6 +225,7 @@ SET(DISTCLEANED
   "db/Dom Level 3 Core.h"
   GLOB *vcxproj*
   GLOB *sln
+  GLOB *suo
   )
 ADD_CUSTOM_COMMAND (
   DEPENDS clean
@@ -345,6 +346,7 @@ ADD_EXECUTABLE        (streamIn_test ${PROJECT_SOURCE_DIR}/test/internal/streamI
 TARGET_LINK_LIBRARIES (streamIn_test marpaXml)
 
 ADD_EXECUTABLE        (DOM_Lexeme_test ${PROJECT_SOURCE_DIR}/test/internal/DOM_Lexeme_test.c)
+SET_PROPERTY          (TARGET DOM_Lexeme_test APPEND PROPERTY INCLUDE_DIRECTORIES "${SQLITE_DIR}")
 TARGET_LINK_LIBRARIES (DOM_Lexeme_test marpaXml marpa sqlite ${CMAKE_THREAD_LIBS_INIT})
 
 ADD_EXECUTABLE        (log_test ${PROJECT_SOURCE_DIR}/test/API/log_test.c)
@@ -359,9 +361,11 @@ TARGET_LINK_LIBRARIES (String_test marpaXml)
 ADD_EXECUTABLE        (ICU4CDetectEncoding ${PROJECT_SOURCE_DIR}/test/internal/ICU4CDetectEncoding.c)
 
 ADD_EXECUTABLE        (xml_1_0_test ${PROJECT_SOURCE_DIR}/test/internal/grammar/xml_1_0_test.c)
+SET_PROPERTY          (TARGET xml_1_0_test APPEND PROPERTY INCLUDE_DIRECTORIES "${SQLITE_DIR}")
 TARGET_LINK_LIBRARIES (xml_1_0_test marpaXml marpa sqlite ${CMAKE_THREAD_LIBS_INIT})
 
 ADD_EXECUTABLE        (xml_1_1_test ${PROJECT_SOURCE_DIR}/test/internal/grammar/xml_1_1_test.c)
+SET_PROPERTY          (TARGET xml_1_1_test APPEND PROPERTY INCLUDE_DIRECTORIES "${SQLITE_DIR}")
 TARGET_LINK_LIBRARIES (xml_1_1_test marpaXml marpa sqlite ${CMAKE_THREAD_LIBS_INIT})
 
 #INSTALL (TARGETS marpaxml DESTINATION install/bin)

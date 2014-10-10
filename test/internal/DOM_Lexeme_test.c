@@ -9,16 +9,16 @@
 /* main */
 /********/
 int main(int argc, char **argv) {
-  marpaXml_Lexeme_t *lexeme1p, *lexeme2p, *lexeme3p;
-  marpaXml_String_t *string1p;
-  marpaXmlLog_t        *marpaXmlLogp = marpaXmlLog_newp(NULL, NULL, MARPAXML_LOGLEVEL_TRACE);
+  marpaXml_Lexeme_t *lexemep;
+  marpaXml_String_t *stringp;
+  marpaXmlLog_t     *marpaXmlLogp = marpaXmlLog_newp(NULL, NULL, MARPAXML_LOGLEVEL_TRACE);
 #ifdef _WIN32
 #define MARPAXML_DB_PATH "C:\\Windows\\Temp\\test.sqlite"
 #else
 #define MARPAXML_DB_PATH "/tmp/test.sqlite"
 #endif
   marpaXml_DOM_Option_t marpaXml_DOM_Option = {MARPAXML_DB_PATH, NULL, -1, marpaXmlLogp};
-  marpaXml_String_t *   string2p;
+  sqlite3_int64         idl;
 
   /*************************************/
   /*                Init               */
@@ -29,36 +29,32 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  string1p = marpaXml_String_newFromUTF8(MYSTRING, NULL);
+  stringp = marpaXml_String_newFromUTF8(MYSTRING, NULL);
 
-  lexeme1p = marpaXml_Lexeme_new(string1p);
-  if (lexeme1p == NULL) {
+  lexemep = marpaXml_Lexeme_new();
+  if (lexemep == NULL) {
     fprintf(stderr, "marpaXml_Lexeme_new failure at %s:%d\n", __FILE__, __LINE__);
     return 1;
   }
 
-  lexeme2p = marpaXml_Lexeme_new(string1p);
-  if (lexeme1p == NULL) {
-    fprintf(stderr, "marpaXml_Lexeme_new failure at %s:%d\n", __FILE__, __LINE__);
+  if (marpaXml_Lexeme_insertFromString(lexemep, stringp, &idl) == marpaXml_false) {
+    fprintf(stderr, "marpaXml_Lexeme_insertFromString failure at %s:%d\n", __FILE__, __LINE__);
     return 1;
   }
+  marpaXml_String_free(&stringp);
 
-  lexeme3p = marpaXml_Lexeme_new(string1p);
-  if (lexeme3p == NULL) {
-    fprintf(stderr, "marpaXml_Lexeme_new failure at %s:%d\n", __FILE__, __LINE__);
-    return 1;
-  }
-
-  if (marpaXml_Lexeme_getString(lexeme3p, &string2p) == marpaXml_false) {
+  if (marpaXml_Lexeme_getString(lexemep, idl, &stringp) == marpaXml_false) {
     fprintf(stderr, "marpaXml_Lexeme_getString failure at %s:%d\n", __FILE__, __LINE__);
     return 1;
   }
+  marpaXml_String_free(&stringp);
 
-  marpaXml_Lexeme_free(&lexeme1p);
+  if (marpaXml_Lexeme_delete(lexemep, idl, &idl) == marpaXml_false) {
+    fprintf(stderr, "marpaXml_Lexeme_delete failure at %s:%d\n", __FILE__, __LINE__);
+    return 1;
+  }
 
-  marpaXml_Lexeme_delete(&lexeme2p);
-
-  marpaXml_Lexeme_delete(&lexeme3p);
+  marpaXml_Lexeme_free(&lexemep);
 
   /*************************************/
   /*                End                */

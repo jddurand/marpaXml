@@ -31,7 +31,7 @@ marpaWrapperBool_t xml_common_optionDefaultb(xml_common_option_t *xml_common_opt
 /********************************************************************/
 marpaWrapperBool_t xml_common_lexemeValueb(xml_common_work_t *xml_common_workp, marpaWrapper_t *marpaWrapperp, streamIn_t *streamInp, int *lexemeValueip, int *lexemeLengthip) {
   size_t                 byteLengthl;
-  marpaXml_Lexeme_t     *lexemep;
+  marpaXml_Lexeme_t     *lexemep = xml_common_workp->lexemep;
   sqlite3_int64          id;
   marpaXmlLog_t         *marpaXmlLogp = marpaWrapper_marpaXmlLogp(marpaWrapperp);
   const void            *p;
@@ -45,20 +45,13 @@ marpaWrapperBool_t xml_common_lexemeValueb(xml_common_work_t *xml_common_workp, 
     return MARPAWRAPPER_BOOL_FALSE;
   }
 
-  lexemep = marpaXml_Lexeme_newFromUTF16(p, byteLengthl);
-  if (lexemep == NULL) {
-    return MARPAWRAPPER_BOOL_FALSE;
-  }
-
-  if (marpaXml_Lexeme_getId(lexemep, &id) == marpaXml_false) {
-    marpaXml_Lexeme_free(&lexemep);
+  if (marpaXml_Lexeme_insertFromUTF16(lexemep, (void *) p, byteLengthl, &id) == marpaXml_false) {
     return MARPAWRAPPER_BOOL_FALSE;
   }
 
   if ((id < INT_MIN) || (id > INT_MAX) || (id == 0)) {
     /* Marpa is using an int, and disregard strongly value 0 (which means 'undef' to him) */
     MARPAXML_ERRORX("index %lld would exceed the 'int' representation at %s:%d", id, __FILE__, __LINE__);
-    marpaXml_Lexeme_free(&lexemep);
     return MARPAWRAPPER_BOOL_FALSE;
   }
 
@@ -70,8 +63,6 @@ marpaWrapperBool_t xml_common_lexemeValueb(xml_common_work_t *xml_common_workp, 
 
   /* We use the LATM mode. This mean there cannot be a token with lower length. */
   /* I.e. we have the right to count line number and column number, and keep the last UTF8 characters */
-
-  marpaXml_Lexeme_free(&lexemep);
 
   return MARPAWRAPPER_BOOL_TRUE;
 }

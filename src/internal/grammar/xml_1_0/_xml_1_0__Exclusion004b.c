@@ -86,6 +86,12 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Exclusion004b(xml_1_0_t *xml_1_0p, 
 		(currenti >= 0x203f && currenti <= 0x2040) /* [#x203f-#x2040] */)) {
       break;
     }
+#ifndef MARPAXML_NTRACE
+    {
+      marpaXmlLog_t *marpaXmlLogp = marpaWrapper_marpaXmlLogp(xml_1_0p->marpaWrapperp);
+      MARPAXML_TRACEX("_xml_1_0__Exclusion004b : Accepted character 0x%lx", (long) currenti);
+    }
+#endif
     if (sizel++ <= 2) {
       switch (sizel) {
       case 1:
@@ -135,6 +141,12 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Exclusion004b(xml_1_0_t *xml_1_0p, 
 	   (currenti >= 0x203f && currenti <= 0x2040) /* [#x203f-#x2040] */)) {
 	break;
       }
+#ifndef MARPAXML_NTRACE
+  {
+      marpaXmlLog_t *marpaXmlLogp = marpaWrapper_marpaXmlLogp(xml_1_0p->marpaWrapperp);
+      MARPAXML_TRACEX("_xml_1_0__Exclusion004b : Accepted character 0x%lx", (long) currenti);
+  }
+#endif
       sizel++;
     }
   }
@@ -153,6 +165,12 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Exclusion004b(xml_1_0_t *xml_1_0p, 
 	(lastthreei[0] == 'x' || lastthreei[0] == 'X') &&
 	(lastthreei[1] == 'm' || lastthreei[1] == 'M') &&
 	(lastthreei[1] == 'l' || lastthreei[2] == 'L')) {
+#ifndef MARPAXML_NTRACE
+  {
+      marpaXmlLog_t *marpaXmlLogp = marpaWrapper_marpaXmlLogp(xml_1_0p->marpaWrapperp);
+      MARPAXML_TRACEX("_xml_1_0__Exclusion004b : Got \"%c%c%c\"", (char) lastthreei[0], (char) lastthreei[1], (char) lastthreei[2]);
+  }
+#endif
       rcb = MARPAWRAPPER_BOOL_FALSE;
     } else {
       *sizelp = sizel;

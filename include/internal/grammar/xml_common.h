@@ -5,6 +5,7 @@
 
 #include "internal/marpaWrapper.h"
 #include "internal/streamIn.h"
+#include "internal/DOM_Lexeme.h"
 #include "API/marpaXml/log.h"
 
 /* There are always three top-level grammars: document, extParsedEnt and extSubset */
@@ -39,6 +40,7 @@ typedef struct xml_common_work {
   unsigned long long columnl;
   unsigned long long deltaLinel;
   unsigned long long deltaColumnl;
+  marpaXml_Lexeme_t *lexemep;
 } xml_common_work_t;
 
 typedef marpaWrapperBool_t (*xml_common_isLexemeb_t)(void *marpaWrapperSymbolOptionDatavp, size_t *sizelp);

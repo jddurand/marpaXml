@@ -31,6 +31,12 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Exclusion001b(xml_1_0_t *xml_1_0p, 
       (currenti == 0x20) /* #x20 */ ||
       (currenti == 0xd) /* #xd */ ||
       (currenti == 0xa) /* #xa */) {
+#ifndef MARPAXML_NTRACE
+  {
+      marpaXmlLog_t *marpaXmlLogp = marpaWrapper_marpaXmlLogp(xml_1_0p->marpaWrapperp);
+      MARPAXML_TRACEX("_xml_1_0__Exclusion001b : Accepted character 0x%lx", (long) currenti);
+  }
+#endif
     *sizelp = 1;
     rcb = MARPAWRAPPER_BOOL_TRUE;
   } else {

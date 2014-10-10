@@ -30,11 +30,23 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Exclusion006b(xml_1_0_t *xml_1_0p, 
 	 (currenti >= 0x20 && currenti <= 0xd7ff) /* [#x20-#xd7ff] */ ||
 	 (currenti >= 0xe000 && currenti <= 0xfffd) /* [#xe000-#xfffd] */ ||
 	(currenti >= 0x10000 && currenti <= 0x10ffff) /* [#x10000-#x10ffff] */) {
-    /* For performance reason it is better to do the test on sizel >= 3 first: the probability      */
+  #ifndef MARPAXML_NTRACE
+  {
+      marpaXmlLog_t *marpaXmlLogp = marpaWrapper_marpaXmlLogp(xml_1_0p->marpaWrapperp);
+      MARPAXML_TRACEX("_xml_1_0__Exclusion006b : Accepted character 0x%lx", (long) currenti);
+  }
+#endif
+  /* For performance reason it is better to do the test on sizel >= 3 first: the probability      */
     /* to have three or more characters is much higher than having less than three characters       */
     if (sizel >= 3) {
       if ((currenti == '[' && lastthreei[1] == '<' && lastthreei[2] == '!') ||
 	  (currenti == '>' && lastthreei[1] == ']' && lastthreei[2] == ']')) {
+#ifndef MARPAXML_NTRACE
+        {
+          marpaXmlLog_t *marpaXmlLogp = marpaWrapper_marpaXmlLogp(xml_1_0p->marpaWrapperp);
+          MARPAXML_TRACEX("_xml_1_0__Exclusion006b : Got \"%c%c%c\"", (char) currenti, (char) lastthreei[1], (char) lastthreei[2]);
+        }
+#endif
 	break;
       }
       lastthreei[0] = lastthreei[1];

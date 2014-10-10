@@ -24,19 +24,25 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Exclusion002b(xml_1_0_t *xml_1_0p, 
     return MARPAWRAPPER_BOOL_FALSE;
   }
 
-  /* Consume many Lex015 - we KNOW in advance that lex015 does not play with utf8 mark and have a size 1 */
+  /* Consume many Lex016 - we KNOW in advance that lex015 does not play with utf8 mark and have a size 1 */
   sizel = 0;
-  while ((currenti == 0x3c) /* < */ || (currenti == 0x26) /* & */) {
+  while (! ((currenti == 0x3c) /* < */ || (currenti == 0x26) /* & */)) {
 #ifndef MARPAXML_NTRACE
   {
       marpaXmlLog_t *marpaXmlLogp = marpaWrapper_marpaXmlLogp(xml_1_0p->marpaWrapperp);
-      MARPAXML_TRACEX("_xml_1_0__Exclusion002b : accepted character 0x%lx\n", (long) currenti);
+      MARPAXML_TRACEX("_xml_1_0__Exclusion002b : Accepted character 0x%lx", (long) currenti);
   }
 #endif
     /* For performance reason it is better to do the test on sizel >= 3 first: the probability      */
     /* to have three or more characters is much higher than having less than three characters       */
     if (sizel >= 3) {
       if (currenti == '>' && lastthreei[1] == ']' && lastthreei[2] == ']') {
+#ifndef MARPAXML_NTRACE
+        {
+          marpaXmlLog_t *marpaXmlLogp = marpaWrapper_marpaXmlLogp(xml_1_0p->marpaWrapperp);
+          MARPAXML_TRACEX("_xml_1_0__Exclusion002b : Got \"]]>\"");
+        }
+#endif
 	break;
       }
       lastthreei[0] = lastthreei[1];

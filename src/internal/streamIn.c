@@ -1813,7 +1813,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_markb(streamIn_t *streamInp) {
     /* This give the index in the native format of the text below - we know this is UChar */
     streamInp->streamIn_ICU.ucharMarkedNativeIndexl = UTEXT_GETNATIVEINDEX(streamInp->streamIn_ICU.utextp);
     streamInp->streamIn_ICU.ucharMarkedOffsetl = streamInp->streamIn_ICU.ucharMarkedNativeIndexl * sizeof(UChar);
-    /* STREAMIN_TRACEX("Marking index %lld, offset %lld", (long) streamInp->streamIn_ICU.ucharMarkedNativeIndexl, (long) streamInp->streamIn_ICU.ucharMarkedOffsetl); */
+    STREAMIN_TRACEX("Mark index %lld, offset %lld", (long long) streamInp->streamIn_ICU.ucharMarkedNativeIndexl, (long long) streamInp->streamIn_ICU.ucharMarkedOffsetl);
     rcb = STREAMIN_BOOL_TRUE;
   }
 
@@ -1847,7 +1847,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_userMarkb(streamIn_t *streamInp
     /* This give the index in the native format of the text below - we know this is UChar */
     streamInp->streamIn_ICU.ucharUserMarkedNativeIndexl[indexl] = UTEXT_GETNATIVEINDEX(streamInp->streamIn_ICU.utextp);
     streamInp->streamIn_ICU.ucharUserMarkedOffsetl[indexl] = streamInp->streamIn_ICU.ucharUserMarkedNativeIndexl[indexl] * sizeof(UChar);
-    /* STREAMIN_TRACEX("User-Marking index %lld, offset %lld", (long) streamInp->streamIn_ICU.ucharUserMarkedNativeIndexl, (long) streamInp->streamIn_ICU.ucharUserMarkedOffsetl); */
+    STREAMIN_TRACEX("userMark No %lld index %lld, offset %lld", (long long) indexl, (long long) streamInp->streamIn_ICU.ucharUserMarkedNativeIndexl[indexl], (long long) streamInp->streamIn_ICU.ucharUserMarkedOffsetl[indexl]);
     rcb = STREAMIN_BOOL_TRUE;
   }
 
@@ -1965,7 +1965,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_markPreviousb(streamIn_t *strea
     /* This give the index in the native format of the text below - we know this is UChar */
     streamInp->streamIn_ICU.ucharMarkedNativeIndexl = utext_getPreviousNativeIndex(streamInp->streamIn_ICU.utextp);
     streamInp->streamIn_ICU.ucharMarkedOffsetl = streamInp->streamIn_ICU.ucharMarkedNativeIndexl * sizeof(UChar);
-    /* STREAMIN_TRACEX("Marking index %lld, offset %ld", (long) streamInp->streamIn_ICU.ucharMarkedNativeIndexl, (long) streamInp->streamIn_ICU.ucharMarkedOffsetl); */
+    STREAMIN_TRACEX("markPrevious index %lld, offset %lld", (long long) streamInp->streamIn_ICU.ucharMarkedNativeIndexl, (long long) streamInp->streamIn_ICU.ucharMarkedOffsetl);
     rcb = STREAMIN_BOOL_TRUE;
   }
 
@@ -1996,7 +1996,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_userMarkPreviousb(streamIn_t *s
     /* This give the index in the native format of the text below - we know this is UChar */
     streamInp->streamIn_ICU.ucharUserMarkedNativeIndexl[indexl] = utext_getPreviousNativeIndex(streamInp->streamIn_ICU.utextp);
     streamInp->streamIn_ICU.ucharUserMarkedOffsetl[indexl] = streamInp->streamIn_ICU.ucharUserMarkedNativeIndexl[indexl] * sizeof(UChar);
-    /* STREAMIN_TRACEX("User-Marking index %lld, offset %ld", (long) streamInp->streamIn_ICU.ucharUserMarkedNativeIndexl, (long) streamInp->streamIn_ICU.ucharUserMarkedOffsetl); */
+    STREAMIN_TRACEX("userMarkPrevious No %lld index %lld, offset %lld", (long long) indexl, (long long) streamInp->streamIn_ICU.ucharUserMarkedNativeIndexl[indexl], (long long) streamInp->streamIn_ICU.ucharUserMarkedOffsetl[indexl]);
     rcb = STREAMIN_BOOL_TRUE;
   }
 
@@ -2026,7 +2026,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_currentFromMarkedb(streamIn_t *
   } else {
     /* This makes the marked character the current character */
     UTEXT_SETNATIVEINDEX(streamInp->streamIn_ICU.utextp, streamInp->streamIn_ICU.ucharMarkedNativeIndexl);
-    STREAMIN_TRACEX("Marking index %lld, offset %lld as current",
+    STREAMIN_TRACEX("currentFromMarked index %lld, offset %lld as current",
                     (long long) streamInp->streamIn_ICU.ucharMarkedNativeIndexl,
                     (long long) streamInp->streamIn_ICU.ucharMarkedOffsetl);
     rcb = STREAMIN_BOOL_TRUE;
@@ -2083,7 +2083,8 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_currentFromUserMarkedb(streamIn
   } else {
     /* This makes the user-marked character the current character */
     UTEXT_SETNATIVEINDEX(streamInp->streamIn_ICU.utextp, streamInp->streamIn_ICU.ucharUserMarkedNativeIndexl[indexl]);
-    STREAMIN_TRACEX("Marking index %lld, offset %lld as current",
+    STREAMIN_TRACEX("currentFromUserMarked No %lld index %lld, offset %lld as current",
+                    (long long) indexl,
                     (long long) streamInp->streamIn_ICU.ucharUserMarkedNativeIndexl[indexl],
                     (long long) streamInp->streamIn_ICU.ucharUserMarkedOffsetl[indexl]);
     rcb = STREAMIN_BOOL_TRUE;

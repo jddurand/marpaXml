@@ -674,7 +674,7 @@ foreach (sort keys %{$value->{lexemesWithExclusion}}) {
 	    $$testDatap =~ s/^\s*//;
 	    $$testDatap =~ s/\s*$//;
 	    my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar
-							   # , trace_terminals => 1
+                                                       # , trace_terminals => 1
 						     } );
 	    if (! eval { $recce->read($testDatap) }) {
 		print STDERR "Test fail with data section $dataSection:\n$@\n";
@@ -1196,11 +1196,7 @@ static C_INLINE marpaWrapperBool_t _${namespace}_lexemeValueb(void *marpaWrapper
     return MARPAWRAPPER_BOOL_FALSE;
   }
 
-  /* Extract character from [marked, current] */
-  if (streamInUtf8_currentFromUserMarkedb(streamInp, ${namespace}_symbol_callbackp->${namespace}_symboli) == STREAMIN_BOOL_FALSE) {
-    return MARPAWRAPPER_BOOL_FALSE;
-  }
-
+  /* Get and store lexeme value in [marked, current] */
   rcb = xml_common_lexemeValueb(&(${namespace}_symbol_callbackp->${namespace}p->xml_common_work), ${namespace}_symbol_callbackp->${namespace}p->marpaWrapperp, streamInp, lexemeValueip, lexemeLengthip);
 
   /* We use the token-per-earleme model, i.e. xml_common_lexemeValueb will put a length of 1. So we leave the string */
@@ -1269,6 +1265,7 @@ static C_INLINE marpaWrapperBool_t _${namespace}_readerb(void *readerCallbackDat
 /* ${namespace}_recognizeb */
 /**************************/
 marpaWrapperBool_t ${namespace}_recognizeb(${namespace}_t *${namespace}p, streamIn_t *streamInp) {
+  marpaWrapperBool_t rcb;
   marpaWrapperRecognizerOption_t marpaWrapperRecognizerOption;
 
   if (${namespace}p == NULL) {
@@ -1289,8 +1286,17 @@ marpaWrapperBool_t ${namespace}_recognizeb(${namespace}_t *${namespace}p, stream
 
   ${namespace}p->xml_common_work.linel = 0;
   ${namespace}p->xml_common_work.columnl = 0;
+  ${namespace}p->xml_common_work.lexemep = marpaXml_Lexeme_new();
 
-  return marpaWrapper_r_recognizeb(${namespace}p->marpaWrapperp, &marpaWrapperRecognizerOption);
+  if (${namespace}p->xml_common_work.lexemep == NULL) {
+    return MARPAWRAPPER_BOOL_FALSE;
+  }
+
+  rcb = marpaWrapper_r_recognizeb(${namespace}p->marpaWrapperp, &marpaWrapperRecognizerOption);
+
+  marpaXml_Lexeme_free(&(${namespace}p->xml_common_work.lexemep));
+
+  return rcb;
 }
 
 BUILDREGOGNIZEB
@@ -1700,6 +1706,7 @@ ISLEXEMEB
  ************************************************/
 static C_INLINE marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
   size_t sizel = 0;
+  streamInBool_t streamInBoolb;
 
   if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_FALSE) {
     return MARPAWRAPPER_BOOL_FALSE;
@@ -1711,10 +1718,10 @@ static C_INLINE marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespa
     } else {
       ${sizelQuantifierCaretMatch}${rcIfQuantifiedCaretMatch}
     }
-  } while (streamInUtf8_nexti(streamInp, &currenti) == STREAMIN_BOOL_TRUE);
+  } while ((streamInBoolb = streamInUtf8_nexti(streamInp, &currenti)) == STREAMIN_BOOL_TRUE);
 
   if (sizel > 0) {
-    if (streamInUtf8_userMarkPreviousb(streamInp, ${namespace}_${_}) == STREAMIN_BOOL_FALSE) {
+    if (((streamInBoolb == STREAMIN_BOOL_TRUE) ? streamInUtf8_userMarkPreviousb(streamInp, ${namespace}_${_}) : streamInUtf8_userMarkb(streamInp, ${namespace}_${_})) == STREAMIN_BOOL_FALSE) {
       streamInUtf8_currentFromMarkedb(streamInp); /* Cross the fingers */
       return MARPAWRAPPER_BOOL_FALSE;
     } else {
@@ -1768,6 +1775,7 @@ ISLEXEMEB
  ************************************************/
 static C_INLINE marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespace}p, signed int currenti, streamIn_t *streamInp, size_t *sizelp) {
   size_t sizel = 0;
+  streamInBool_t streamInBoolb;
 
   if (streamInUtf8_markb(streamInp) == STREAMIN_BOOL_FALSE) {
     return MARPAWRAPPER_BOOL_FALSE;
@@ -1782,7 +1790,7 @@ static C_INLINE marpaWrapperBool_t _${namespace}_${_}b(${namespace}_t *${namespa
   } while (streamInUtf8_nexti(streamInp, &currenti) == STREAMIN_BOOL_TRUE);
 
   if (sizel > 0) {
-    if (streamInUtf8_userMarkPreviousb(streamInp, ${namespace}_${_}) == STREAMIN_BOOL_FALSE) {
+    if (((streamInBoolb == STREAMIN_BOOL_TRUE) ? streamInUtf8_userMarkPreviousb(streamInp, ${namespace}_${_}) : streamInUtf8_userMarkb(streamInp, ${namespace}_${_})) == STREAMIN_BOOL_FALSE) {
       streamInUtf8_currentFromMarkedb(streamInp); /* Cross the fingers */
       return MARPAWRAPPER_BOOL_FALSE;
     } else {
@@ -2152,18 +2160,7 @@ __HEX_END            ~ [0-9A-Fa-f]+
 __SPACE_ANY ~ [\s]+
 :discard ~ __SPACE_ANY
 __[ xml_1_0_test01 ]__
-<?xml version="1.0" standalone="no" ?>
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
-  "http://www.w3.org/TR/REC-html40/loose.dtd">
 <HTML>
-<HEAD>
-<TITLE>A typical HTML file</TITLE>
-</HEAD>
-<BODY>
-  This is the typical structure of an HTML file. It follows
-  the notation of the HTML 4.0 specification, including tags
-  that have been deprecated (hence the "transitional" label).
-</BODY>
 </HTML>
 __[ xml_1_0_test02 ]__
 <dictionary>
