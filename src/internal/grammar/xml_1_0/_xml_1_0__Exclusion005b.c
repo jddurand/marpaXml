@@ -46,7 +46,7 @@ static C_INLINE marpaWrapperBool_t _xml_1_0__Exclusion005b(xml_1_0_t *xml_1_0p, 
 #ifndef MARPAXML_NTRACE
         {
           marpaXmlLog_t *marpaXmlLogp = marpaWrapper_marpaXmlLogp(xml_1_0p->marpaWrapperp);
-          MARPAXML_TRACEX("_xml_1_0__Exclusion005b : Got \"]]>\"");
+          MARPAXML_TRACE0("_xml_1_0__Exclusion005b : Got \"]]>\"");
         }
 #endif
 	break;
