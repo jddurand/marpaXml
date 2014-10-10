@@ -1922,7 +1922,7 @@ static C_INLINE streamInBool_t _streamInUtf8_ICU_Utf16InfoFromIndexesb(streamIn_
     if ((index1l + srcLength) != index2l) {
       STREAMIN_LOGX(MARPAXML_LOGLEVEL_ERROR, "integer overflow at %s:%d", __FILE__, __LINE__);
     } else {
-      ucharBufp = streamInp->streamIn_ICU.ucharBufp + index1l;  /* positionl is in units of UChar */
+      ucharBufp = streamInp->streamIn_ICU.ucharBufp + index1l;  /* index1l is in units of UChar */
 
       if (pp != NULL) {
 	*pp = (const void *) ucharBufp;
