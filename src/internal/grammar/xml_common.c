@@ -7,7 +7,6 @@
 #endif
 
 #include "internal/grammar/xml_common.h"
-#include "marpaXml/String.h"
 #include "internal/DOM_Lexeme.h"
 
 /*****************************/
