@@ -12,8 +12,8 @@
 
 /* File: http://www.w3.org/TR/2004/REC-DOM-Level-3-Core-20040407/dom.idl */
 
-#ifndef MARPAXML_DOM_H
-#define MARPAXML_DOM_H
+#ifndef MARPAXML_API_DOM_H
+#define MARPAXML_API_DOM_H
 
 
 /*
@@ -447,4 +447,4 @@ marpaXml_boolean_t   marpaXml_Document_normalizeDocument(marpaXml_Document_t *th
 marpaXml_boolean_t   marpaXml_Document_renameNode(marpaXml_Document_t *thisp, marpaXml_Node_t *np, marpaXml_String_t *namespaceURIp, marpaXml_String_t *qualifiedNamep, marpaXml_Node_t **nodepp, marpaXml_DOMException_t *exceptionp);
 marpaXml_boolean_t   marpaXml_Document_free(marpaXml_Document_t *thisp);
 
-#endif /* MARPAXML_DOM_H_ */
+#endif /* MARPAXML_API_DOM_H_ */
