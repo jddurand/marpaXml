@@ -519,7 +519,6 @@ sub _termFactorQuantifier {
                $self->{lexemesExact}->{$factor}->{type} == $LEXEME_HEX
               )) {
 	      if (! exists($self->{lexemesExact}->{"$factor$quantifier"})) {
-		  print STDERR "[INFO] Transformation to a lexeme: $symbol ::= $factor$quantifier\n";
                   #
                   # Okay, let's take care of one thing: Marpa does not like lexemes with a zero length.
                   # Therefore, if the quantifier is '*', we create a lexeme as if it was '+' and
@@ -941,7 +940,7 @@ sub generateTypedef {
 	;
     $i++;
     $rc;
-  } @{$value->{rules}};
+  } sort {$a->{lhs} cmp $b->{lhs}} @{$value->{rules}};
   $typedef .= join("\n", @rules) . "\n";
   $typedef .= "  ${NAMESPACE}_RULE_MAX /* $i ! */\n";
   $typedef .= "} ${namespace}_rule_t;\n";
