@@ -28,27 +28,23 @@ typedef enum xml_common_dtdType {
 /* We define structures that correspond to the DTD hierarchy, i.e.: */
 
 typedef struct xml_common_option {
-  xml_common_top_t xml_common_topi;
-  char            *encodings;
+  xml_common_top_t xml_common_topi; /* Default: XML_COMMON_TOP_DOCUMENT */
+  char            *encodings;       /* Default: NULL                    */
+  marpaXmlLog_t   *marpaXmlLogp;    /* Default: NULL                    */
 } xml_common_option_t;
 
 /* We use a small number because more is not useful: this tracking is here just to avoid calls to streamInUtf8_nexti() when we */
 /* we are checking lexemes of string type. */
 #define XML_COMMON_LAST_UTF8_TRACKSIZE 20
-typedef struct xml_common_work {
-  unsigned long long linel;
-  unsigned long long columnl;
-  unsigned long long deltaLinel;
-  unsigned long long deltaColumnl;
-  marpaXml_Lexeme_t *lexemep;
-} xml_common_work_t;
-
+typedef struct xml_common xml_common_t;
 typedef marpaWrapperBool_t (*xml_common_isLexemeb_t)(void *marpaWrapperSymbolOptionDatavp, size_t *sizelp);
 
-marpaWrapperBool_t xml_common_isLexemeb(xml_common_work_t *xml_common_workp, xml_common_isLexemeb_t xml_common_isLexemebp, void *marpaWrapperSymbolOptionDatavp, size_t *sizelp);
-marpaWrapperBool_t xml_common_optionDefaultb(xml_common_option_t *xml_common_optionp);
-marpaWrapperBool_t xml_common_lexemeValueb(xml_common_work_t *xml_common_workp, marpaWrapper_t *marpaWrapperp, streamIn_t *streamInp, int *lexemeValueip, int *lexemeLengthip);
-marpaWrapperBool_t xml_common_readerb(xml_common_work_t *xml_common_workp, marpaWrapper_t *marpaWrapperp, streamIn_t *streamInp, signed int *currentip, marpaWrapperBool_t *endOfInputbp);
+xml_common_t      *xml_common_new(xml_common_option_t *xml_common_optionp);
+marpaXml_boolean_t xml_common_isLexemeb(xml_common_t *xml_commonp, xml_common_isLexemeb_t xml_common_isLexemebp, void *marpaWrapperSymbolOptionDatavp, size_t *sizelp);
+marpaXml_boolean_t xml_common_optionDefaultb(xml_common_option_t *xml_common_optionp);
+marpaXml_boolean_t xml_common_lexemeValueb(xml_common_t *xml_commonp, marpaWrapper_t *marpaWrapperp, streamIn_t *streamInp, int *lexemeValueip, int *lexemeLengthip);
+marpaXml_boolean_t xml_common_readerb(xml_common_t *xml_commonp, marpaWrapper_t *marpaWrapperp, streamIn_t *streamInp, signed int *currentip, marpaWrapperBool_t *endOfInputbp);
+void               xml_common_free(xml_common_t **xml_commonpp);
 
 #endif /* MARPAXML_INTERNAL_GRAMMAR_XML_COMMON_H */
 

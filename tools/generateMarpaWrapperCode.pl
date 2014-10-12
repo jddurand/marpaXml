@@ -149,23 +149,31 @@ sub _rules {
       }
   }
 
+  #
+  # Grammar optimization has two steps:
+  # - Reduce number of symbols
+  # - Reduce number of lexemes
+  #
+  $self->{reQuantifiedSymbols} = {};
   my $replaced;
   do {
       $replaced = 0;
-      #
-      # If a rule depend on a single lexeme, and this lexeme is not accessed everywhere else then
-      # the rule becomes this lexeme
-      #
       foreach (0..$#{$self->{rules}}) {
 	  my $irule = $_;
 	  my $rule = $self->{rules}->[$irule];
 	  my $lhs = $rule->{lhs};
 	  next if ($#{$rule->{rhs}} != 0);
-	  next if ($rule->{quantifier});   # Quantified lexemes do really require a rule
-	  
 	  my $rhs = $rule->{rhs}->[0];
 	  next if (! $self->{symbols}->{$rhs}->{terminal});
 	  next if (! exists($self->{lexemesExact}->{$rhs}));  # Then it is an exclusion, always done by hand
+	  #
+	  # We search for rule that has a single terminal on its RHS and that has NO alternative
+	  # ------------------------------------------------------------------------------------
+	  my $quantifier = $rule->{quantifier};
+	  if ($quantifier) {
+	      my $many = sprintf('%s_%s', $rhs, 'many');
+	      next if (exists($self->{reQuantifiedSymbols}->{$many}));
+	  }
 
 	  my $ok = 1;
 	  foreach (0..$#{$self->{rules}}) {
@@ -181,7 +189,8 @@ sub _rules {
 	      
 	      foreach (@{$rule2->{rhs}}) {
 		  my $rhs2 = $_;
-		  if ($rhs2 eq $rhs) {
+		  my $quantifier2 = $rule2->{quantifier};
+		  if ($rhs2 eq $rhs && $quantifier2 eq $quantifier) {
 		      $found = 1;
 		      last;
 		  }
@@ -191,21 +200,41 @@ sub _rules {
 		  last;
 	      }
 	  }
+
 	  if ($ok) {
-	      my $content = $self->{symbols}->{$rhs}->{content};
-	      print STDERR "Replacing LHS of $content by $lhs\n";
-	      $self->{symbols}->{$lhs} = $self->{symbols}->{$rhs};
-	      $self->{symbols}->{$lhs}->{content} =~ s/$rhs/$lhs/;
-	      delete($self->{symbols}->{$rhs});
-	      $rule->{rhs}->[0] = $lhs;
-	      $self->{lexemes}->{$lhs} = $self->{lexemes}->{$rhs};
-	      splice(@{$self->{rules}}, $irule, 1);
-	      delete($self->{lexemes}->{$rhs});
-	      if (exists($self->{lexemesExact}->{$rhs})) {
-		  $self->{lexemesExact}->{$lhs} = $self->{lexemesExact}->{$rhs};
-		  delete($self->{lexemesExact}->{$rhs});
+	      if (! $quantifier) {
+		  my $content = $self->{symbols}->{$rhs}->{content};
+		  print STDERR "[INFO] Replacing LHS of $content by $lhs\n";
+		  $self->{symbols}->{$lhs} = $self->{symbols}->{$rhs};
+		  $self->{symbols}->{$lhs}->{content} =~ s/$rhs/$lhs/;
+		  print STDERR "[INFO] Deleting $rhs, replaced by $lhs\n";
+		  delete($self->{symbols}->{$rhs});
+		  $rule->{rhs}->[0] = $lhs;
+		  $self->{lexemes}->{$lhs} = $self->{lexemes}->{$rhs};
+		  delete($self->{lexemes}->{$rhs});
+		  if (exists($self->{lexemesExact}->{$rhs})) {
+		      $self->{lexemesExact}->{$lhs} = $self->{lexemesExact}->{$rhs};
+		      delete($self->{lexemesExact}->{$rhs});
+		  }
+		  $replaced = 1;
+	      } else {
+		  print STDERR "[INFO] Optimizing $rhs$quantifier definition\n";
+		  #
+		  # There is no destruction or rule, just a change of type, and $self->_termFactorQuantifier() will take care of that
+		  # We just have to force it to use our symbol name, and to remove its internal traking of quantified symbols
+		  # We also have to do this only ONCE.
+		  #
+		  my $many = sprintf('%s_%s', $rhs, 'many');
+		  $self->{reQuantifiedSymbols}->{$many} = 1;
+		  delete($self->{quantifiedSymbols}->{$many});
+		  if ($quantifier eq '*') {
+		      my $any = sprintf('%s_%s', $rhs, 'any');
+		      delete($self->{quantifiedSymbols}->{$any});
+		  }
+		  $self->_termFactorQuantifier($rhs, $quantifier, $lhs, 1);
+		  $replaced = 1;
 	      }
-	      $replaced = 1;
+	      splice(@{$self->{rules}}, $irule, 1);
 	      #
 	      # Since we maintained a mapping giving $irule, we check the impact of its removal
 	      #
@@ -316,6 +345,7 @@ sub _constraints {
   # We just merge everything in a single hash, respecting the order of appearance
   #
   my %hash = ();
+  return \%hash; # JDD TO REMOVE
   foreach (@constraints) {
     my ($type) = keys %{$_};
     my ($functionName) = values %{$_};
@@ -473,11 +503,11 @@ sub _hex {
 }
 
 sub _termFactorQuantifier {
-  my ($self, $factor, $quantifier) = @_;
+  my ($self, $factor, $quantifier, $forcedSymbol, $optimizationMode) = @_;
 
   my $symbol;
   if ($quantifier eq '*' || $quantifier eq '+') {
-      $symbol = sprintf('%s_%s', $factor, ($quantifier eq '*') ? 'any' : 'many');
+      $symbol = $forcedSymbol || sprintf('%s_%s', $factor, ($quantifier eq '*') ? 'any' : 'many');
       if (! exists($self->{quantifiedSymbols}->{$symbol})) {
 	  $self->{quantifiedSymbols}->{$symbol}++;
 	  if (exists($self->{lexemesExact}->{$factor}) &&
@@ -497,21 +527,35 @@ sub _termFactorQuantifier {
                   #
                   my $thisQuantifier = $quantifier;
                   my $thisSymbol = $symbol;
+		  my $thisContent = "$self->{lexemes}->{$factor}$thisQuantifier";
                   if ($quantifier eq '*') {
                     $thisQuantifier = '+';
                     $thisSymbol = sprintf('%s_%s', $factor, 'many');
                   }
                   print STDERR "[INFO] Transformation to a lexeme: $thisSymbol ::= $factor$thisQuantifier\n";
-                  $self->_factor("$self->{lexemes}->{$factor}$thisQuantifier", $self->{lexemesExact}->{$factor}->{type}, $self->{lexemesExact}->{$factor}->{value}, $thisQuantifier, $thisSymbol);
+                  $self->_factor($thisContent, $self->{lexemesExact}->{$factor}->{type}, $self->{lexemesExact}->{$factor}->{value}, $thisQuantifier, $thisSymbol);
+		  if ($optimizationMode) {
+		      #
+		      # We are not in the lexer phase but in the optimization mode
+		      #
+		      $self->{symbols}->{$thisSymbol} = {terminal => 1, content => $thisContent};
+		  }
                   if ($quantifier eq '*') {
-                    my $newSymbol = sprintf('_Gen%03d', 1 + (scalar @{$self->{rules}}));
+                    my $newSymbol = $forcedSymbol || sprintf('_Gen%03d', 1 + (scalar @{$self->{rules}}));
                     print STDERR "[INFO] Using a nullable symbol for: $symbol ::= $factor$quantifier, i.e. $newSymbol ::= $thisSymbol; $newSymbol ::= ;\n";
                     $self->_rule(undef, $newSymbol, '::=', [ [ [ $thisSymbol ] , {} ] ]);
                     $self->_rule(undef, $newSymbol, '::=', [ [ [] , {} ] ]);
                     #
                     # For the return
                     #
+		    my $content = "$thisSymbol || ;";
                     $symbol = $newSymbol;
+		    if ($optimizationMode) {
+			#
+			# We are not in the lexer phase but in the optimization mode
+			#
+			$self->{symbols}->{$symbol} = {terminal => 0, content => $content};
+		    }
                   }
 		  if (--$self->{lexemesExact}->{$factor}->{usage} == 0) {
 		      delete($self->{lexemes}->{$factor});
@@ -714,8 +758,8 @@ INCLUDES
 
   if ($namespace =~ /^xml/) {
   $c .= <<DECLARATIONS;
-static C_INLINE marpaWrapperBool_t _${namespace}_buildGrammarb(${namespace}_t *${namespace}p, marpaWrapperOption_t *marpaWrapperOptionp, xml_common_option_t *xml_common_optionp);
-static C_INLINE marpaWrapperBool_t _${namespace}_buildSymbolsb(${namespace}_t *${namespace}p, marpaWrapperOption_t *marpaWrapperOptionp, xml_common_option_t *xml_common_optionp);
+static C_INLINE marpaWrapperBool_t _${namespace}_buildGrammarb(${namespace}_t *${namespace}p, marpaWrapperOption_t *marpaWrapperOptionp);
+static C_INLINE marpaWrapperBool_t _${namespace}_buildSymbolsb(${namespace}_t *${namespace}p, marpaWrapperOption_t *marpaWrapperOptionp);
 static C_INLINE marpaWrapperBool_t _${namespace}_readerb(void *readerCallbackDatavp, marpaWrapperBool_t *endOfInputbp);
 DECLARATIONS
   } else {
@@ -935,7 +979,8 @@ struct $namespace {
   size_t                   marpaWrapperRuleCallbackArrayLengthi;
   streamIn_t              *streamInp;
   signed int               currenti;
-  xml_common_work_t        xml_common_work;
+  xml_common_option_t      xml_common_option;
+  xml_common_t            *xml_commonp;
 };
 
 /* From symbol to string - indexed by ${namespace}_symbol_t */
@@ -998,8 +1043,9 @@ ${namespace}_t *${namespace}_newp(marpaWrapperOption_t *marpaWrapperOptionp, xml
   ${namespace}p->marpaWrapperRuleCallbackArrayLengthi = 0;
   ${namespace}p->streamInp = NULL;
   ${namespace}p->currenti = -1;
+  ${namespace}p->xml_common_option = *xml_common_optionp;
 
-  if (_${namespace}_buildGrammarb(${namespace}p, &marpaWrapperOption, xml_common_optionp) == MARPAWRAPPER_BOOL_FALSE) {
+  if (_${namespace}_buildGrammarb(${namespace}p, &marpaWrapperOption) == MARPAWRAPPER_BOOL_FALSE) {
     ${namespace}_destroyv(&${namespace}p);
   }
 
@@ -1102,14 +1148,14 @@ sub generateBuildGrammarb {
 /**************************/
 /* _${namespace}_buildGrammarb */
 /**************************/
-static C_INLINE marpaWrapperBool_t _${namespace}_buildGrammarb(${namespace}_t *${namespace}p, marpaWrapperOption_t *marpaWrapperOptionp, xml_common_option_t *xml_common_optionp) {
+static C_INLINE marpaWrapperBool_t _${namespace}_buildGrammarb(${namespace}_t *${namespace}p, marpaWrapperOption_t *marpaWrapperOptionp) {
 
   ${namespace}p->marpaWrapperp = marpaWrapper_newp(marpaWrapperOptionp);
   if (${namespace}p->marpaWrapperp == NULL) {
     return MARPAWRAPPER_BOOL_FALSE;
   }
 
-  if (_${namespace}_buildSymbolsb(${namespace}p, marpaWrapperOptionp, xml_common_optionp) == MARPAWRAPPER_BOOL_FALSE) {
+  if (_${namespace}_buildSymbolsb(${namespace}p, marpaWrapperOptionp) == MARPAWRAPPER_BOOL_FALSE) {
     return MARPAWRAPPER_BOOL_FALSE;
   }
 
@@ -1197,7 +1243,7 @@ static C_INLINE marpaWrapperBool_t _${namespace}_lexemeValueb(void *marpaWrapper
   }
 
   /* Get and store lexeme value in [marked, current] */
-  rcb = xml_common_lexemeValueb(&(${namespace}_symbol_callbackp->${namespace}p->xml_common_work), ${namespace}_symbol_callbackp->${namespace}p->marpaWrapperp, streamInp, lexemeValueip, lexemeLengthip);
+  rcb = xml_common_lexemeValueb(${namespace}_symbol_callbackp->${namespace}p->xml_commonp, ${namespace}_symbol_callbackp->${namespace}p->marpaWrapperp, streamInp, lexemeValueip, lexemeLengthip);
 
   /* We use the token-per-earleme model, i.e. xml_common_lexemeValueb will put a length of 1. So we leave the string */
   /* at the end of current lexeme */
@@ -1258,7 +1304,7 @@ sub generateRecognizeb {
 static C_INLINE marpaWrapperBool_t _${namespace}_readerb(void *readerCallbackDatavp, marpaWrapperBool_t *endOfInputbp) {
   ${namespace}_t *${namespace}p = (${namespace}_t *) readerCallbackDatavp;
 
-  return xml_common_readerb(&(${namespace}p->xml_common_work), ${namespace}p->marpaWrapperp, ${namespace}p->streamInp, &(${namespace}p->currenti), endOfInputbp);
+  return xml_common_readerb(${namespace}p->xml_commonp, ${namespace}p->marpaWrapperp, ${namespace}p->streamInp, &(${namespace}p->currenti), endOfInputbp);
 }
 
 /**************************/
@@ -1283,18 +1329,19 @@ marpaWrapperBool_t ${namespace}_recognizeb(${namespace}_t *${namespace}p, stream
   marpaWrapperRecognizerOption.symbolToCharsbCallbackp                            = &_${namespace}_symbolToCharsb;
 
   ${namespace}p->streamInp = streamInp;
+  if (xml_common_optionDefaultb(&(${namespace}p->xml_common_option)) == marpaXml_false) {
+    return MARPAWRAPPER_BOOL_FALSE;     
+  }
+  ${namespace}p->xml_common_option.marpaXmlLogp = marpaWrapper_marpaXmlLogp(${namespace}p->marpaWrapperp);
 
-  ${namespace}p->xml_common_work.linel = 0;
-  ${namespace}p->xml_common_work.columnl = 0;
-  ${namespace}p->xml_common_work.lexemep = marpaXml_Lexeme_new();
-
-  if (${namespace}p->xml_common_work.lexemep == NULL) {
-    return MARPAWRAPPER_BOOL_FALSE;
+  ${namespace}p->xml_commonp = xml_common_new(&(${namespace}p->xml_common_option));
+  if (${namespace}p->xml_commonp == NULL) {
+    return MARPAWRAPPER_BOOL_FALSE;     
   }
 
   rcb = marpaWrapper_r_recognizeb(${namespace}p->marpaWrapperp, &marpaWrapperRecognizerOption);
 
-  marpaXml_Lexeme_free(&(${namespace}p->xml_common_work.lexemep));
+  xml_common_free(&(${namespace}p->xml_commonp));
 
   return rcb;
 }
@@ -1452,7 +1499,7 @@ CASENULLINGSYMBOLS
 /**************************/
 /* _${namespace}_buildSymbolsb */
 /**************************/
-static C_INLINE marpaWrapperBool_t _${namespace}_buildSymbolsb(${namespace}_t *${namespace}p, marpaWrapperOption_t *marpaWrapperOptionp, xml_common_option_t *xml_common_optionp) {
+static C_INLINE marpaWrapperBool_t _${namespace}_buildSymbolsb(${namespace}_t *${namespace}p, marpaWrapperOption_t *marpaWrapperOptionp) {
   int                        i;
   marpaWrapperSymbolOption_t marpaWrapperSymbolOption;
 
@@ -1488,7 +1535,7 @@ static C_INLINE marpaWrapperBool_t _${namespace}_buildSymbolsb(${namespace}_t *$
     marpaWrapperSymbolOption.firstChari = ${namespace}_symbol_expectedFirstCharArrayp[i];
 $caseNullingSymbols
     /* Start rule ? */
-    switch (xml_common_optionp->xml_common_topi) {
+    switch (${namespace}p->xml_common_option.xml_common_topi) {
       case XML_COMMON_TOP_DOCUMENT:
         marpaWrapperSymbolOption.startb = (i == ${namespace}_document) ? MARPAWRAPPER_BOOL_TRUE : MARPAWRAPPER_BOOL_FALSE;
         break;

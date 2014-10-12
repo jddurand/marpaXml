@@ -63,6 +63,21 @@
   As confirmed by http://www.cs.ust.hk/~dwood/preprints/xmlRulesRewritten.htm, XML grammar
   start symbol is: document | extParsedEnt | extSubset
 
+  Next there are some cases that generateMarpaWrapper.pl cannot optimize for you
+  but here is the trick: suppose that a rule is an sequenced alternative of lexemes
+  that cannot overlap each other. For example:
+  X ::= ([A-Za-z0-9._] | '-')*
+  then you can rewrite it like that:
+  X ::= [A-Za-z0-9._]*
+  X ::= '-'*
+  or even better:
+  X ::= [A-Za-z0-9._-]*
+
+  For instance:
+  [81]  EncName ::= [A-Za-z] ([A-Za-z0-9._] | '-')*
+  is rewriten to
+  [81]  EncName ::= [A-Za-z] ([A-Za-z0-9._-])*
+
 */
 [0]   start ::= document | extParsedEnt | extSubset
 [1]   document ::= prolog element Misc*
@@ -201,6 +216,7 @@
 [77]  TextDecl ::= '<?xml' VersionInfo? EncodingDecl S? '?>'
 [78]  extParsedEnt ::= TextDecl? content 
 [80]  EncodingDecl ::= S 'encoding' Eq ('"' EncName '"' | "'" EncName "'" )
-[81]  EncName ::= [A-Za-z] ([A-Za-z0-9._] | '-')* /* Encoding name contains only Latin characters */
+/* [81]  EncName ::= [A-Za-z] ([A-Za-z0-9._] | '-')* */ /* Encoding name contains only Latin characters */
+[81]  EncName ::= [A-Za-z] [A-Za-z0-9._\-]* /* Encoding name contains only Latin characters */
 [82]  NotationDecl ::= '<!NOTATION' S Name S (ExternalID | PublicID) S? '>' [VC: Unique Notation Name]
 [83] PublicID ::= 'PUBLIC' S PubidLiteral
