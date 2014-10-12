@@ -95,6 +95,7 @@ marpaXml_boolean_t xml_common_lexemeValueb(xml_common_t *xml_commonp, marpaWrapp
 
   /* Marpa is using an int, and disregard strongly value 0 (which means 'undef' to him) */
   /* JDD START */
+  /*
   if (marpaXml_Lexeme_insertFromUTF16(lexemep, (void *) p, byteLengthl, &id) == marpaXml_false) {
     return marpaXml_false;
   }
@@ -105,6 +106,7 @@ marpaXml_boolean_t xml_common_lexemeValueb(xml_common_t *xml_commonp, marpaWrapp
   }
 
   *lexemeValueip = (int) id;
+  */
   /* JDD END */
 
   MARPAXML_TRACEX("Storing lexeme value at index %d", (int) xml_commonp->nUTF16Infoi);
