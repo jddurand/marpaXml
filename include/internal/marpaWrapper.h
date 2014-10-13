@@ -132,7 +132,7 @@ marpaWrapperBool_t        marpaWrapper_r_startb               (marpaWrapper_t *m
 marpaWrapperBool_t        marpaWrapper_r_alternativeb         (marpaWrapper_t *marpaWrapperp, marpaWrapperSymbol_t *marpaWrapperSymbolp, int value, int length);
 marpaWrapperBool_t        marpaWrapper_r_completeb            (marpaWrapper_t *marpaWrapperp);
 marpaWrapperBool_t        marpaWrapper_r_readb                (marpaWrapper_t *marpaWrapperp, marpaWrapperSymbol_t *marpaWrapperSymbolp, int value, int length);
-marpaWrapperBool_t        marpaWrapper_r_event_activateb      (marpaWrapper_t *marpaWrapperp, marpaWrapperSymbol_t *marpaWrapperSymbolp, marpaWrapperBool_t onb);
+marpaWrapperBool_t        marpaWrapper_r_event_activateb      (marpaWrapper_t *marpaWrapperp, marpaWrapperSymbol_t *marpaWrapperSymbolp, int eventSeti, marpaWrapperBool_t onb);
 marpaWrapperBool_t        marpaWrapper_r_terminals_expectedb  (marpaWrapper_t *marpaWrapperp, size_t *nMarpaWrapperSymbolip, marpaWrapperSymbol_t ***marpaWrapperSymbolppp);
 marpaWrapperBool_t        marpaWrapper_r_terminal_is_expectedb(marpaWrapper_t *marpaWrapperp, marpaWrapperSymbol_t *marpaWrapperSymbolp, marpaWrapperBool_t *isExpectedbp);
 marpaWrapperBool_t        marpaWrapper_r_progressb            (marpaWrapper_t *marpaWrapperp, int starti, int endi, size_t *nmarpaWrapperProgressip, marpaWrapperProgress_t ***marpaWrapperProgressppp);

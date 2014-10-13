@@ -525,7 +525,7 @@ static C_INLINE marpaWrapperSymbol_t *_marpaWrapper_g_addSymbolp(marpaWrapper_t 
 /**********************************/
 /* marpaWrapper_r_event_activateb */
 /**********************************/
-marpaWrapperBool_t marpaWrapper_r_event_activateb(marpaWrapper_t *marpaWrapperp, marpaWrapperSymbol_t *marpaWrapperSymbolp, marpaWrapperBool_t onb) {
+marpaWrapperBool_t marpaWrapper_r_event_activateb(marpaWrapper_t *marpaWrapperp, marpaWrapperSymbol_t *marpaWrapperSymbolp, int eventSeti, marpaWrapperBool_t onb) {
   int booleani = (onb == MARPAWRAPPER_BOOL_TRUE) ? 1 : 0;
 
   if (marpaWrapperp == NULL || marpaWrapperSymbolp == NULL) {
@@ -537,27 +537,23 @@ marpaWrapperBool_t marpaWrapper_r_event_activateb(marpaWrapper_t *marpaWrapperp,
     return MARPAWRAPPER_BOOL_FALSE;
   }
 
-  if ((marpaWrapperSymbolp->marpaWrapperSymbolOption.eventSeti & MARPAWRAPPER_EVENTTYPE_COMPLETED) == MARPAWRAPPER_EVENTTYPE_COMPLETED) {
+  if ((eventSeti & MARPAWRAPPER_EVENTTYPE_COMPLETED) == MARPAWRAPPER_EVENTTYPE_COMPLETED) {
     if (marpa_r_completion_symbol_activate(marpaWrapperp->marpaRecognizerp, marpaWrapperSymbolp->marpaSymbolIdi, booleani) != booleani) {
       MARPAWRAPPER_LOG_MARPA_G_ERROR;
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
-  else if ((marpaWrapperSymbolp->marpaWrapperSymbolOption.eventSeti & MARPAWRAPPER_EVENTTYPE_NULLED) == MARPAWRAPPER_EVENTTYPE_NULLED) {
+  if ((eventSeti & MARPAWRAPPER_EVENTTYPE_NULLED) == MARPAWRAPPER_EVENTTYPE_NULLED) {
     if (marpa_r_nulled_symbol_activate(marpaWrapperp->marpaRecognizerp, marpaWrapperSymbolp->marpaSymbolIdi, booleani) != booleani) {
       MARPAWRAPPER_LOG_MARPA_G_ERROR;
       return MARPAWRAPPER_BOOL_FALSE;
     }
   }
-  else if ((marpaWrapperSymbolp->marpaWrapperSymbolOption.eventSeti & MARPAWRAPPER_EVENTTYPE_PREDICTED) == MARPAWRAPPER_EVENTTYPE_PREDICTED) {
+  if ((eventSeti & MARPAWRAPPER_EVENTTYPE_PREDICTED) == MARPAWRAPPER_EVENTTYPE_PREDICTED) {
     if (marpa_r_prediction_symbol_activate(marpaWrapperp->marpaRecognizerp, marpaWrapperSymbolp->marpaSymbolIdi, booleani) != booleani) {
       MARPAWRAPPER_LOG_MARPA_G_ERROR;
       return MARPAWRAPPER_BOOL_FALSE;
     }
-  }
-  else {
-    MARPAWRAPPER_LOG_ERROR0("Invalid symbol");
-    return MARPAWRAPPER_BOOL_FALSE;
   }
 
   return MARPAWRAPPER_BOOL_TRUE;
