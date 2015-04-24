@@ -51,8 +51,11 @@ void *manageBuf_createp(void ***ppp, size_t *sizeip, size_t wantedNumberi, size_
 #ifdef NULL_IS_ZEROES
   memset(&(pp[origSizei]), 0, (sizei - origSizei) * elementSizei);
 #else
-  for (i = origSizei; i < sizei; i++) {
-    pp[i] = NULL;
+  {
+    int i;
+    for (i = origSizei; i < sizei; i++) {
+      pp[i] = NULL;
+    }
   }
 #endif
 
