@@ -345,7 +345,7 @@ sub _constraints {
   # We just merge everything in a single hash, respecting the order of appearance
   #
   my %hash = ();
-  return \%hash; # JDD TO REMOVE
+
   foreach (@constraints) {
     my ($type) = keys %{$_};
     my ($functionName) = values %{$_};
