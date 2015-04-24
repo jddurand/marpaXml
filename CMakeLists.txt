@@ -19,13 +19,18 @@ ENDIF ()
 
 PROJECT (marpaXml)
 
-# In any case we include our include directories + our sqlite for all targets
-INCLUDE_DIRECTORIES (${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/include/API)
-
 # ---------------------------------------
 # Add current path to modules search path
 # ---------------------------------------
 SET (CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
+
+# -----------------------
+# marpaWrapper dependency
+# -----------------------
+FIND_PACKAGE (marpaWrapper)
+IF (NOT MARPAWRAPPER_FOUND)
+    MESSAGE (FATAL_ERROR "marpaWrapper must be detected")
+ENDIF ()
 
 # --------------
 # ICU dependency
@@ -34,6 +39,9 @@ FIND_PACKAGE (ICU)
 IF (NOT ICU_FOUND)
     MESSAGE (FATAL_ERROR "ICU must be detected")
 ENDIF ()
+
+# In any case we include our include directories + our sqlite for all targets
+INCLUDE_DIRECTORIES (${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/include/API ${ICU_INCLUDE_DIRS} ${MARPAWRAPPER_INCLUDE_DIR})
 
 # ----------------
 # Check for inline
@@ -56,7 +64,7 @@ SET (CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS_INIT} $ENV{LDFLAGS} 
 SET (CMAKE_EXE_LINKER_FLAGS    "${CMAKE_EXE_LINKER_FLAGS_INIT} $ENV{LDFLAGS} ${ICU_LDFLAGS}")
 
 IF(CMAKE_BUILD_TYPE MATCHES Release)
-  SET (CMAKE_C_FLAGS           "${CMAKE_C_FLAGS} -DSTREAMIN_NTRACE -DMARPAXML_NTRACE -DMARPAWRAPPER_NTRACE -DSQLITE_NTRANSACTION")
+  SET (CMAKE_C_FLAGS           "${CMAKE_C_FLAGS} -DSTREAMIN_NTRACE -DMARPAXML_NTRACE -DSQLITE_NTRANSACTION")
 ENDIF(CMAKE_BUILD_TYPE MATCHES Release)
 
 # Specific to GCC like family
@@ -183,11 +191,6 @@ SET_PROPERTY (TARGET sqlite APPEND_STRING PROPERTY COMPILE_FLAGS " -DSQLITE_THRE
 # marpaXmlInternal library
 # ------------------------
 ADD_LIBRARY (marpaXml STATIC
-  src/internal/genericStack.c
-  src/internal/marpaWrapper.c
-  src/internal/manageBuf.c
-  src/internal/messageBuilder.c
-  src/internal/dateBuilder.c
   src/internal/streamIn.c
   src/internal/hash.c
   src/internal/grammar/xml_common.c
@@ -339,9 +342,6 @@ CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/include/internal/config.h.in
 # -----------
 # Executables
 # -----------
-ADD_EXECUTABLE        (marpaWrapper_test ${PROJECT_SOURCE_DIR}/test/internal/marpaWrapper_test.c)
-TARGET_LINK_LIBRARIES (marpaWrapper_test marpaXml marpa)
-
 ADD_EXECUTABLE        (streamIn_test ${PROJECT_SOURCE_DIR}/test/internal/streamIn_test.c)
 TARGET_LINK_LIBRARIES (streamIn_test marpaXml)
 
