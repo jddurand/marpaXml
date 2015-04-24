@@ -461,7 +461,7 @@ SET (ICU_CXX_FLAGS_SHARED "${_ICU_CXX_FLAGS_SHARED}" CACHE STRING
   "Required dynamic C++ compile flags when building against ICU")
 
 IF(ICU_FOUND)
-  MESSAGE(STATUS "Found ICU library        : ${ICU_LDFLAGS}")
+  MESSAGE(STATUS "Found ICU library        : ${_ICU_LIBRARIES}")
 ENDIF()
 
 MARK_AS_ADVANCED (
